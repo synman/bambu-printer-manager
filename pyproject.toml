@@ -10,7 +10,7 @@ packages = ["bpm"]
 
 [project]
 name = "bambu-printer-manager"
-version = "0.0.9"
+version = "0.0.10"
 authors = [
   { name="Shell M. Shrader", email="shell@shellware.com" },
 ]
@@ -29,4 +29,4 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/synman/bambu-printer-manager"
-Issues = "https://github.com/pypa/bambu-printer-manager/issues"
+Issues = "https://github.com/synman/bambu-printer-manager/issues"
