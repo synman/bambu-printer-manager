@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["bpm"]
+
+[tool.setuptools.package-data]
+"*" = ["*.json"]
+
+[project]
+name = "bambu-printer-manager"
+version = "0.0.9"
+authors = [
+  { name="Shell M. Shrader", email="shell@shellware.com" },
+]
+description = "A pure python library for managing Bambu Labs printers"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: Freely Distributable",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+  "webcolors",
+  "paho-mqtt",
+]
+
+[project.urls]
+Homepage = "https://github.com/synman/bambu-printer-manager"
+Issues = "https://github.com/pypa/bambu-printer-manager/issues"
