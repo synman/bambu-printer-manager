@@ -1,6 +1,6 @@
-# bambu-printer-manager
+[![PyPI version](https://badge.fury.io/py/bambu-printer-manager.svg)](https://badge.fury.io/py/bambu-printer-manager)
 
-## `bambu-printer-manager` is an all in one pure python wrapper for interacting with and managing Bambu Labs printers.
+## bambu-printer-manager is an all in one pure python wrapper for interacting with and managing Bambu Labs printers.
 
 ### Installation
 `pip install bambu-printer-manager`
