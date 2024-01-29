@@ -8,7 +8,7 @@ import time
 from .bambucommands import *
 from .bambuspool import BambuSpool
 from .bambutools import PrinterState
-from .bambutools import parseStage
+from .bambutools import parseStage, parseFan
 from .bambuconfig import BambuConfig
 
 import os
@@ -41,6 +41,7 @@ class BambuPrinter:
         self._fan_gear = 0
         self._heatbreak_fan_speed = 0
         self._fan_speed = 0
+        self._fan_speed_target = 0
 
         self._light_state = "N/A"
         self._wifi_signal = "N/A"
@@ -162,14 +163,16 @@ class BambuPrinter:
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
         logger.debug(f"published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request]", extra={"gcode": gcode})
 
-    def print_3mf_file(self, name, bed, ams):
+    def print_3mf_file(self, name, bed, ams, bedlevel=True, flow=True, timelapse=False):
         file = PRINT_3MF_FILE
         file["print"]["file"] = f"{name}.gcode.3mf"
         file["print"]["url"] = f"file:///sdcard/{name}.gcode.3mf"
         file["print"]["subtask_name"] = name[name.rindex("/") + 1::]
-        if bed == "1":
+        if bed == "0":
+            file["print"]["bed_type"] = "auto"
+        elif bed == "1":
             file["print"]["bed_type"] = "hot_plate"
-        else:
+        elif bed == "2":
             file["print"]["bed_type"] = "textured_plate"
         if len(ams) > 2:
             file["print"]["use_ams"] = True
@@ -177,6 +180,9 @@ class BambuPrinter:
         else:
             file["print"]["use_ams"] = False
             file["print"]["ams_mapping"] = ""
+        file["print"]["bed_leveling"] = bedlevel
+        file["print"]["flow_cali"] = flow
+        file["print"]["timelapse"] = timelapse
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(file))
         logger.debug(f"published PRINT_3MF_FILE to [device/{self.config.serial_number}/request]", extra={"3mf_name": name, "bed": bed, "ams": ams})
 
@@ -192,6 +198,10 @@ class BambuPrinter:
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(RESUME_PRINT))
         logger.debug(f"published RESUME_PRINT to [device/{self.config.serial_number}/request]")
 
+
+    def toJson(self):
+        response = json.dumps(self, default=self.jsonSerializer, indent=4, sort_keys=True)
+        return json.loads(response)
 
     def jsonSerializer(self, obj):
         try:
@@ -235,7 +245,7 @@ class BambuPrinter:
 
             if "fan_gear" in status: self._fan_gear = int(status["fan_gear"])
             if "heatbreak_fan_speed" in status: self._heatbreak_fan_speed = int(status["heatbreak_fan_speed"])
-            if "cooling_fan_speed" in status: self._fan_speed = int(status["cooling_fan_speed"])
+            if "cooling_fan_speed" in status: self._fan_speed = parseFan(int(status["cooling_fan_speed"]))
 
             if "wifi_signal" in status: self._wifi_signal = status["wifi_signal"] 
             if "lights_report" in status: self._light_state = (status["lights_report"])[0]["mode"]
@@ -406,8 +416,13 @@ class BambuPrinter:
     @property 
     def fan_speed(self):
         return self._fan_speed
-    @fan_speed.setter 
-    def fan_speed(self, value):
+
+    @property 
+    def fan_speed_target(self):
+        return self._fan_speed_target
+    @fan_speed_target.setter 
+    def fan_speed_target(self, value):
+        self._fan_speed_target = value
         speed = round(value * 2.55, 0)
         gcode = SEND_GCODE_TEMPLATE
         gcode["print"]["param"] = f"M106 P1 S{speed}\nM106 P2 S{speed}\nM106 P3 S{speed}\n"
@@ -443,7 +458,7 @@ class BambuPrinter:
     @speed_level.setter 
     def speed_level(self, value):
         cmd = SPEED_PROFILE_TEMPLATE
-        cmd["print"]["param"] = value
+        cmd["print"]["param"] = str(value)
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
 
     @property 
