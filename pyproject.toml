@@ -10,13 +10,13 @@ packages = ["bpm"]
 
 [project]
 name = "bambu-printer-manager"
-version = "0.0.12"
+version = "0.0.13"
 authors = [
   { name="Shell M. Shrader", email="shell@shellware.com" },
 ]
 description = "A pure python library for managing Bambu Labs printers"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.12.1"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: Freely Distributable",
