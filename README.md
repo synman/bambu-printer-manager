@@ -2,6 +2,10 @@
 
 ## bambu-printer-manager is an all in one pure python wrapper for interacting with and managing Bambu Labs printers.
 
+### Dependencies
+```
+Python 3.12.1+
+```
 ### Installation
 `pip install bambu-printer-manager`
 ### Imports
@@ -242,7 +246,7 @@ Returns the currect GCode processing state of the printer.  Can be `IDLE`, `RUNN
 Returns the current active gcode / 3mf filename and can be set to trigger execution of a gcode (.gcode only) file on the printer's SDCard.
 
 `spools` (getter only)
-Returns a `List` of `BambuSpool` objects currently active on the Printer.  The `id` attributes in the `BambuSpool` objects correspond to the `active_spool`, `target_spool`, `slot`, etc references you see within `BambuPrinter`.
+Returns a `Tuple` of `BambuSpool` objects currently active on the Printer.  The `id` attributes in the `BambuSpool` objects correspond to the `active_spool`, `target_spool`, `slot`, etc references you see within `BambuPrinter`.
 
 ######Listing not complete - more to come soon
 
@@ -264,7 +268,7 @@ verbose=False
 Setting `verbose` to `True` will enable (exhaustive) file and stdout logging
 
 ## BambuSpool
-`BambuSpool` is the value object used for reporting on the spools currently available for use with your printer and is returned as a `List` from the `BambuPrinter` `spools` property. 
+`BambuSpool` is the value object used for reporting on the spools currently available for use with your printer and is returned as a `Tuple` from the `BambuPrinter` `spools` property. 
 
 The `id` attributes (base 0) correspond to the AMS / AMS-lite loaded spools as well as the External feeder `id=254`.
 ### Properties
