@@ -274,7 +274,7 @@ class BambuPrinter:
                         tray_color = hex_to_name("#" + tray["tray_color"][:6])
                     except:
                         try:
-                            tray_color = tray["tray_color"]
+                            tray_color = "#" + tray["tray_color"]
                         except:
                             tray_color = "N/A"
                     
@@ -288,7 +288,7 @@ class BambuPrinter:
                     tray_color = hex_to_name("#" + tray["tray_color"][:6])
                 except:
                     try:
-                        tray_color = tray["tray_color"]
+                        tray_color = "#" + tray["tray_color"]
                     except:
                         tray_color = "N/A"
 

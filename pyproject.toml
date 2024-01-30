@@ -10,7 +10,7 @@ packages = ["bpm"]
 
 [project]
 name = "bambu-printer-manager"
-version = "0.0.11rc4"
+version = "0.0.12"
 authors = [
   { name="Shell M. Shrader", email="shell@shellware.com" },
 ]
