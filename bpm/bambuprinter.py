@@ -63,6 +63,7 @@ class BambuPrinter:
         self._active_spool = 255
         self._spool_state = "N/A"
         self._ams_status = None
+        self._ams_exists = False
 
     def start_session(self):
         logger.debug("session start_session")
@@ -232,6 +233,9 @@ class BambuPrinter:
         threading.Thread(target=watchdog_thread, name="bambuprinter-session-watchdog", args=(self,)).start()
 
     def _on_message(self, message):
+        if self.config.verbose:
+            print("\r" + json.dumps(message, indent=4, sort_keys=True).replace("\n", "\r\n") + "\r")
+
         if "system" in message:
             system = message["system"]
 
@@ -266,21 +270,22 @@ class BambuPrinter:
                 print(json.dumps(message, indent=4, sort_keys=True).replace("\n", "\r\n"))
 
             if "ams" in status and "ams" in status["ams"]:
-                spools = []
-                ams = (status["ams"]["ams"])[0]
-                # print(json.dumps(status, indent=4, sort_keys=True).replace("\n", "\r\n"))
-                for tray in ams["tray"]:
-                    try:
-                        tray_color = hex_to_name("#" + tray["tray_color"][:6])
-                    except:
+                self._ams_exists = int(status["ams"]["ams_exist_bits"]) == 1
+                if self._ams_exists:
+                    spools = []
+                    ams = (status["ams"]["ams"])[0]
+                    for tray in ams["tray"]:
                         try:
-                            tray_color = "#" + tray["tray_color"]
+                            tray_color = hex_to_name("#" + tray["tray_color"][:6])
                         except:
-                            tray_color = "N/A"
-                    
-                    spool = BambuSpool(int(tray["id"]),  tray["tray_id_name"] if "tray_id_name" in tray else "",  tray["tray_type"] if "tray_type" in tray else "", tray["tray_sub_brands"] if "tray_sub_brands" in tray else "", tray_color)
-                    spools.append(spool)
-                self._spools = tuple(spools)
+                            try:
+                                tray_color = "#" + tray["tray_color"]
+                            except:
+                                tray_color = "N/A"
+                        
+                        spool = BambuSpool(int(tray["id"]),  tray["tray_id_name"] if "tray_id_name" in tray else "",  tray["tray_type"] if "tray_type" in tray else "", tray["tray_sub_brands"] if "tray_sub_brands" in tray else "", tray_color)
+                        spools.append(spool)
+                    self._spools = tuple(spools)
 
             if "vt_tray" in status:
                 tray = status["vt_tray"]
@@ -344,9 +349,6 @@ class BambuPrinter:
         if self.on_update: self.on_update(self)
 
         logger.debug("message processed", extra={"bambu_msg": message})
-        if self.config.verbose:
-            print("\r" + json.dumps(message, indent=4, sort_keys=True).replace("\n", "\r\n") + "\r")
-
 
     @property 
     def config(self):
@@ -519,6 +521,10 @@ class BambuPrinter:
     @property 
     def ams_status(self):
         return self._ams_status
+
+    @property 
+    def ams_exists(self):
+        return self._ams_exists
 
 
 def setup_logging():
