@@ -5,9 +5,13 @@
 ### Dependencies
 ```
 Python 3.12.1+
+
+* webcolors and paho-mqtt install automatically 
 ```
 ### Installation
-`pip install bambu-printer-manager`
+```
+pip install bambu-printer-manager
+```
 ### Imports
 ```py
 from bpm.bambuconfig import BambuConfig
