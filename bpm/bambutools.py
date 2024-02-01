@@ -57,6 +57,7 @@ def parseFan(fan):
     return 0
 
 class PrinterState(Enum):
+    NO_STATE = 0,
     CONNECTED = 1,
     DISCONNECTED = 2,
     PAUSED = 3,

@@ -4,6 +4,7 @@ import paho.mqtt.client as mqtt
 import threading
 import ssl
 import time
+import traceback
 
 from .bambucommands import *
 from .bambuspool import BambuSpool
@@ -24,9 +25,10 @@ class BambuPrinter:
 
         self._internalException = None
         self._lastMessageTime = None
+        self._recent_update = False
 
         self._config = config
-        self._state = PrinterState.QUIT
+        self._state = PrinterState.NO_STATE
 
         self._client = None
         self._on_update = None
@@ -43,25 +45,25 @@ class BambuPrinter:
         self._fan_speed = 0
         self._fan_speed_target = 0
 
-        self._light_state = "N/A"
-        self._wifi_signal = "N/A"
+        self._light_state = ""
+        self._wifi_signal = ""
         self._speed_level = 0
 
-        self._gcode_state = "N/A"
-        self._gcode_file = "N/A"
-        self._print_type = "N/A"
+        self._gcode_state = ""
+        self._gcode_file = ""
+        self._print_type = ""
         self._percent_complete = 0
         self._time_remaining = 0
         self._layer_count = 0
         self._current_layer = 0
         
         self._current_stage = 0
-        self._current_stage_text = "N/A"
+        self._current_stage_text = ""
 
         self._spools = ()
         self._target_spool = 255
         self._active_spool = 255
-        self._spool_state = "N/A"
+        self._spool_state = ""
         self._ams_status = None
         self._ams_exists = False
 
@@ -87,9 +89,11 @@ class BambuPrinter:
             if self.state != PrinterState.PAUSED:
                 self.state = PrinterState.DISCONNECTED
         def on_message(client, userdata, msg):
-            if self._lastMessageTime: self._lastMessageTime = time.time()
+            logger.debug("session on_message", extra={"state": self.state.name})
+            if self._lastMessageTime and self._recent_update: self._lastMessageTime = time.time()
             self._on_message(json.loads(msg.payload.decode("utf-8")))
         def loop_forever(printer):
+            logger.debug("session loop_forever")
             try:
                 printer.client.loop_forever(retry_first_connection=True)            
             except Exception as e:
@@ -115,7 +119,7 @@ class BambuPrinter:
             self.client.connect(self.config.hostname, self.config.mqtt_port, 60)
         except Exception as e:
             self._internalException = e
-            logger.exception("unable to connect to printer")
+            logger.warning(f"unable to connect to printer - reason: {e}", extra={"exception": traceback.format_exc()})
             self.state = PrinterState.QUIT
             return
 
@@ -143,7 +147,7 @@ class BambuPrinter:
             self.client.disconnect()
             while self.state != PrinterState.QUIT:
                 time.sleep(.1)
-            logger.debug("mqtt client was connected")
+            logger.debug("mqtt client was connected and is now disconnected")
         else:
             self.state == PrinterState.QUIT
             logger.debug("mqtt client was already disconnected")
@@ -228,9 +232,10 @@ class BambuPrinter:
                 while printer.state != PrinterState.QUIT:
                     if printer.state == PrinterState.CONNECTED and (printer._lastMessageTime is None or printer._lastMessageTime + 15 < time.time()):
                         if printer._lastMessageTime: logger.warn("BambuPrinter watchdog timeout")
+                        printer._lastMessageTime = time.time()
+                        printer._recent_update = False
                         printer.client.publish(f"device/{printer.config.serial_number}/request", json.dumps(ANNOUNCE_PUSH))
                         printer.client.publish(f"device/{printer.config.serial_number}/request", json.dumps(ANNOUNCE_VERSION))
-                        printer._lastMessageTime = time.time()
                     time.sleep(.1)
             except Exception as e:
                 logger.exception("an internal exception occurred")
@@ -342,6 +347,7 @@ class BambuPrinter:
                     self._spool_state = "Loaded"
                     
         elif "info" in message and "result" in message["info"] and message["info"]["result"] == "success": 
+            self._recent_update = True
             info = message["info"]
             for module in info["module"]:
                 if "ota" in module["name"]: 
@@ -350,7 +356,7 @@ class BambuPrinter:
                 if "ams" in module["name"]:
                     self.config.ams_firmware_version = module["sw_ver"]
         else:
-            print(json.dumps(message, indent=4, sort_keys=True).replace("\n", "\r\n"))
+            logger.warn("unknown message type received")
             
         if self.on_update: self.on_update(self)
 
@@ -381,6 +387,10 @@ class BambuPrinter:
     @on_update.setter 
     def on_update(self, value):
         self._on_update = value
+
+    @property 
+    def recent_update(self):
+        return self._recent_update
 
     @property 
     def bed_temp(self):
