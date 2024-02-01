@@ -26,7 +26,7 @@ class BambuPrinter:
         self._lastMessageTime = None
 
         self._config = config
-        self._state = PrinterState
+        self._state = PrinterState.QUIT
 
         self._client = None
         self._on_update = None
@@ -111,7 +111,14 @@ class BambuPrinter:
         self.client.username_pw_set(self.config.mqtt_username, password=self.config.access_code)
         self.client.user_data_set(self.config.mqtt_client_id)
 
-        self.client.connect(self.config.hostname, self.config.mqtt_port, 60)
+        try:
+            self.client.connect(self.config.hostname, self.config.mqtt_port, 60)
+        except Exception as e:
+            self._internalException = e
+            logger.exception("unable to connect to printer")
+            self.state = PrinterState.QUIT
+            return
+
         threading.Thread(target=loop_forever, name="bambuprinter-session", args=(self,)).start()
 
         self._start_watchdog()
@@ -233,8 +240,7 @@ class BambuPrinter:
         threading.Thread(target=watchdog_thread, name="bambuprinter-session-watchdog", args=(self,)).start()
 
     def _on_message(self, message):
-        if self.config.verbose:
-            print("\r" + json.dumps(message, indent=4, sort_keys=True).replace("\n", "\r\n") + "\r")
+        logger.debug("_on_message", extra={"bambu_msg": message})
 
         if "system" in message:
             system = message["system"]
@@ -267,7 +273,7 @@ class BambuPrinter:
                 self._current_stage_text = parseStage(self._current_stage)
 
             if "command" in status and status["command"] == "project_file":
-                print(json.dumps(message, indent=4, sort_keys=True).replace("\n", "\r\n"))
+                logger.debug("project_file request acknowledged")
 
             if "ams" in status and "ams" in status["ams"]:
                 self._ams_exists = int(status["ams"]["ams_exist_bits"]) == 1
@@ -347,8 +353,6 @@ class BambuPrinter:
             print(json.dumps(message, indent=4, sort_keys=True).replace("\n", "\r\n"))
             
         if self.on_update: self.on_update(self)
-
-        logger.debug("message processed", extra={"bambu_msg": message})
 
     @property 
     def config(self):
@@ -525,6 +529,10 @@ class BambuPrinter:
     @property 
     def ams_exists(self):
         return self._ams_exists
+
+    @property 
+    def internalException(self):
+        return self._internalException
 
 
 def setup_logging():
