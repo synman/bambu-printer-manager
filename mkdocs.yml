@@ -1,0 +1,58 @@
+site_name: bambu-printer-manager
+site_url: https://github.com/synman/bambu-printer-manager
+repo_url: https://github.com/synman/bambu-printer-manager/
+nav:
+  - Home: index.md
+  - About: about.md
+  - License: license.md
+  - Code Reference: reference/
+theme: 
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - toc.integrate
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotation
+    - content.code.copy  
+  language: en
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/toggle-switch-off-outline 
+        name: Switch to dark mode
+      primary: teal
+      accent: purple 
+    - scheme: slate 
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode    
+      primary: teal
+      accent: lime
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+plugins:
+- search
+- gen-files:
+    scripts:
+    - docs/scripts/gen_ref_pages.py 
+- literate-nav:
+    nav_file: SUMMARY.md
+- section-index
+- mkdocstrings:
+    default_handler: python
+    handlers:
+      python:
+        setup_commands:
+            - import sys
+            - sys.path.append('../')
+        selection:
+            new_path_syntax: true      
+        paths: [bpm]
+        options:
+          show_source: false
