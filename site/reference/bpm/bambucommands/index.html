@@ -8,26 +8,28 @@
       
       
       
-        <link rel="canonical" href="https://github.com/synman/bambu-printer-manager/">
+        <link rel="canonical" href="https://github.com/synman/bambu-printer-manager/reference/bpm/bambucommands/">
       
       
+        <link rel="prev" href="../../../license/">
       
-        <link rel="next" href="license/">
+      
+        <link rel="next" href="../bambuconfig/">
       
       
-      <link rel="icon" href="assets/images/favicon.png">
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.7">
     
     
       
-        <title>bambu-printer-manager</title>
+        <title>bambucommands - bambu-printer-manager</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.f2e4d321.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.f2e4d321.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -46,9 +48,9 @@
       
     
     
-      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -74,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#bambu-printer-manager" class="md-skip">
+        <a href="#bpm.bambucommands" class="md-skip">
           Skip to content
         </a>
       
@@ -88,7 +90,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="bambu-printer-manager" class="md-header__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
+    <a href="../../.." title="bambu-printer-manager" class="md-header__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -108,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Home
+              bambucommands
             
           </span>
         </div>
@@ -215,11 +217,9 @@
         
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="." class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
         
   
     
@@ -236,7 +236,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="license/" class="md-tabs__link">
+      <a href="../../../license/" class="md-tabs__link">
         
   
     
@@ -251,17 +251,21 @@
         
   
   
+    
+  
   
     
     
       
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="reference/bpm/bambucommands/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
           
   
   Code Reference
@@ -299,7 +303,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="bambu-printer-manager" class="md-nav__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
+    <a href="../../.." title="bambu-printer-manager" class="md-nav__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -326,30 +330,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Home
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="." class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -358,77 +342,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#project-composition" class="md-nav__link">
-    <span class="md-ellipsis">
-      Project Composition
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Project Composition">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#dependencies" class="md-nav__link">
-    <span class="md-ellipsis">
-      Dependencies
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Installation
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#imports" class="md-nav__link">
-    <span class="md-ellipsis">
-      Imports
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#constructors" class="md-nav__link">
-    <span class="md-ellipsis">
-      Constructor(s)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -440,7 +353,7 @@
   
   
     <li class="md-nav__item">
-      <a href="license/" class="md-nav__link">
+      <a href="../../../license/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -457,8 +370,10 @@
       
   
   
+    
   
   
+  
     
     
     
@@ -467,12 +382,12 @@
       
       
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
@@ -486,7 +401,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Code Reference
@@ -497,8 +412,10 @@
                 
   
   
+    
   
   
+  
     
     
     
@@ -507,12 +424,12 @@
       
       
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" checked>
         
           
           <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="">
@@ -526,7 +443,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3_1">
             <span class="md-nav__icon md-icon"></span>
             bpm
@@ -537,10 +454,28 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="reference/bpm/bambucommands/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    bambucommands
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -549,6 +484,33 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#bpm.bambucommands" class="md-nav__link">
+    <span class="md-ellipsis">
+      bambucommands
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -561,7 +523,7 @@
   
   
     <li class="md-nav__item">
-      <a href="reference/bpm/bambuconfig/" class="md-nav__link">
+      <a href="../bambuconfig/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -582,7 +544,7 @@
   
   
     <li class="md-nav__item">
-      <a href="reference/bpm/bambulogger/" class="md-nav__link">
+      <a href="../bambulogger/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -603,7 +565,7 @@
   
   
     <li class="md-nav__item">
-      <a href="reference/bpm/bambuprinter/" class="md-nav__link">
+      <a href="../bambuprinter/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -624,7 +586,7 @@
   
   
     <li class="md-nav__item">
-      <a href="reference/bpm/bambuspool/" class="md-nav__link">
+      <a href="../bambuspool/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -645,7 +607,7 @@
   
   
     <li class="md-nav__item">
-      <a href="reference/bpm/bambutools/" class="md-nav__link">
+      <a href="../bambutools/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -680,7 +642,7 @@
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="reference/bpm/ftpsclient/__init__/" class="md-nav__link ">
+            <a href="../ftpsclient/__init__/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -711,7 +673,7 @@
   
   
     <li class="md-nav__item">
-      <a href="reference/bpm/ftpsclient/_client/" class="md-nav__link">
+      <a href="../ftpsclient/_client/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -732,7 +694,7 @@
   
   
     <li class="md-nav__item">
-      <a href="reference/bpm/ftpsclient/_version/" class="md-nav__link">
+      <a href="../ftpsclient/_version/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -787,63 +749,34 @@
   
 
 
-<p><a href="https://badge.fury.io/py/bambu-printer-manager"><img alt="PyPI version" src="https://badge.fury.io/py/bambu-printer-manager.svg" /></a></p>
-<h1 id="bambu-printer-manager">bambu-printer-manager</h1>
-<p><code>bambu-printer-manager</code> is an all in one pure python wrapper for interacting with and managing Bambu Labs printers.  </p>
-<h2 id="project-composition">Project Composition</h2>
-<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span class="linenos" data-linenos=" 1 "></span>bpm/  
-<span class="linenos" data-linenos=" 2 "></span>    bambucommands.py            # collection of constants representing Bambu Lab `mqtt` request commands 
-<span class="linenos" data-linenos=" 3 "></span>    bambuconfig.py              # contains the `BambuConfig` class used for storing configuration data
-<span class="linenos" data-linenos=" 4 "></span>    bambulogger.py              # internal class used for logging
-<span class="linenos" data-linenos=" 5 "></span>    bambuprinterlogger.json     # internal configuration file for configuration of logging
-<span class="linenos" data-linenos=" 6 "></span>    bambuprinter.py             # the main `bambu-printer-manager` class `BambuPrinter` lives here
-<span class="linenos" data-linenos=" 7 "></span>    bambuspool.py               # contains the `BambuSpool` class used for storing spool data
-<span class="linenos" data-linenos=" 8 "></span>    bambutools.py               # contains a collection of methods used as tools (mostly internal)
-<span class="linenos" data-linenos=" 9 "></span>
-<span class="linenos" data-linenos="10 "></span>    ftpsclient/
-<span class="linenos" data-linenos="11 "></span>        _client.py              # internal class used for performing `FTPS` operations
-</code></pre></div>
-<h3 id="dependencies">Dependencies</h3>
-<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><a href="#__codelineno-0-1"><span class="linenos" data-linenos="1 "></span></a>Python 3.12.1+
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a><a href="#__codelineno-0-2"><span class="linenos" data-linenos="2 "></span></a>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3"></a><a href="#__codelineno-0-3"><span class="linenos" data-linenos="3 "></span></a>* mkdocstrings, webcolors and paho-mqtt install automatically as predefined dependencies
-</span></code></pre></div>
-<h3 id="installation">Installation</h3>
-<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1"></a><a href="#__codelineno-1-1"><span class="linenos" data-linenos="1 "></span></a>pip install bambu-printer-manager
-</span></code></pre></div>
-<h3 id="imports">Imports</h3>
-<div class="language-py highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1"></a><a href="#__codelineno-2-1"><span class="linenos" data-linenos="1 "></span></a><span class="kn">from</span> <span class="nn">bpm.bambuconfig</span> <span class="kn">import</span> <span class="n">BambuConfig</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2"></a><a href="#__codelineno-2-2"><span class="linenos" data-linenos="2 "></span></a><span class="kn">from</span> <span class="nn">bpm.bambuprinter</span> <span class="kn">import</span> <span class="n">BambuPrinter</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3"></a><a href="#__codelineno-2-3"><span class="linenos" data-linenos="3 "></span></a><span class="kn">from</span> <span class="nn">bpm.bambutools</span> <span class="kn">import</span> <span class="n">PrinterState</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4"></a><a href="#__codelineno-2-4"><span class="linenos" data-linenos="4 "></span></a><span class="kn">from</span> <span class="nn">bpm.bambutools</span> <span class="kn">import</span> <span class="n">parseStage</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5"></a><a href="#__codelineno-2-5"><span class="linenos" data-linenos="5 "></span></a><span class="kn">from</span> <span class="nn">bpm.bambutools</span> <span class="kn">import</span> <span class="n">parseFan</span>
-</span></code></pre></div>
-<h3 id="constructors">Constructor(s)</h3>
-<p><div class="language-py highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1"></a><a href="#__codelineno-3-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">config</span> <span class="o">=</span> <span class="n">BambuConfig</span><span class="p">(</span><span class="n">hostname</span><span class="o">=</span><span class="s2">&quot;{host name}&quot;</span><span class="p">,</span> <span class="n">access_code</span><span class="o">=</span><span class="s2">&quot;{access code}&quot;</span><span class="p">,</span> <span class="n">serial_number</span><span class="o">=</span><span class="s2">&quot;{serial #}&quot;</span><span class="p">)</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2"></a><a href="#__codelineno-3-2"><span class="linenos" data-linenos="2 "></span></a><span class="n">printer</span> <span class="o">=</span> <span class="n">BambuPrinter</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
-</span></code></pre></div>
-or variations such as:
-<div class="language-py highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1"></a><a href="#__codelineno-4-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">config</span> <span class="o">=</span> <span class="n">BambuConfig</span><span class="p">()</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2"></a><a href="#__codelineno-4-2"><span class="linenos" data-linenos="2 "></span></a><span class="n">printer</span> <span class="o">=</span> <span class="n">BambuPrinter</span><span class="p">()</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3"></a><a href="#__codelineno-4-3"><span class="linenos" data-linenos="3 "></span></a>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4"></a><a href="#__codelineno-4-4"><span class="linenos" data-linenos="4 "></span></a><span class="n">config</span><span class="o">.</span><span class="n">hostname</span> <span class="o">=</span> <span class="s2">&quot;{host name}&quot;</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5"></a><a href="#__codelineno-4-5"><span class="linenos" data-linenos="5 "></span></a><span class="n">config</span><span class="o">.</span><span class="n">access_code</span> <span class="o">=</span> <span class="s2">&quot;{access code}&quot;</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6"></a><a href="#__codelineno-4-6"><span class="linenos" data-linenos="6 "></span></a><span class="n">config</span><span class="o">.</span><span class="n">serial_number</span> <span class="o">=</span> <span class="s2">&quot;{serial #}&quot;</span>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7"></a><a href="#__codelineno-4-7"><span class="linenos" data-linenos="7 "></span></a>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8"></a><a href="#__codelineno-4-8"><span class="linenos" data-linenos="8 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
-</span></code></pre></div>
-or
-<div class="language-py highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1"></a><a href="#__codelineno-5-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">config</span> <span class="o">=</span> <span class="n">BambuConfig</span><span class="p">()</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2"></a><a href="#__codelineno-5-2"><span class="linenos" data-linenos="2 "></span></a>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3"></a><a href="#__codelineno-5-3"><span class="linenos" data-linenos="3 "></span></a><span class="n">config</span><span class="o">.</span><span class="n">hostname</span> <span class="o">=</span> <span class="s2">&quot;{host name}&quot;</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4"></a><a href="#__codelineno-5-4"><span class="linenos" data-linenos="4 "></span></a><span class="n">config</span><span class="o">.</span><span class="n">access_code</span> <span class="o">=</span> <span class="s2">&quot;{access code}&quot;</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5"></a><a href="#__codelineno-5-5"><span class="linenos" data-linenos="5 "></span></a><span class="n">config</span><span class="o">.</span><span class="n">serial_number</span> <span class="o">=</span> <span class="s2">&quot;{serial #}&quot;</span>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6"></a><a href="#__codelineno-5-6"><span class="linenos" data-linenos="6 "></span></a>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7"></a><a href="#__codelineno-5-7"><span class="linenos" data-linenos="7 "></span></a><span class="n">printer</span> <span class="o">=</span> <span class="n">BambuPrinter</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
-</span></code></pre></div>
-or even
-<div class="language-py highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1"></a><a href="#__codelineno-6-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">printer</span> <span class="o">=</span> <span class="n">BambuPrinter</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">BambuConfig</span><span class="p">(</span><span class="n">hostname</span><span class="o">=</span><span class="s2">&quot;{host name}&quot;</span><span class="p">,</span> <span class="n">access_code</span><span class="o">=</span><span class="s2">&quot;{access code}&quot;</span><span class="p">,</span> <span class="n">serial_number</span><span class="o">=</span><span class="s2">&quot;{serial #}&quot;</span><span class="p">))</span>
-</span></code></pre></div></p>
+  <h1>bambucommands</h1>
+
+<div class="doc doc-object doc-module">
+
+
+
+<a id="bpm.bambucommands"></a>
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
 
 
 
@@ -898,10 +831,10 @@ or even
     </div>
     
     
-    <script id="__config" type="application/json">{"base": ".", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="assets/javascripts/bundle.caa56a14.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.caa56a14.min.js"></script>
       
     
   </body>

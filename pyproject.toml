@@ -1,12 +1,13 @@
 [build-system]
-requires = ["setuptools", "setuptools-scm"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["bpm"]
+[tool.setuptools.packages.find]
+where = ["src/"]
+exclude = ["bpm/ftpsclient"]
 
 [tool.setuptools.package-data]
-"*" = ["*.json"]
+"bpm" = ["*.json"]
 
 [project]
 name = "bambu-printer-manager"

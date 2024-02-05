@@ -22,9 +22,26 @@ import logging.config
 import logging.handlers
 
 logger = logging.getLogger("bambuprinter")
-
+    
 class BambuPrinter:
+    """py
+    `BambuPrinter` is the main class within `bambu-printer-manager` for interacting with and
+    managing your Bambu Lab 3d printer. It provides an object oriented abstraction layer 
+    between your project and the `mqtt` and `ftps` based mechanisms in place for communicating
+    with your printer.
+    """
     def __init__(self, config=BambuConfig()):
+        """
+        Sets up all internal storage variables for `BambuPrinter` and bootstraps the
+        logging engine.
+
+        Parameters
+        ----------
+        config : BambuConfig
+
+        The private variables (where appropriate) are included whenever the class is serialized
+        using its `toJson()` method.
+        """
         setup_logging()
 
         self._internalException = None
@@ -75,6 +92,14 @@ class BambuPrinter:
         self._sdcard_3mf_files = None
 
     def start_session(self):
+        """
+        Initiates a connection to the Bambu Lab printer and provides a stateful
+        session, with built-in recovery in the event `bambu-printer-manager` 
+        becomes disconnected from the machine.
+
+        This method is required to be called before any commands or data 
+        collection / callbacks can take place with the machine.
+        """
         logger.debug("session start_session")
         if self.config.hostname is None or self.config.access_code is None or self.config.serial_number is None:
             raise Exception("hostname, access_code, and serial_number are required")
@@ -135,6 +160,11 @@ class BambuPrinter:
         self._start_watchdog()
 
     def pause_session(self):
+        """
+        Pauses the `BambuPrinter` session is it is active.  Under the covers this
+        method unsubscribes from the `/report` topic, essentially disabling all
+        printer data refreshes
+        """
         if self.state != PrinterState.PAUSED:
             self.client.unsubscribe(f"device/{self.config.serial_number}/report")
             logger.debug(f"unsubscribed from [device/{self.config.serial_number}/report]")

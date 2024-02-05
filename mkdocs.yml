@@ -3,9 +3,31 @@ site_url: https://github.com/synman/bambu-printer-manager
 repo_url: https://github.com/synman/bambu-printer-manager/
 nav:
   - Home: index.md
-  - About: about.md
   - License: license.md
   - Code Reference: reference/
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem
+  - pymdownx.superfences
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.critic
+  - pymdownx.details 
+  - pymdownx.highlight:
+      anchor_linenums: true
+      use_pygments: true
+      pygments_lang_class: true
+      auto_title: true
+      linenums: true
+      linenums_style: pymdownx-inline
+      anchor_linenums: true
+      line_spans: __span
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.smartsymbols
+  - pymdownx.snippets
 theme: 
   name: material
   features:
@@ -48,11 +70,10 @@ plugins:
     default_handler: python
     handlers:
       python:
-        setup_commands:
-            - import sys
-            - sys.path.append('../')
-        selection:
-            new_path_syntax: true      
-        paths: [bpm]
+        paths: 
+          - src/bpm
         options:
-          show_source: false
+          show_source: true
+        setup_commands:
+          - import sys
+          - sys.path.append("src/bpm")
