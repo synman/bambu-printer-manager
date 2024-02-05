@@ -1,6 +1,6 @@
 '''
 `bambucommands` contains all the internal command structures that are used by `BambuPrinter` to interact 
-with your printer.
+with your printer.  They are not documented but can be found [here](https://github.com/synman/bambu-printer-manager/blob/main/src/bpm/bambucommands.py).
 '''
 ANNOUNCE_PUSH =             {
                                 "pushing":{
