@@ -1,3 +1,7 @@
+'''
+`bambucommands` contains all the internal command structures that are used by `BambuPrinter` to interact 
+with your printer.
+'''
 ANNOUNCE_PUSH =             {
                                 "pushing":{
                                     "command":"pushall",

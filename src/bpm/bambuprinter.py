@@ -24,7 +24,7 @@ import logging.handlers
 logger = logging.getLogger("bambuprinter")
     
 class BambuPrinter:
-    """py
+    """
     `BambuPrinter` is the main class within `bambu-printer-manager` for interacting with and
     managing your Bambu Lab 3d printer. It provides an object oriented abstraction layer 
     between your project and the `mqtt` and `ftps` based mechanisms in place for communicating
@@ -32,14 +32,21 @@ class BambuPrinter:
     """
     def __init__(self, config=BambuConfig()):
         """
-        Sets up all internal storage variables for `BambuPrinter` and bootstraps the
+        Sets up all internal storage attributes for `BambuPrinter` and bootstraps the
         logging engine.
 
         Parameters
         ----------
-        config : BambuConfig
+        * config : BambuConfig
 
-        The private variables (where appropriate) are included whenever the class is serialized
+        Attributes
+        ----------
+        * _internalExcepton: `READ ONLY` Returns the underlying `Exception` object if a failure occurred.
+        * _lastMessageTime: `READ ONLY` epoch timestamp (in seconds) for the last time an update was received from the printer.
+        * _recent_update: `READ ONLY` indicates that a message from the printer has been recently processed
+        * _config: `READ/WRITE` `bambuconfig.BambuConfig` Configuration object associated with this instance
+
+        The attributes (where appropriate) are included whenever the class is serialized
         using its `toJson()` method.
         """
         setup_logging()
@@ -94,7 +101,7 @@ class BambuPrinter:
     def start_session(self):
         """
         Initiates a connection to the Bambu Lab printer and provides a stateful
-        session, with built-in recovery in the event `bambu-printer-manager` 
+        session, with built-in recovery in the event `BambuPrinter` 
         becomes disconnected from the machine.
 
         This method is required to be called before any commands or data 
@@ -163,7 +170,7 @@ class BambuPrinter:
         """
         Pauses the `BambuPrinter` session is it is active.  Under the covers this
         method unsubscribes from the `/report` topic, essentially disabling all
-        printer data refreshes
+        printer data refreshes.
         """
         if self.state != PrinterState.PAUSED:
             self.client.unsubscribe(f"device/{self.config.serial_number}/report")
@@ -171,6 +178,9 @@ class BambuPrinter:
             self.state = PrinterState.PAUSED
 
     def resume_session(self):
+        """
+        Resumes a previously paused session by re-subscribing to the /report topic.
+        """
         if self.client and self.client.is_connected() and self.state == PrinterState.PAUSED:
             self.client.subscribe(f"device/{self.config.serial_number}/report")
             logger.debug(f"subscribed to [device/{self.config.serial_number}/report]")
@@ -180,6 +190,11 @@ class BambuPrinter:
         self.state = PrinterState.QUIT
 
     def quit(self):
+        """
+        Shuts down all threads.  Your `BambuPrinter` instance should probably be 
+        considered dead after making this call although you may be able to restart a
+        session with [start_session](./#bpm.bambuprinter.BambuPrinter.start_session)().
+        """
         if self.client and self.client.is_connected():
             self.client.disconnect()
             while self.state != PrinterState.QUIT:
@@ -190,6 +205,10 @@ class BambuPrinter:
             logger.debug("mqtt client was already disconnected")
 
     def refresh(self):
+        """
+        Triggers a full data refresh from the printer (if it is connected).  You should use this
+        method sparingly as resorting to it indicates something is not working properly.
+        """
         if self.state == PrinterState.CONNECTED:
             self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(ANNOUNCE_PUSH))
             logger.debug(f"published ANNOUNCE_PUSH to [device/{self.config.serial_number}/request]")
@@ -197,22 +216,74 @@ class BambuPrinter:
             logger.debug(f"published ANNOUNCE_VERSION to [device/{self.config.serial_number}/request]")
 
     def unload_filament(self):
+        """
+        Requests the printer to unload whatever filament / spool may be currently loaded.
+        """
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(UNLOAD_FILAMENT))
         logger.debug(f"published UNLOAD_FILAMENT to [device/{self.config.serial_number}/request]")
 
     def load_filament(self, slot: int):
+        """
+        Requests the printer to load filament into the extruder using the requested spool (slot #)
+
+        Parameters
+        ----------
+        slot : int
+
+        * `0` - AMS Spool #1
+        * `1` - AMS Spool #2
+        * `2` - AMS Spool #3
+        * `3` - AMS Spool #4
+        * `254` - External Spool
+        """
         msg = AMS_FILAMENT_CHANGE
         msg["print"]["target"] = int(slot)
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(msg))
         logger.debug(f"published AMS_FILAMENT_CHANGE to [device/{self.config.serial_number}/request]", extra={"target": slot, "bambu_msg": msg})
 
     def send_gcode(self, gcode: str):
+        """
+        Submit one, or more, gcode commands to the printer.  To submit multiple gcode commands, separate them with a newline (\\n) character.
+
+        Parameters
+        ----------
+        gcode : str
+
+        Examples
+        --------
+        * `send_gcode("G91\\nG0 X0\\nG0 X50")` - queues 3 gcode commands on the printer for processing
+        * `send_gcode("G28")` - queues 1 gcode command on the printer for processing
+        """
         cmd = SEND_GCODE_TEMPLATE
         cmd["print"]["param"] = f"{gcode} \n"
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
         logger.debug(f"published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request]", extra={"gcode": gcode})
 
     def print_3mf_file(self, name: str, bed: PlateType, ams: str, bedlevel: Optional[bool] = True, flow: Optional[bool] = True, timelapse: Optional[bool] = False):
+        """
+        Submits a request to execute the `name`.gcode.3mf file on the printer's SDCard. 
+
+        Parameters
+        ----------
+        * name : str                         - path and filename to execute minus the `.gcode.3mf` extension
+        * bed : PlateType                    - the bambutools.PlateType to use
+        * ams : str                          - an `AMS Mapping` that specifies which AMS spools to use (external spool is used if blank)
+        * bedlevel :  Optional[bool] = True  - boolean value indicates whether or not the printer should auto-level the bed
+        * flow :      Optional[bool] = True  - boolean value indicates if the printer should perform an extrusion flow calibration
+        * timelapse : Optional[bool] = False - boolean value indicates if printer should take timelapse photos during the job
+        
+        Example
+        -------
+        * `print_3mf_file("/jobs/my_project", "")` - Print the my_project.gcode.3mf file in the SDCard /jobs directory using the external spool with bed leveling and extrusion flow calibration enabled and timelapse disabled
+        * `print_3mf_file("/jobs/my_project", "[-1,-1,2,-1]")` - Same as above but use AMS spool #3
+
+        AMS Mapping
+        -----------
+        * `[0,-1,-1,-1]` - use AMS spool #1 only
+        * `[-1,1,-1,-1]` - use AMS spool #2 only
+        * `[0,-1,-1,3]`  - use AMS spools #1 and #4
+        * `[0,1,2,3]`    - use all 4 AMS spools
+        """
         file = PRINT_3MF_FILE
         file["print"]["file"] = f"{name}.gcode.3mf"
         file["print"]["url"] = f"file:///sdcard/{name}.gcode.3mf"
@@ -231,18 +302,35 @@ class BambuPrinter:
         logger.debug(f"published PRINT_3MF_FILE to [device/{self.config.serial_number}/request]", extra={"3mf_name": name, "bed": bed, "ams": ams})
 
     def stop_printing(self):
+        """
+        Requests the printer to stop printing if a job is currently running.
+        """
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(STOP_PRINT))
         logger.debug(f"published STOP_PRINT to [device/{self.config.serial_number}/request]")
 
     def pause_printing(self):
+        """
+        Pauses the current print job if one is running.
+        """
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(PAUSE_PRINT))
         logger.debug(f"published PAUSE_PRINT to [device/{self.config.serial_number}/request]")
 
     def resume_printing(self):
+        """
+        Resumes the current print job if one is paused.
+        """
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(RESUME_PRINT))
         logger.debug(f"published RESUME_PRINT to [device/{self.config.serial_number}/request]")
 
-    def get_sdcard_3mf_files(self):
+    def get_sdcard_3mf_files(self) -> {}:
+        """
+        Returns a `dict` (json document) of all `.gcode.3mf` files on the printer's SD card. 
+        The private class level `_sdcard_3mf_files` attribute is also populated.
+        
+        Usage
+        -----
+        The return value of this method is very useful for binding to things like a clientside `TreeView`
+        """
         def getDirFiles(ftps: IoTFTPSClient, directory: str) -> {}:
             try:
                 files = sorted(ftps.list_files_ex(directory))
@@ -279,6 +367,14 @@ class BambuPrinter:
 
 
     def get_sdcard_contents(self):
+        """
+        Returns a `dict` (json document) of ALL files on the printer's SD card. 
+        The private class level `_sdcard_contents` attribute is also populated.
+        
+        Usage
+        -----
+        The return value of this method is very useful for binding to things like a clientside `TreeView`
+        """
         def getDirFiles(ftps: IoTFTPSClient, directory: str) -> {}:
             try:
                 files = sorted(ftps.list_files_ex(directory))
@@ -311,10 +407,17 @@ class BambuPrinter:
         return fs
 
     def toJson(self):
+        """
+        Returns a `dict` (json document) representing this object's private class
+        level attributes that are serializable (most are).
+        """
         response = json.dumps(self, default=self.jsonSerializer, indent=4, sort_keys=True)
         return json.loads(response)
 
     def jsonSerializer(self, obj):
+        """
+        Helper method used by `toJson()` to serialize this object.  
+        """
         try:
             if isinstance(obj, mqtt.Client):
                 return ""
@@ -463,7 +566,7 @@ class BambuPrinter:
         if self.on_update: self.on_update(self)
 
     @property 
-    def config(self):
+    def config(self) -> BambuConfig:
         return self._config
     @config.setter 
     def config(self, value: BambuConfig):

@@ -73,7 +73,8 @@ plugins:
         paths: 
           - src/bpm
         options:
-          show_source: true
+          show_source: false
+          attributes: true
         setup_commands:
           - import sys
           - sys.path.append("src/bpm")

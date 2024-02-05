@@ -31,3 +31,6 @@ __pycache__
 # project specific
 *.egg-info
 /dist
+
+#mkdocs
+/site
