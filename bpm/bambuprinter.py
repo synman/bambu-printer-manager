@@ -72,6 +72,7 @@ class BambuPrinter:
         self._ams_exists = False
 
         self._sdcard_contents = None
+        self._sdcard_3mf_files = None
 
     def start_session(self):
         logger.debug("session start_session")
@@ -210,6 +211,42 @@ class BambuPrinter:
     def resume_printing(self):
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(RESUME_PRINT))
         logger.debug(f"published RESUME_PRINT to [device/{self.config.serial_number}/request]")
+
+    def get_sdcard_3mf_files(self):
+        def getDirFiles(ftps: IoTFTPSClient, directory: str) -> {}:
+            try:
+                files = sorted(ftps.list_files_ex(directory))
+            except Exception as e:
+                return None
+
+            dir = {}
+
+            dir["id"] = directory 
+            dir["name"] = directory
+
+            items = []
+
+            for file in files:
+                if file[0][:1] == "d":
+                    item = {}
+                    item = getDirFiles(ftps, directory + ("/" if directory != "/" else "") + file[1])
+                    if item.get("children"): items.append(item)
+                else:
+                    if file[1].lower().endswith(".gcode.3mf"):
+                        item = {}
+                        item["id"] = dir["id"] + ("/" if dir["id"] != "/" else "") + file[1]
+                        item["name"] = file[1]
+                        items.append(item)
+
+            if len(items) > 0: dir["children"] = items
+            return dir
+
+        ftps = IoTFTPSClient(f"bambu-a1-printer", 990, "bblp", f"42050576", ssl_implicit=True)
+        fs = getDirFiles(ftps, "/")
+        logger.debug("read 3mf sdcard files", extra={"fs": fs})
+        self._sdcard_3mf_files = fs
+        return fs
+
 
     def get_sdcard_contents(self):
         def getDirFiles(ftps: IoTFTPSClient, directory: str) -> {}:
@@ -587,6 +624,13 @@ class BambuPrinter:
     def internalException(self):
         return self._internalException
 
+    @property
+    def cached_sd_card_contents(self):
+        return self._sdcard_contents
+
+    @property
+    def cached_sd_card_3mf_files(self):
+        return self._sdcard_3mf_files
 
 def setup_logging():
     config_file = os.path.dirname(os.path.realpath(__file__)) + "/bambuprinterlogger.json"
