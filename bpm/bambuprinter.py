@@ -6,11 +6,15 @@ import ssl
 import time
 import traceback
 
+from typing import Optional, Callable
+
 from .bambucommands import *
 from .bambuspool import BambuSpool
-from .bambutools import PrinterState
+from .bambutools import PrinterState, PlateType
 from .bambutools import parseStage, parseFan
 from .bambuconfig import BambuConfig
+
+from .ftpsclient._client import IoTFTPSClient
 
 import os
 import atexit
@@ -66,6 +70,8 @@ class BambuPrinter:
         self._spool_state = ""
         self._ams_status = None
         self._ams_exists = False
+
+        self._sdcard_contents = None
 
     def start_session(self):
         logger.debug("session start_session")
@@ -163,29 +169,24 @@ class BambuPrinter:
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(UNLOAD_FILAMENT))
         logger.debug(f"published UNLOAD_FILAMENT to [device/{self.config.serial_number}/request]")
 
-    def load_filament(self, slot):
+    def load_filament(self, slot: int):
         msg = AMS_FILAMENT_CHANGE
         msg["print"]["target"] = int(slot)
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(msg))
-        logger.debug(f"published AMS_FILAMENT_CHANGE to [device/{self.config.serial_number}/request]", extra={"target": slot})
+        logger.debug(f"published AMS_FILAMENT_CHANGE to [device/{self.config.serial_number}/request]", extra={"target": slot, "bambu_msg": msg})
 
-    def send_gcode(self, gcode):
+    def send_gcode(self, gcode: str):
         cmd = SEND_GCODE_TEMPLATE
         cmd["print"]["param"] = f"{gcode} \n"
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
         logger.debug(f"published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request]", extra={"gcode": gcode})
 
-    def print_3mf_file(self, name, bed, ams, bedlevel=True, flow=True, timelapse=False):
+    def print_3mf_file(self, name: str, bed: PlateType, ams: str, bedlevel: Optional[bool] = True, flow: Optional[bool] = True, timelapse: Optional[bool] = False):
         file = PRINT_3MF_FILE
         file["print"]["file"] = f"{name}.gcode.3mf"
         file["print"]["url"] = f"file:///sdcard/{name}.gcode.3mf"
-        file["print"]["subtask_name"] = name[name.rindex("/") + 1::]
-        if bed == "0":
-            file["print"]["bed_type"] = "auto"
-        elif bed == "1":
-            file["print"]["bed_type"] = "hot_plate"
-        elif bed == "2":
-            file["print"]["bed_type"] = "textured_plate"
+        file["print"]["subtask_name"] = name[name.rindex("/") + 1::] if "/" in name else name
+        file["print"]["bed_type"] = bed.name.lower()
         if len(ams) > 2:
             file["print"]["use_ams"] = True
             file["print"]["ams_mapping"] = json.loads(ams)
@@ -210,6 +211,37 @@ class BambuPrinter:
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(RESUME_PRINT))
         logger.debug(f"published RESUME_PRINT to [device/{self.config.serial_number}/request]")
 
+    def get_sdcard_contents(self):
+        def getDirFiles(ftps: IoTFTPSClient, directory: str) -> {}:
+            try:
+                files = sorted(ftps.list_files_ex(directory))
+            except Exception as e:
+                return None
+
+            dir = {}
+
+            dir["id"] = directory 
+            dir["name"] = directory
+
+            items = []
+
+            for file in files:
+                item = {}
+                if file[0][:1] == "d":
+                    item = getDirFiles(ftps, directory + ("/" if directory != "/" else "") + file[1])
+                else:
+                    item["id"] = dir["id"] + ("/" if dir["id"] != "/" else "") + file[1]
+                    item["name"] = file[1]
+                items.append(item)
+
+            if len(items) > 0: dir["children"] = items
+            return dir
+
+        ftps = IoTFTPSClient(f"bambu-a1-printer", 990, "bblp", f"42050576", ssl_implicit=True)
+        fs = getDirFiles(ftps, "/")
+        logger.debug("read all sdcard files", extra={"fs": fs})
+        self._sdcard_contents = fs
+        return fs
 
     def toJson(self):
         response = json.dumps(self, default=self.jsonSerializer, indent=4, sort_keys=True)
@@ -244,7 +276,7 @@ class BambuPrinter:
 
         threading.Thread(target=watchdog_thread, name="bambuprinter-session-watchdog", args=(self,)).start()
 
-    def _on_message(self, message):
+    def _on_message(self, message: str):
         logger.debug("_on_message", extra={"bambu_msg": message})
 
         if "system" in message:
@@ -281,22 +313,25 @@ class BambuPrinter:
                 logger.debug("project_file request acknowledged")
 
             if "ams" in status and "ams" in status["ams"]:
-                self._ams_exists = int(status["ams"]["ams_exist_bits"]) == 1
-                if self._ams_exists:
-                    spools = []
-                    ams = (status["ams"]["ams"])[0]
-                    for tray in ams["tray"]:
-                        try:
-                            tray_color = hex_to_name("#" + tray["tray_color"][:6])
-                        except:
+                if status["ams"]["ams_exist_bits"]:
+                    self._ams_exists = int(status["ams"]["ams_exist_bits"]) == 1
+                    if self._ams_exists:
+                        spools = []
+                        ams = (status["ams"]["ams"])[0]
+                        for tray in ams["tray"]:
                             try:
-                                tray_color = "#" + tray["tray_color"]
+                                tray_color = hex_to_name("#" + tray["tray_color"][:6])
                             except:
-                                tray_color = "N/A"
-                        
-                        spool = BambuSpool(int(tray["id"]),  tray["tray_id_name"] if "tray_id_name" in tray else "",  tray["tray_type"] if "tray_type" in tray else "", tray["tray_sub_brands"] if "tray_sub_brands" in tray else "", tray_color)
-                        spools.append(spool)
-                    self._spools = tuple(spools)
+                                try:
+                                    tray_color = "#" + tray["tray_color"]
+                                except:
+                                    tray_color = "N/A"
+                            
+                            spool = BambuSpool(int(tray["id"]),  tray["tray_id_name"] if "tray_id_name" in tray else "",  tray["tray_type"] if "tray_type" in tray else "", tray["tray_sub_brands"] if "tray_sub_brands" in tray else "", tray_color)
+                            spools.append(spool)
+                        self._spools = tuple(spools)
+                # else: 
+                #     self._ams_exists = False
 
             if "vt_tray" in status:
                 tray = status["vt_tray"]
@@ -364,21 +399,21 @@ class BambuPrinter:
     def config(self):
         return self._config
     @config.setter 
-    def config(self, value):
+    def config(self, value: BambuConfig):
         self._config = value
 
     @property 
     def state(self):
         return self._state
     @state.setter 
-    def state(self, value):
+    def state(self, value: PrinterState):
         self._state = value
 
     @property 
     def client(self):
         return self._client
     @client.setter 
-    def client(self, value):
+    def client(self, value: mqtt.Client):
         self._client = value
 
     @property 
@@ -400,7 +435,9 @@ class BambuPrinter:
     def bed_temp_target(self):
         return self._bed_temp_target
     @bed_temp_target.setter 
-    def bed_temp_target(self, value):
+    def bed_temp_target(self, value: float):
+        value = float(value)
+        if value < 0.0: value = 0.0
         gcode = SEND_GCODE_TEMPLATE
         gcode["print"]["param"] = f"M140 S{value}\n"
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(gcode))
@@ -413,7 +450,9 @@ class BambuPrinter:
     def tool_temp_target(self):
         return self._tool_temp_target
     @tool_temp_target.setter 
-    def tool_temp_target(self, value):
+    def tool_temp_target(self, value: float):
+        value = float(value)
+        if value < 0.0: value = 0.0
         gcode = SEND_GCODE_TEMPLATE
         gcode["print"]["param"] = f"M104 S{value}\n"
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(gcode))
@@ -426,7 +465,7 @@ class BambuPrinter:
     def chamber_temp_target(self):
         return self._chamber_temp_target
     @chamber_temp.setter 
-    def chamber_temp_target(self, value):
+    def chamber_temp_target(self, value: float):
         self._chamber_temp_target = value
 
     @property 
@@ -437,7 +476,9 @@ class BambuPrinter:
     def fan_speed_target(self):
         return self._fan_speed_target
     @fan_speed_target.setter 
-    def fan_speed_target(self, value):
+    def fan_speed_target(self, value: int):
+        value = int(value)
+        if value < 0: value = 0
         self._fan_speed_target = value
         speed = round(value * 2.55, 0)
         gcode = SEND_GCODE_TEMPLATE
@@ -460,7 +501,8 @@ class BambuPrinter:
     def light_state(self):
         return self._light_state == "on"
     @light_state.setter 
-    def light_state(self, value):
+    def light_state(self, value: bool):
+        value = bool(value)
         cmd = CHAMBER_LIGHT_TOGGLE
         if value:
             cmd["system"]["led_mode"] = "on"
@@ -472,9 +514,10 @@ class BambuPrinter:
     def speed_level(self):
         return self._speed_level
     @speed_level.setter 
-    def speed_level(self, value):
+    def speed_level(self, value: str):
+        value = str(value)
         cmd = SPEED_PROFILE_TEMPLATE
-        cmd["print"]["param"] = str(value)
+        cmd["print"]["param"] = value
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
 
     @property 

@@ -63,3 +63,8 @@ class PrinterState(Enum):
     PAUSED = 3,
     QUIT = 4
 
+class PlateType(Enum):
+    AUTO = 0,
+    COOL_PLATE = 1,
+    HOT_PLATE = 2,
+    TEXTURED_PLATE = 3
