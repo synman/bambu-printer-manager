@@ -65,7 +65,9 @@ class BambuPrinter:
         * _gcode_file `READ ONLY` The name of the current or last printed gcode file.
         * _print_type `READ ONLY` Not entirely sure.  Reports "idle" when no job is active.
         * _percent_complete `READ ONLY` Percentage complete for the current active job.
-        * _time_remaining `'READ ONLY` The number of estimated minutes remaining for the active job.
+        * _time_remaining `READ ONLY` The number of estimated minutes remaining for the active job.
+        * _start_time `READ ONLY` The start time of the last (or current) active job in epoch minutes.
+        * _elapsed_time `READ ONLY` The number of elapsed minutes for the last (or current) active job.
         * _layer_count `READ ONLY` The total number of layers for the current active job.
         * _current_layer `READ ONLY` The current layer being printed for the current active job.
         * _current_stage `READ ONLY` Maps to `bambutools.parseStage`.
@@ -117,6 +119,8 @@ class BambuPrinter:
         self._print_type = ""
         self._percent_complete = 0
         self._time_remaining = 0
+        self._start_time = 0
+        self._elapsed_time = 0
         self._layer_count = 0
         self._current_layer = 0
         
@@ -495,6 +499,9 @@ class BambuPrinter:
             if "nozzle_temper" in status: self._tool_temp = float(status["nozzle_temper"])
             if "nozzle_target_temper" in status: self._tool_temp_target = float(status["nozzle_target_temper"])
 
+            if not self._config.external_chamber and "chamber_temper" in status:
+                self._chamber_temp = float(status["chamber_temper"])
+
             if "fan_gear" in status: self._fan_gear = int(status["fan_gear"])
             if "heatbreak_fan_speed" in status: self._heatbreak_fan_speed = int(status["heatbreak_fan_speed"])
             if "cooling_fan_speed" in status: self._fan_speed = parseFan(int(status["cooling_fan_speed"]))
@@ -506,7 +513,7 @@ class BambuPrinter:
             if "gcode_file" in status: self._gcode_file = status["gcode_file"]
             if "print_type" in status: self._print_type = status["print_type"]
             if "mc_percent" in status: self._percent_complete = status["mc_percent"]
-            if "mc_remaining_time" in status: self._time_remaining = status["mc_remaining_time"]
+            if "mc_remaining_time" in status: self._time_remaining = int(status["mc_remaining_time"])
             if "total_layer_num" in status: self._layer_count = status["total_layer_num"]
             if "layer_num" in status: self._current_layer = status["layer_num"]
 
@@ -515,6 +522,7 @@ class BambuPrinter:
                 self._current_stage_text = parseStage(self._current_stage)
 
             if "command" in status and status["command"] == "project_file":
+                self._start_time = 0
                 logger.debug("project_file request acknowledged")
 
             if "ams" in status and "ams" in status["ams"]:
@@ -535,8 +543,6 @@ class BambuPrinter:
                             spool = BambuSpool(int(tray["id"]),  tray["tray_id_name"] if "tray_id_name" in tray else "",  tray["tray_type"] if "tray_type" in tray else "", tray["tray_sub_brands"] if "tray_sub_brands" in tray else "", tray_color)
                             spools.append(spool)
                         self._spools = tuple(spools)
-                # else: 
-                #     self._ams_exists = False
 
             if "vt_tray" in status:
                 tray = status["vt_tray"]
@@ -598,6 +604,10 @@ class BambuPrinter:
         else:
             logger.warn("unknown message type received")
             
+        if self._gcode_state in ("PREPARE", "RUNNING", "PAUSE"):
+            if (self._start_time == 0): self._start_time = int(round(time.time() / 60, 0))
+            self._elapsed_time = int(round(time.time() / 60, 0)) - self._start_time
+
         if self.on_update: self.on_update(self)
 
     @property 
@@ -748,8 +758,16 @@ class BambuPrinter:
         return self._percent_complete
 
     @property 
-    def time_remaining(self):
+    def time_remaining(self) -> int:
         return self._time_remaining
+
+    @property 
+    def start_time(self) -> int:
+        return self._start_time
+
+    @property 
+    def elapsed_time(self) -> int:
+        return self._elapsed_time
 
     @property 
     def layer_count(self):

@@ -20,6 +20,7 @@ class BambuConfig:
                  mqtt_port: Optional[int] = 8883, 
                  mqtt_client_id: Optional[str] = "studio_client_id:0c1f",
                  mqtt_username: Optional[str] = "bblp",
+                 external_chamber: Optional[bool] = False,
                  verbose: Optional[bool] = False):
         """
         Sets up all internal storage attributes for `BambuConfig`.
@@ -32,7 +33,23 @@ class BambuConfig:
         * mqtt_port : Optional[int] = 8883
         * mqtt_client_id : Optional[str] = "studio_client_id:0c1f"
         * mqtt_username : Optional[str] = "bblp"
+        * external_chamber : Optional[bool] = False
         * verbose : Optional[bool] = False
+
+        `external_chamber` can be used to tell `BambuPrinter` not to use any of the chamber 
+        temperature data received from the printer.  This can be useful if you are using an
+        external chamber temperature sensor / heater and want to inject the sensor value and
+        target temperatures into `BambuPrinter` directly.
+
+        `verbose` triggers a global log level change (within the scope of `bambu-printer-manager`)
+        based on its value.  `True` will set a log level of `DEBUG` and `False` (the default) will 
+        set the log level to `WARNING`.
+        
+        Attributes
+        ---------
+        * All parameters listed above
+        * _firmware_version : str - Reported printer firmware version
+        * _ams_firmware_version : str - Reported AMS firmware version
         """        
         setup_logging()
 
@@ -42,81 +59,90 @@ class BambuConfig:
         self.mqtt_port = mqtt_port
         self.mqtt_client_id = mqtt_client_id
         self.mqtt_username = mqtt_username
-        self.firmware_version = "N/A"
-        self.ams_firmware_version = "N/A"
+        self.external_chamber =external_chamber
         self.verbose = verbose
 
+        self.firmware_version = "N/A"
+        self.ams_firmware_version = "N/A"
+
     @property 
-    def hostname(self):
+    def hostname(self) -> str:
         return self._hostname
     @hostname.setter 
-    def hostname(self, value):
-        self._hostname = value
+    def hostname(self, value: str):
+        self._hostname = str(value)
 
     @property 
-    def access_code(self):
+    def access_code(self) -> str:
         return self._access_code
     @access_code.setter 
-    def access_code(self, value):
-        self._access_code = value
+    def access_code(self, value: str):
+        self._access_code = str(value)
 
     @property 
-    def serial_number(self):
+    def serial_number(self) -> str:
         return self._serial_number
     @serial_number.setter 
-    def serial_number(self, value):
-        self._serial_number = value
+    def serial_number(self, value: str):
+        self._serial_number = str(value)
 
     @property 
-    def mqtt_port(self):
+    def mqtt_port(self) -> int:
         return self._mqtt_port
     @mqtt_port.setter 
-    def mqtt_port(self, value):
-        self._mqtt_port = value
+    def mqtt_port(self, value: int):
+        self._mqtt_port = int(value)
 
     @property 
-    def mqtt_client_id(self):
+    def mqtt_client_id(self) -> str:
         return self._mqtt_client_id
     @mqtt_client_id.setter 
-    def mqtt_client_id(self, value):
-        self._mqtt_client_id = value
+    def mqtt_client_id(self, value: str):
+        self._mqtt_client_id = str(value)
 
     @property 
-    def mqtt_username(self):
+    def mqtt_username(self) -> str:
         return self._mqtt_username
     @mqtt_username.setter 
-    def mqtt_username(self, value):
-        self._mqtt_username = value
+    def mqtt_username(self, value: str):
+        self._mqtt_username = str(value)
 
     @property 
-    def firmware_version(self):
+    def firmware_version(self) -> str:
         return self._firmware_version
     @firmware_version.setter 
-    def firmware_version(self, value):
-        self._firmware_version = value        
+    def firmware_version(self, value: str):
+        self._firmware_version = str(value)        
 
     @property 
-    def ams_firmware_version(self):
+    def ams_firmware_version(self) -> str:
         return self._ams_firmware_version
     @ams_firmware_version.setter 
-    def ams_firmware_version(self, value):
-        self._ams_firmware_version = value        
+    def ams_firmware_version(self, value: str):
+        self._ams_firmware_version = str(value)        
 
     @property 
-    def verbose(self):
+    def external_chamber(self) -> bool:
+        return self._external_chamber
+    @external_chamber.setter 
+    def external_chamber(self, value: bool):
+        self._external_chamber = bool(value)
+
+    @property 
+    def verbose(self) -> bool:
         return self._verbose
     @verbose.setter 
-    def verbose(self, value):
-        self._verbose = value  
+    def verbose(self, value: bool):
+        self._verbose = bool(value)
         stderrHandler = logging.getHandlerByName("stderr")
         fileHandler = logging.getHandlerByName("file")
         if self._verbose:
             stderrHandler.setLevel(logging.DEBUG)
             fileHandler.setLevel(logging.DEBUG)
         else:
-            if stderrHandler.level != logging.ERROR:
-                stderrHandler.setLevel(logging.ERROR)
-                fileHandler.setLevel(logging.ERROR)
+            if stderrHandler.level != logging.WARNING:
+                stderrHandler.setLevel(logging.WARNING)
+                fileHandler.setLevel(logging.WARNING)
         logger.info("log level changed", extra={"new_level": logging.getLevelName(stderrHandler.level)})
 
 
