@@ -3,8 +3,8 @@ site_url: https://github.com/synman/bambu-printer-manager
 repo_url: https://github.com/synman/bambu-printer-manager/
 nav:
   - Home: index.md
-  - License: license.md
   - Code Reference: reference/
+  - License: license.md
 markdown_extensions:
   - pymdownx.arithmatex:
       generic: true

@@ -4,17 +4,36 @@ import logging.config
 import logging.handlers
 import json
 
+from typing import Optional
+
 logger = logging.getLogger("bambuprinter")
 
 class BambuConfig:
-    def __init__(self, hostname=None, 
-                 access_code=None, 
-                 serial_number=None, 
-                 mqtt_port=8883, 
-                 mqtt_client_id="studio_client_id:0c1f",
-                 mqtt_username="bblp",
-                 verbose=False):
-        
+    """
+    This is the main configuration class for `BambuPrinter` and is how it knows where to connect to a printer,
+    what access code, and serial # to use.  `BambuConfig` can also be used to change the log level of 
+    `bambu-printer-manager`'s logging engine.
+    """
+    def __init__(self, hostname: Optional[str] = None, 
+                 access_code: Optional[str] = None, 
+                 serial_number: Optional[str] = None, 
+                 mqtt_port: Optional[int] = 8883, 
+                 mqtt_client_id: Optional[str] = "studio_client_id:0c1f",
+                 mqtt_username: Optional[str] = "bblp",
+                 verbose: Optional[bool] = False):
+        """
+        Sets up all internal storage attributes for `BambuConfig`.
+
+        Parameters
+        ----------
+        * hostname : Optional[str] = None
+        * access_code : Optional[str] = None 
+        * serial_number : Optional[str] = None
+        * mqtt_port : Optional[int] = 8883
+        * mqtt_client_id : Optional[str] = "studio_client_id:0c1f"
+        * mqtt_username : Optional[str] = "bblp"
+        * verbose : Optional[bool] = False
+        """        
         setup_logging()
 
         self.hostname = hostname

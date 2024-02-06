@@ -1,6 +1,13 @@
+"""
+`bambutools' hosts various classes and methods used internally and externally
+by `bambu-printer-manager`.
+"""
 from enum import Enum
 
-def parseStage(stage):
+def parseStage(stage: int) -> str:
+    """
+    Mainly an internal method used for parsing stage data from the printer.
+    """
     if type(stage) is int or stage.isnumeric():
         stage = int(stage)
         if stage == 0: return ""
@@ -41,7 +48,10 @@ def parseStage(stage):
         elif stage == 35: return "Nozzle clog pause"
         return ""
 
-def parseFan(fan):
+def parseFan(fan: int) -> str:
+    """
+    Mainly an internal method used for parsing Fan data
+    """
     if type(fan) is int or fan.isnumeric():
         fan = int(fan)
         if fan == 1: return 10
@@ -56,7 +66,41 @@ def parseFan(fan):
         elif fan == 15: return 100
     return 0
 
+def parseAMSStatus(status: int) -> str:
+    """
+    Can be used to parse `ams_status`
+    """
+    main_status = (status & 0xFF00) >> 8
+    # sub_status = status & 0xFF
+    if main_status == 0x00:
+        return "AMS Idle"
+    elif main_status == 0x01:
+        return "AMS Filament Change"
+    elif main_status == 0x02:
+        return "AMS RFID Identifying"
+    elif main_status == 0x03:
+        return "AMS Assist"
+    elif main_status == 0x04:
+        return "AMS Calibration"
+    elif main_status == 0x10:
+        return "AMS Self-Check"
+    elif main_status == 0x20:
+        return "AMS Debug"
+    else:
+      return "Unknown"
+
 class PrinterState(Enum):
+    """
+    This enum is used by `bambu-printer-manager` to track the underlying state 
+    of the `mqtt` connection to the printer.
+
+    States
+    ------
+    * `NO_STATE` - Startup / initial state indicates no active session.
+    * `CONNECTED` - Primary state expected when polling `BambuPrinter`.
+    * `PAUSED` - `bambu-printer`'s session state is paused.
+    * `QUIT` - When this state is triggered, all session based resources and threads are released.
+    """
     NO_STATE = 0,
     CONNECTED = 1,
     DISCONNECTED = 2,
@@ -64,6 +108,10 @@ class PrinterState(Enum):
     QUIT = 4
 
 class PlateType(Enum):
+    """
+    Used by `BambuPrinter.print_3mf_file` to specify which plate should be used when 
+    starting a print job.
+    """
     AUTO = 0,
     COOL_PLATE = 1,
     HOT_PLATE = 2,

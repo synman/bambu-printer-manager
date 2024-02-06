@@ -1,3 +1,7 @@
+"""
+This is an internal file used for log file management.  No documentation is provided 
+but you can view its source [here](https://github.com/synman/bambu-printer-manager/blob/main/src/bpm/bambulogger.py).
+"""
 import datetime as dt
 import json
 import logging

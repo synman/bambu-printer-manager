@@ -6,7 +6,7 @@ import ssl
 import time
 import traceback
 
-from typing import Optional, Callable
+from typing import Optional
 
 from .bambucommands import *
 from .bambuspool import BambuSpool
@@ -30,24 +30,59 @@ class BambuPrinter:
     between your project and the `mqtt` and `ftps` based mechanisms in place for communicating
     with your printer.
     """
-    def __init__(self, config=BambuConfig()):
+    def __init__(self, config: Optional[BambuConfig] = BambuConfig()):
         """
         Sets up all internal storage attributes for `BambuPrinter` and bootstraps the
         logging engine.
 
         Parameters
         ----------
-        * config : BambuConfig
+        * config : Optional[BambuConfig] = BambuConfig()
 
         Attributes
         ----------
         * _internalExcepton: `READ ONLY` Returns the underlying `Exception` object if a failure occurred.
-        * _lastMessageTime: `READ ONLY` epoch timestamp (in seconds) for the last time an update was received from the printer.
-        * _recent_update: `READ ONLY` indicates that a message from the printer has been recently processed
-        * _config: `READ/WRITE` `bambuconfig.BambuConfig` Configuration object associated with this instance
+        * _lastMessageTime: `READ ONLY` Epoch timestamp (in seconds) for the last time an update was received from the printer.
+        * _recent_update: `READ ONLY` Indicates that a message from the printer has been recently processed.
+        * _config: `READ/WRITE` `bambuconfig.BambuConfig` Configuration object associated with this instance.
+        * _state: `READ/WRITE` `bambutools.PrinterState` enum reports on health / status of the connection to the printer.
+        * _client: `READ ONLY` Provides access to the underlying `paho.mqtt.client` library.
+        * _on_update: `READ/WRITE` Callback used for pushing updates.  Includes a self reference to `BambuPrinter` as an argument.
+        * _bed_tamp: `READ ONLY` The current printer bed temperature.
+        * _bed_temp_target: `READ/WRITE` The target bed temperature for the printer.
+        * _tool_tamp: `READ ONLY` The current printer tool temperature.
+        * _tool_temp_target: `READ/WRITE` The target tool temperature for the printer.
+        * _chamber_temp `READ/WRITE` Not currently integrated but can be used as a stub for external chambers.
+        * _chamber_temp_target `READ/WRITE` Not currently integrated but can be used as a stub for external chambers.
+        * _fan_gear `READ ONLY` Combined fan(s) reporting value.  Can be bit shifted for individual speeds.
+        * _heat_break_fan_speed `READ_ONLY` The heatbreak (heater block) fan speed in percent.
+        * _fan_speed `READ ONLY` The parts cooling fan speed in percent.
+        * _fan_speed_target `READ/WRITE` The parts cooling fan target speed in percent.
+        * _light_state `READ/WRITE` Boolean value indicating the state of the work light.
+        * _wifi_signal `READ ONLY` The current Wi-Fi signal strength of the printer.
+        * _speed_level `READ/WRITE` System Print Speed (1=Quiet, 2=Standard, 3=Sport, 4=Ludicrous).
+        * _gcode_state `READ ONLY` State reported for job status (FAILED/RUNNING/PAUSE/IDLE/FINISH).
+        * _gcode_file `READ ONLY` The name of the current or last printed gcode file.
+        * _print_type `READ ONLY` Not entirely sure.  Reports "idle" when no job is active.
+        * _percent_complete `READ ONLY` Percentage complete for the current active job.
+        * _time_remaining `'READ ONLY` The number of estimated minutes remaining for the active job.
+        * _layer_count `READ ONLY` The total number of layers for the current active job.
+        * _current_layer `READ ONLY` The current layer being printed for the current active job.
+        * _current_stage `READ ONLY` Maps to `bambutools.parseStage`.
+        * _current_stage_text `READ ONLY` Parsed `current_stage` value.
+        * _spools `READ ONLY` A Tuple of all loaded spools.  Can contain up to 5 `BambuSpool` objects.
+        * _target_spool `READ_ONLY` The spool # the printer is transitioning to (`0-3`=AMS, `254`=External, `255`=None).
+        * _active_spool `READ_ONLY` The spool # the printer is using right now (`0-3`=AMS, `254`=External, `255`=None).
+        * _spool_state `READ ONLY` Indicates whether the spool is Loaded, Loading, Unloaded, or Unloading.
+        * _ams_status `READ ONLY` Bitwise encoded status of the AMS (not currently used).
+        * _ams_exists `READ ONLY` Boolean value represents the detected presense of an AMS.
+        * _sdcard_contents `READ ONLY` `dict` (json) value of all files on the SDCard (requires `get_sdcard_contents` be called first).
+        * _sdcard_3mf_files `READ ONLY` `dict` (json) value of all `.gcode.3mf` files on the SDCard (requires `get_sdcard_3mf_files` be called first).
 
         The attributes (where appropriate) are included whenever the class is serialized
-        using its `toJson()` method.
+        using its `toJson()` method.  
+        
+        When accessing the class level attributes, use the associated getter/setter properties as they are private.
         """
         setup_logging()
 
@@ -630,11 +665,14 @@ class BambuPrinter:
     @property 
     def chamber_temp(self):
         return self._chamber_temp
+    @chamber_temp.setter 
+    def chamber_temp(self, value: float):
+        self._chamber_temp = value
 
     @property 
     def chamber_temp_target(self):
         return self._chamber_temp_target
-    @chamber_temp.setter 
+    @chamber_temp_target.setter 
     def chamber_temp_target(self, value: float):
         self._chamber_temp_target = value
 

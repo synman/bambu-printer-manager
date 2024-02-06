@@ -11,7 +11,7 @@ exclude = ["bpm/ftpsclient"]
 
 [project]
 name = "bambu-printer-manager"
-version = "0.1.6"
+version = "0.1.7"
 authors = [
   { name="Shell M. Shrader", email="shell@shellware.com" },
 ]
@@ -31,4 +31,5 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/synman/bambu-printer-manager"
+Documentation = "https://synman.github.io/bambu-printer-manager/"
 Issues = "https://github.com/synman/bambu-printer-manager/issues"
