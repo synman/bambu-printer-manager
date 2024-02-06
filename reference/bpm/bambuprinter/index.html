@@ -234,23 +234,6 @@
         
   
   
-  
-    <li class="md-tabs__item">
-      <a href="../../../license/" class="md-tabs__link">
-        
-  
-    
-  
-  License
-
-      </a>
-    </li>
-  
-
-      
-        
-  
-  
     
   
   
@@ -276,6 +259,23 @@
   
 
     
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../license/" class="md-tabs__link">
+        
+  
+    
+  
+  License
+
+      </a>
+    </li>
   
 
       
@@ -350,26 +350,6 @@
       
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../../../license/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    License
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
     
   
   
@@ -387,10 +367,10 @@
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   <span class="md-ellipsis">
@@ -401,8 +381,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_3">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             Code Reference
           </label>
@@ -429,10 +409,10 @@
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" checked>
         
           
-          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="">
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="">
             
   
   <span class="md-ellipsis">
@@ -443,8 +423,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_3_1">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_1">
             <span class="md-nav__icon md-icon"></span>
             bpm
           </label>
@@ -931,7 +911,7 @@
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_7" >
         
           
           
@@ -947,14 +927,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_3_1_7" id="__nav_3_1_7_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_2_1_7" id="__nav_2_1_7_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_1_7">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_7">
             <span class="md-nav__icon md-icon"></span>
             ftpsclient
           </label>
@@ -1021,6 +1001,26 @@
           </ul>
         </nav>
       
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../license/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    License
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -1112,17 +1112,51 @@ with your printer.</p>
 logging engine.</p>
 <h5 id="bpm.bambuprinter.BambuPrinter.__init__--parameters">Parameters</h5>
 <ul>
-<li>config : BambuConfig</li>
+<li>config : Optional[BambuConfig] = BambuConfig()</li>
 </ul>
 <h5 id="bpm.bambuprinter.BambuPrinter.__init__--attributes">Attributes</h5>
 <ul>
 <li>_internalExcepton: <code>READ ONLY</code> Returns the underlying <code>Exception</code> object if a failure occurred.</li>
-<li>_lastMessageTime: <code>READ ONLY</code> epoch timestamp (in seconds) for the last time an update was received from the printer.</li>
-<li>_recent_update: <code>READ ONLY</code> indicates that a message from the printer has been recently processed</li>
-<li>_config: <code>READ/WRITE</code> <code>bambuconfig.BambuConfig</code> Configuration object associated with this instance</li>
+<li>_lastMessageTime: <code>READ ONLY</code> Epoch timestamp (in seconds) for the last time an update was received from the printer.</li>
+<li>_recent_update: <code>READ ONLY</code> Indicates that a message from the printer has been recently processed.</li>
+<li>_config: <code>READ/WRITE</code> <code>bambuconfig.BambuConfig</code> Configuration object associated with this instance.</li>
+<li>_state: <code>READ/WRITE</code> <code>bambutools.PrinterState</code> enum reports on health / status of the connection to the printer.</li>
+<li>_client: <code>READ ONLY</code> Provides access to the underlying <code>paho.mqtt.client</code> library.</li>
+<li>_on_update: <code>READ/WRITE</code> Callback used for pushing updates.  Includes a self reference to <code>BambuPrinter</code> as an argument.</li>
+<li>_bed_tamp: <code>READ ONLY</code> The current printer bed temperature.</li>
+<li>_bed_temp_target: <code>READ/WRITE</code> The target bed temperature for the printer.</li>
+<li>_tool_tamp: <code>READ ONLY</code> The current printer tool temperature.</li>
+<li>_tool_temp_target: <code>READ/WRITE</code> The target tool temperature for the printer.</li>
+<li>_chamber_temp <code>READ/WRITE</code> Not currently integrated but can be used as a stub for external chambers.</li>
+<li>_chamber_temp_target <code>READ/WRITE</code> Not currently integrated but can be used as a stub for external chambers.</li>
+<li>_fan_gear <code>READ ONLY</code> Combined fan(s) reporting value.  Can be bit shifted for individual speeds.</li>
+<li>_heat_break_fan_speed <code>READ_ONLY</code> The heatbreak (heater block) fan speed in percent.</li>
+<li>_fan_speed <code>READ ONLY</code> The parts cooling fan speed in percent.</li>
+<li>_fan_speed_target <code>READ/WRITE</code> The parts cooling fan target speed in percent.</li>
+<li>_light_state <code>READ/WRITE</code> Boolean value indicating the state of the work light.</li>
+<li>_wifi_signal <code>READ ONLY</code> The current Wi-Fi signal strength of the printer.</li>
+<li>_speed_level <code>READ/WRITE</code> System Print Speed (1=Quiet, 2=Standard, 3=Sport, 4=Ludicrous).</li>
+<li>_gcode_state <code>READ ONLY</code> State reported for job status (FAILED/RUNNING/PAUSE/IDLE/FINISH).</li>
+<li>_gcode_file <code>READ ONLY</code> The name of the current or last printed gcode file.</li>
+<li>_print_type <code>READ ONLY</code> Not entirely sure.  Reports "idle" when no job is active.</li>
+<li>_percent_complete <code>READ ONLY</code> Percentage complete for the current active job.</li>
+<li>_time_remaining <code>'READ ONLY</code> The number of estimated minutes remaining for the active job.</li>
+<li>_layer_count <code>READ ONLY</code> The total number of layers for the current active job.</li>
+<li>_current_layer <code>READ ONLY</code> The current layer being printed for the current active job.</li>
+<li>_current_stage <code>READ ONLY</code> Maps to <code>bambutools.parseStage</code>.</li>
+<li>_current_stage_text <code>READ ONLY</code> Parsed <code>current_stage</code> value.</li>
+<li>_spools <code>READ ONLY</code> A Tuple of all loaded spools.  Can contain up to 5 <code>BambuSpool</code> objects.</li>
+<li>_target_spool <code>READ_ONLY</code> The spool # the printer is transitioning to (<code>0-3</code>=AMS, <code>254</code>=External, <code>255</code>=None).</li>
+<li>_active_spool <code>READ_ONLY</code> The spool # the printer is using right now (<code>0-3</code>=AMS, <code>254</code>=External, <code>255</code>=None).</li>
+<li>_spool_state <code>READ ONLY</code> Indicates whether the spool is Loaded, Loading, Unloaded, or Unloading.</li>
+<li>_ams_status <code>READ ONLY</code> Bitwise encoded status of the AMS (not currently used).</li>
+<li>_ams_exists <code>READ ONLY</code> Boolean value represents the detected presense of an AMS.</li>
+<li>_sdcard_contents <code>READ ONLY</code> <code>dict</code> (json) value of all files on the SDCard (requires <code>get_sdcard_contents</code> be called first).</li>
+<li>_sdcard_3mf_files <code>READ ONLY</code> <code>dict</code> (json) value of all <code>.gcode.3mf</code> files on the SDCard (requires <code>get_sdcard_3mf_files</code> be called first).</li>
 </ul>
 <p>The attributes (where appropriate) are included whenever the class is serialized
-using its <code>toJson()</code> method.</p>
+using its <code>toJson()</code> method.  </p>
+<p>When accessing the class level attributes, use the associated getter/setter properties as they are private.</p>
 
   </div>
 
