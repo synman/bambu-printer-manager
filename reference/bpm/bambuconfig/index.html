@@ -537,6 +537,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#bpm.bambuconfig.BambuConfig.__init__--attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -845,7 +854,7 @@ what access code, and serial # to use.  <code>BambuConfig</code> can also be use
 
 
 <h3 id="bpm.bambuconfig.BambuConfig.__init__" class="doc doc-heading">
-          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">hostname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">access_code</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">serial_number</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mqtt_port</span><span class="o">=</span><span class="mi">8883</span><span class="p">,</span> <span class="n">mqtt_client_id</span><span class="o">=</span><span class="s1">&#39;studio_client_id:0c1f&#39;</span><span class="p">,</span> <span class="n">mqtt_username</span><span class="o">=</span><span class="s1">&#39;bblp&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">hostname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">access_code</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">serial_number</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mqtt_port</span><span class="o">=</span><span class="mi">8883</span><span class="p">,</span> <span class="n">mqtt_client_id</span><span class="o">=</span><span class="s1">&#39;studio_client_id:0c1f&#39;</span><span class="p">,</span> <span class="n">mqtt_username</span><span class="o">=</span><span class="s1">&#39;bblp&#39;</span><span class="p">,</span> <span class="n">external_chamber</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 </h3>
 
@@ -861,7 +870,21 @@ what access code, and serial # to use.  <code>BambuConfig</code> can also be use
 <li>mqtt_port : Optional[int] = 8883</li>
 <li>mqtt_client_id : Optional[str] = "studio_client_id:0c1f"</li>
 <li>mqtt_username : Optional[str] = "bblp"</li>
+<li>external_chamber : Optional[bool] = False</li>
 <li>verbose : Optional[bool] = False</li>
+</ul>
+<p><code>external_chamber</code> can be used to tell <code>BambuPrinter</code> not to use any of the chamber 
+temperature data received from the printer.  This can be useful if you are using an
+external chamber temperature sensor / heater and want to inject the sensor value and
+target temperatures into <code>BambuPrinter</code> directly.</p>
+<p><code>verbose</code> triggers a global log level change (within the scope of <code>bambu-printer-manager</code>)
+based on its value.  <code>True</code> will set a log level of <code>DEBUG</code> and <code>False</code> (the default) will 
+set the log level to <code>WARNING</code>.</p>
+<h5 id="bpm.bambuconfig.BambuConfig.__init__--attributes">Attributes</h5>
+<ul>
+<li>All parameters listed above</li>
+<li>_firmware_version : str - Reported printer firmware version</li>
+<li>_ams_firmware_version : str - Reported AMS firmware version</li>
 </ul>
 
   </div>

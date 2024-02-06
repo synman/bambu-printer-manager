@@ -1123,9 +1123,9 @@ logging engine.</p>
 <li>_state: <code>READ/WRITE</code> <code>bambutools.PrinterState</code> enum reports on health / status of the connection to the printer.</li>
 <li>_client: <code>READ ONLY</code> Provides access to the underlying <code>paho.mqtt.client</code> library.</li>
 <li>_on_update: <code>READ/WRITE</code> Callback used for pushing updates.  Includes a self reference to <code>BambuPrinter</code> as an argument.</li>
-<li>_bed_tamp: <code>READ ONLY</code> The current printer bed temperature.</li>
+<li>_bed_temp: <code>READ ONLY</code> The current printer bed temperature.</li>
 <li>_bed_temp_target: <code>READ/WRITE</code> The target bed temperature for the printer.</li>
-<li>_tool_tamp: <code>READ ONLY</code> The current printer tool temperature.</li>
+<li>_tool_temp: <code>READ ONLY</code> The current printer tool temperature.</li>
 <li>_tool_temp_target: <code>READ/WRITE</code> The target tool temperature for the printer.</li>
 <li>_chamber_temp <code>READ/WRITE</code> Not currently integrated but can be used as a stub for external chambers.</li>
 <li>_chamber_temp_target <code>READ/WRITE</code> Not currently integrated but can be used as a stub for external chambers.</li>
@@ -1140,7 +1140,9 @@ logging engine.</p>
 <li>_gcode_file <code>READ ONLY</code> The name of the current or last printed gcode file.</li>
 <li>_print_type <code>READ ONLY</code> Not entirely sure.  Reports "idle" when no job is active.</li>
 <li>_percent_complete <code>READ ONLY</code> Percentage complete for the current active job.</li>
-<li>_time_remaining <code>'READ ONLY</code> The number of estimated minutes remaining for the active job.</li>
+<li>_time_remaining <code>READ ONLY</code> The number of estimated minutes remaining for the active job.</li>
+<li>_start_time <code>READ ONLY</code> The start time of the last (or current) active job in epoch minutes.</li>
+<li>_elapsed_time <code>READ ONLY</code> The number of elapsed minutes for the last (or current) active job.</li>
 <li>_layer_count <code>READ ONLY</code> The total number of layers for the current active job.</li>
 <li>_current_layer <code>READ ONLY</code> The current layer being printed for the current active job.</li>
 <li>_current_stage <code>READ ONLY</code> Maps to <code>bambutools.parseStage</code>.</li>
