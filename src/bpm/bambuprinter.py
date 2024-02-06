@@ -48,9 +48,9 @@ class BambuPrinter:
         * _state: `READ/WRITE` `bambutools.PrinterState` enum reports on health / status of the connection to the printer.
         * _client: `READ ONLY` Provides access to the underlying `paho.mqtt.client` library.
         * _on_update: `READ/WRITE` Callback used for pushing updates.  Includes a self reference to `BambuPrinter` as an argument.
-        * _bed_tamp: `READ ONLY` The current printer bed temperature.
+        * _bed_temp: `READ ONLY` The current printer bed temperature.
         * _bed_temp_target: `READ/WRITE` The target bed temperature for the printer.
-        * _tool_tamp: `READ ONLY` The current printer tool temperature.
+        * _tool_temp: `READ ONLY` The current printer tool temperature.
         * _tool_temp_target: `READ/WRITE` The target tool temperature for the printer.
         * _chamber_temp `READ/WRITE` Not currently integrated but can be used as a stub for external chambers.
         * _chamber_temp_target `READ/WRITE` Not currently integrated but can be used as a stub for external chambers.
