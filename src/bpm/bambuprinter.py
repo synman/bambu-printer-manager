@@ -84,7 +84,8 @@ class BambuPrinter:
         The attributes (where appropriate) are included whenever the class is serialized
         using its `toJson()` method.  
         
-        When accessing the class level attributes, use the associated getter/setter properties as they are private.
+        When accessing the class level attributes, use their associated properties as the 
+        class level attributes are marked private.
         """
         setup_logging()
 
@@ -370,40 +371,11 @@ class BambuPrinter:
         -----
         The return value of this method is very useful for binding to things like a clientside `TreeView`
         """
-        def getDirFiles(ftps: IoTFTPSClient, directory: str) -> {}:
-            try:
-                files = sorted(ftps.list_files_ex(directory))
-            except Exception as e:
-                return None
-
-            dir = {}
-
-            dir["id"] = directory 
-            dir["name"] = directory
-
-            items = []
-
-            for file in files:
-                if file[0][:1] == "d":
-                    item = {}
-                    item = getDirFiles(ftps, directory + ("/" if directory != "/" else "") + file[1])
-                    if item.get("children"): items.append(item)
-                else:
-                    if file[1].lower().endswith(".gcode.3mf"):
-                        item = {}
-                        item["id"] = dir["id"] + ("/" if dir["id"] != "/" else "") + file[1]
-                        item["name"] = file[1]
-                        items.append(item)
-
-            if len(items) > 0: dir["children"] = items
-            return dir
-
         ftps = IoTFTPSClient(self._config.hostname, 990, self._config.mqtt_username, self._config.access_code, ssl_implicit=True)
-        fs = getDirFiles(ftps, "/")
+        fs = self._get_sftp_files(ftps, "/", mask=".gcode.3mf")
         logger.debug("read 3mf sdcard files", extra={"fs": fs})
         self._sdcard_3mf_files = fs
         return fs
-
 
     def get_sdcard_contents(self):
         """
@@ -414,33 +386,8 @@ class BambuPrinter:
         -----
         The return value of this method is very useful for binding to things like a clientside `TreeView`
         """
-        def getDirFiles(ftps: IoTFTPSClient, directory: str) -> {}:
-            try:
-                files = sorted(ftps.list_files_ex(directory))
-            except Exception as e:
-                return None
-
-            dir = {}
-
-            dir["id"] = directory 
-            dir["name"] = directory
-
-            items = []
-
-            for file in files:
-                item = {}
-                if file[0][:1] == "d":
-                    item = getDirFiles(ftps, directory + ("/" if directory != "/" else "") + file[1])
-                else:
-                    item["id"] = dir["id"] + ("/" if dir["id"] != "/" else "") + file[1]
-                    item["name"] = file[1]
-                items.append(item)
-
-            if len(items) > 0: dir["children"] = items
-            return dir
-
         ftps = IoTFTPSClient(self._config.hostname, 990, self._config.mqtt_username, self._config.access_code, ssl_implicit=True)
-        fs = getDirFiles(ftps, "/")
+        fs = self._get_sftp_files(ftps, "/")
         logger.debug("read all sdcard files", extra={"fs": fs})
         self._sdcard_contents = fs
         return fs
@@ -448,17 +395,31 @@ class BambuPrinter:
 
     def delete_sdcard_file(self, file: str):
         """
-        Delete the specified file on the printer's SDCard
+        Delete the specified file on the printer's SDCard and removes it from 
+        the `_sdcard_3mf_files` and `_sdcard_contents` attributes.
 
         Parameters
         ----------
         * file : str - the full path filename to be deleted
         """
-        logger.debug("deleting remote file", extra={"file": file})
+        logger.debug(f"deleting remote file: [{file}]", extra={"file": file})
         ftps = IoTFTPSClient(self._config.hostname, 990, self._config.mqtt_username, self._config.access_code, ssl_implicit=True)
         ftps.delete_file(file)
 
-        self.get_sdcard_contents()
+        def search_for_and_remove_file(file: str, entry: dict):
+            if "children" in entry:
+                entry["children"] = list(filter(lambda i: i['id'] != file, entry["children"]))
+                for child in entry["children"]:
+                    search_for_and_remove_file(file, child)
+
+        def refresh_sdcard_dicts(printer):
+            printer.get_sdcard_contents()
+            printer.get_sdcard_3mf_files()
+
+        search_for_and_remove_file(file, self._sdcard_contents)
+        search_for_and_remove_file(file, self._sdcard_3mf_files)
+
+        # threading.Thread(target=refresh_sdcard_dicts, name="bpm-refresh_sdcard_dicts", args=(self,)).start()
         return 
     
     def toJson(self):
@@ -626,6 +587,35 @@ class BambuPrinter:
             self._elapsed_time = int(round(time.time() / 60, 0)) - self._start_time
 
         if self.on_update: self.on_update(self)
+
+    def _get_sftp_files(self, ftps: IoTFTPSClient, directory: str, mask: Optional[str] = None) -> {}:
+        try:
+            files = sorted(ftps.list_files_ex(directory))
+        except Exception as e:
+            return None
+
+        dir = {}
+
+        dir["id"] = directory 
+        dir["name"] = directory
+
+        items = []
+
+        for file in files:
+            if file[0][:1] == "d":
+                item = {}
+                item = self._get_sftp_files(ftps, directory + ("/" if directory != "/" else "") + file[1], mask=mask)
+                if item.get("children"): items.append(item)
+            else:
+                if not mask or (mask and file[1].lower().endswith(mask)):
+                    item = {}
+                    item["id"] = dir["id"] + ("/" if dir["id"] != "/" else "") + file[1]
+                    item["name"] = file[1]
+                    items.append(item)
+
+        if len(items) > 0: dir["children"] = items
+        return dir
+
 
     @property 
     def config(self) -> BambuConfig:
