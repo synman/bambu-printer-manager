@@ -7,7 +7,7 @@ import ftplib
 import ssl
 from typing import List, Optional, Union
 import traceback
-
+import re
 
 class ImplicitTLS(ftplib.FTP_TLS):
     """ftplib.FTP_TLS sub-class to support implicit SSL FTPS"""
@@ -174,7 +174,15 @@ class IoTFTPSClient:
                 if len(row) <= 0: continue
 
                 attribs = row.split(" ")
-                file = ( attribs[0], attribs[len(attribs) - 1] )
+
+                match = re.search(r".*\ (\d\d\:\d\d|\d\d\d\d)\ (.*)", row)
+                name = ""
+                if match:
+                    name = match.groups(1)[1]
+                else:
+                    name = attribs[len(attribs) - 1]
+
+                file = ( attribs[0], name )
                 files.append(file)
             return files
         except Exception as ex:

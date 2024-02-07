@@ -398,7 +398,7 @@ class BambuPrinter:
             if len(items) > 0: dir["children"] = items
             return dir
 
-        ftps = IoTFTPSClient(f"bambu-a1-printer", 990, "bblp", f"42050576", ssl_implicit=True)
+        ftps = IoTFTPSClient(self._config.hostname, 990, self._config.mqtt_username, self._config.access_code, ssl_implicit=True)
         fs = getDirFiles(ftps, "/")
         logger.debug("read 3mf sdcard files", extra={"fs": fs})
         self._sdcard_3mf_files = fs
@@ -439,12 +439,28 @@ class BambuPrinter:
             if len(items) > 0: dir["children"] = items
             return dir
 
-        ftps = IoTFTPSClient(f"bambu-a1-printer", 990, "bblp", f"42050576", ssl_implicit=True)
+        ftps = IoTFTPSClient(self._config.hostname, 990, self._config.mqtt_username, self._config.access_code, ssl_implicit=True)
         fs = getDirFiles(ftps, "/")
         logger.debug("read all sdcard files", extra={"fs": fs})
         self._sdcard_contents = fs
         return fs
 
+
+    def delete_sdcard_file(self, file: str):
+        """
+        Delete the specified file on the printer's SDCard
+
+        Parameters
+        ----------
+        * file : str - the full path filename to be deleted
+        """
+        logger.debug("deleting remote file", extra={"file": file})
+        ftps = IoTFTPSClient(self._config.hostname, 990, self._config.mqtt_username, self._config.access_code, ssl_implicit=True)
+        ftps.delete_file(file)
+
+        self.get_sdcard_contents()
+        return 
+    
     def toJson(self):
         """
         Returns a `dict` (json document) representing this object's private class
@@ -554,14 +570,15 @@ class BambuPrinter:
                     except:
                         tray_color = "N/A"
 
-                spool = BambuSpool(int(tray["id"]), tray["tray_id_name"],  tray["tray_type"], tray["tray_sub_brands"], tray_color)
+                if tray.get("id"):
+                    spool = BambuSpool(int(tray["id"]), tray["tray_id_name"],  tray["tray_type"], tray["tray_sub_brands"], tray_color)
 
-                if range(len(self.spools), 1, 2): 
-                    spools = (spool,)
-                else:
-                    spools = list(self.spools)
-                    spools.append(spool)
-                self._spools = tuple(spools)
+                    if range(len(self.spools), 1, 2): 
+                        spools = (spool,)
+                    else:
+                        spools = list(self.spools)
+                        spools.append(spool)
+                    self._spools = tuple(spools)
 
             tray_tar = None
             tray_now = None
