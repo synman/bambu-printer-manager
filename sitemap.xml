@@ -51,12 +51,7 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://github.com/synman/bambu-printer-manager/reference/bpm/ftpsclient/_client/</loc>
-         <lastmod>2024-02-08</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://github.com/synman/bambu-printer-manager/reference/bpm/ftpsclient/_version/</loc>
+         <loc>https://github.com/synman/bambu-printer-manager/reference/bpm/ftpsclient/ftpsclient/</loc>
          <lastmod>2024-02-08</lastmod>
          <changefreq>daily</changefreq>
     </url>

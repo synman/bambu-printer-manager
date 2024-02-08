@@ -863,6 +863,30 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#bpm.bambuprinter.BambuPrinter.upload_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      upload_file
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="upload_file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bpm.bambuprinter.BambuPrinter.upload_file--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -971,32 +995,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../ftpsclient/_client/" class="md-nav__link">
+      <a href="../ftpsclient/ftpsclient/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    _client
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ftpsclient/_version/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    _version
+    ftpsclient
   </span>
   
 
@@ -1565,6 +1568,30 @@ level attributes that are serializable (most are).</p>
   <div class="doc doc-contents ">
   
       <p>Requests the printer to unload whatever filament / spool may be currently loaded.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bpm.bambuprinter.BambuPrinter.upload_file" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">upload_file</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dest</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Uploads the local filesystem file to the printer and returns an updated dict of all files on the printer</p>
+<h5 id="bpm.bambuprinter.BambuPrinter.upload_file--parameters">Parameters</h5>
+<ul>
+<li>src : str - the full path filename on the host to be uploaded to the printer</li>
+<li>dest : str - the full path filename on the printer to upload to</li>
+</ul>
 
   </div>
 
