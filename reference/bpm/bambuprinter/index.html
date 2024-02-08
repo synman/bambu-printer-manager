@@ -594,6 +594,30 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#bpm.bambuprinter.BambuPrinter.delete_sdcard_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_sdcard_file
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="delete_sdcard_file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bpm.bambuprinter.BambuPrinter.delete_sdcard_file--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#bpm.bambuprinter.BambuPrinter.get_sdcard_3mf_files" class="md-nav__link">
     <span class="md-ellipsis">
       get_sdcard_3mf_files
@@ -1158,7 +1182,32 @@ logging engine.</p>
 </ul>
 <p>The attributes (where appropriate) are included whenever the class is serialized
 using its <code>toJson()</code> method.  </p>
-<p>When accessing the class level attributes, use the associated getter/setter properties as they are private.</p>
+<p>When accessing the class level attributes, use their associated properties as the 
+class level attributes are marked private.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bpm.bambuprinter.BambuPrinter.delete_sdcard_file" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">delete_sdcard_file</span><span class="p">(</span><span class="n">file</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Delete the specified file on the printer's SDCard and removes it from 
+the <code>_sdcard_3mf_files</code> and <code>_sdcard_contents</code> attributes.</p>
+<h5 id="bpm.bambuprinter.BambuPrinter.delete_sdcard_file--parameters">Parameters</h5>
+<ul>
+<li>file : str - the full path filename to be deleted</li>
+</ul>
 
   </div>
 
