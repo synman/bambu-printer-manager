@@ -14,7 +14,7 @@ from .bambutools import PrinterState, PlateType
 from .bambutools import parseStage, parseFan
 from .bambuconfig import BambuConfig
 
-from .ftpsclient._client import IoTFTPSClient
+from .ftpsclient.ftpsclient import IoTFTPSClient
 
 import os
 import atexit
@@ -371,23 +371,6 @@ class BambuPrinter:
         -----
         The return value of this method is very useful for binding to things like a clientside `TreeView`
         """
-        # ftps = IoTFTPSClient(self._config.hostname, 990, self._config.mqtt_username, self._config.access_code, ssl_implicit=True)
-        # fs = self._get_sftp_files(ftps, "/", mask=".gcode.3mf")
-        # logger.debug("read 3mf sdcard files", extra={"fs": fs})
-        # self._sdcard_3mf_files = fs
-        # return fs
-        def search_for_and_remove_all_other_files(mask: str, entry: dict):
-            if "children" in entry:  
-                # entry["children"] = list(filter(lambda i: (mask in i['id']), entry["children"]))
-                entry["children"]: [d for d in entry["children"] if not d['id'].endswith(mask)]
-                for child in entry["children"]:
-                    search_for_and_remove_all_other_files(mask, child)
-
-        if not self._sdcard_contents:
-            self.get_sdcard_contents()
-
-        self._sdcard_3mf_files = self._sdcard_contents.copy()
-        search_for_and_remove_all_other_files(".gcode.3mf", self._sdcard_3mf_files)
         return self._sdcard_3mf_files
 
     def get_sdcard_contents(self):
@@ -403,6 +386,16 @@ class BambuPrinter:
         fs = self._get_sftp_files(ftps, "/")
         logger.debug("read all sdcard files", extra={"fs": fs})
         self._sdcard_contents = fs
+
+        def search_for_and_remove_all_other_files(mask: str, entry: dict):
+            if "children" in entry:
+                entry["children"] = list(filter(lambda i: i['id'].endswith(mask) or 'children' in i.keys(), entry["children"]))
+                for child in entry["children"]:
+                    search_for_and_remove_all_other_files(mask, child)
+
+        self._sdcard_3mf_files = self._sdcard_contents.copy()
+        search_for_and_remove_all_other_files(".gcode.3mf", self._sdcard_3mf_files)
+
         return fs
 
 
@@ -410,7 +403,7 @@ class BambuPrinter:
         """
         Delete the specified file on the printer's SDCard and removes it from 
         the `_sdcard_3mf_files` and `_sdcard_contents` attributes.
-
+        
         Parameters
         ----------
         * file : str - the full path filename to be deleted
@@ -429,29 +422,18 @@ class BambuPrinter:
         search_for_and_remove_file(file, self._sdcard_3mf_files)
         return 
 
-    def upload_file(self, file: str):
+    def upload_file(self, src: str, dest: str) -> {}:
         """
-        Uploads the local filesystem file to the printer
+        Uploads the local filesystem file to the printer and returns an updated dict of all files on the printer
 
         Parameters
         ----------
-        * file : str - the full path filename to be uploaded to the printer
+        * src : str - the full path filename on the host to be uploaded to the printer
+        * dest : str - the full path filename on the printer to upload to
         """
-        logger.debug(f"uploading file: [{file}]", extra={"file": file})
         ftps = IoTFTPSClient(self._config.hostname, 990, self._config.mqtt_username, self._config.access_code, ssl_implicit=True)
-        ftps.upload_file(file, "/" + file[file.rindex("/") + 1::] if "/" in file else file)
-
-        # def refresh_sdcard_dicts(printer):
-        #     printer.get_sdcard_contents()
-        #     printer.get_sdcard_3mf_files()
-
-        # threading.Thread(target=refresh_sdcard_dicts, name="bpm-refresh_sdcard_dicts", args=(self,)).start()
-        fs = self._get_sftp_files(ftps, "/")
-        logger.debug("read all sdcard files", extra={"fs": fs})
-        self._sdcard_contents = fs
-
-        self.get_sdcard_3mf_files()
-        return 
+        ftps.upload_file(src, dest)
+        return self.get_sdcard_contents()
 
     def toJson(self):
         """
@@ -627,7 +609,7 @@ class BambuPrinter:
 
         dir = {}
 
-        dir["id"] = directory 
+        dir["id"] = directory + ("/" if directory != "/" else "")
         dir["name"] = directory
 
         items = []
@@ -640,7 +622,7 @@ class BambuPrinter:
             else:
                 if not mask or (mask and file[1].lower().endswith(mask)):
                     item = {}
-                    item["id"] = dir["id"] + ("/" if dir["id"] != "/" else "") + file[1]
+                    item["id"] = dir["id"] + file[1]
                     item["name"] = file[1]
                     items.append(item)
 
