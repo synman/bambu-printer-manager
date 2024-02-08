@@ -371,11 +371,24 @@ class BambuPrinter:
         -----
         The return value of this method is very useful for binding to things like a clientside `TreeView`
         """
-        ftps = IoTFTPSClient(self._config.hostname, 990, self._config.mqtt_username, self._config.access_code, ssl_implicit=True)
-        fs = self._get_sftp_files(ftps, "/", mask=".gcode.3mf")
-        logger.debug("read 3mf sdcard files", extra={"fs": fs})
-        self._sdcard_3mf_files = fs
-        return fs
+        # ftps = IoTFTPSClient(self._config.hostname, 990, self._config.mqtt_username, self._config.access_code, ssl_implicit=True)
+        # fs = self._get_sftp_files(ftps, "/", mask=".gcode.3mf")
+        # logger.debug("read 3mf sdcard files", extra={"fs": fs})
+        # self._sdcard_3mf_files = fs
+        # return fs
+        def search_for_and_remove_all_other_files(mask: str, entry: dict):
+            if "children" in entry:  
+                # entry["children"] = list(filter(lambda i: (mask in i['id']), entry["children"]))
+                entry["children"]: [d for d in entry["children"] if not d['id'].endswith(mask)]
+                for child in entry["children"]:
+                    search_for_and_remove_all_other_files(mask, child)
+
+        if not self._sdcard_contents:
+            self.get_sdcard_contents()
+
+        self._sdcard_3mf_files = self._sdcard_contents.copy()
+        search_for_and_remove_all_other_files(".gcode.3mf", self._sdcard_3mf_files)
+        return self._sdcard_3mf_files
 
     def get_sdcard_contents(self):
         """
@@ -412,16 +425,34 @@ class BambuPrinter:
                 for child in entry["children"]:
                     search_for_and_remove_file(file, child)
 
-        def refresh_sdcard_dicts(printer):
-            printer.get_sdcard_contents()
-            printer.get_sdcard_3mf_files()
-
         search_for_and_remove_file(file, self._sdcard_contents)
         search_for_and_remove_file(file, self._sdcard_3mf_files)
+        return 
+
+    def upload_file(self, file: str):
+        """
+        Uploads the local filesystem file to the printer
+
+        Parameters
+        ----------
+        * file : str - the full path filename to be uploaded to the printer
+        """
+        logger.debug(f"uploading file: [{file}]", extra={"file": file})
+        ftps = IoTFTPSClient(self._config.hostname, 990, self._config.mqtt_username, self._config.access_code, ssl_implicit=True)
+        ftps.upload_file(file, "/" + file[file.rindex("/") + 1::] if "/" in file else file)
+
+        # def refresh_sdcard_dicts(printer):
+        #     printer.get_sdcard_contents()
+        #     printer.get_sdcard_3mf_files()
 
         # threading.Thread(target=refresh_sdcard_dicts, name="bpm-refresh_sdcard_dicts", args=(self,)).start()
+        fs = self._get_sftp_files(ftps, "/")
+        logger.debug("read all sdcard files", extra={"fs": fs})
+        self._sdcard_contents = fs
+
+        self.get_sdcard_3mf_files()
         return 
-    
+
     def toJson(self):
         """
         Returns a `dict` (json document) representing this object's private class
