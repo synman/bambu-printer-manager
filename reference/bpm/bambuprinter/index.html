@@ -618,6 +618,30 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#bpm.bambuprinter.BambuPrinter.download_sdcard_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      download_sdcard_file
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="download_sdcard_file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bpm.bambuprinter.BambuPrinter.download_sdcard_file--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#bpm.bambuprinter.BambuPrinter.get_sdcard_3mf_files" class="md-nav__link">
     <span class="md-ellipsis">
       get_sdcard_3mf_files
@@ -686,6 +710,30 @@
         
           <li class="md-nav__item">
   <a href="#bpm.bambuprinter.BambuPrinter.load_filament--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bpm.bambuprinter.BambuPrinter.make_sdcard_directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      make_sdcard_directory
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="make_sdcard_directory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bpm.bambuprinter.BambuPrinter.make_sdcard_directory--parameters" class="md-nav__link">
     <span class="md-ellipsis">
       Parameters
     </span>
@@ -777,6 +825,30 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#bpm.bambuprinter.BambuPrinter.rename_sdcard_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      rename_sdcard_file
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="rename_sdcard_file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bpm.bambuprinter.BambuPrinter.rename_sdcard_file--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#bpm.bambuprinter.BambuPrinter.resume_printing" class="md-nav__link">
     <span class="md-ellipsis">
       resume_printing
@@ -864,17 +936,17 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#bpm.bambuprinter.BambuPrinter.upload_file" class="md-nav__link">
+  <a href="#bpm.bambuprinter.BambuPrinter.upload_sdcard_file" class="md-nav__link">
     <span class="md-ellipsis">
-      upload_file
+      upload_sdcard_file
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="upload_file">
+    <nav class="md-nav" aria-label="upload_sdcard_file">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#bpm.bambuprinter.BambuPrinter.upload_file--parameters" class="md-nav__link">
+  <a href="#bpm.bambuprinter.BambuPrinter.upload_sdcard_file--parameters" class="md-nav__link">
     <span class="md-ellipsis">
       Parameters
     </span>
@@ -1205,11 +1277,34 @@ class level attributes are marked private.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Delete the specified file on the printer's SDCard and removes it from 
-the <code>_sdcard_3mf_files</code> and <code>_sdcard_contents</code> attributes.</p>
+      <p>Delete the specified file on the printer's SDCard and returns an updated dict of all files on the printer</p>
 <h5 id="bpm.bambuprinter.BambuPrinter.delete_sdcard_file--parameters">Parameters</h5>
 <ul>
 <li>file : str - the full path filename to be deleted</li>
+</ul>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bpm.bambuprinter.BambuPrinter.download_sdcard_file" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">download_sdcard_file</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dest</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Downloads a file from the printer </p>
+<h5 id="bpm.bambuprinter.BambuPrinter.download_sdcard_file--parameters">Parameters</h5>
+<ul>
+<li>src : str - the full path filename on the printer to be downloaded to the host</li>
+<li>dest : str - the full path filename on the host to store the downloaded file</li>
 </ul>
 
   </div>
@@ -1301,6 +1396,29 @@ The private class level <code>_sdcard_contents</code> attribute is also populate
 <li><code>2</code> - AMS Spool #3</li>
 <li><code>3</code> - AMS Spool #4</li>
 <li><code>254</code> - External Spool</li>
+</ul>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bpm.bambuprinter.BambuPrinter.make_sdcard_directory" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">make_sdcard_directory</span><span class="p">(</span><span class="nb">dir</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Creates the specified directory on the printer and returns an updated dict of all files on the printer</p>
+<h5 id="bpm.bambuprinter.BambuPrinter.make_sdcard_directory--parameters">Parameters</h5>
+<ul>
+<li>dir : str - the full path directory name to be created</li>
 </ul>
 
   </div>
@@ -1423,6 +1541,30 @@ session with <a href="./#bpm.bambuprinter.BambuPrinter.start_session">start_sess
   
       <p>Triggers a full data refresh from the printer (if it is connected).  You should use this
 method sparingly as resorting to it indicates something is not working properly.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bpm.bambuprinter.BambuPrinter.rename_sdcard_file" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">rename_sdcard_file</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dest</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Renames the specified file on the printer and returns an updated dict of all files on the printer</p>
+<h5 id="bpm.bambuprinter.BambuPrinter.rename_sdcard_file--parameters">Parameters</h5>
+<ul>
+<li>src : str - the full path name to be renamed</li>
+<li>dest : str - the full path name to be renamed to</li>
+</ul>
 
   </div>
 
@@ -1578,8 +1720,8 @@ level attributes that are serializable (most are).</p>
 
 
 
-<h3 id="bpm.bambuprinter.BambuPrinter.upload_file" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">upload_file</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dest</span><span class="p">)</span></code>
+<h3 id="bpm.bambuprinter.BambuPrinter.upload_sdcard_file" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">upload_sdcard_file</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dest</span><span class="p">)</span></code>
 
 </h3>
 
@@ -1587,7 +1729,7 @@ level attributes that are serializable (most are).</p>
   <div class="doc doc-contents ">
   
       <p>Uploads the local filesystem file to the printer and returns an updated dict of all files on the printer</p>
-<h5 id="bpm.bambuprinter.BambuPrinter.upload_file--parameters">Parameters</h5>
+<h5 id="bpm.bambuprinter.BambuPrinter.upload_sdcard_file--parameters">Parameters</h5>
 <ul>
 <li>src : str - the full path filename on the host to be uploaded to the printer</li>
 <li>dest : str - the full path filename on the printer to upload to</li>
