@@ -393,7 +393,7 @@ class BambuPrinter:
                 for child in entry["children"]:
                     search_for_and_remove_all_other_files(mask, child)
 
-        self._sdcard_3mf_files = self._sdcard_contents.copy()
+        self._sdcard_3mf_files = json.loads(json.dumps(self._sdcard_contents)) 
         search_for_and_remove_all_other_files(".gcode.3mf", self._sdcard_3mf_files)
 
         return fs
@@ -401,8 +401,7 @@ class BambuPrinter:
 
     def delete_sdcard_file(self, file: str):
         """
-        Delete the specified file on the printer's SDCard and removes it from 
-        the `_sdcard_3mf_files` and `_sdcard_contents` attributes.
+        Delete the specified file on the printer's SDCard and returns an updated dict of all files on the printer
         
         Parameters
         ----------
@@ -420,9 +419,9 @@ class BambuPrinter:
 
         search_for_and_remove_file(file, self._sdcard_contents)
         search_for_and_remove_file(file, self._sdcard_3mf_files)
-        return 
+        return self._sdcard_contents
 
-    def upload_file(self, src: str, dest: str) -> {}:
+    def upload_sdcard_file(self, src: str, dest: str) -> {}:
         """
         Uploads the local filesystem file to the printer and returns an updated dict of all files on the printer
 
@@ -431,8 +430,50 @@ class BambuPrinter:
         * src : str - the full path filename on the host to be uploaded to the printer
         * dest : str - the full path filename on the printer to upload to
         """
+        logger.debug(f"uploading file src: [{src}] dest: [{dest}]")
         ftps = IoTFTPSClient(self._config.hostname, 990, self._config.mqtt_username, self._config.access_code, ssl_implicit=True)
         ftps.upload_file(src, dest)
+        return self.get_sdcard_contents()
+
+    def download_sdcard_file(self, src: str, dest: str):
+        """
+        Downloads a file from the printer 
+
+        Parameters
+        ----------
+        * src : str - the full path filename on the printer to be downloaded to the host
+        * dest : str - the full path filename on the host to store the downloaded file
+        """
+        logger.debug(f"downloading file src: [{src}] dest: [{dest}]")
+        ftps = IoTFTPSClient(self._config.hostname, 990, self._config.mqtt_username, self._config.access_code, ssl_implicit=True)
+        ftps.download_file(src, dest)
+        return 
+    
+    def make_sdcard_directory(self, dir: str) -> {}:
+        """
+        Creates the specified directory on the printer and returns an updated dict of all files on the printer
+
+        Parameters
+        ----------
+        * dir : str - the full path directory name to be created
+        """
+        ftps = IoTFTPSClient(self._config.hostname, 990, self._config.mqtt_username, self._config.access_code, ssl_implicit=True)
+        logger.debug(f"creating remote directory [{dir}]")
+        ftps.mkdir(dir)
+        return self.get_sdcard_contents()
+
+    def rename_sdcard_file(self, src: str, dest: str) -> {}:
+        """
+        Renames the specified file on the printer and returns an updated dict of all files on the printer
+
+        Parameters
+        ----------
+        * src : str - the full path name to be renamed
+        * dest : str - the full path name to be renamed to
+        """
+        ftps = IoTFTPSClient(self._config.hostname, 990, self._config.mqtt_username, self._config.access_code, ssl_implicit=True)
+        logger.debug(f"renaming printer file [{src}] to [{dest}]")
+        ftps.move_file(src, dest)
         return self.get_sdcard_contents()
 
     def toJson(self):
@@ -605,12 +646,13 @@ class BambuPrinter:
         try:
             files = sorted(ftps.list_files_ex(directory))
         except Exception as e:
+            logger.warn("unexpected ftps exception")
             return None
 
         dir = {}
 
         dir["id"] = directory + ("/" if directory != "/" else "")
-        dir["name"] = directory
+        dir["name"] = directory[directory.rindex("/") + 1:] if "/" in directory and directory != "/" else directory
 
         items = []
 
@@ -618,7 +660,7 @@ class BambuPrinter:
             if file[0][:1] == "d":
                 item = {}
                 item = self._get_sftp_files(ftps, directory + ("/" if directory != "/" else "") + file[1], mask=mask)
-                if item.get("children"): items.append(item)
+                items.append(item)
             else:
                 if not mask or (mask and file[1].lower().endswith(mask)):
                     item = {}

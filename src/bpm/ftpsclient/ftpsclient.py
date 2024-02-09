@@ -175,6 +175,9 @@ class IoTFTPSClient:
         """move a file inside the FTPS server to another path inside the FTPS server"""
         self.ftps_session.rename(source, dest)
 
+    def mkdir(self, path: str) -> str:
+        return self.ftps_session.mkd(path)
+    
     def list_files(
             self, path: str = "/"
     ) -> None:
@@ -208,3 +211,4 @@ class IoTFTPSClient:
             print(f"unexpected exception occurred: [{ex}]")
             pass
         return    
+    
