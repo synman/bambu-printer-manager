@@ -20,6 +20,7 @@ class BambuConfig:
                  mqtt_port: Optional[int] = 8883, 
                  mqtt_client_id: Optional[str] = "studio_client_id:0c1f",
                  mqtt_username: Optional[str] = "bblp",
+                 watchdog_timeout: Optional[int] = 30,
                  external_chamber: Optional[bool] = False,
                  verbose: Optional[bool] = False):
         """
@@ -33,6 +34,7 @@ class BambuConfig:
         * mqtt_port : Optional[int] = 8883
         * mqtt_client_id : Optional[str] = "studio_client_id:0c1f"
         * mqtt_username : Optional[str] = "bblp"
+        * watchdog_timeout : Optional[int] = 30
         * external_chamber : Optional[bool] = False
         * verbose : Optional[bool] = False
 
@@ -53,17 +55,18 @@ class BambuConfig:
         """        
         setup_logging()
 
-        self.hostname = hostname
-        self.access_code = access_code
-        self.serial_number = serial_number
-        self.mqtt_port = mqtt_port
-        self.mqtt_client_id = mqtt_client_id
-        self.mqtt_username = mqtt_username
-        self.external_chamber =external_chamber
-        self.verbose = verbose
+        self._hostname = hostname
+        self._access_code = access_code
+        self._serial_number = serial_number
+        self._mqtt_port = mqtt_port
+        self._mqtt_client_id = mqtt_client_id
+        self._mqtt_username = mqtt_username
+        self._watchdog_timeout = watchdog_timeout
+        self._external_chamber =external_chamber
+        self._verbose = verbose
 
-        self.firmware_version = "N/A"
-        self.ams_firmware_version = "N/A"
+        self._firmware_version = "N/A"
+        self._ams_firmware_version = "N/A"
 
     @property 
     def hostname(self) -> str:
@@ -106,6 +109,13 @@ class BambuConfig:
     @mqtt_username.setter 
     def mqtt_username(self, value: str):
         self._mqtt_username = str(value)
+
+    @property 
+    def watchdog_timeout(self) -> int:
+        return self._watchdog_timeout
+    @watchdog_timeout.setter 
+    def watchdog_timeout(self, value: int):
+        self._watchdog_timeout = int(value)
 
     @property 
     def firmware_version(self) -> str:

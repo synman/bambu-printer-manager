@@ -181,7 +181,7 @@ class BambuPrinter:
                 if printer.client and printer.client.is_connected(): printer.client.disconnect() 
             printer.state = PrinterState.QUIT
 
-        self.client = mqtt.Client()
+        self.client =  mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
 
         self.client.on_connect = on_connect
         self.client.on_disconnect = on_disconnect
@@ -250,10 +250,10 @@ class BambuPrinter:
         method sparingly as resorting to it indicates something is not working properly.
         """
         if self.state == PrinterState.CONNECTED:
+            logger.debug(f"publishing ANNOUNCE_PUSH to [device/{self.config.serial_number}/request]")
             self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(ANNOUNCE_PUSH))
-            logger.debug(f"published ANNOUNCE_PUSH to [device/{self.config.serial_number}/request]")
+            logger.debug(f"publishing ANNOUNCE_VERSION to [device/{self.config.serial_number}/request]")
             self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(ANNOUNCE_VERSION))
-            logger.debug(f"published ANNOUNCE_VERSION to [device/{self.config.serial_number}/request]")
 
     def unload_filament(self):
         """
@@ -501,7 +501,7 @@ class BambuPrinter:
         def watchdog_thread(printer):
             try:
                 while printer.state != PrinterState.QUIT:
-                    if printer.state == PrinterState.CONNECTED and (printer._lastMessageTime is None or printer._lastMessageTime + 15 < time.time()):
+                    if printer.state == PrinterState.CONNECTED and (printer._lastMessageTime is None or printer._lastMessageTime + printer.config.watchdog_timeout < time.time()):
                         if printer._lastMessageTime: logger.warn("BambuPrinter watchdog timeout")
                         printer._lastMessageTime = time.time()
                         printer._recent_update = False
@@ -570,8 +570,13 @@ class BambuPrinter:
                                 except:
                                     tray_color = "N/A"
                             
-                            spool = BambuSpool(int(tray["id"]),  tray["tray_id_name"] if "tray_id_name" in tray else "",  tray["tray_type"] if "tray_type" in tray else "", tray["tray_sub_brands"] if "tray_sub_brands" in tray else "", tray_color)
-                            spools.append(spool)
+                            if tray.get("id"):
+                                spool = BambuSpool(int(tray["id"]),  
+                                                   tray["tray_id_name"] if "tray_id_name" in tray else "",  
+                                                   tray["tray_type"] if "tray_type" in tray else "", 
+                                                   tray["tray_sub_brands"] if "tray_sub_brands" in tray else "", 
+                                                   tray_color)
+                                spools.append(spool)
                         self._spools = tuple(spools)
 
             if "vt_tray" in status:
@@ -585,13 +590,18 @@ class BambuPrinter:
                         tray_color = "N/A"
 
                 if tray.get("id"):
-                    spool = BambuSpool(int(tray["id"]), tray["tray_id_name"],  tray["tray_type"], tray["tray_sub_brands"], tray_color)
+                    spool = BambuSpool(int(tray["id"]), 
+                                       tray["tray_id_name"] if tray["tray_id_name"] in tray else "",  
+                                       tray["tray_type"] if tray["tray_type"] in tray else "", 
+                                       tray["tray_sub_brands"] if tray["tray_sub_brands"] in tray else "", 
+                                       tray_color)
 
-                    if range(len(self.spools), 1, 2): 
+                    if not self._ams_exists: 
                         spools = (spool,)
                     else:
                         spools = list(self.spools)
                         spools.append(spool)
+
                     self._spools = tuple(spools)
 
             tray_tar = None
