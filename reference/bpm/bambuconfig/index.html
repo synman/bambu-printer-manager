@@ -833,7 +833,7 @@ what access code, and serial # to use.  <code>BambuConfig</code> can also be use
 
 
 <h3 id="bpm.bambuconfig.BambuConfig.__init__" class="doc doc-heading">
-          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">hostname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">access_code</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">serial_number</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mqtt_port</span><span class="o">=</span><span class="mi">8883</span><span class="p">,</span> <span class="n">mqtt_client_id</span><span class="o">=</span><span class="s1">&#39;studio_client_id:0c1f&#39;</span><span class="p">,</span> <span class="n">mqtt_username</span><span class="o">=</span><span class="s1">&#39;bblp&#39;</span><span class="p">,</span> <span class="n">external_chamber</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">hostname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">access_code</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">serial_number</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mqtt_port</span><span class="o">=</span><span class="mi">8883</span><span class="p">,</span> <span class="n">mqtt_client_id</span><span class="o">=</span><span class="s1">&#39;studio_client_id:0c1f&#39;</span><span class="p">,</span> <span class="n">mqtt_username</span><span class="o">=</span><span class="s1">&#39;bblp&#39;</span><span class="p">,</span> <span class="n">watchdog_timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">external_chamber</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 </h3>
 
@@ -849,6 +849,7 @@ what access code, and serial # to use.  <code>BambuConfig</code> can also be use
 <li>mqtt_port : Optional[int] = 8883</li>
 <li>mqtt_client_id : Optional[str] = "studio_client_id:0c1f"</li>
 <li>mqtt_username : Optional[str] = "bblp"</li>
+<li>watchdog_timeout : Optional[int] = 30</li>
 <li>external_chamber : Optional[bool] = False</li>
 <li>verbose : Optional[bool] = False</li>
 </ul>
