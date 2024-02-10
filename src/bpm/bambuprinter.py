@@ -398,7 +398,6 @@ class BambuPrinter:
 
         return fs
 
-
     def delete_sdcard_file(self, file: str):
         """
         Delete the specified file on the printer's SDCard and returns an updated dict of all files on the printer
@@ -747,6 +746,8 @@ class BambuPrinter:
     @chamber_temp_target.setter 
     def chamber_temp_target(self, value: float):
         self._chamber_temp_target = value
+
+
 
     @property 
     def fan_speed(self):
