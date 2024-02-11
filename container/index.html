@@ -818,7 +818,7 @@ exotic filaments such as ABS, ASA, Polycarbonite, and Nylon.</p>
 power state commands and power state requests over MQTT.  Some plugs, such as tasmota and esphome flashed one can do this directly while others will
 likely require something like Home Assistant.</p>
 <p>You also need a Wi-Fi enabled temperature sensor that can do similar as the Wi-Fi power plug to publish environmental data, specifically the temperature, 
-to an MQTT topic.  The easiest way to do this is to build one <a href="https://github.com/synman/bme280">yourself</a>.  However, I'm sure there also a number of pre-assembled ones you could use too.</p>
+to an MQTT topic.  The easiest way to do this is to build one <a href="https://github.com/synman/bme280">yourself</a>.  However, I'm sure there are a number of pre-assembled ones you could use too.</p>
 <p>The final step is configuring the <code>bambu-printer-manager</code> container to interact with the temperature sensor and power plug:
 <div class="language-dockerfile highlight"><span class="filename">Docker</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1"></a><a href="#__codelineno-1-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="k">ENV</span><span class="w"> </span><span class="nv">INTEGRATED_EXTERNAL_HEATER</span><span class="o">=</span><span class="s2">&quot;TRUE&quot;</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2"></a><a href="#__codelineno-1-2"><span class="linenos" data-linenos=" 2 "></span></a>
