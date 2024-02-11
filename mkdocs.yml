@@ -4,6 +4,7 @@ repo_url: https://github.com/synman/bambu-printer-manager/
 nav:
   - Home: index.md
   - Code Reference: reference/
+  - Client Container: container.md
   - License: license.md
 markdown_extensions:
   - pymdownx.arithmatex:
