@@ -826,8 +826,8 @@ class BambuPrinter:
         return self._print_type
 
     @property 
-    def percent_complete(self):
-        return self._percent_complete
+    def percent_complete(self) -> int:
+        return int(self._percent_complete) if str(self._percent_complete).isnumeric() else int(0)
 
     @property 
     def time_remaining(self) -> int:
