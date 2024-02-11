@@ -1,7 +1,10 @@
 import json
 from webcolors import hex_to_name
 import paho.mqtt.client as mqtt
+
+from threading import Thread
 import threading
+
 import ssl
 import time
 import traceback
@@ -41,6 +44,8 @@ class BambuPrinter:
 
         Attributes
         ----------
+        * _mqtt_client_thread: `PRIVATE` Thread handle for the mqtt client thread
+        * _watchdog_thread: `PRIVATE` Thread handle for the watchdog thread
         * _internalExcepton: `READ ONLY` Returns the underlying `Exception` object if a failure occurred.
         * _lastMessageTime: `READ ONLY` Epoch timestamp (in seconds) for the last time an update was received from the printer.
         * _recent_update: `READ ONLY` Indicates that a message from the printer has been recently processed.
@@ -88,6 +93,9 @@ class BambuPrinter:
         class level attributes are marked private.
         """
         setup_logging()
+
+        self._mqtt_client_thread = None
+        self._watchdog_thread = None
 
         self._internalException = None
         self._lastMessageTime = None
@@ -202,7 +210,8 @@ class BambuPrinter:
             self.state = PrinterState.QUIT
             return
 
-        threading.Thread(target=loop_forever, name="bambuprinter-session", args=(self,)).start()
+        self._mqtt_client_thread = threading.Thread(target=loop_forever, name="bambuprinter-session", args=(self,))
+        self._mqtt_client_thread.start()
 
         self._start_watchdog()
 
@@ -237,12 +246,14 @@ class BambuPrinter:
         """
         if self.client and self.client.is_connected():
             self.client.disconnect()
-            while self.state != PrinterState.QUIT:
-                time.sleep(.1)
             logger.debug("mqtt client was connected and is now disconnected")
         else:
             self.state == PrinterState.QUIT
             logger.debug("mqtt client was already disconnected")
+
+        if self._mqtt_client_thread.is_alive(): self._mqtt_client_thread.join()
+        if self._watchdog_thread.is_alive(): self._watchdog_thread.join()
+        logger.debug("all threads have terminated")
 
     def refresh(self):
         """
@@ -488,10 +499,10 @@ class BambuPrinter:
         Helper method used by `toJson()` to serialize this object.  
         """
         try:
-            if isinstance(obj, mqtt.Client):
-                return ""
+            if isinstance(obj, mqtt.Client) or isinstance(obj, Thread):
+                return "these are not the droids you are looking for"
             if str(obj.__class__).replace("<class '", "").replace("'>", "") == "mappingproxy":
-                return "bambutools.PrinterState"
+                return "bpm.bambutools.PrinterState"
             return obj.__dict__
         except Exception as e:
             logger.warn("unable to serialize object", extra={"obj": obj})
@@ -513,7 +524,8 @@ class BambuPrinter:
                 printer._internalException = e
                 if printer.client and printer.client.is_connected(): printer.client.disconnect()
 
-        threading.Thread(target=watchdog_thread, name="bambuprinter-session-watchdog", args=(self,)).start()
+        self._watchdog_thread = threading.Thread(target=watchdog_thread, name="bambuprinter-session-watchdog", args=(self,))
+        self._watchdog_thread.start()
 
     def _on_message(self, message: str):
         logger.debug("_on_message", extra={"bambu_msg": message})
@@ -614,7 +626,7 @@ class BambuPrinter:
             if "ams" in status and "tray_now" in status["ams"]:
                 tray_now = int(status["ams"]["tray_now"])
                 if tray_now != 255: 
-                    if self.active_spool != tray_now: 
+                    if self._active_spool != tray_now: 
                         self._spool_state = f"Loading"
                         self._active_spool = tray_now
 
@@ -632,6 +644,10 @@ class BambuPrinter:
                 if self._ams_status == 768:
                     self._spool_state = "Loaded"
                     
+            # catch-all for the external spool
+            if not tray_tar is None and not tray_now is None and tray_tar == tray_now:
+                if self._spool_state != "Loaded" and self._active_spool == 254: self._spool_state = "Loaded"
+
         elif "info" in message and "result" in message["info"] and message["info"]["result"] == "success": 
             self._recent_update = True
             info = message["info"]
