@@ -6,7 +6,7 @@
 All documentation for `bambu-printer-manager` can be found here: https://synman.github.io/bambu-printer-manager/
 
 ### Need Help?
-Open an issue, here: https://github.com/synman/bambu-printer-manager/issues
+Open an issue, [here](https://github.com/synman/bambu-printer-manager/issues).
 
 ### Want to Contribute?
 Submit a Pull Request to [main](https://github.com/synman/bambu-printer-manager/compare)!
