@@ -727,6 +727,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#external-chamber-heating" class="md-nav__link">
+    <span class="md-ellipsis">
+      External Chamber Heating
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
       Troubleshooting
@@ -802,8 +811,42 @@
   <img src="https://github.com/synman/bambu-printer-manager/assets/1299716/3a089d35-5c30-4eb0-b5e2-849ca076c632" width="400px" /> 
 </p>
 
+<h2 id="external-chamber-heating">External Chamber Heating</h2>
+<p>This is an <code>advanced</code> feature of the container that allows you to use a <a href="https://www.amazon.com/Safety-Energy-saving-Portable-Desktop-Electric/dp/B07573FKSG?th=1">heater</a> to control the atmosphere within your printer's enclosure. This is very helpful if you have an A1 in an enclosure and want to use 
+exotic filaments such as ABS, ASA, Polycarbonite, and Nylon.</p>
+<p>You connect the heater to a Wi-Fi enabled power plug (tplink / tasmota / esphome / tuya / etc) for power delivery and configure the plug to respond to 
+power state commands and power state requests over MQTT.  Some plugs, such as tasmota and esphome flashed one can do this directly while others will
+likely require something like Home Assistant.</p>
+<p>You also need a Wi-Fi enabled temperature sensor that can do similar as the Wi-Fi power plug to publish environmental data, specifically the temperature, 
+to an MQTT topic.  The easiest way to do this is to build one <a href="https://github.com/synman/bme280">yourself</a>.  However, I'm sure there also a number of pre-assembled ones you could use too.</p>
+<p>The final step is configuring the <code>bambu-printer-manager</code> container to interact with the temperature sensor and power plug:
+<div class="language-dockerfile highlight"><span class="filename">Docker</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1"></a><a href="#__codelineno-1-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="k">ENV</span><span class="w"> </span><span class="nv">INTEGRATED_EXTERNAL_HEATER</span><span class="o">=</span><span class="s2">&quot;TRUE&quot;</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2"></a><a href="#__codelineno-1-2"><span class="linenos" data-linenos=" 2 "></span></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3"></a><a href="#__codelineno-1-3"><span class="linenos" data-linenos=" 3 "></span></a><span class="k">ENV</span><span class="w"> </span><span class="nv">CHAMBER_MQTT_HOST</span><span class="o">=</span><span class="s2">&quot;MQTT_SERVER_HOST_OR_IP&quot;</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4"></a><a href="#__codelineno-1-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="k">ENV</span><span class="w"> </span><span class="nv">CHAMBER_MQTT_PORT</span><span class="o">=</span><span class="s2">&quot;1883&quot;</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5"></a><a href="#__codelineno-1-5"><span class="linenos" data-linenos=" 5 "></span></a><span class="k">ENV</span><span class="w"> </span><span class="nv">CHAMBER_MQTT_USER</span><span class="o">=</span><span class="s2">&quot;MQTT_USER_NAME&quot;</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6"></a><a href="#__codelineno-1-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="k">ENV</span><span class="w"> </span><span class="nv">CHAMBER_MQTT_PASS</span><span class="o">=</span><span class="s2">&quot;MQTT_PASSWORD&quot;</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7"></a><a href="#__codelineno-1-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="k">ENV</span><span class="w"> </span><span class="nv">CHAMBER_TARGET_TOPIC</span><span class="o">=</span><span class="s2">&quot;bambu-printer-manager/chamber_target&quot;</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8"></a><a href="#__codelineno-1-8"><span class="linenos" data-linenos=" 8 "></span></a><span class="k">ENV</span><span class="w"> </span><span class="nv">CHAMBER_TEMPERATURE_TOPIC</span><span class="o">=</span><span class="s2">&quot;CHAMBER_TEMPERATURE_TOPIC&quot;</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9"></a><a href="#__codelineno-1-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="k">ENV</span><span class="w"> </span><span class="nv">CHAMBER_REQUESTED_STATE_TOPIC</span><span class="o">=</span><span class="s2">&quot;HEATER_REQUESTED_STATE_TOPIC&quot;</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10"></a><a href="#__codelineno-1-10"><span class="linenos" data-linenos="10 "></span></a><span class="k">ENV</span><span class="w"> </span><span class="nv">CHAMBER_CURRENT_STATE_TOPIC</span><span class="o">=</span><span class="s2">&quot;HEATER_CURRENT_STATE_TOPIC&quot;</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11"></a><a href="#__codelineno-1-11"><span class="linenos" data-linenos="11 "></span></a><span class="k">ENV</span><span class="w"> </span><span class="nv">CHAMBER_STATE_ON_VALUE</span><span class="o">=</span><span class="s2">&quot;on&quot;</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12"></a><a href="#__codelineno-1-12"><span class="linenos" data-linenos="12 "></span></a><span class="k">ENV</span><span class="w"> </span><span class="nv">CHAMBER_STATE_OFF_VALUE</span><span class="o">=</span><span class="s2">&quot;off&quot;</span>
+</span></code></pre></div>
+Once everything is configured properly, you will be able to monitor your chamber's temperature and set a target temperature for it the same 
+way you monitor temperature and set target values for the tool (extruder), the bed, and, the part cooling fan.</p>
 <h2 id="troubleshooting">Troubleshooting</h2>
-<p>So long as the backend api (api/api.py) is running, there a number of useful http endpoints you can call to assist with troubleshooting.</p>
+<p>If you are geting a <code>port is already in use</code> type error, it is likely because you are trying to run the container using the host's 
+network.  It is recommended that you run the <code>bambu-printer-manager</code> container on a bridged network.  Behind the "public" port exposed by
+HAPROXY (<code>8080</code>), it also requires exclusive access to ports <code>3000</code> (nodejs react frontend), <code>5000</code> (flask waitress backend), and 
+<code>8090</code> (webcamd).  Some hosts, such as Synology DSM use ports like <code>5000</code> and this will cause problems.</p>
+<p>Verify your printer's information.  You must know its routable IP Address, access code, and serial #. You can find each of these on 
+your printer's display.  These must match your Docker container's applicable environment variable values.
+<div class="language-docker highlight"><span class="filename">Docker</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1"></a><a href="#__codelineno-2-1"><span class="linenos" data-linenos="1 "></span></a><span class="k">ENV</span><span class="w"> </span><span class="nv">BAMBU_HOSTNAME</span><span class="o">=</span><span class="s2">&quot;PRINTER_HOST_OR_IP&quot;</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2"></a><a href="#__codelineno-2-2"><span class="linenos" data-linenos="2 "></span></a><span class="k">ENV</span><span class="w"> </span><span class="nv">BAMBU_ACCESS_CODE</span><span class="o">=</span><span class="s2">&quot;PRINTER_ACCESS_CODE&quot;</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3"></a><a href="#__codelineno-2-3"><span class="linenos" data-linenos="3 "></span></a><span class="k">ENV</span><span class="w"> </span><span class="nv">BAMBU_SERIAL_NUMBER</span><span class="o">=</span><span class="s2">&quot;PRINTER_SERIAL_NUMBER&quot;</span>
+</span></code></pre></div>
+So long as the backend api (api/api.py) is running, there a number of useful http endpoints you can call to assist with troubleshooting.</p>
 <ul>
 <li>
 <p><code>http://{container_host_ip}:{container_host_port}/api/health_check</code> - This service route dumps the entire <code>BambuPrinter</code> attribute 
@@ -817,7 +860,7 @@ structure as a <code>json</code> document and adds a general success / failure n
 reports.</p>
 </li>
 <li>
-<p><code>http://{container_host_ip}:{container_host_port}/api/dump_log</code> - This service route dumps the entire contents of the application log.</p>
+<p><code>http://{container_host_ip}:{container_host_port}/api/dump_log</code> - This service route serves the entire contents of the application log.</p>
 </li>
 <li>
 <p><code>http://{container_host_ip}:{container_host_port}/api/truncate_log</code> - This service route deletes the current application log.  A restart may be 
@@ -828,6 +871,7 @@ required for logging to resume.</p>
 helpful on machines such as the <code>A1</code> where only one client can be connected at a time.</p>
 </li>
 </ul>
+<p>If you encounter an issue you need help with, feel free to open a ticket at <a href="https://github.com/synman/bambu-printer-manager/issues">GitHub</a>.</p>
 
 
 
