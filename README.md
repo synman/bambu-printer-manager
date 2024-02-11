@@ -3,7 +3,7 @@
 ## bambu-printer-manager is an all in one pure python wrapper for interacting with and managing Bambu Lab printers.
 
 ### Documentation
-All documentation for `bambu-printer-manager` can be found here: https://synman.github.io/bambu-printer-manager/
+All documentation for `bambu-printer-manager` can be found [here](https://synman.github.io/bambu-printer-manager/).
 
 ### Need Help?
 Open an issue, [here](https://github.com/synman/bambu-printer-manager/issues).
