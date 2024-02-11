@@ -51,6 +51,9 @@ ENV CHAMBER_STATE_OFF_VALUE="off"
 ```
 Once everything is configured properly, you will be able to monitor your chamber's temperature and set a target temperature for it the same 
 way you monitor temperature and set target values for the tool (extruder), the bed, and, the part cooling fan.
+<p float="center">
+  <img src="https://github.com/synman/bambu-printer-manager/assets/1299716/56f011c4-2fa5-44de-8f2d-6f1a3abb89a9" />
+</p>
 
 ## Troubleshooting
 If you are geting a `port is already in use` type error, it is likely because you are trying to run the container using the host's 
