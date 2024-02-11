@@ -1252,6 +1252,8 @@ logging engine.</p>
 </ul>
 <h5 id="bpm.bambuprinter.BambuPrinter.__init__--attributes">Attributes</h5>
 <ul>
+<li>_mqtt_client_thread: <code>PRIVATE</code> Thread handle for the mqtt client thread</li>
+<li>_watchdog_thread: <code>PRIVATE</code> Thread handle for the watchdog thread</li>
 <li>_internalExcepton: <code>READ ONLY</code> Returns the underlying <code>Exception</code> object if a failure occurred.</li>
 <li>_lastMessageTime: <code>READ ONLY</code> Epoch timestamp (in seconds) for the last time an update was received from the printer.</li>
 <li>_recent_update: <code>READ ONLY</code> Indicates that a message from the printer has been recently processed.</li>
