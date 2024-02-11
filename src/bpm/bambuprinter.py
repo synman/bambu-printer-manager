@@ -555,29 +555,28 @@ class BambuPrinter:
                 self._start_time = 0
                 logger.debug("project_file request acknowledged")
 
-            if "ams" in status and "ams" in status["ams"]:
-                if status["ams"]["ams_exist_bits"]:
-                    self._ams_exists = int(status["ams"]["ams_exist_bits"]) == 1
-                    if self._ams_exists:
-                        spools = []
-                        ams = (status["ams"]["ams"])[0]
-                        for tray in ams["tray"]:
+            if "ams" in status and "ams" in status["ams"] and "ams_exist_bits" in status["ams"]:
+                self._ams_exists = int(status["ams"]["ams_exist_bits"]) == 1
+                if self._ams_exists:
+                    spools = []
+                    ams = (status["ams"]["ams"])[0]
+                    for tray in ams["tray"]:
+                        try:
+                            tray_color = hex_to_name("#" + tray["tray_color"][:6])
+                        except:
                             try:
-                                tray_color = hex_to_name("#" + tray["tray_color"][:6])
+                                tray_color = "#" + tray["tray_color"]
                             except:
-                                try:
-                                    tray_color = "#" + tray["tray_color"]
-                                except:
-                                    tray_color = "N/A"
-                            
-                            if tray.get("id"):
-                                spool = BambuSpool(int(tray["id"]),  
-                                                   tray["tray_id_name"] if "tray_id_name" in tray else "",  
-                                                   tray["tray_type"] if "tray_type" in tray else "", 
-                                                   tray["tray_sub_brands"] if "tray_sub_brands" in tray else "", 
-                                                   tray_color)
-                                spools.append(spool)
-                        self._spools = tuple(spools)
+                                tray_color = "N/A"
+                        
+                        if tray.get("id"):
+                            spool = BambuSpool(int(tray["id"]),  
+                                                tray["tray_id_name"] if "tray_id_name" in tray else "",  
+                                                tray["tray_type"] if "tray_type" in tray else "", 
+                                                tray["tray_sub_brands"] if "tray_sub_brands" in tray else "", 
+                                                tray_color)
+                            spools.append(spool)
+                    self._spools = tuple(spools)
 
             if "vt_tray" in status:
                 tray = status["vt_tray"]
