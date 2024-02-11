@@ -32,7 +32,7 @@ power state commands and power state requests over MQTT.  Some plugs, such as ta
 likely require something like Home Assistant.
 
 You also need a Wi-Fi enabled temperature sensor that can do similar as the Wi-Fi power plug to publish environmental data, specifically the temperature, 
-to an MQTT topic.  The easiest way to do this is to build one [yourself](https://github.com/synman/bme280).  However, I'm sure there also a number of pre-assembled ones you could use too.
+to an MQTT topic.  The easiest way to do this is to build one [yourself](https://github.com/synman/bme280).  However, I'm sure there are a number of pre-assembled ones you could use too.
 
 The final step is configuring the `bambu-printer-manager` container to interact with the temperature sensor and power plug:
 ```dockerfile
