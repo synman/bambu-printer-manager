@@ -248,8 +248,10 @@ class BambuPrinter:
             self.client.disconnect()
             logger.debug("mqtt client was connected and is now disconnected")
         else:
-            self.state == PrinterState.QUIT
             logger.debug("mqtt client was already disconnected")
+
+        self._state == PrinterState.QUIT
+        if self.on_update: self.on_update(self)
 
         if self._mqtt_client_thread.is_alive(): self._mqtt_client_thread.join()
         if self._watchdog_thread.is_alive(): self._watchdog_thread.join()
