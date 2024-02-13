@@ -602,13 +602,12 @@ class BambuPrinter:
                     except:
                         tray_color = "N/A"
 
-                if tray.get("id"):
-                    spool = BambuSpool(int(tray["id"]), 
-                                       tray["tray_id_name"] if tray["tray_id_name"] in tray else "",  
-                                       tray["tray_type"] if tray["tray_type"] in tray else "", 
-                                       tray["tray_sub_brands"] if tray["tray_sub_brands"] in tray else "", 
+                if tray.get("id", None):
+                    spool = BambuSpool(int(tray.get("id")), 
+                                       tray.get("tray_id_name", ""),
+                                       tray.get("tray_type", ""),
+                                       tray.get("tray_sub_brands", ""),
                                        tray_color)
-
                     if not self._ams_exists: 
                         spools = (spool,)
                     else:
@@ -619,6 +618,7 @@ class BambuPrinter:
 
             tray_tar = None
             tray_now = None
+            tray_pre = None
 
             if "ams" in status and "tray_tar" in status["ams"]:
                 tray_tar = int(status["ams"]["tray_tar"])
@@ -647,7 +647,7 @@ class BambuPrinter:
                     self._spool_state = "Loaded"
                     
             # catch-all for the external spool
-            if not tray_tar is None and not tray_now is None and tray_tar == tray_now:
+            if not tray_tar is None and not tray_now is None and not tray_pre is None and tray_pre == tray_now:
                 if self._spool_state != "Loaded" and self._active_spool == 254: self._spool_state = "Loaded"
 
         elif "info" in message and "result" in message["info"] and message["info"]["result"] == "success": 
@@ -668,7 +668,7 @@ class BambuPrinter:
 
         if self.on_update: self.on_update(self)
 
-    def _get_sftp_files(self, ftps: IoTFTPSClient, directory: str, mask: Optional[str] = None) -> {}:
+    def _get_sftp_files(self, ftps: IoTFTPSClient, directory: str, mask: Optional[str] = None):
         try:
             files = sorted(ftps.list_files_ex(directory))
         except Exception as e:
