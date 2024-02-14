@@ -85,7 +85,8 @@ class BambuPrinter:
         * _ams_exists `READ ONLY` Boolean value represents the detected presense of an AMS.
         * _sdcard_contents `READ ONLY` `dict` (json) value of all files on the SDCard (requires `get_sdcard_contents` be called first).
         * _sdcard_3mf_files `READ ONLY` `dict` (json) value of all `.gcode.3mf` files on the SDCard (requires `get_sdcard_3mf_files` be called first).
-
+        * _hms_data `READ ONLY` `dict` (json) value of any active hms codes with descriptions attached if they are known codes.
+        * _hms_message `READ ONLY` all hms_data `desc` fields concatinated into a single string for ease of use.
         The attributes (where appropriate) are included whenever the class is serialized
         using its `toJson()` method.  
         
@@ -145,6 +146,9 @@ class BambuPrinter:
 
         self._sdcard_contents = None
         self._sdcard_3mf_files = None
+
+        self._hms_data = None
+        self._hms_message = ""
 
     def start_session(self):
         """
@@ -312,13 +316,14 @@ class BambuPrinter:
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
         logger.debug(f"published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request]", extra={"gcode": gcode})
 
-    def print_3mf_file(self, name: str, bed: PlateType, ams: str, bedlevel: Optional[bool] = True, flow: Optional[bool] = True, timelapse: Optional[bool] = False):
+    def print_3mf_file(self, name: str, plate: int, bed: PlateType, ams: str, bedlevel: Optional[bool] = True, flow: Optional[bool] = True, timelapse: Optional[bool] = False):
         """
         Submits a request to execute the `name`.gcode.3mf file on the printer's SDCard. 
 
         Parameters
         ----------
         * name : str                         - path and filename to execute minus the `.gcode.3mf` extension
+        * plate : int                        - the plate # from your slicer to use (usually 1)
         * bed : PlateType                    - the bambutools.PlateType to use
         * ams : str                          - an `AMS Mapping` that specifies which AMS spools to use (external spool is used if blank)
         * bedlevel :  Optional[bool] = True  - boolean value indicates whether or not the printer should auto-level the bed
@@ -327,8 +332,8 @@ class BambuPrinter:
         
         Example
         -------
-        * `print_3mf_file("/jobs/my_project", "")` - Print the my_project.gcode.3mf file in the SDCard /jobs directory using the external spool with bed leveling and extrusion flow calibration enabled and timelapse disabled
-        * `print_3mf_file("/jobs/my_project", "[-1,-1,2,-1]")` - Same as above but use AMS spool #3
+        * `print_3mf_file("/jobs/my_project", 1, PlateType.HOT_PLATE, "")` - Print the my_project.gcode.3mf file in the SDCard /jobs directory using the external spool with bed leveling and extrusion flow calibration enabled and timelapse disabled
+        * `print_3mf_file("/jobs/my_project", 1, PlateType.HOT_PLATE, "[-1,-1,2,-1]")` - Same as above but use AMS spool #3
 
         AMS Mapping
         -----------
@@ -342,6 +347,7 @@ class BambuPrinter:
         file["print"]["url"] = f"file:///sdcard/{name}.gcode.3mf"
         file["print"]["subtask_name"] = name[name.rindex("/") + 1::] if "/" in name else name
         file["print"]["bed_type"] = bed.name.lower()
+        file["print"]["param"] = file["print"]["param"].replace("#", str(plate))
         if len(ams) > 2:
             file["print"]["use_ams"] = True
             file["print"]["ams_mapping"] = json.loads(ams)
@@ -565,10 +571,6 @@ class BambuPrinter:
                 self._current_stage = int(status["stg_cur"])
                 self._current_stage_text = parseStage(self._current_stage)
 
-            if "command" in status and status["command"] == "project_file":
-                self._start_time = 0
-                logger.debug("project_file request acknowledged")
-
             if "ams" in status and "ams" in status["ams"] and "ams_exist_bits" in status["ams"]:
                 self._ams_exists = int(status["ams"]["ams_exist_bits"]) == 1
                 if self._ams_exists:
@@ -622,33 +624,42 @@ class BambuPrinter:
 
             if "ams" in status and "tray_tar" in status["ams"]:
                 tray_tar = int(status["ams"]["tray_tar"])
-                if tray_tar != 255: 
-                    self._target_spool = int(tray_tar)
+                self._target_spool = tray_tar
 
             if "ams" in status and "tray_now" in status["ams"]:
                 tray_now = int(status["ams"]["tray_now"])
-                if tray_now != 255: 
-                    if self._active_spool != tray_now: 
-                        self._spool_state = f"Loading"
-                        self._active_spool = tray_now
-
-            if not tray_tar is None and tray_tar != tray_now: 
-                self._spool_state = f"Unloading"
-                if not tray_now is None: self._active_spool = tray_now
+                self._active_spool = tray_now
 
             if "ams" in status and "tray_pre" in status["ams"]:
                 tray_pre = int(status["ams"]["tray_pre"])
-                if self.spool_state == "Unloading":
-                    self._spool_state = "Unloaded"
 
-            if "ams_status" in status:
-                self._ams_status = int(status["ams_status"])
-                if self._ams_status == 768:
+            if not tray_tar is None or not tray_now is None or not tray_pre is None:
+                if self._target_spool == 255 and self._active_spool == 255:
+                    self._spool_state = "Unloaded"
+                elif self._target_spool == 255 and self._active_spool != 255:
+                    self._spool_state = "Unloading"
+                elif self._target_spool != 255 and self._active_spool == 255:
+                    self._spool_state = "Loading"
+                else:
                     self._spool_state = "Loaded"
-                    
-            # catch-all for the external spool
-            if not tray_tar is None and not tray_now is None and not tray_pre is None and tray_pre == tray_now:
-                if self._spool_state != "Loaded" and self._active_spool == 254: self._spool_state = "Loaded"
+
+            self._hms_data = status.get("hms", [])
+            self._hms_message = ""
+ 
+            for hms in self._hms_data:
+                hms_attr = hex(hms.get("attr", 0))[2:].zfill(8).upper()
+                hms_code = hex(hms.get("code", 0))[2:].zfill(8).upper()
+                for entry in HMS_STATUS["data"]["device_hms"]["en"]:
+                    if entry["ecode"] == f"{hms_attr}{hms_code}":
+                        hms["desc"] = entry["intro"]
+                        self._hms_message = f"{self._hms_message}{entry['intro']} "
+                        break
+
+            self._hms_message = self._hms_message.rstrip()
+
+            if "command" in status and status["command"] == "project_file":
+                self._start_time = 0
+                logger.debug("project_file request acknowledged")
 
         elif "info" in message and "result" in message["info"] and message["info"]["result"] == "success": 
             self._recent_update = True
@@ -910,6 +921,10 @@ class BambuPrinter:
     @property
     def cached_sd_card_3mf_files(self):
         return self._sdcard_3mf_files
+
+    @property
+    def hms_data(self):
+        return self._hms_data
 
 def setup_logging():
     config_file = os.path.dirname(os.path.realpath(__file__)) + "/bambuprinterlogger.json"

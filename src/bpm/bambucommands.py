@@ -111,7 +111,7 @@ PRINT_3MF_FILE =            {
                                     "flow_cali": True,
                                     "layer_inspect": True,
                                     "md5": "",
-                                    "param": "Metadata/plate_1.gcode",
+                                    "param": "Metadata/plate_#.gcode",
                                     "profile_id": "0",
                                     "project_id": "0",
                                     "sequence_id": "0",
