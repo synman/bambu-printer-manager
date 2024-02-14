@@ -114,5 +114,6 @@ class PlateType(Enum):
     """
     AUTO = 0,
     COOL_PLATE = 1,
-    HOT_PLATE = 2,
-    TEXTURED_PLATE = 3
+    ENG_PLATE = 2,
+    HOT_PLATE = 3,
+    TEXTURED_PLATE = 4
