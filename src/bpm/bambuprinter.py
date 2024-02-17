@@ -555,12 +555,16 @@ class BambuPrinter:
             status = message["print"]
                     
             if "bed_temper" in status: self._bed_temp = float(status["bed_temper"])
-            if "bed_target_temper" in status: self._bed_temp_target = float(status["bed_target_temper"])
-            if "nozzle_temper" in status: self._tool_temp = float(status["nozzle_temper"])
-            if "nozzle_target_temper" in status: self._tool_temp_target = float(status["nozzle_target_temper"])
+            if "bed_target_temper" in status: 
+                self._bed_temp_target = float(status["bed_target_temper"]) 
+                self._bed_temp_target_time = round(time.time())
 
-            if not self._config.external_chamber and "chamber_temper" in status:
-                self._chamber_temp = float(status["chamber_temper"])
+            if "nozzle_temper" in status: self._tool_temp = float(status["nozzle_temper"])
+            if "nozzle_target_temper" in status: 
+                self._tool_temp_target = float(status["nozzle_target_temper"])
+                self._tool_temp_target_time = round(time.time())
+
+            if not self._config.external_chamber and "chamber_temper" in status: self._chamber_temp = float(status["chamber_temper"])
 
             if "fan_gear" in status: self._fan_gear = int(status["fan_gear"])
             if "heatbreak_fan_speed" in status: self._heatbreak_fan_speed = int(status["heatbreak_fan_speed"])
