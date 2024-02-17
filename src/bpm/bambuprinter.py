@@ -55,14 +55,18 @@ class BambuPrinter:
         * _on_update: `READ/WRITE` Callback used for pushing updates.  Includes a self reference to `BambuPrinter` as an argument.
         * _bed_temp: `READ ONLY` The current printer bed temperature.
         * _bed_temp_target: `READ/WRITE` The target bed temperature for the printer.
+        * _bed_temp_target_time: `READ ONLY` Epoch timetamp for when target bed temperature was last set.
         * _tool_temp: `READ ONLY` The current printer tool temperature.
         * _tool_temp_target: `READ/WRITE` The target tool temperature for the printer.
+        * _tool_temp_target_time: `READ ONLY` Epoch timetamp for when target tool temperature was last set.
         * _chamber_temp `READ/WRITE` Not currently integrated but can be used as a stub for external chambers.
         * _chamber_temp_target `READ/WRITE` Not currently integrated but can be used as a stub for external chambers.
+        * _chamber_temp_target_time: `READ ONLY` Epoch timetamp for when target chamber temperature was last set.
         * _fan_gear `READ ONLY` Combined fan(s) reporting value.  Can be bit shifted for individual speeds.
         * _heat_break_fan_speed `READ_ONLY` The heatbreak (heater block) fan speed in percent.
         * _fan_speed `READ ONLY` The parts cooling fan speed in percent.
         * _fan_speed_target `READ/WRITE` The parts cooling fan target speed in percent.
+        * _fan_speed_target_time: `READ ONLY` Epoch timetamp for when target fan speed was last set.
         * _light_state `READ/WRITE` Boolean value indicating the state of the work light.
         * _wifi_signal `READ ONLY` The current Wi-Fi signal strength of the printer.
         * _speed_level `READ/WRITE` System Print Speed (1=Quiet, 2=Standard, 3=Sport, 4=Ludicrous).
@@ -110,15 +114,21 @@ class BambuPrinter:
 
         self._bed_temp = 0.0
         self._bed_temp_target = 0.0
+        self._bed_temp_target_time = 0
+
         self._tool_temp = 0.0
         self._tool_temp_target = 0.0
+        self._tool_temp_target_time = 0
+
         self._chamber_temp = 0.0
         self._chamber_temp_target = 0.0
+        self._chamber_temp_target_time = 0
 
         self._fan_gear = 0
         self._heatbreak_fan_speed = 0
         self._fan_speed = 0
         self._fan_speed_target = 0
+        self._fan_speed_target_time = 0
 
         self._light_state = ""
         self._wifi_signal = ""
@@ -755,6 +765,7 @@ class BambuPrinter:
         gcode = SEND_GCODE_TEMPLATE
         gcode["print"]["param"] = f"M140 S{value}\n"
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(gcode))
+        self._bed_temp_target_time = round(time.time())
 
     @property 
     def tool_temp(self):
@@ -770,6 +781,7 @@ class BambuPrinter:
         gcode = SEND_GCODE_TEMPLATE
         gcode["print"]["param"] = f"M104 S{value}\n"
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(gcode))
+        self._tool_temp_target_time = round(time.time())
 
     @property 
     def chamber_temp(self):
@@ -784,8 +796,7 @@ class BambuPrinter:
     @chamber_temp_target.setter 
     def chamber_temp_target(self, value: float):
         self._chamber_temp_target = value
-
-
+        self._chamber_temp_target_time = round(time.time())
 
     @property 
     def fan_speed(self):
@@ -803,6 +814,20 @@ class BambuPrinter:
         gcode = SEND_GCODE_TEMPLATE
         gcode["print"]["param"] = f"M106 P1 S{speed}\nM106 P2 S{speed}\nM106 P3 S{speed}\n"
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(gcode))
+        self._fan_speed_target_time = round(time.time())
+
+    @property 
+    def bed_temp_target_time(self):
+        return self._bed_temp_target_time
+    @property 
+    def tool_temp_target_time(self):
+        return self._tool_temp_target_time
+    @property 
+    def chamber_temp_target_time(self):
+        return self._chamber_temp_target_time
+    @property 
+    def fan_speed_target_time(self):
+        return self._fan_speed_target_time
 
     @property 
     def fan_gear(self):
