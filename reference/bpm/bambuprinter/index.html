@@ -1263,14 +1263,18 @@ logging engine.</p>
 <li>_on_update: <code>READ/WRITE</code> Callback used for pushing updates.  Includes a self reference to <code>BambuPrinter</code> as an argument.</li>
 <li>_bed_temp: <code>READ ONLY</code> The current printer bed temperature.</li>
 <li>_bed_temp_target: <code>READ/WRITE</code> The target bed temperature for the printer.</li>
+<li>_bed_temp_target_time: <code>READ ONLY</code> Epoch timetamp for when target bed temperature was last set.</li>
 <li>_tool_temp: <code>READ ONLY</code> The current printer tool temperature.</li>
 <li>_tool_temp_target: <code>READ/WRITE</code> The target tool temperature for the printer.</li>
+<li>_tool_temp_target_time: <code>READ ONLY</code> Epoch timetamp for when target tool temperature was last set.</li>
 <li>_chamber_temp <code>READ/WRITE</code> Not currently integrated but can be used as a stub for external chambers.</li>
 <li>_chamber_temp_target <code>READ/WRITE</code> Not currently integrated but can be used as a stub for external chambers.</li>
+<li>_chamber_temp_target_time: <code>READ ONLY</code> Epoch timetamp for when target chamber temperature was last set.</li>
 <li>_fan_gear <code>READ ONLY</code> Combined fan(s) reporting value.  Can be bit shifted for individual speeds.</li>
 <li>_heat_break_fan_speed <code>READ_ONLY</code> The heatbreak (heater block) fan speed in percent.</li>
 <li>_fan_speed <code>READ ONLY</code> The parts cooling fan speed in percent.</li>
 <li>_fan_speed_target <code>READ/WRITE</code> The parts cooling fan target speed in percent.</li>
+<li>_fan_speed_target_time: <code>READ ONLY</code> Epoch timetamp for when target fan speed was last set.</li>
 <li>_light_state <code>READ/WRITE</code> Boolean value indicating the state of the work light.</li>
 <li>_wifi_signal <code>READ ONLY</code> The current Wi-Fi signal strength of the printer.</li>
 <li>_speed_level <code>READ/WRITE</code> System Print Speed (1=Quiet, 2=Standard, 3=Sport, 4=Ludicrous).</li>
