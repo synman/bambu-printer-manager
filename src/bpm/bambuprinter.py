@@ -73,6 +73,7 @@ class BambuPrinter:
         * _gcode_state `READ ONLY` State reported for job status (FAILED/RUNNING/PAUSE/IDLE/FINISH).
         * _gcode_file `READ ONLY` The name of the current or last printed gcode file.
         * _3mf_file `READ ONLY` The name of the 3mf file currently being printed.
+        * _subtask_name `READ ONLY` The name of the active subtask.
         * _print_type `READ ONLY` Not entirely sure.  Reports "idle" when no job is active.
         * _percent_complete `READ ONLY` Percentage complete for the current active job.
         * _time_remaining `READ ONLY` The number of estimated minutes remaining for the active job.
@@ -138,6 +139,7 @@ class BambuPrinter:
         self._gcode_state = ""
         self._gcode_file = ""
         self._3mf_file = ""
+        self._subtask_name = ""
         self._print_type = ""
         self._percent_complete = 0
         self._time_remaining = 0
@@ -587,6 +589,7 @@ class BambuPrinter:
                 if self._gcode_state in ("FINISH", "FAILED") and self._3mf_file:
                     self._3mf_file = ""
 
+            if "subtask_name" in status: self._subtask_name = status["subtask_name"]
             if "gcode_file" in status: self._gcode_file = status["gcode_file"]
             if "print_type" in status: self._print_type = status["print_type"]
             if "mc_percent" in status: self._percent_complete = status["mc_percent"]
@@ -884,6 +887,10 @@ class BambuPrinter:
     @property 
     def gcode_state(self):
         return self._gcode_state
+
+    @property 
+    def subtask_name(self):
+        return self._subtask_name
 
     @property 
     def gcode_file(self):
