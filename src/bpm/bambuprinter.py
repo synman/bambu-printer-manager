@@ -72,6 +72,7 @@ class BambuPrinter:
         * _speed_level `READ/WRITE` System Print Speed (1=Quiet, 2=Standard, 3=Sport, 4=Ludicrous).
         * _gcode_state `READ ONLY` State reported for job status (FAILED/RUNNING/PAUSE/IDLE/FINISH).
         * _gcode_file `READ ONLY` The name of the current or last printed gcode file.
+        * _3mf_file `READ ONLY` The name of the 3mf file currently being printed.
         * _print_type `READ ONLY` Not entirely sure.  Reports "idle" when no job is active.
         * _percent_complete `READ ONLY` Percentage complete for the current active job.
         * _time_remaining `READ ONLY` The number of estimated minutes remaining for the active job.
@@ -136,6 +137,7 @@ class BambuPrinter:
 
         self._gcode_state = ""
         self._gcode_file = ""
+        self._3mf_file = ""
         self._print_type = ""
         self._percent_complete = 0
         self._time_remaining = 0
@@ -352,8 +354,10 @@ class BambuPrinter:
         * `[0,-1,-1,3]`  - use AMS spools #1 and #4
         * `[0,1,2,3]`    - use all 4 AMS spools
         """
+        self._3mf_file = f"{name}.gcode.3mf"
         file = PRINT_3MF_FILE
-        file["print"]["file"] = f"{name}.gcode.3mf"
+
+        file["print"]["file"] = self._3mf_file
         file["print"]["url"] = f"file:///sdcard/{name}.gcode.3mf"
         file["print"]["subtask_name"] = name[name.rindex("/") + 1::] if "/" in name else name
         file["print"]["bed_type"] = bed.name.lower()
@@ -556,13 +560,17 @@ class BambuPrinter:
                     
             if "bed_temper" in status: self._bed_temp = float(status["bed_temper"])
             if "bed_target_temper" in status: 
-                self._bed_temp_target = float(status["bed_target_temper"]) 
-                self._bed_temp_target_time = round(time.time())
+                bed_temp_target = float(status["bed_target_temper"]) 
+                if bed_temp_target != self._bed_temp_target:
+                    self._bed_temp_target = bed_temp_target
+                    self._bed_temp_target_time = round(time.time())
 
             if "nozzle_temper" in status: self._tool_temp = float(status["nozzle_temper"])
             if "nozzle_target_temper" in status: 
-                self._tool_temp_target = float(status["nozzle_target_temper"])
-                self._tool_temp_target_time = round(time.time())
+                tool_temp_target = float(status["nozzle_target_temper"])
+                if tool_temp_target != self._tool_temp_target:
+                    self._tool_temp_target = tool_temp_target
+                    self._tool_temp_target_time = round(time.time())
 
             if not self._config.external_chamber and "chamber_temper" in status: self._chamber_temp = float(status["chamber_temper"])
 
@@ -573,7 +581,12 @@ class BambuPrinter:
             if "wifi_signal" in status: self._wifi_signal = status["wifi_signal"] 
             if "lights_report" in status: self._light_state = (status["lights_report"])[0]["mode"]
             if "spd_lvl" in status: self._speed_level = status["spd_lvl"]
-            if "gcode_state" in status: self._gcode_state = status["gcode_state"]
+
+            if "gcode_state" in status: 
+                self._gcode_state = status["gcode_state"]
+                if self._gcode_state in ("FINISH", "FAILED") and self._3mf_file:
+                    self._3mf_file = ""
+
             if "gcode_file" in status: self._gcode_file = status["gcode_file"]
             if "print_type" in status: self._print_type = status["print_type"]
             if "mc_percent" in status: self._percent_complete = status["mc_percent"]
