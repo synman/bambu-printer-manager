@@ -90,7 +90,7 @@ UNLOAD_FILAMENT =           {
                                     "command": "unload_filament"
                                 }
                             }
-
+ 
 AMS_FILAMENT_CHANGE =       {
                                 "print": {
                                     "sequence_id": "0",
@@ -3014,7 +3014,7 @@ HMS_STATUS = {
         },
         {
           "ecode": "12FF200000020007",
-          "intro": "Failed to check the filament location in the tool head; please click for more help."
+          "intro": "Failed to check the filament location in the tool head."
         },
         {
           "ecode": "0300180000010002",

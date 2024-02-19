@@ -19,8 +19,9 @@ docker run \
 To use `bambu-printer-manager` you only need to pull the image, configure a couple environment variables, and map the `HAPROXY` listener (port 8080) to a usable port on the host machine.  You then access it like you would any other web based application.
 
 <p float="center">
-  <img src="https://github.com/synman/bambu-printer-manager/assets/1299716/87d484eb-2ea0-44d0-9711-ddf91ccd8edd" width="400px" />
-  <img src="https://github.com/synman/bambu-printer-manager/assets/1299716/3a089d35-5c30-4eb0-b5e2-849ca076c632" width="400px" /> 
+  <img src="https://github.com/synman/bambu-printer-manager/assets/1299716/a1c170e5-f332-4ec9-b35d-6b773c67eac8" width="300px" />
+  <img src="https://github.com/synman/bambu-printer-manager/assets/1299716/1bdfec3a-4379-4c8f-b93b-3bfdb06de3a6" width="300px" /> 
+  <img src="https://github.com/synman/bambu-printer-manager/assets/1299716/b7f5af63-2340-4e56-9d65-4821b5911782" width="300px" /> 
 </p>
 
 ## External Chamber Heating

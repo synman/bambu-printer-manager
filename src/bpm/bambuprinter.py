@@ -73,6 +73,7 @@ class BambuPrinter:
         * _gcode_state `READ ONLY` State reported for job status (FAILED/RUNNING/PAUSE/IDLE/FINISH).
         * _gcode_file `READ ONLY` The name of the current or last printed gcode file.
         * _3mf_file `READ ONLY` The name of the 3mf file currently being printed.
+        * _plate_num `READ ONLY` The selected plate # for the current 3mf file.
         * _subtask_name `READ ONLY` The name of the active subtask.
         * _print_type `READ ONLY` Not entirely sure.  Reports "idle" when no job is active.
         * _percent_complete `READ ONLY` Percentage complete for the current active job.
@@ -139,6 +140,7 @@ class BambuPrinter:
         self._gcode_state = ""
         self._gcode_file = ""
         self._3mf_file = ""
+        self._plate_num = 0
         self._subtask_name = ""
         self._print_type = ""
         self._percent_complete = 0
@@ -357,6 +359,7 @@ class BambuPrinter:
         * `[0,1,2,3]`    - use all 4 AMS spools
         """
         self._3mf_file = f"{name}.gcode.3mf"
+        self._plate_num = int(plate)
         file = PRINT_3MF_FILE
 
         file["print"]["file"] = self._3mf_file
@@ -887,6 +890,18 @@ class BambuPrinter:
     @property 
     def gcode_state(self):
         return self._gcode_state
+
+    @property 
+    def subtask_name(self):
+        return self._subtask_name
+
+    @property 
+    def current_3mf_file(self):
+        return self._3mf_file
+
+    @property 
+    def current_plate_num(self):
+        return self._plate_num
 
     @property 
     def subtask_name(self):
