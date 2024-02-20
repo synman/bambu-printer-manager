@@ -1519,7 +1519,7 @@ printer data refreshes.</p>
 
 
 <h3 id="bpm.bambuprinter.BambuPrinter.print_3mf_file" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">print_3mf_file</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">plate</span><span class="p">,</span> <span class="n">bed</span><span class="p">,</span> <span class="n">ams</span><span class="p">,</span> <span class="n">bedlevel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">timelapse</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">print_3mf_file</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">plate</span><span class="p">,</span> <span class="n">bed</span><span class="p">,</span> <span class="n">use_ams</span><span class="p">,</span> <span class="n">ams_mapping</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">bedlevel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">timelapse</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 </h3>
 
@@ -1532,15 +1532,16 @@ printer data refreshes.</p>
 <li>name : str                         - path and filename to execute minus the <code>.gcode.3mf</code> extension</li>
 <li>plate : int                        - the plate # from your slicer to use (usually 1)</li>
 <li>bed : PlateType                    - the bambutools.PlateType to use</li>
-<li>ams : str                          - an <code>AMS Mapping</code> that specifies which AMS spools to use (external spool is used if blank)</li>
-<li>bedlevel :  Optional[bool] = True  - boolean value indicates whether or not the printer should auto-level the bed</li>
-<li>flow :      Optional[bool] = True  - boolean value indicates if the printer should perform an extrusion flow calibration</li>
+<li>use_ams : bool                     - Use the AMS for this print</li>
+<li>ams_mapping : Optional[str]        - an <code>AMS Mapping</code> that specifies which AMS spools to use (external spool is used if blank)</li>
+<li>bedlevel : Optional[bool] = True   - boolean value indicates whether or not the printer should auto-level the bed</li>
+<li>flow : Optional[bool] = True       - boolean value indicates if the printer should perform an extrusion flow calibration</li>
 <li>timelapse : Optional[bool] = False - boolean value indicates if printer should take timelapse photos during the job</li>
 </ul>
 <h5 id="bpm.bambuprinter.BambuPrinter.print_3mf_file--example">Example</h5>
 <ul>
-<li><code>print_3mf_file("/jobs/my_project", 1, PlateType.HOT_PLATE, "")</code> - Print the my_project.gcode.3mf file in the SDCard /jobs directory using the external spool with bed leveling and extrusion flow calibration enabled and timelapse disabled</li>
-<li><code>print_3mf_file("/jobs/my_project", 1, PlateType.HOT_PLATE, "[-1,-1,2,-1]")</code> - Same as above but use AMS spool #3</li>
+<li><code>print_3mf_file("/jobs/my_project", 1, PlateType.HOT_PLATE, False, "")</code> - Print the my_project.gcode.3mf file in the SDCard /jobs directory using the external spool with bed leveling and extrusion flow calibration enabled and timelapse disabled</li>
+<li><code>print_3mf_file("/jobs/my_project", 1, PlateType.HOT_PLATE, True, "[-1,-1,2,-1]")</code> - Same as above but use AMS spool #3</li>
 </ul>
 <h5 id="bpm.bambuprinter.BambuPrinter.print_3mf_file--ams-mapping">AMS Mapping</h5>
 <ul>
