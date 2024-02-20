@@ -39,12 +39,53 @@ SPEED_PROFILE_TEMPLATE =    {
                                 }
                             }
 
+
+X1_FLOWRATE_CALI_RESULTS =  {
+                                "print": {
+                                    "sequence_id": "0", 
+                                    "command": "flowrate_get_result"
+                                }
+                            }
+
+X1_EXTRUSION_CALI_RESULTS = {
+                                "print": {
+                                    "sequence_id": "0", 
+                                    "command": "extrusion_cali_get_result"
+                                }
+                            }
+
+EXTRUSION_CALI           = {
+                                "print": {
+                                    "sequence_id": "0", 
+                                    "command": "extrusion_cali",
+                                    "tray_id": 0,
+                                    "nozzle_temp": 250,
+                                    "bed_temp": 65,
+                                    "max_volumetric_speed": 22,
+                                }
+                            }
+
+EXTRUSION_CALI_SET        = {
+                                "print": {
+                                    "sequence_id": "0", 
+                                    "command": "extrusion_cali_set",
+                                    "tray_id": 0,
+                                    "k_value": 0.020,
+                                    "n_coef": 1.4,
+                                    "nozzle_temp": 250,
+                                    "bed_temp": 65,
+                                    "max_volumetric_speed": 22,
+                                }
+                            }
+
+
 PAUSE_PRINT =               {
                                 "print": {
                                     "sequence_id": "0", 
                                     "command": "pause"
                                 }
                             }
+
 
 RESUME_PRINT =              {
                                 "print": {
@@ -103,25 +144,25 @@ AMS_FILAMENT_CHANGE =       {
 
 PRINT_3MF_FILE =            {
                                 "print": {
-                                    "ams_mapping": [],
-                                    "bed_leveling": True,
-                                    "bed_type": "hot_plate",
                                     "command": "project_file",
+                                    "sequence_id": "0",
+                                    "use_ams": False,
+                                    "ams_mapping": "",
+                                    "bed_type": "auto",
+                                    "url": "file:///sdcard/Oreo.gcode.3mf",
                                     "file": "Oreo.gcode.3mf",
-                                    "flow_cali": True,
-                                    "layer_inspect": True,
-                                    "md5": "",
                                     "param": "Metadata/plate_#.gcode",
+                                    "md5": "",
                                     "profile_id": "0",
                                     "project_id": "0",
-                                    "sequence_id": "0",
                                     "subtask_id": "0",
                                     "subtask_name": "Oreo",
                                     "task_id": "0",
                                     "timelapse": False,
-                                    "url": "file:///sdcard/Oreo.gcode.3mf",
-                                    "use_ams": False,
-                                    "vibration_cali": False
+                                    "bed_leveling": True,
+                                    "flow_cali": True,
+                                    "layer_inspect": True,
+                                    "vibration_cali": True
                                 }
                             }
 

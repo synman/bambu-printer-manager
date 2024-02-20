@@ -332,7 +332,15 @@ class BambuPrinter:
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
         logger.debug(f"published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request]", extra={"gcode": gcode})
 
-    def print_3mf_file(self, name: str, plate: int, bed: PlateType, ams: str, bedlevel: Optional[bool] = True, flow: Optional[bool] = True, timelapse: Optional[bool] = False):
+    def print_3mf_file(self, 
+                        name: str, 
+                        plate: int,
+                        bed: PlateType, 
+                        use_ams: bool, 
+                        ams_mapping: Optional[str] = "", 
+                        bedlevel: Optional[bool] = True, 
+                        flow: Optional[bool] = True, 
+                        timelapse: Optional[bool] = False):
         """
         Submits a request to execute the `name`.gcode.3mf file on the printer's SDCard. 
 
@@ -341,15 +349,16 @@ class BambuPrinter:
         * name : str                         - path and filename to execute minus the `.gcode.3mf` extension
         * plate : int                        - the plate # from your slicer to use (usually 1)
         * bed : PlateType                    - the bambutools.PlateType to use
-        * ams : str                          - an `AMS Mapping` that specifies which AMS spools to use (external spool is used if blank)
-        * bedlevel :  Optional[bool] = True  - boolean value indicates whether or not the printer should auto-level the bed
-        * flow :      Optional[bool] = True  - boolean value indicates if the printer should perform an extrusion flow calibration
+        * use_ams : bool                     - Use the AMS for this print
+        * ams_mapping : Optional[str]        - an `AMS Mapping` that specifies which AMS spools to use (external spool is used if blank)
+        * bedlevel : Optional[bool] = True   - boolean value indicates whether or not the printer should auto-level the bed
+        * flow : Optional[bool] = True       - boolean value indicates if the printer should perform an extrusion flow calibration
         * timelapse : Optional[bool] = False - boolean value indicates if printer should take timelapse photos during the job
         
         Example
         -------
-        * `print_3mf_file("/jobs/my_project", 1, PlateType.HOT_PLATE, "")` - Print the my_project.gcode.3mf file in the SDCard /jobs directory using the external spool with bed leveling and extrusion flow calibration enabled and timelapse disabled
-        * `print_3mf_file("/jobs/my_project", 1, PlateType.HOT_PLATE, "[-1,-1,2,-1]")` - Same as above but use AMS spool #3
+        * `print_3mf_file("/jobs/my_project", 1, PlateType.HOT_PLATE, False, "")` - Print the my_project.gcode.3mf file in the SDCard /jobs directory using the external spool with bed leveling and extrusion flow calibration enabled and timelapse disabled
+        * `print_3mf_file("/jobs/my_project", 1, PlateType.HOT_PLATE, True, "[-1,-1,2,-1]")` - Same as above but use AMS spool #3
 
         AMS Mapping
         -----------
@@ -367,17 +376,14 @@ class BambuPrinter:
         file["print"]["subtask_name"] = name[name.rindex("/") + 1::] if "/" in name else name
         file["print"]["bed_type"] = bed.name.lower()
         file["print"]["param"] = file["print"]["param"].replace("#", str(plate))
-        if len(ams) > 2:
-            file["print"]["use_ams"] = True
-            file["print"]["ams_mapping"] = json.loads(ams)
-        else:
-            file["print"]["use_ams"] = False
-            file["print"]["ams_mapping"] = ""
+        file["print"]["use_ams"] = use_ams
+        if len(ams_mapping) > 0:
+            file["print"]["ams_mapping"] = json.loads(ams_mapping)
         file["print"]["bed_leveling"] = bedlevel
         file["print"]["flow_cali"] = flow
         file["print"]["timelapse"] = timelapse
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(file))
-        logger.debug(f"published PRINT_3MF_FILE to [device/{self.config.serial_number}/request]", extra={"3mf_name": name, "bed": bed, "ams": ams})
+        logger.debug(f"published PRINT_3MF_FILE to [device/{self.config.serial_number}/request]", extra={"print_command": file})
 
     def stop_printing(self):
         """
@@ -400,7 +406,7 @@ class BambuPrinter:
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(RESUME_PRINT))
         logger.debug(f"published RESUME_PRINT to [device/{self.config.serial_number}/request]")
 
-    def get_sdcard_3mf_files(self) -> {}:
+    def get_sdcard_3mf_files(self):
         """
         Returns a `dict` (json document) of all `.gcode.3mf` files on the printer's SD card. 
         The private class level `_sdcard_3mf_files` attribute is also populated.
