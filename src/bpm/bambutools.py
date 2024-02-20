@@ -89,6 +89,27 @@ def parseAMSStatus(status: int) -> str:
     else:
       return "Unknown"
 
+def parseRFIDStatus(status):
+    """
+    Can be used to parse `ams_rfid_status`
+    """
+    if status == 0:
+        return "RFID Idle"
+    elif status == 1:
+        return "RFID Reading"
+    elif status == 2:
+        return "GCode Translating"
+    elif status == 3:
+        return "GCode Running"
+    elif status == 4:
+        return "RFID Assistant"
+    elif status == 5:
+        return "Switch Filament"
+    elif status == 6:
+        return "Has Filament"
+    else:
+        return "Unknown"
+
 class PrinterState(Enum):
     """
     This enum is used by `bambu-printer-manager` to track the underlying state 

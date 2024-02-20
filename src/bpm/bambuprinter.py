@@ -90,6 +90,7 @@ class BambuPrinter:
         * _spool_state `READ ONLY` Indicates whether the spool is Loaded, Loading, Unloaded, or Unloading.
         * _ams_status `READ ONLY` Bitwise encoded status of the AMS (not currently used).
         * _ams_exists `READ ONLY` Boolean value represents the detected presense of an AMS.
+        * _ams_rfid_status `READ ONLY` Bitwise encoded status of the AMS RFID reader (not currently used).
         * _sdcard_contents `READ ONLY` `dict` (json) value of all files on the SDCard (requires `get_sdcard_contents` be called first).
         * _sdcard_3mf_files `READ ONLY` `dict` (json) value of all `.gcode.3mf` files on the SDCard (requires `get_sdcard_3mf_files` be called first).
         * _hms_data `READ ONLY` `dict` (json) value of any active hms codes with descriptions attached if they are known codes.
@@ -159,6 +160,7 @@ class BambuPrinter:
         self._spool_state = ""
         self._ams_status = None
         self._ams_exists = False
+        self._ams_rfid_status = None
 
         self._sdcard_contents = None
         self._sdcard_3mf_files = None
@@ -605,10 +607,13 @@ class BambuPrinter:
             if "mc_remaining_time" in status: self._time_remaining = int(status["mc_remaining_time"])
             if "total_layer_num" in status: self._layer_count = status["total_layer_num"]
             if "layer_num" in status: self._current_layer = status["layer_num"]
-
+            
             if "stg_cur" in status: 
                 self._current_stage = int(status["stg_cur"])
                 self._current_stage_text = parseStage(self._current_stage)
+
+            if "ams_status" in status: self._ams_status = status["ams_status"]
+            if "ams_rfid_status" in status: self._ams_rfid_status = status["ams_rfid_status"]
 
             if "ams" in status and "ams" in status["ams"] and "ams_exist_bits" in status["ams"]:
                 self._ams_exists = int(status["ams"]["ams_exist_bits"]) == 1
@@ -979,6 +984,10 @@ class BambuPrinter:
     @property 
     def ams_exists(self):
         return self._ams_exists
+
+    @property 
+    def ams_rfid_status(self):
+        return self._ams_rfid_status
 
     @property 
     def internalException(self):
