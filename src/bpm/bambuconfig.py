@@ -6,6 +6,8 @@ import json
 
 from typing import Optional
 
+from bpm.bambutools import getModelBySerial, PrinterModel
+
 logger = logging.getLogger("bambuprinter")
 
 class BambuConfig:
@@ -52,12 +54,13 @@ class BambuConfig:
         * All parameters listed above
         * _firmware_version : str - Reported printer firmware version
         * _ams_firmware_version : str - Reported AMS firmware version
+        * _printer_model : bambutools.PrinterModel - Model # derived from serial #
         """        
         setup_logging()
 
         self._hostname = hostname
         self._access_code = access_code
-        self._serial_number = serial_number
+        self.serial_number = serial_number
         self._mqtt_port = mqtt_port
         self._mqtt_client_id = mqtt_client_id
         self._mqtt_username = mqtt_username
@@ -65,8 +68,9 @@ class BambuConfig:
         self._external_chamber =external_chamber
         self._verbose = verbose
 
-        self._firmware_version = "N/A"
-        self._ams_firmware_version = "N/A"
+        self._firmware_version = ""
+        self._ams_firmware_version = ""
+        self._printer_model = PrinterModel.UNKNOWN
 
     @property 
     def hostname(self) -> str:
@@ -88,6 +92,11 @@ class BambuConfig:
     @serial_number.setter 
     def serial_number(self, value: str):
         self._serial_number = str(value)
+        self._printer_model = getModelBySerial(self._serial_number)
+
+    @property 
+    def printer_model(self) -> PrinterModel:
+        return getModelBySerial(self._serial_number)
 
     @property 
     def mqtt_port(self) -> int:

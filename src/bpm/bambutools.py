@@ -138,3 +138,37 @@ class PlateType(Enum):
     ENG_PLATE = 2,
     HOT_PLATE = 3,
     TEXTURED_PLATE = 4
+
+class PrinterModel(Enum):
+    """
+    Printer model enum
+    """
+    UNKNOWN = 0,
+    X1C = 1,
+    X1 = 2,
+    X1E = 3,
+    P1P = 4,
+    P1S = 5,
+    A1_MINI = 6,
+    A1 = 7
+
+def getModelBySerial(serial : str) -> PrinterModel:
+    """
+    Returns the Printer model enum based on the provided serial #.
+    """
+    if serial.startswith("00M"):        
+        return PrinterModel.X1C
+    elif serial.startswith("00W"):
+        return PrinterModel.X1
+    elif serial.startswith("03W"):
+        return PrinterModel.X1E
+    elif serial.startswith("01S"):
+        return PrinterModel.P1P
+    elif serial.startswith("01P"):
+        return PrinterModel.P1S
+    elif serial.startswith("030"):
+        return PrinterModel.A1_MINI
+    elif serial.startswith("039"):
+        return PrinterModel.A1
+    else:
+        return PrinterModel.UNKNOWN

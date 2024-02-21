@@ -183,13 +183,13 @@ class BambuPrinter:
         if self.client and self.client.is_connected():
             raise Exception("a session is already active")
 
-        def on_connect(client, userdata, flags, rc):
+        def on_connect(client, userdata, flags, reason_code, properties):
             logger.debug("session on_connect")
             if self.state != PrinterState.PAUSED:
                 self.state = PrinterState.CONNECTED
                 client.subscribe(f"device/{self.config.serial_number}/report")
                 logger.debug(f"subscribed to [device/{self.config.serial_number}/report]")
-        def on_disconnect(client, userdata, rc):
+        def on_disconnect(client, userdata, flags, reason_code, properties):
             logger.debug("session on_disconnect")
             if self._internalException:
                 logger.exception("an internal exception occurred")
@@ -211,7 +211,7 @@ class BambuPrinter:
                 if printer.client and printer.client.is_connected(): printer.client.disconnect() 
             printer.state = PrinterState.QUIT
 
-        self.client =  mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
+        self.client =  mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 
         self.client.on_connect = on_connect
         self.client.on_disconnect = on_disconnect
@@ -537,7 +537,7 @@ class BambuPrinter:
             if isinstance(obj, mqtt.Client) or isinstance(obj, Thread):
                 return "these are not the droids you are looking for"
             if str(obj.__class__).replace("<class '", "").replace("'>", "") == "mappingproxy":
-                return "bpm.bambutools.PrinterState"
+                return "this space intentionally left blank"
             return obj.__dict__
         except Exception as e:
             logger.warn("unable to serialize object", extra={"obj": obj})
