@@ -619,6 +619,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#bpm.bambutools.PrinterModel" class="md-nav__link">
+    <span class="md-ellipsis">
+      PrinterModel
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#bpm.bambutools.PrinterState" class="md-nav__link">
     <span class="md-ellipsis">
       PrinterState
@@ -643,6 +652,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#bpm.bambutools.getModelBySerial" class="md-nav__link">
+    <span class="md-ellipsis">
+      getModelBySerial
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#bpm.bambutools.parseAMSStatus" class="md-nav__link">
     <span class="md-ellipsis">
       parseAMSStatus
@@ -655,6 +673,15 @@
   <a href="#bpm.bambutools.parseFan" class="md-nav__link">
     <span class="md-ellipsis">
       parseFan
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bpm.bambutools.parseRFIDStatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      parseRFIDStatus
     </span>
   </a>
   
@@ -893,6 +920,46 @@ starting a print job.</p>
 
 
 
+<h2 id="bpm.bambutools.PrinterModel" class="doc doc-heading">
+          <code>PrinterModel</code>
+
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="enum.Enum">Enum</span></code></p>
+
+  
+      <p>Printer model enum</p>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
 <h2 id="bpm.bambutools.PrinterState" class="doc doc-heading">
           <code>PrinterState</code>
 
@@ -943,6 +1010,25 @@ of the <code>mqtt</code> connection to the printer.</p>
 
 
 
+<h2 id="bpm.bambutools.getModelBySerial" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">getModelBySerial</span><span class="p">(</span><span class="n">serial</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns the Printer model enum based on the provided serial #.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
 <h2 id="bpm.bambutools.parseAMSStatus" class="doc doc-heading">
           <code class="highlight language-python"><span class="n">parseAMSStatus</span><span class="p">(</span><span class="n">status</span><span class="p">)</span></code>
 
@@ -971,6 +1057,25 @@ of the <code>mqtt</code> connection to the printer.</p>
   <div class="doc doc-contents ">
   
       <p>Mainly an internal method used for parsing Fan data</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="bpm.bambutools.parseRFIDStatus" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">parseRFIDStatus</span><span class="p">(</span><span class="n">status</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Can be used to parse <code>ams_rfid_status</code></p>
 
   </div>
 
