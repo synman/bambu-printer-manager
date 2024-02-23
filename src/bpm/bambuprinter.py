@@ -682,6 +682,8 @@ class BambuPrinter:
                     self._spool_state = "Unloaded"
                 elif self._target_spool == 255 and self._active_spool != 255:
                     self._spool_state = "Unloading"
+                elif self._active_spool != 255 and self._target_spool != 255 and self._target_spool != self._active_spool:
+                    self._spool_state = "Unloading"
                 elif self._target_spool != 255 and self._active_spool == 255:
                     self._spool_state = "Loading"
                 else:
