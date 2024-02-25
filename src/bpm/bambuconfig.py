@@ -55,6 +55,10 @@ class BambuConfig:
         * _firmware_version : str - Reported printer firmware version
         * _ams_firmware_version : str - Reported AMS firmware version
         * _printer_model : bambutools.PrinterModel - Model # derived from serial #
+        * _auto_recovery : bool - auto recovery from lost steps print option
+        * _filament_tangle_detect : bool - detect spool tangles print option
+        * _sound_enable : bool - printer speaker print option
+        * _auto_switch_filament : bool - AMS auto switch filamement on runout print option
         """        
         setup_logging()
 
@@ -71,6 +75,10 @@ class BambuConfig:
         self._firmware_version = ""
         self._ams_firmware_version = ""
         self._printer_model = PrinterModel.UNKNOWN
+        self._auto_recovery = True
+        self._filament_tangle_detect = True 
+        self._sound_enable = True 
+        self._auto_switch_filament = True 
 
     @property 
     def hostname(self) -> str:
@@ -146,6 +154,34 @@ class BambuConfig:
     @external_chamber.setter 
     def external_chamber(self, value: bool):
         self._external_chamber = bool(value)
+
+    @property 
+    def auto_recovery(self) -> bool:
+        return self._auto_recovery
+    @auto_recovery.setter 
+    def auto_recovery(self, value: bool):
+        self._auto_recovery = bool(value)
+
+    @property 
+    def filament_tangle_detect(self) -> bool:
+        return self._filament_tangle_detect
+    @filament_tangle_detect.setter 
+    def filament_tangle_detect(self, value: bool):
+        self._filament_tangle_detect = bool(value)
+
+    @property 
+    def sound_enable(self) -> bool:
+        return self._sound_enable
+    @sound_enable.setter 
+    def sound_enable(self, value: bool):
+        self._sound_enable = bool(value)
+
+    @property 
+    def auto_switch_filament(self) -> bool:
+        return self._auto_switch_filament
+    @auto_switch_filament.setter 
+    def auto_switch_filament(self, value: bool):
+        self._auto_switch_filament = bool(value)
 
     @property 
     def verbose(self) -> bool:

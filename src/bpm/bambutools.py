@@ -139,6 +139,15 @@ class PlateType(Enum):
     HOT_PLATE = 3,
     TEXTURED_PLATE = 4
 
+class PrintOption(Enum):
+    """
+    Print Option enum
+    """
+    AUTO_RECOVERY = 0,
+    FILAMENT_TANGLE_DETECT = 1,
+    SOUND_ENABLE = 2,
+    AUTO_SWITCH_FILAMENT = 3
+
 class PrinterModel(Enum):
     """
     Printer model enum

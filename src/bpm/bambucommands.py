@@ -78,6 +78,12 @@ EXTRUSION_CALI_SET        = {
                                 }
                             }
 
+PRINT_OPTION_COMMAND =      {
+                                "print": {
+                                    "command":"print_option",
+                                    "sequence_id":"0"
+                                }
+                            }
 
 PAUSE_PRINT =               {
                                 "print": {
@@ -106,22 +112,6 @@ SEND_GCODE_TEMPLATE =       {
                                     "sequence_id": "0", 
                                     "command": "gcode_line", 
                                     "param": ""
-                                }
-                            }
-
-MOVE_RIGHT =                {
-                                "print": {
-                                    "sequence_id": "0", 
-                                    "command": "gcode_line", 
-                                    "param": "G91\nG1 X100 F3600\n"
-                                }
-                            }
-
-MOVE_LEFT =                 {
-                                "print": {
-                                    "sequence_id": "0", 
-                                    "command": "gcode_line", 
-                                    "param": "G91\nG1 X-100 F3600\n"
                                 }
                             }
 

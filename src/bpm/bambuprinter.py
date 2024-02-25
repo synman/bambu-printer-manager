@@ -13,7 +13,7 @@ from typing import Optional
 
 from .bambucommands import *
 from .bambuspool import BambuSpool
-from .bambutools import PrinterState, PlateType
+from .bambutools import PrinterState, PlateType, PrintOption
 from .bambutools import parseStage, parseFan
 from .bambuconfig import BambuConfig
 
@@ -521,6 +521,26 @@ class BambuPrinter:
         ftps.move_file(src, dest)
         return self.get_sdcard_contents()
 
+    def set_print_option(self, option: PrintOption, enabled: bool):
+        """
+        Enable or disable one of the `PrintOption` options
+        """
+        cmd = PRINT_OPTION_COMMAND
+        cmd["print"][option.name.lower()] = enabled
+
+        if option == PrintOption.AUTO_RECOVERY:
+            cmd["print"]["option"] = 1 if enabled else 0
+            self.config.auto_recovery = enabled
+        elif option == PrintOption.AUTO_SWITCH_FILAMENT:
+            self.config.auto_switch_filament = enabled
+        elif option == PrintOption.FILAMENT_TANGLE_DETECT:
+            self.config.filament_tangle_detect = enabled
+        elif option == PrintOption.SOUND_ENABLE:
+            self.config.sound_enable = enabled
+
+        self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
+        logger.debug(f"published PRINT_OPTION_COMMAND to [device/{self.config.serial_number}/request]", extra={"bambu_msg": cmd})
+
     def toJson(self):
         """
         Returns a `dict` (json document) representing this object's private class
@@ -542,6 +562,7 @@ class BambuPrinter:
         except Exception as e:
             logger.warn("unable to serialize object", extra={"obj": obj})
             return "not available"
+
 
     def _start_watchdog(self): 
         def watchdog_thread(printer):
