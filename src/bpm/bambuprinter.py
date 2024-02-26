@@ -23,6 +23,7 @@ import os
 import atexit
 import logging.config
 import logging.handlers
+import copy
 
 logger = logging.getLogger("bambuprinter")
     
@@ -371,13 +372,14 @@ class BambuPrinter:
         """
         self._3mf_file = f"{name}.gcode.3mf"
         self._plate_num = int(plate)
-        file = PRINT_3MF_FILE
+
+        file = copy.deepcopy(PRINT_3MF_FILE)
 
         file["print"]["file"] = self._3mf_file
         file["print"]["url"] = f"file:///sdcard/{name}.gcode.3mf"
         file["print"]["subtask_name"] = name[name.rindex("/") + 1::] if "/" in name else name
         file["print"]["bed_type"] = bed.name.lower()
-        file["print"]["param"] = file["print"]["param"].replace("#", str(plate))
+        file["print"]["param"] = file["print"]["param"].replace("#", str(self._plate_num))
         file["print"]["use_ams"] = use_ams
         if len(ams_mapping) > 0:
             file["print"]["ams_mapping"] = json.loads(ams_mapping)
