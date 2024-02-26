@@ -9,4 +9,6 @@ All documentation for `bambu-printer-manager` can be found [here](https://synman
 Open an issue, [here](https://github.com/synman/bambu-printer-manager/issues).
 
 ### Want to Contribute?
-Submit a Pull Request to [main](https://github.com/synman/bambu-printer-manager/compare)!
+The best way you can contribute to this project is to make a monetary donation to its author.   All funds received will go to the purchase of Bambu Lab hardware to support the continued development of this project.  Please show your support by becoming a [Sponsor](https://github.com/sponsors/synman) today!
+
+Developers are encouraged to submit a Pull Request to [main](https://github.com/synman/bambu-printer-manager/compare)!
