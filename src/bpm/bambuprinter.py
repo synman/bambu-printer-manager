@@ -650,14 +650,21 @@ class BambuPrinter:
                             try:
                                 tray_color = "#" + tray["tray_color"]
                             except:
-                                tray_color = "N/A"
+                                tray_color = ""
                         
                         if tray.get("id"):
-                            spool = BambuSpool(int(tray["id"]),  
-                                                tray["tray_id_name"] if "tray_id_name" in tray else "",  
-                                                tray["tray_type"] if "tray_type" in tray else "", 
-                                                tray["tray_sub_brands"] if "tray_sub_brands" in tray else "", 
-                                                tray_color)
+                            spool = BambuSpool( 
+                                                int(tray["id"]),  
+                                                tray.get("tray_id_name", ""),  
+                                                tray.get("tray_type", ""), 
+                                                tray.get("tray_sub_brands", ""), 
+                                                tray_color,
+                                                tray.get("tray_info_idx", ""),
+                                                tray.get("k", 0.0),
+                                                tray.get("bed_temp", 0),
+                                                tray.get("nozzle_temp_min", 0),
+                                                tray.get("nozzle_temp_max", 0) 
+                                              )
                             spools.append(spool)
                     self._spools = tuple(spools)
 
@@ -669,14 +676,21 @@ class BambuPrinter:
                     try:
                         tray_color = "#" + tray["tray_color"]
                     except:
-                        tray_color = "N/A"
+                        tray_color = ""
 
                 if tray.get("id", None):
-                    spool = BambuSpool(int(tray.get("id")), 
-                                       tray.get("tray_id_name", ""),
-                                       tray.get("tray_type", ""),
-                                       tray.get("tray_sub_brands", ""),
-                                       tray_color)
+                    spool = BambuSpool( 
+                                        int(tray.get("id")), 
+                                        tray.get("tray_id_name", ""),
+                                        tray.get("tray_type", ""),
+                                        tray.get("tray_sub_brands", ""),
+                                        tray_color,
+                                        tray.get("tray_info_idx", ""),
+                                        tray.get("k", 0.0),
+                                        tray.get("bed_temp", 0),
+                                        tray.get("nozzle_temp_min", 0),
+                                        tray.get("nozzle_temp_max", 0)
+                                      )
                     if not self._ams_exists: 
                         spools = (spool,)
                     else:

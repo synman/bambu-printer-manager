@@ -3,6 +3,10 @@ This container is a Material UI / React application for monitoring and administe
 
 The frontend is written in `nodejs` and uses the `React Material UI` library for producing a content rich user experience.  The backend is written in `Python` and uses a `Flask Waitress` server for responding to frontend api calls with the help of a [custom python library](https://github.com/synman/bambu-printer-manager) developed specifically for interacting with `Bambu Lab` printers. The webcam service is a [custom python daemon](https://github.com/synman/webcamd/tree/bambu) that decodes the printer's built-in webcam data and produces a `MJPEG` stream that  is served by the frontend.
 
+## Become a Sponsor
+While caffiene and sleepness nights drive the delivery of this project, they unfortunately do not cover the financial expense necessary to further its development.  Please consider becoming a `bambu-printer-manager` sponsor today!
+<iframe src="https://github.com/sponsors/synman/button" title="Sponsor synman" height="32" width="114" style="border: 0; border-radius: 6px;"></iframe>
+
 ## Installation
 ```
 # Configure the host, access code, serial # environment variables and 

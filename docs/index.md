@@ -3,6 +3,10 @@
 # bambu-printer-manager
 `bambu-printer-manager` is an all in one pure python wrapper for interacting with and managing Bambu Lab printers.  
 
+## Become a Sponsor
+While caffiene and sleepness nights drive the delivery of this project, they unfortunately do not cover the financial expense necessary to further its development.  Please consider becoming a `bambu-printer-manager` sponsor today!
+<iframe src="https://github.com/sponsors/synman/button" title="Sponsor synman" height="32" width="114" style="border: 0; border-radius: 6px;"></iframe>
+
 ## Project Composition
 
     bpm/  
