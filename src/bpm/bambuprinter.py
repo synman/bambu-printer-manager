@@ -1,5 +1,5 @@
 import json
-from webcolors import hex_to_name
+from webcolors import hex_to_name, name_to_hex
 import paho.mqtt.client as mqtt
 
 from threading import Thread
@@ -8,6 +8,7 @@ import threading
 import ssl
 import time
 import traceback
+import math
 
 from typing import Optional
 
@@ -543,6 +544,67 @@ class BambuPrinter:
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
         logger.debug(f"published PRINT_OPTION_COMMAND to [device/{self.config.serial_number}/request]", extra={"bambu_msg": cmd})
 
+    def set_spool_k_factor(self, 
+                           tray_id : int, 
+                           k_value : float, 
+                           n_coef : Optional[float]  = 1.399999976158142, 
+                           nozzle_temp : Optional[int] = -1,
+                           bed_temp : Optional[int] = -1, 
+                           max_volumetric_speed : Optional[int] = -1):
+        """
+        Sets the linear advance k factor for a specific spool / tray
+        """
+        cmd = copy.deepcopy(EXTRUSION_CALI_SET)
+        cmd["print"]["tray_id"] = tray_id
+        cmd["print"]["k_value"] = k_value
+        cmd["print"]["n_coef"] = n_coef 
+
+        if nozzle_temp != -1:
+            cmd["print"]["nozzle_temp"] = nozzle_temp
+        if bed_temp != -1:
+            cmd["print"]["bed_temp"] = bed_temp
+        if max_volumetric_speed != -1:
+            cmd["print"]["max_volumetric_speed"] = max_volumetric_speed
+        
+        self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
+        logger.debug(f"published EXTRUSION_CALI_SET to [device/{self.config.serial_number}/request]", extra={"bambu_msg": cmd})
+
+    def set_spool_details(self, 
+                           tray_id : int, 
+                           tray_info_idx : str, 
+                           tray_type : Optional[str]  = "", 
+                           tray_color : Optional[str] = "",
+                           nozzle_temp_min : Optional[int] = -1, 
+                           nozzle_temp_max : Optional[int] = -1):
+        """
+        Sets spool / tray details such as filament type, color, and nozzle min/max temperature.
+        """
+        cmd = copy.deepcopy(AMS_FILAMENT_SETTING)
+
+        ams_id = math.floor(tray_id / 4)
+        if tray_id == 254: ams_id = 255
+
+        cmd["print"]["ams_id"] = ams_id
+        cmd["print"]["tray_id"] = tray_id
+        cmd["print"]["tray_info_idx"] = tray_info_idx
+
+        if tray_type != "":
+            cmd["print"]["tray_type"] = tray_type
+        if tray_color != "":
+            color = ""
+            try:
+                color = f"{name_to_hex(tray_color)}FF".replace("#", "").upper()
+            except:
+                color = tray_color
+            cmd["print"]["tray_color"] = color
+        if nozzle_temp_min != -1:
+            cmd["print"]["nozzle_temp_min"] = nozzle_temp_min
+        if nozzle_temp_max != -1:
+            cmd["print"]["nozzle_temp_max"] = nozzle_temp_max
+        
+        self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
+        logger.debug(f"published AMS_FILAMENT_SETTING to [device/{self.config.serial_number}/request]", extra={"bambu_msg": cmd})
+
     def toJson(self):
         """
         Returns a `dict` (json document) representing this object's private class
@@ -593,7 +655,13 @@ class BambuPrinter:
 
         elif "print" in message:
             status = message["print"]
-                    
+
+            # let's sleep for a couple seconds and do a full refresh
+            if status["command"] and status["command"] == "ams_filament_setting":
+                time.sleep(2)
+                logger.debug(f"filament change triggered publishing ANNOUNCE_PUSH to [device/{self.config.serial_number}/request]")
+                self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(ANNOUNCE_PUSH))
+
             if "bed_temper" in status: self._bed_temp = float(status["bed_temper"])
             if "bed_target_temper" in status: 
                 bed_temp_target = float(status["bed_target_temper"]) 

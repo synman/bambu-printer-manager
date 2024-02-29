@@ -71,10 +71,6 @@ EXTRUSION_CALI_SET        = {
                                     "command": "extrusion_cali_set",
                                     "tray_id": 0,
                                     "k_value": 0.020,
-                                    "n_coef": 1.4,
-                                    "nozzle_temp": 250,
-                                    "bed_temp": 65,
-                                    "max_volumetric_speed": 22,
                                 }
                             }
 
@@ -130,6 +126,16 @@ AMS_FILAMENT_CHANGE =       {
                                     "curr_temp": 250, 
                                     "tar_temp": 250
                                 }
+                            }
+
+AMS_FILAMENT_SETTING =      {
+                              "print": {
+                                "command": "ams_filament_setting",
+                                "ams_id": 255,
+                                "tray_id": 254,
+                                "tray_info_idx": "",
+                                "sequence_id": "0",
+                              }
                             }
 
 PRINT_3MF_FILE =            {
