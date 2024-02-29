@@ -861,7 +861,7 @@ Tuple when there are spools active on machine.</p>
 
 
 <h3 id="bpm.bambuspool.BambuSpool.__init__" class="doc doc-heading">
-          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">sub_brands</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">sub_brands</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">tray_info_idx</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">bed_temp</span><span class="p">,</span> <span class="n">nozzle_temp_min</span><span class="p">,</span> <span class="n">nozzle_temp_max</span><span class="p">)</span></code>
 
 </h3>
 
@@ -875,7 +875,12 @@ Tuple when there are spools active on machine.</p>
 <li>name : str - The name of the spool, typically only populated if a Bambu Lab RFID tag is recognized by the AMS.</li>
 <li>type : str - The type of filament in the spool.  Will either be read by the RFID tag or set on the Printer display.</li>
 <li>sub_brands : str - For Bambu Lab filaments, specifies the specialization of the filament (Matte, Pro, Tough, etc).</li>
-<li>color : str - will either be a color hex code or a color name if <code>webcolors</code> is able to recognize the color code.</li>
+<li>color : str - Will either be a color hex code or a color name if <code>webcolors</code> is able to recognize the color code.</li>
+<li>tray_info_idx : str - The underlying index for the selected filament in Bambu Studio.</li>
+<li>k : float - The K-Factor to use for determining optimial linear advance (flow rate).</li>
+<li>bed_temp : int - The target bed temperature to use.</li>
+<li>nozzle_temp_min : int - The minimum usable nozzle temperature to use.</li>
+<li>nozzle_temp_max : int - The maximum usable nozzle temperature to use.</li>
 </ul>
 
   </div>

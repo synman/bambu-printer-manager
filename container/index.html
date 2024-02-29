@@ -709,6 +709,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#become-a-sponsor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Become a Sponsor
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#installation" class="md-nav__link">
     <span class="md-ellipsis">
       Installation
@@ -793,6 +802,10 @@
 <h1 id="bambu-printer-manager-client-container">bambu-printer-manager Client Container</h1>
 <p>This container is a Material UI / React application for monitoring and administering Bambu Lab printers.  It runs on an <code>Alpine Linux</code> image with <code>HAPROXY</code> working as a reverse proxy for the frontend, backend, and webcam services.</p>
 <p>The frontend is written in <code>nodejs</code> and uses the <code>React Material UI</code> library for producing a content rich user experience.  The backend is written in <code>Python</code> and uses a <code>Flask Waitress</code> server for responding to frontend api calls with the help of a <a href="https://github.com/synman/bambu-printer-manager">custom python library</a> developed specifically for interacting with <code>Bambu Lab</code> printers. The webcam service is a <a href="https://github.com/synman/webcamd/tree/bambu">custom python daemon</a> that decodes the printer's built-in webcam data and produces a <code>MJPEG</code> stream that  is served by the frontend.</p>
+<h2 id="become-a-sponsor">Become a Sponsor</h2>
+<p>While caffiene and sleepness nights drive the delivery of this project, they unfortunately do not cover the financial expense necessary to further its development.  Please consider becoming a <code>bambu-printer-manager</code> sponsor today!</p>
+<iframe src="https://github.com/sponsors/synman/button" title="Sponsor synman" height="32" width="114" style="border: 0; border-radius: 6px;"></iframe>
+
 <h2 id="installation">Installation</h2>
 <div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><a href="#__codelineno-0-1"><span class="linenos" data-linenos="1 "></span></a># Configure the host, access code, serial # environment variables and 
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a><a href="#__codelineno-0-2"><span class="linenos" data-linenos="2 "></span></a># map the HAPROXY listener to a host port to launch the container
