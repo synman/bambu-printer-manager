@@ -138,6 +138,25 @@ AMS_FILAMENT_SETTING =      {
                               }
                             }
 
+AMS_USER_SETTING =          {
+                              "print": {
+                                "ams_id": 0,
+                                "command": "ams_user_setting",
+                                "sequence_id": "0",
+                                "calibrate_remain_flag": True,
+                                "startup_read_option": True,
+                                "tray_read_option": True
+                              }
+                            }
+
+AMS_CONTROL =               {
+                              "print": {
+                                  "sequence_id": "0",
+                                  "command": "ams_control",
+                                  "param": "resume" # "resume", "reset" or "pause"
+                              }
+                            }
+
 PRINT_3MF_FILE =            {
                                 "print": {
                                     "command": "project_file",
@@ -160,6 +179,14 @@ PRINT_3MF_FILE =            {
                                     "layer_inspect": True,
                                     "vibration_cali": True
                                 }
+                            }
+
+SKIP_OBJECTS =              {
+                              "print": {
+                                "sequence_id": "0",
+                                "command": "skip_objects",
+                                "obj_list": [],
+                              }
                             }
 
 # X1 only currently

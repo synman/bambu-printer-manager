@@ -59,6 +59,9 @@ class BambuConfig:
         * _filament_tangle_detect : bool - detect spool tangles print option
         * _sound_enable : bool - printer speaker print option
         * _auto_switch_filament : bool - AMS auto switch filamement on runout print option
+        * _startup_read_option : bool - AMS will automatically read RFID on boot
+        * _tray_read_option : bool - AMS will automatically read RFID on tray/spool change
+        * _calibrate_remain_flag : bool - AMS will calculate remaining amount of filament in spool (unverified)
         """        
         setup_logging()
 
@@ -79,6 +82,9 @@ class BambuConfig:
         self._filament_tangle_detect = True 
         self._sound_enable = True 
         self._auto_switch_filament = True 
+        self._startup_read_option = True 
+        self._tray_read_option = True 
+        self._calibrate_remain_flag = True
 
     @property 
     def hostname(self) -> str:
@@ -182,6 +188,29 @@ class BambuConfig:
     @auto_switch_filament.setter 
     def auto_switch_filament(self, value: bool):
         self._auto_switch_filament = bool(value)
+
+
+    @property 
+    def startup_read_option(self) -> bool:
+        return self._startup_read_option
+    @startup_read_option.setter 
+    def startup_read_option(self, value: bool):
+        self._startup_read_option = bool(value)
+
+    @property 
+    def tray_read_option(self) -> bool:
+        return self._tray_read_option
+    @tray_read_option.setter 
+    def tray_read_option(self, value: bool):
+        self._tray_read_option = bool(value)
+
+    @property 
+    def calibrate_remain_flag(self) -> bool:
+        return self._calibrate_remain_flag
+    @calibrate_remain_flag.setter 
+    def calibrate_remain_flag(self, value: bool):
+        self._calibrate_remain_flag = bool(value)
+
 
     @property 
     def verbose(self) -> bool:

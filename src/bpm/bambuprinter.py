@@ -14,7 +14,7 @@ from typing import Optional
 
 from .bambucommands import *
 from .bambuspool import BambuSpool
-from .bambutools import PrinterState, PlateType, PrintOption
+from .bambutools import PrinterState, PlateType, PrintOption, AMSControlCommand, AMSUserSetting
 from .bambutools import parseStage, parseFan
 from .bambuconfig import BambuConfig
 
@@ -94,9 +94,12 @@ class BambuPrinter:
         * _ams_exists `READ ONLY` Boolean value represents the detected presense of an AMS.
         * _ams_rfid_status `READ ONLY` Bitwise encoded status of the AMS RFID reader (not currently used).
         * _sdcard_contents `READ ONLY` `dict` (json) value of all files on the SDCard (requires `get_sdcard_contents` be called first).
-        * _sdcard_3mf_files `READ ONLY` `dict` (json) value of all `.gcode.3mf` files on the SDCard (requires `get_sdcard_3mf_files` be called first).
+        * _sdcard_3mf_files `READ ONLY` `dict` (json) value of all `.3mf` files on the SDCard (requires `get_sdcard_3mf_files` be called first).
         * _hms_data `READ ONLY` `dict` (json) value of any active hms codes with descriptions attached if they are known codes.
         * _hms_message `READ ONLY` all hms_data `desc` fields concatinated into a single string for ease of use.
+        * _print_type `READ ONLY` can be `cloud` or `local`
+        * _skipped_objects `READ ONLY` array of objects that have been skipped / cancelled
+
         The attributes (where appropriate) are included whenever the class is serialized
         using its `toJson()` method.  
         
@@ -169,6 +172,8 @@ class BambuPrinter:
 
         self._hms_data = None
         self._hms_message = ""
+        self._print_type = ""
+        self._skipped_objects = []
 
     def start_session(self):
         """
@@ -331,7 +336,7 @@ class BambuPrinter:
         * `send_gcode("G91\\nG0 X0\\nG0 X50")` - queues 3 gcode commands on the printer for processing
         * `send_gcode("G28")` - queues 1 gcode command on the printer for processing
         """
-        cmd = SEND_GCODE_TEMPLATE
+        cmd = copy.deepcopy(SEND_GCODE_TEMPLATE)
         cmd["print"]["param"] = f"{gcode} \n"
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
         logger.debug(f"published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request]", extra={"gcode": gcode})
@@ -346,11 +351,11 @@ class BambuPrinter:
                         flow: Optional[bool] = True, 
                         timelapse: Optional[bool] = False):
         """
-        Submits a request to execute the `name`.gcode.3mf file on the printer's SDCard. 
+        Submits a request to execute the `name` 3mf file on the printer's SDCard. 
 
         Parameters
         ----------
-        * name : str                         - path and filename to execute minus the `.gcode.3mf` extension
+        * name : str                         - path, filename, and extension to execute
         * plate : int                        - the plate # from your slicer to use (usually 1)
         * bed : PlateType                    - the bambutools.PlateType to use
         * use_ams : bool                     - Use the AMS for this print
@@ -361,8 +366,8 @@ class BambuPrinter:
         
         Example
         -------
-        * `print_3mf_file("/jobs/my_project", 1, PlateType.HOT_PLATE, False, "")` - Print the my_project.gcode.3mf file in the SDCard /jobs directory using the external spool with bed leveling and extrusion flow calibration enabled and timelapse disabled
-        * `print_3mf_file("/jobs/my_project", 1, PlateType.HOT_PLATE, True, "[-1,-1,2,-1]")` - Same as above but use AMS spool #3
+        * `print_3mf_file("/jobs/my_project.3mf", 1, PlateType.HOT_PLATE, False, "")` - Print the my_project.3mf file in the SDCard /jobs directory using the external spool with bed leveling and extrusion flow calibration enabled and timelapse disabled
+        * `print_3mf_file("/jobs/my_project.gcode.3mf", 1, PlateType.HOT_PLATE, True, "[-1,-1,2,-1]")` - Same as above but use AMS spool #3
 
         AMS Mapping
         -----------
@@ -371,14 +376,18 @@ class BambuPrinter:
         * `[0,-1,-1,3]`  - use AMS spools #1 and #4
         * `[0,1,2,3]`    - use all 4 AMS spools
         """
-        self._3mf_file = f"{name}.gcode.3mf"
+        self._3mf_file = f"{name}"
         self._plate_num = int(plate)
 
         file = copy.deepcopy(PRINT_3MF_FILE)
 
+        subtask = name[name.rindex("/") + 1::] if "/" in name else name
+        subtask = subtask[::-1].replace(".3mf"[::-1], "", 1)[::-1] if subtask.endswith(".3mf") else subtask 
+        subtask = subtask[::-1].replace(".gcode"[::-1], "", 1)[::-1] if subtask.endswith(".gcode") else subtask 
+
         file["print"]["file"] = self._3mf_file
-        file["print"]["url"] = f"file:///sdcard/{name}.gcode.3mf"
-        file["print"]["subtask_name"] = name[name.rindex("/") + 1::] if "/" in name else name
+        file["print"]["url"] = f"file:///sdcard{self._3mf_file}"
+        file["print"]["subtask_name"] = subtask
         file["print"]["bed_type"] = bed.name.lower()
         file["print"]["param"] = file["print"]["param"].replace("#", str(self._plate_num))
         file["print"]["use_ams"] = use_ams
@@ -413,7 +422,7 @@ class BambuPrinter:
 
     def get_sdcard_3mf_files(self):
         """
-        Returns a `dict` (json document) of all `.gcode.3mf` files on the printer's SD card. 
+        Returns a `dict` (json document) of all `.3mf` files on the printer's SD card. 
         The private class level `_sdcard_3mf_files` attribute is also populated.
         
         Usage
@@ -443,7 +452,7 @@ class BambuPrinter:
                     search_for_and_remove_all_other_files(mask, child)
 
         self._sdcard_3mf_files = json.loads(json.dumps(self._sdcard_contents)) 
-        search_for_and_remove_all_other_files(".gcode.3mf", self._sdcard_3mf_files)
+        search_for_and_remove_all_other_files(".3mf", self._sdcard_3mf_files)
 
         return fs
 
@@ -544,6 +553,28 @@ class BambuPrinter:
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
         logger.debug(f"published PRINT_OPTION_COMMAND to [device/{self.config.serial_number}/request]", extra={"bambu_msg": cmd})
 
+    def set_ams_user_setting(self, setting: AMSUserSetting, enabled: bool, ams_id : Optional[int] = 0):
+        """
+        Enable or disable one of the `AMSUserSetting` options
+        """        
+        cmd = copy.deepcopy(AMS_USER_SETTING)
+        cmd["print"]["ams_id"] = ams_id
+        cmd["print"][AMSUserSetting.CALIBRATE_REMAIN_FLAG.name.lower()] = self.config.calibrate_remain_flag
+        cmd["print"][AMSUserSetting.STARTUP_READ_OPTION.name.lower()] = self.config.startup_read_option
+        cmd["print"][AMSUserSetting.TRAY_READ_OPTION.name.lower()] = self.config.tray_read_option
+
+        cmd["print"][setting.name.lower()] = enabled
+
+        if setting == AMSUserSetting.STARTUP_READ_OPTION:
+            self.config.startup_read_option = enabled
+        elif setting == AMSUserSetting.TRAY_READ_OPTION:
+            self.config.tray_read_option = enabled
+        elif setting == AMSUserSetting.CALIBRATE_REMAIN_FLAG:
+            self.config.calibrate_remain_flag = enabled
+
+        self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
+        logger.debug(f"published AMS_USER_SETTING to [device/{self.config.serial_number}/request]", extra={"bambu_msg": cmd})
+
     def set_spool_k_factor(self, 
                            tray_id : int, 
                            k_value : float, 
@@ -572,6 +603,7 @@ class BambuPrinter:
     def set_spool_details(self, 
                            tray_id : int, 
                            tray_info_idx : str, 
+                           tray_id_name : Optional[str] = "",
                            tray_type : Optional[str]  = "", 
                            tray_color : Optional[str] = "",
                            nozzle_temp_min : Optional[int] = -1, 
@@ -588,6 +620,8 @@ class BambuPrinter:
         cmd["print"]["tray_id"] = tray_id
         cmd["print"]["tray_info_idx"] = tray_info_idx
 
+        if tray_id_name != "":
+            cmd["print"]["tray_id_name"] = tray_id_name
         if tray_type != "":
             cmd["print"]["tray_type"] = tray_type
         if tray_color != "":
@@ -604,6 +638,31 @@ class BambuPrinter:
         
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
         logger.debug(f"published AMS_FILAMENT_SETTING to [device/{self.config.serial_number}/request]", extra={"bambu_msg": cmd})
+
+    def send_ams_control_command(self, ams_control_cmd : AMSControlCommand):
+        """
+        Send an AMS Control Command - will pause, resume, or reset the AMS.
+        """
+        ams_cmd = ams_control_cmd.name.lower()
+        cmd = copy.deepcopy(AMS_CONTROL)
+        cmd["print"]["param"] = ams_cmd
+
+        self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
+        logger.debug(f"published AMS_CONTROL to [device/{self.config.serial_number}/request]", extra={"bambu_msg": cmd})
+
+    def skip_objects(self, objects):
+        """
+        skip a list of objects extracted from the 3mf's plate_x.json file
+
+        Parameters
+        ----------
+        objects : list
+        """
+        cmd = copy.deepcopy(SKIP_OBJECTS)
+        cmd["print"]["obj_list"] = objects
+        self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
+        logger.debug(f"published SKIP_OBJECTS to [device/{self.config.serial_number}/request]", extra={"bambu_msg": cmd})
+
 
     def toJson(self):
         """
@@ -656,8 +715,20 @@ class BambuPrinter:
         elif "print" in message:
             status = message["print"]
 
+            if "command" in status and status["command"] == "project_file":
+                self._start_time = 0
+                if self._3mf_file:
+                    logger.debug("project_file request acknowledged")
+                else:
+                    url = status["url"]                   
+                    subtask = status["subtask_name"]
+                    if url.startswith("https://"):
+                        self._3mf_file = f"/cache/{subtask}.3mf"
+                    else:
+                        self._3mf_file = status["file"]
+
             # let's sleep for a couple seconds and do a full refresh
-            if status["command"] and status["command"] == "ams_filament_setting":
+            if "command" in status and status["command"] == "ams_filament_setting":
                 time.sleep(2)
                 logger.debug(f"filament change triggered publishing ANNOUNCE_PUSH to [device/{self.config.serial_number}/request]")
                 self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(ANNOUNCE_PUSH))
@@ -711,6 +782,10 @@ class BambuPrinter:
                 if self._ams_exists:
                     spools = []
                     ams = (status["ams"]["ams"])[0]
+
+                    self.config.startup_read_option = status["ams"].get("power_on_flag", False)
+                    self.config.tray_read_option = status["ams"].get("insert_flag", False)
+
                     for tray in ams["tray"]:
                         try:
                             tray_color = hex_to_name("#" + tray["tray_color"][:6])
@@ -808,9 +883,20 @@ class BambuPrinter:
 
             self._hms_message = self._hms_message.rstrip()
 
-            if "command" in status and status["command"] == "project_file":
-                self._start_time = 0
-                logger.debug("project_file request acknowledged")
+            if "home_flag" in status:
+                flag = int(status["home_flag"])
+                self.config.sound_enable = (flag >> 17) & 0x1 != 0
+                self.config.auto_recovery = (flag >> 4) & 0x1 != 0
+                self.config.auto_switch_filament = (flag >> 10) & 0x1 != 0
+                self.config.filament_tangle_detect = (flag >> 20) & 0x1 != 0
+                self.config.calibrate_remain_flag = (flag >> 7) & 0x1 != 0
+
+            if "print_type" in status:
+                self._print_type = status["print_type"]
+
+            if "s_obj" in status:
+                self._skipped_objects = status["s_obj"]
+
 
         elif "info" in message and "result" in message["info"] and message["info"]["result"] == "success": 
             self._recent_update = True
@@ -1111,6 +1197,15 @@ class BambuPrinter:
     @property
     def hms_data(self):
         return self._hms_data
+
+    @property
+    def print_type(self):
+        return self._print_type
+
+    @property
+    def skipped_objects(self):
+        return self._skipped_objects
+
 
 def setup_logging():
     config_file = os.path.dirname(os.path.realpath(__file__)) + "/bambuprinterlogger.json"

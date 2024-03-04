@@ -148,6 +148,23 @@ class PrintOption(Enum):
     SOUND_ENABLE = 2,
     AUTO_SWITCH_FILAMENT = 3
 
+class AMSUserSetting(Enum):
+    """
+    AMS User Settings enum
+    """
+    CALIBRATE_REMAIN_FLAG = 0,
+    STARTUP_READ_OPTION = 1,
+    TRAY_READ_OPTION = 2
+
+
+class AMSControlCommand(Enum):
+    """
+    AMS Control Commands enum
+    """
+    PAUSE = 0,
+    RESUME = 1,
+    RESET = 2
+
 class PrinterModel(Enum):
     """
     Printer model enum
