@@ -658,8 +658,12 @@ class BambuPrinter:
         ----------
         objects : list
         """
+        objs = []
+        for obj in objects:
+            objs.append(int(obj))
+
         cmd = copy.deepcopy(SKIP_OBJECTS)
-        cmd["print"]["obj_list"] = objects
+        cmd["print"]["obj_list"] = objs
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
         logger.debug(f"published SKIP_OBJECTS to [device/{self.config.serial_number}/request]", extra={"bambu_msg": cmd})
 
