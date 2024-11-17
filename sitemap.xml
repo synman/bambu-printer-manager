@@ -2,62 +2,62 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://github.com/synman/bambu-printer-manager/</loc>
-         <lastmod>2024-03-05</lastmod>
+         <lastmod>2024-11-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/synman/bambu-printer-manager/container/</loc>
-         <lastmod>2024-03-05</lastmod>
+         <lastmod>2024-11-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/synman/bambu-printer-manager/license/</loc>
-         <lastmod>2024-03-05</lastmod>
+         <lastmod>2024-11-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/synman/bambu-printer-manager/reference/SUMMARY/</loc>
-         <lastmod>2024-03-05</lastmod>
+         <lastmod>2024-11-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/synman/bambu-printer-manager/reference/bpm/bambucommands/</loc>
-         <lastmod>2024-03-05</lastmod>
+         <lastmod>2024-11-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/synman/bambu-printer-manager/reference/bpm/bambuconfig/</loc>
-         <lastmod>2024-03-05</lastmod>
+         <lastmod>2024-11-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/synman/bambu-printer-manager/reference/bpm/bambulogger/</loc>
-         <lastmod>2024-03-05</lastmod>
+         <lastmod>2024-11-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/synman/bambu-printer-manager/reference/bpm/bambuprinter/</loc>
-         <lastmod>2024-03-05</lastmod>
+         <lastmod>2024-11-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/synman/bambu-printer-manager/reference/bpm/bambuspool/</loc>
-         <lastmod>2024-03-05</lastmod>
+         <lastmod>2024-11-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/synman/bambu-printer-manager/reference/bpm/bambutools/</loc>
-         <lastmod>2024-03-05</lastmod>
+         <lastmod>2024-11-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/synman/bambu-printer-manager/reference/bpm/ftpsclient/__init__/</loc>
-         <lastmod>2024-03-05</lastmod>
+         <lastmod>2024-11-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/synman/bambu-printer-manager/reference/bpm/ftpsclient/ftpsclient/</loc>
-         <lastmod>2024-03-05</lastmod>
+         <lastmod>2024-11-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
