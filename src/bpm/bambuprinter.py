@@ -533,6 +533,18 @@ class BambuPrinter:
         ftps.move_file(src, dest)
         return self.get_sdcard_contents()
 
+    def sdcard_file_exists(self, path: str) -> bool:
+        """
+        Checks to see if a file exists on the printer at the `path` specified
+
+        Parameters
+        ----------
+        * path : str - the full path name to check
+        """
+        ftps = IoTFTPSClient(self._config.hostname, 990, self._config.mqtt_username, self._config.access_code, ssl_implicit=True)
+        logger.debug(f"checking if printer file [{path}] exists")
+        return ftps.fexists(path)
+
     def set_print_option(self, option: PrintOption, enabled: bool):
         """
         Enable or disable one of the `PrintOption` options
@@ -724,14 +736,18 @@ class BambuPrinter:
                 if self._3mf_file:
                     logger.debug("project_file request acknowledged")
                 else:
-                    url = status["url"]                   
-                    subtask = status["subtask_name"]
-                    if url.startswith("https://"):
+                    url = status.get("url", None)
+                    subtask = status.get("subtask_name", None)
+                    if url and subtask and url.startswith("https://"):
                         self._3mf_file = f"/cache/{subtask}.3mf"
                     else:
-                        self._3mf_file = status["file"]
+                        if "file" in status:
+                            self._3mf_file = status.get("file", "")
+                        else:
+                            logger.warn("unable to determine file being printed")
 
             # let's sleep for a couple seconds and do a full refresh
+            # if ams filament settings have changed
             if "command" in status and status["command"] == "ams_filament_setting":
                 time.sleep(2)
                 logger.debug(f"filament change triggered publishing ANNOUNCE_PUSH to [device/{self.config.serial_number}/request]")

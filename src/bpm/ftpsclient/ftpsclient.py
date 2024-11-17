@@ -178,6 +178,14 @@ class IoTFTPSClient:
     def mkdir(self, path: str) -> str:
         return self.ftps_session.mkd(path)
     
+    def fexists(self, path: str) -> bool:
+        size = 0
+        try:
+            size = self.ftps_session.size(path)
+        except:
+            size = 0
+        return size > 0
+
     def list_files(
             self, path: str = "/"
     ) -> None:
