@@ -218,16 +218,17 @@ class BambuConfig:
     @verbose.setter 
     def verbose(self, value: bool):
         self._verbose = bool(value)
-        stderrHandler = logging.getHandlerByName("stderr")
+        # stderrHandler = logging.getHandlerByName("stderr")
         fileHandler = logging.getHandlerByName("file")
         if self._verbose:
-            stderrHandler.setLevel(logging.DEBUG)
+            # stderrHandler.setLevel(logging.DEBUG)
             fileHandler.setLevel(logging.DEBUG)
         else:
-            if stderrHandler.level != logging.WARNING:
-                stderrHandler.setLevel(logging.WARNING)
+            # if stderrHandler.level != logging.WARNING:
+            if fileHandler.level != logging.WARNING:
+                # stderrHandler.setLevel(logging.WARNING)
                 fileHandler.setLevel(logging.WARNING)
-        logger.info("log level changed", extra={"new_level": logging.getLevelName(stderrHandler.level)})
+        logger.info("log level changed", extra={"new_level": logging.getLevelName(fileHandler.level)})
 
 
 def setup_logging():
