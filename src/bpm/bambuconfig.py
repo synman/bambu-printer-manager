@@ -13,7 +13,8 @@ logger = logging.getLogger("bambuprinter")
 class BambuConfig:
     """
     This is the main configuration class for `BambuPrinter` and is how it knows where to connect to a printer,
-    what access code, and serial # to use.  `BambuConfig` can also be used to change the log level of 
+    what access code, and serial # to use. Further, it contains a number of printer behavioral settings that
+    can be changed based on client needs. `BambuConfig` can also be used to change the log level of 
     `bambu-printer-manager`'s logging engine.
     """
     def __init__(self, hostname: Optional[str] = None, 
@@ -62,6 +63,7 @@ class BambuConfig:
         * _startup_read_option : bool - AMS will automatically read RFID on boot
         * _tray_read_option : bool - AMS will automatically read RFID on tray/spool change
         * _calibrate_remain_flag : bool - AMS will calculate remaining amount of filament in spool (unverified)
+        * _buildplate_marker_detector : bool - printer will attempt to validate build plate
         """        
         setup_logging()
 
@@ -85,6 +87,7 @@ class BambuConfig:
         self._startup_read_option = True 
         self._tray_read_option = True 
         self._calibrate_remain_flag = True
+        self._buildplate_marker_detector = True
 
     @property 
     def hostname(self) -> str:
@@ -211,6 +214,12 @@ class BambuConfig:
     def calibrate_remain_flag(self, value: bool):
         self._calibrate_remain_flag = bool(value)
 
+    @property 
+    def buildplate_marker_detector(self) -> bool:
+        return self._buildplate_marker_detector
+    @buildplate_marker_detector.setter 
+    def buildplate_marker_detector(self, value: bool):
+        self._buildplate_marker_detector = bool(value)
 
     @property 
     def verbose(self) -> bool:
@@ -232,7 +241,7 @@ class BambuConfig:
 
 
 def setup_logging():
-    config_file = os.path.dirname(os.path.realpath(__file__)) + "/bambuprinterlogger.json"
+    config_file = os.path.dirname(os.path.realpath(__file__)) + "/bambuprintermanagerlogger.json"
     with open(config_file) as f_in:
         config = json.load(f_in)
 

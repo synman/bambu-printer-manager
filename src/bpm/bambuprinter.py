@@ -99,6 +99,8 @@ class BambuPrinter:
         * _hms_message `READ ONLY` all hms_data `desc` fields concatinated into a single string for ease of use.
         * _print_type `READ ONLY` can be `cloud` or `local`
         * _skipped_objects `READ ONLY` array of objects that have been skipped / cancelled
+        * _nozzle_type `READ/WRITE` the type of nozzle loaded into the printer
+        * _nozzle_diameter `READ/WRITE the diameter of the nozzle loaded into the printer
 
         The attributes (where appropriate) are included whenever the class is serialized
         using its `toJson()` method.  
@@ -174,6 +176,9 @@ class BambuPrinter:
         self._hms_message = ""
         self._print_type = ""
         self._skipped_objects = []
+
+        self._nozzle_type = ""
+        self._nozzle_diameter = 0.0
 
     def start_session(self):
         """
@@ -692,6 +697,18 @@ class BambuPrinter:
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
         logger.debug(f"published SKIP_OBJECTS to [device/{self.config.serial_number}/request]", extra={"bambu_msg": cmd})
 
+    def set_buildplate_marker_detector(self, 
+                           enabled : bool):
+        """
+        Enables or disables the buildplate_marker_detector
+        """
+        cmd = copy.deepcopy(XCAM_CONTROL_SET)
+        cmd["xcam"]["control"] = enabled
+        cmd["xcam"]["enable"] = enabled
+        
+        self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
+        logger.debug(f"published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request]", extra={"bambu_msg": cmd})
+
 
     def toJson(self):
         """
@@ -712,7 +729,7 @@ class BambuPrinter:
                 return "this space intentionally left blank"
             return obj.__dict__
         except Exception as e:
-            logger.warn("unable to serialize object", extra={"obj": obj})
+            logger.warning("unable to serialize object", extra={"obj": obj})
             return "not available"
 
 
@@ -721,7 +738,7 @@ class BambuPrinter:
             try:
                 while printer.state != PrinterState.QUIT:
                     if printer.state == PrinterState.CONNECTED and (printer._lastMessageTime is None or printer._lastMessageTime + printer.config.watchdog_timeout < time.time()):
-                        if printer._lastMessageTime: logger.warn("BambuPrinter watchdog timeout")
+                        if printer._lastMessageTime: logger.warning("BambuPrinter watchdog timeout")
                         printer._lastMessageTime = time.time()
                         printer._recent_update = False
                         printer.client.publish(f"device/{printer.config.serial_number}/request", json.dumps(ANNOUNCE_PUSH))
@@ -757,7 +774,7 @@ class BambuPrinter:
                         if "file" in status:
                             self._3mf_file = status.get("file", "")
                         else:
-                            logger.warn("unable to determine file being printed")
+                            logger.warning("unable to determine file being printed")
 
             # let's sleep for a couple seconds and do a full refresh
             # if ams filament settings have changed
@@ -930,6 +947,13 @@ class BambuPrinter:
             if "s_obj" in status:
                 self._skipped_objects = status["s_obj"]
 
+            if "nozzle_type" in status:
+                self._nozzle_type = status["nozzle_type"]
+            if "nozzle_diameter" in status:
+                self._nozzle_diameter = status["nozzle_diameter"]
+
+            if "xcam" in status and "buildplate_marker_detector" in status["xcam"]:
+                self.config.buildplate_marker_detector = status["xcam"]["buildplate_marker_detector"]
 
         elif "info" in message and "result" in message["info"] and message["info"]["result"] == "success": 
             self._recent_update = True
@@ -940,8 +964,13 @@ class BambuPrinter:
                     self.config.firmware_version = module["sw_ver"]
                 if "ams" in module["name"]:
                     self.config.ams_firmware_version = module["sw_ver"]
+
+        elif "xcam" in message and "result" in message["xcam"] and message["xcam"]["result"] == "SUCCESS": 
+            # logger.debug("xcam update message received", extra={"bambu_msg": message})
+            pass
+
         else:
-            logger.warn("unknown message type received")
+            logger.warning("unknown message type received", extra={"bambu_msg": message})
             
         if self._gcode_state in ("PREPARE", "RUNNING", "PAUSE"):
             if (self._start_time == 0): self._start_time = int(round(time.time() / 60, 0))
@@ -953,7 +982,7 @@ class BambuPrinter:
         try:
             files = sorted(ftps.list_files_ex(directory))
         except Exception as e:
-            logger.warn("unexpected ftps exception")
+            logger.warning("unexpected ftps exception")
             return None
 
         dir = {}

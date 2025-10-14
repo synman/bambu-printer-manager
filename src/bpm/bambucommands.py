@@ -188,6 +188,27 @@ SKIP_OBJECTS =              {
                               }
                             }
 
+SET_ACCESSORIES =           {
+                              "print": {
+                                "accessory_type": "nozzle",
+                                "command": "set_accessories",
+                                "nozzle_diameter": 0.4000000059604645,
+                                "nozzle_type": "hardened_steel",
+                                "sequence_id": "0",
+                              }
+                            }
+
+XCAM_CONTROL_SET =          {
+                              "xcam": {
+                                "command": "xcam_control_set",
+                                "control": True,
+                                "enable": True,
+                                "module_name": "buildplate_marker_detector",
+                                "print_halt": True,
+                                "sequence_id": "0"
+                            }
+    }
+
 # X1 only currently
 GET_ACCESSORIES = {"system": {"sequence_id": "0", "command": "get_accessories", "accessory_type": "none"}}
 

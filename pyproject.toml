@@ -1,5 +1,6 @@
 [build-system]
-requires = ["setuptools"]
+# requires = ["setuptools"]
+requires = ["setuptools == 76.1.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
@@ -11,7 +12,7 @@ exclude = ["bpm/ftpsclient"]
 
 [project]
 name = "bambu-printer-manager"
-version = "0.4.2"
+version = "0.4.4"
 authors = [
   { name="Shell M. Shrader", email="shell@shellware.com" },
 ]

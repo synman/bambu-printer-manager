@@ -1,2 +1,2 @@
 graft bpm
-include bpm/bambuprinterlogger.json
+include bpm/bambuprintermanagerlogger.json

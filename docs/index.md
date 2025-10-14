@@ -10,13 +10,13 @@ While caffiene and sleepness nights drive the delivery of this project, they unf
 ## Project Composition
 
     bpm/  
-        bambucommands.py            # collection of constants mainly representing Bambu Lab `mqtt` request commands 
-        bambuconfig.py              # contains the `BambuConfig` class used for storing configuration data
-        bambulogger.py              # internal class used for logging
-        bambuprinterlogger.json     # internal configuration file for configuration of logging
-        bambuprinter.py             # the main `bambu-printer-manager` class `BambuPrinter` lives here
-        bambuspool.py               # contains the `BambuSpool` class used for storing spool data
-        bambutools.py               # contains a collection of methods used as tools (mostly internal)
+        bambucommands.py                # collection of constants mainly representing Bambu Lab `mqtt` request commands 
+        bambuconfig.py                  # contains the `BambuConfig` class used for storing configuration data
+        bambulogger.py                  # internal class used for logging
+        bambuprintermanagerlogger.json  # internal configuration file for configuration of logging
+        bambuprinter.py                 # the main `bambu-printer-manager` class `BambuPrinter` lives here
+        bambuspool.py                   # contains the `BambuSpool` class used for storing spool data
+        bambutools.py                   # contains a collection of methods used as tools (mostly internal)
 
         ftpsclient/
             _client.py              # internal class used for performing `FTPS` operations
