@@ -31,7 +31,7 @@
         "class": "logging.handlers.RotatingFileHandler",
         "level": "WARNING",
         "formatter": "json",
-        "filename": "BambuPrinter.log.jsonl",
+        "filename": "BambuPrinterManager.log.jsonl",
         "maxBytes": 10000000,
         "backupCount": 3
       }
