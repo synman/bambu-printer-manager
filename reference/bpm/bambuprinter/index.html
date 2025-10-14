@@ -959,6 +959,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#bpm.bambuprinter.BambuPrinter.set_buildplate_marker_detector" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_buildplate_marker_detector
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#bpm.bambuprinter.BambuPrinter.set_print_option" class="md-nav__link">
     <span class="md-ellipsis">
       set_print_option
@@ -1398,6 +1407,8 @@ logging engine.</p>
 <li>_hms_message <code>READ ONLY</code> all hms_data <code>desc</code> fields concatinated into a single string for ease of use.</li>
 <li>_print_type <code>READ ONLY</code> can be <code>cloud</code> or <code>local</code></li>
 <li>_skipped_objects <code>READ ONLY</code> array of objects that have been skipped / cancelled</li>
+<li>_nozzle_type <code>READ/WRITE</code> the type of nozzle loaded into the printer</li>
+<li>_nozzle_diameter `READ/WRITE the diameter of the nozzle loaded into the printer</li>
 </ul>
 <p>The attributes (where appropriate) are included whenever the class is serialized
 using its <code>toJson()</code> method.  </p>
@@ -1846,6 +1857,25 @@ method sparingly as resorting to it indicates something is not working properly.
 
 
 
+<h3 id="bpm.bambuprinter.BambuPrinter.set_buildplate_marker_detector" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">set_buildplate_marker_detector</span><span class="p">(</span><span class="n">enabled</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Enables or disables the buildplate_marker_detector</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
 <h3 id="bpm.bambuprinter.BambuPrinter.set_print_option" class="doc doc-heading">
           <code class="highlight language-python"><span class="n">set_print_option</span><span class="p">(</span><span class="n">option</span><span class="p">,</span> <span class="n">enabled</span><span class="p">)</span></code>
 
@@ -1873,7 +1903,8 @@ method sparingly as resorting to it indicates something is not working properly.
 
   <div class="doc doc-contents ">
   
-      <p>Sets spool / tray details such as filament type, color, and nozzle min/max temperature.</p>
+      <p>Sets spool / tray details such as filament type, color, and nozzle min/max temperature.
+For the external tray (254), send <code>no_filament</code> as the <code>tray_info_idx</code> value to empty the tray.</p>
 
   </div>
 

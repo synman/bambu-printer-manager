@@ -848,7 +848,8 @@
 
   
       <p>This is the main configuration class for <code>BambuPrinter</code> and is how it knows where to connect to a printer,
-what access code, and serial # to use.  <code>BambuConfig</code> can also be used to change the log level of 
+what access code, and serial # to use. Further, it contains a number of printer behavioral settings that
+can be changed based on client needs. <code>BambuConfig</code> can also be used to change the log level of 
 <code>bambu-printer-manager</code>'s logging engine.</p>
 
 
@@ -910,6 +911,7 @@ set the log level to <code>WARNING</code>.</p>
 <li>_startup_read_option : bool - AMS will automatically read RFID on boot</li>
 <li>_tray_read_option : bool - AMS will automatically read RFID on tray/spool change</li>
 <li>_calibrate_remain_flag : bool - AMS will calculate remaining amount of filament in spool (unverified)</li>
+<li>_buildplate_marker_detector : bool - printer will attempt to validate build plate</li>
 </ul>
 
   </div>
