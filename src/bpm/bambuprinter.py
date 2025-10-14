@@ -26,7 +26,7 @@ import logging.config
 import logging.handlers
 import copy
 
-logger = logging.getLogger("bambuprinter")
+logger = logging.getLogger("bambuprintermanager")
     
 class BambuPrinter:
     """
@@ -641,7 +641,8 @@ class BambuPrinter:
             nozzle_temp_max = 0
             cmd["print"]["setting_id"] = ""  
             cmd["print"]["slot_id"] = tray_id
-            
+            cmd["print"]["tray_type"] = tray_type
+
         cmd["print"]["tray_info_idx"] = tray_info_idx
 
         if tray_id_name != "":
@@ -1240,7 +1241,7 @@ class BambuPrinter:
 
 
 def setup_logging():
-    config_file = os.path.dirname(os.path.realpath(__file__)) + "/bambuprinterlogger.json"
+    config_file = os.path.dirname(os.path.realpath(__file__)) + "/bambuprintermanagerlogger.json"
     with open(config_file) as f_in:
         config = json.load(f_in)
 
