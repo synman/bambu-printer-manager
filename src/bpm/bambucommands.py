@@ -133,8 +133,7 @@ AMS_FILAMENT_SETTING =      {
                                 "command": "ams_filament_setting",
                                 "ams_id": 255,
                                 "tray_id": 254,
-                                "tray_info_idx": "",
-                                "sequence_id": "0",
+                                "tray_info_idx": ""
                               }
                             }
 

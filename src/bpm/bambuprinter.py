@@ -622,6 +622,7 @@ class BambuPrinter:
                            nozzle_temp_max : Optional[int] = -1):
         """
         Sets spool / tray details such as filament type, color, and nozzle min/max temperature.
+        For the external tray (254), send `no_filament` as the `tray_info_idx` value to empty the tray.
         """
         cmd = copy.deepcopy(AMS_FILAMENT_SETTING)
 
@@ -630,6 +631,17 @@ class BambuPrinter:
 
         cmd["print"]["ams_id"] = ams_id
         cmd["print"]["tray_id"] = tray_id
+
+        if tray_info_idx == "no_filament":
+            tray_info_idx = ""
+            tray_id_name = ""
+            tray_type = ""
+            tray_color = "FFFFFF00"
+            nozzle_temp_min = 0
+            nozzle_temp_max = 0
+            cmd["print"]["setting_id"] = ""  
+            cmd["print"]["slot_id"] = tray_id
+            
         cmd["print"]["tray_info_idx"] = tray_info_idx
 
         if tray_id_name != "":
