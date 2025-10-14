@@ -37,7 +37,7 @@
       }
     },
     "loggers": {
-      "bambuprinter": {
+      "bambuprintermanager": {
         "level": "DEBUG",
         "handlers": [
           "stderr",
