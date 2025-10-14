@@ -146,6 +146,8 @@ import os
 
 from bpm.bambuconfig import BambuConfig
 from bpm.bambuprinter import BambuPrinter
+from bpm.bambutools import parseStage
+from bpm.bambutools import parseFan
 
 hostname = os.getenv('BAMBU_HOSTNAME')
 access_code = os.getenv('BAMBU_ACCESS_CODE')
