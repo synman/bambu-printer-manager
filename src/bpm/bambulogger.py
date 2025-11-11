@@ -6,7 +6,11 @@ but you can view its source [here](https://github.com/synman/bambu-printer-manag
 import datetime as dt
 import json
 import logging
-from typing import override
+
+try:
+    from typing import override  # Python 3.12 and later
+except ImportError:
+    from typing_extensions import override  # Python 3.11
 
 LOG_RECORD_BUILTIN_ATTRS = {
     "args",

@@ -1,5 +1,5 @@
 default_language_version:
-  python: python3.12
+  python: python3.11
 exclude: "src/bpm/ftpsclient"
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -16,7 +16,7 @@ repos:
     rev: v3.21.1
     hooks:
       - id: pyupgrade
-        args: ["--py312-plus"]
+        args: ["--py311-plus"]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.14.4
     hooks:

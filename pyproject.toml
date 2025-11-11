@@ -18,7 +18,7 @@ authors = [
 ]
 description = "A pure python library for managing Bambu Labs printers"
 readme = "README.md"
-requires-python = ">=3.12.1"
+requires-python = ">=3.11"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: Freely Distributable",
@@ -27,6 +27,7 @@ classifiers = [
 dependencies = [
   "webcolors",
   "paho-mqtt",
+  "typing-extensions ; python_version<'3.12'",
 ]
 
 [project.optional-dependencies]
@@ -79,8 +80,8 @@ exclude = [
 line-length = 90
 indent-width = 4
 
-# Assume Python 3.12
-target-version = "py312"
+# Assume Python 3.11
+target-version = "py311"
 
 [tool.ruff.lint]
 select = ["B", "C", "E", "F", "I", "W", "B9"]
