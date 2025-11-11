@@ -2,7 +2,9 @@
 `bambutools' hosts various classes and methods used internally and externally
 by `bambu-printer-manager`.
 """
+
 from enum import Enum
+
 
 def parseStage(stage: int) -> str:
     """
@@ -10,43 +12,80 @@ def parseStage(stage: int) -> str:
     """
     if type(stage) is int or stage.isnumeric():
         stage = int(stage)
-        if stage == 0: return ""
-        elif stage == 1: return "Auto bed leveling"
-        elif stage == 2: return "Heatbed preheating"
-        elif stage == 3: return "Sweeping XY mech mode"
-        elif stage == 4: return "Changing filament"
-        elif stage == 5: return "M400 pause"
-        elif stage == 6: return "Paused due to filament runout"
-        elif stage == 7: return "Heating hotend"
-        elif stage == 8: return "Calibrating extrusion"
-        elif stage == 9: return "Scanning bed surface"
-        elif stage == 10: return "Inspecting first layer"
-        elif stage == 11: return "Identifying build plate type"
-        elif stage == 12: return "Calibrating Micro Lidar"
-        elif stage == 13: return "Homing toolhead"
-        elif stage == 14: return "Cleaning nozzle tip"
-        elif stage == 15: return "Checking extruder temperature"
-        elif stage == 16: return "Printing was paused by the user"
-        elif stage == 17: return "Pause of front cover falling"
-        elif stage == 18: return "Calibrating the micro lida"
-        elif stage == 19: return "Calibrating extrusion flow"
-        elif stage == 20: return "Paused due to nozzle temperature malfunction"
-        elif stage == 21: return "Paused due to heat bed temperature malfunction"
-        elif stage == 22: return "Filament unloading"
-        elif stage == 23: return "Skip step pause"
-        elif stage == 24: return "Filament loading"
-        elif stage == 25: return "Motor noise calibration"
-        elif stage == 26: return "Paused due to AMS lost"
-        elif stage == 27: return "Paused due to low speed of the heat break fan"
-        elif stage == 28: return "Paused due to chamber temperature control error"
-        elif stage == 29: return "Cooling chamber"
-        elif stage == 30: return "Paused by the Gcode inserted by user"
-        elif stage == 31: return "Motor noise showoff"
-        elif stage == 32: return "Nozzle filament covered detected pause"
-        elif stage == 33: return "Cutter error pause"
-        elif stage == 34: return "First layer error pause"
-        elif stage == 35: return "Nozzle clog pause"
+        if stage == 0:
+            return ""
+        elif stage == 1:
+            return "Auto bed leveling"
+        elif stage == 2:
+            return "Heatbed preheating"
+        elif stage == 3:
+            return "Sweeping XY mech mode"
+        elif stage == 4:
+            return "Changing filament"
+        elif stage == 5:
+            return "M400 pause"
+        elif stage == 6:
+            return "Paused due to filament runout"
+        elif stage == 7:
+            return "Heating hotend"
+        elif stage == 8:
+            return "Calibrating extrusion"
+        elif stage == 9:
+            return "Scanning bed surface"
+        elif stage == 10:
+            return "Inspecting first layer"
+        elif stage == 11:
+            return "Identifying build plate type"
+        elif stage == 12:
+            return "Calibrating Micro Lidar"
+        elif stage == 13:
+            return "Homing toolhead"
+        elif stage == 14:
+            return "Cleaning nozzle tip"
+        elif stage == 15:
+            return "Checking extruder temperature"
+        elif stage == 16:
+            return "Printing was paused by the user"
+        elif stage == 17:
+            return "Pause of front cover falling"
+        elif stage == 18:
+            return "Calibrating the micro lida"
+        elif stage == 19:
+            return "Calibrating extrusion flow"
+        elif stage == 20:
+            return "Paused due to nozzle temperature malfunction"
+        elif stage == 21:
+            return "Paused due to heat bed temperature malfunction"
+        elif stage == 22:
+            return "Filament unloading"
+        elif stage == 23:
+            return "Skip step pause"
+        elif stage == 24:
+            return "Filament loading"
+        elif stage == 25:
+            return "Motor noise calibration"
+        elif stage == 26:
+            return "Paused due to AMS lost"
+        elif stage == 27:
+            return "Paused due to low speed of the heat break fan"
+        elif stage == 28:
+            return "Paused due to chamber temperature control error"
+        elif stage == 29:
+            return "Cooling chamber"
+        elif stage == 30:
+            return "Paused by the Gcode inserted by user"
+        elif stage == 31:
+            return "Motor noise showoff"
+        elif stage == 32:
+            return "Nozzle filament covered detected pause"
+        elif stage == 33:
+            return "Cutter error pause"
+        elif stage == 34:
+            return "First layer error pause"
+        elif stage == 35:
+            return "Nozzle clog pause"
         return ""
+
 
 def parseFan(fan: int) -> str:
     """
@@ -54,17 +93,28 @@ def parseFan(fan: int) -> str:
     """
     if type(fan) is int or fan.isnumeric():
         fan = int(fan)
-        if fan == 1: return 10
-        elif fan == 2: return 20
-        elif fan in (3, 4): return 30
-        elif fan  in (5, 6): return 40
-        elif fan in (7, 8): return 50
-        elif fan == 9: return 60
-        elif fan in (10, 11): return 70
-        elif fan == 12: return 80
-        elif fan in (13, 14): return 90
-        elif fan == 15: return 100
+        if fan == 1:
+            return 10
+        elif fan == 2:
+            return 20
+        elif fan in (3, 4):
+            return 30
+        elif fan in (5, 6):
+            return 40
+        elif fan in (7, 8):
+            return 50
+        elif fan == 9:
+            return 60
+        elif fan in (10, 11):
+            return 70
+        elif fan == 12:
+            return 80
+        elif fan in (13, 14):
+            return 90
+        elif fan == 15:
+            return 100
     return 0
+
 
 def parseAMSStatus(status: int) -> str:
     """
@@ -87,7 +137,8 @@ def parseAMSStatus(status: int) -> str:
     elif main_status == 0x20:
         return "AMS Debug"
     else:
-      return "Unknown"
+        return "Unknown"
+
 
 def parseRFIDStatus(status):
     """
@@ -110,9 +161,10 @@ def parseRFIDStatus(status):
     else:
         return "Unknown"
 
+
 class PrinterState(Enum):
     """
-    This enum is used by `bambu-printer-manager` to track the underlying state 
+    This enum is used by `bambu-printer-manager` to track the underlying state
     of the `mqtt` connection to the printer.
 
     States
@@ -122,38 +174,45 @@ class PrinterState(Enum):
     * `PAUSED` - `bambu-printer`'s session state is paused.
     * `QUIT` - When this state is triggered, all session based resources and threads are released.
     """
-    NO_STATE = 0,
-    CONNECTED = 1,
-    DISCONNECTED = 2,
-    PAUSED = 3,
+
+    NO_STATE = (0,)
+    CONNECTED = (1,)
+    DISCONNECTED = (2,)
+    PAUSED = (3,)
     QUIT = 4
+
 
 class PlateType(Enum):
     """
-    Used by `BambuPrinter.print_3mf_file` to specify which plate should be used when 
+    Used by `BambuPrinter.print_3mf_file` to specify which plate should be used when
     starting a print job.
     """
-    AUTO = 0,
-    COOL_PLATE = 1,
-    ENG_PLATE = 2,
-    HOT_PLATE = 3,
+
+    AUTO = (0,)
+    COOL_PLATE = (1,)
+    ENG_PLATE = (2,)
+    HOT_PLATE = (3,)
     TEXTURED_PLATE = 4
+
 
 class PrintOption(Enum):
     """
     Print Option enum
     """
-    AUTO_RECOVERY = 0,
-    FILAMENT_TANGLE_DETECT = 1,
-    SOUND_ENABLE = 2,
+
+    AUTO_RECOVERY = (0,)
+    FILAMENT_TANGLE_DETECT = (1,)
+    SOUND_ENABLE = (2,)
     AUTO_SWITCH_FILAMENT = 3
+
 
 class AMSUserSetting(Enum):
     """
     AMS User Settings enum
     """
-    CALIBRATE_REMAIN_FLAG = 0,
-    STARTUP_READ_OPTION = 1,
+
+    CALIBRATE_REMAIN_FLAG = (0,)
+    STARTUP_READ_OPTION = (1,)
     TRAY_READ_OPTION = 2
 
 
@@ -161,28 +220,32 @@ class AMSControlCommand(Enum):
     """
     AMS Control Commands enum
     """
-    PAUSE = 0,
-    RESUME = 1,
+
+    PAUSE = (0,)
+    RESUME = (1,)
     RESET = 2
+
 
 class PrinterModel(Enum):
     """
     Printer model enum
     """
-    UNKNOWN = 0,
-    X1C = 1,
-    X1 = 2,
-    X1E = 3,
-    P1P = 4,
-    P1S = 5,
-    A1_MINI = 6,
+
+    UNKNOWN = (0,)
+    X1C = (1,)
+    X1 = (2,)
+    X1E = (3,)
+    P1P = (4,)
+    P1S = (5,)
+    A1_MINI = (6,)
     A1 = 7
 
-def getModelBySerial(serial : str) -> PrinterModel:
+
+def getModelBySerial(serial: str) -> PrinterModel:
     """
     Returns the Printer model enum based on the provided serial #.
     """
-    if serial.startswith("00M"):        
+    if serial.startswith("00M"):
         return PrinterModel.X1C
     elif serial.startswith("00W"):
         return PrinterModel.X1

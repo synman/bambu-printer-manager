@@ -1,7 +1,8 @@
 """
-This is an internal file used for log file management.  No documentation is provided 
+This is an internal file used for log file management.  No documentation is provided
 but you can view its source [here](https://github.com/synman/bambu-printer-manager/blob/main/src/bpm/bambulogger.py).
 """
+
 import datetime as dt
 import json
 import logging
@@ -56,10 +57,14 @@ class BambuJSONFormatter(logging.Formatter):
             ).isoformat(),
         }
         if record.exc_info is not None:
-            always_fields["exc_info"] = self.formatException(record.exc_info).replace("\\\\", "\\")
+            always_fields["exc_info"] = self.formatException(record.exc_info).replace(
+                "\\\\", "\\"
+            )
 
         if record.stack_info is not None:
-            always_fields["stack_info"] = self.formatStack(record.stack_info).replace("\\\\", "\\")
+            always_fields["stack_info"] = self.formatStack(record.stack_info).replace(
+                "\\\\", "\\"
+            )
 
         message = {
             key: msg_val

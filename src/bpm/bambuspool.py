@@ -1,17 +1,29 @@
-from typing import Optional
-
 class BambuSpool:
     """
     This value object is used by `BambuPrinter` to enumerate "spools" connected to the printer.
-    It is used primarily within `BambuPrinter`'s `_spools` attribute and is returned as part of a 
+    It is used primarily within `BambuPrinter`'s `_spools` attribute and is returned as part of a
     Tuple when there are spools active on machine.
-    """    
+    """
+
     def __repr__(self):
         return str(self)
+
     def __str__(self):
-        return (f"id=[{self.id}] tray_info_idx=[{self.tray_info_idx}] name=[{self.name}] type=[{self.type}] sub brands=[{self.sub_brands}] color=[{self.color}] k=[{self.k}] bed_temp=[{self.bed_temp}] nozzle_temp_min=[{self.nozzle_temp_min}] nozzle_temp_max=[{self.nozzle_temp_max}]")
-    
-    def __init__(self, id: int, name: str, type: str, sub_brands: str, color: str, tray_info_idx : str, k : float, bed_temp : int, nozzle_temp_min : int, nozzle_temp_max : int):
+        return f"id=[{self.id}] tray_info_idx=[{self.tray_info_idx}] name=[{self.name}] type=[{self.type}] sub brands=[{self.sub_brands}] color=[{self.color}] k=[{self.k}] bed_temp=[{self.bed_temp}] nozzle_temp_min=[{self.nozzle_temp_min}] nozzle_temp_max=[{self.nozzle_temp_max}]"
+
+    def __init__(
+        self,
+        id: int,
+        name: str,
+        type: str,
+        sub_brands: str,
+        color: str,
+        tray_info_idx: str,
+        k: float,
+        bed_temp: int,
+        nozzle_temp_min: int,
+        nozzle_temp_max: int,
+    ):
         """
         Sets up all internal storage attributes for `BambuSpool`.
 
@@ -39,72 +51,82 @@ class BambuSpool:
         self.nozzle_temp_min = nozzle_temp_min
         self.nozzle_temp_max = nozzle_temp_max
 
-    @property 
+    @property
     def id(self):
         return self._id
-    @id.setter 
+
+    @id.setter
     def id(self, value):
         self._id = value
 
-    @property 
+    @property
     def name(self):
         return self._name
-    @name.setter 
+
+    @name.setter
     def name(self, value):
         self._name = value
 
-    @property 
+    @property
     def type(self):
         return self._type
-    @type.setter 
+
+    @type.setter
     def type(self, value):
         self._type = value
 
-    @property 
+    @property
     def sub_brands(self):
         return self._sub_brands
-    @sub_brands.setter 
+
+    @sub_brands.setter
     def sub_brands(self, value):
         self._sub_brands = value
 
-    @property 
+    @property
     def color(self):
         return self._color
-    @color.setter 
+
+    @color.setter
     def color(self, value):
         self._color = value
 
-    @property 
+    @property
     def tray_info_idx(self):
         return self._tray_info_idx
-    @tray_info_idx.setter 
+
+    @tray_info_idx.setter
     def tray_info_idx(self, value):
         self._tray_info_idx = value
 
-    @property 
+    @property
     def k(self):
         return self._k
-    @k.setter 
+
+    @k.setter
     def k(self, value):
         self._k = value
 
-    @property 
+    @property
     def bed_temp(self):
         return self._bed_temp
-    @bed_temp.setter 
+
+    @bed_temp.setter
     def bed_temp(self, value):
         self._bed_temp = value
 
-    @property 
+    @property
     def nozzle_temp_min(self):
         return self._nozzle_temp_min
-    @nozzle_temp_min.setter 
+
+    @nozzle_temp_min.setter
     def nozzle_temp_min(self, value):
         self._nozzle_temp_min = value
 
-    @property 
+    @property
     def nozzle_temp_max(self):
         return self._nozzle_temp_max
-    @nozzle_temp_max.setter 
+
+    @nozzle_temp_max.setter
     def nozzle_temp_max(self, value):
         self._nozzle_temp_max = value
