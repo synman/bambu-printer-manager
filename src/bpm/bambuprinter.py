@@ -1,10 +1,7 @@
-import atexit
 import copy
 import json
-import logging.config
-import logging.handlers
+import logging
 import math
-import os
 import ssl
 import threading
 import time
@@ -28,7 +25,7 @@ from .bambutools import (
 )
 from .ftpsclient.ftpsclient import IoTFTPSClient
 
-logger = logging.getLogger("bambuprintermanager")
+logger = logging.getLogger(__name__)
 
 
 class BambuPrinter:
@@ -112,7 +109,6 @@ class BambuPrinter:
         When accessing the class level attributes, use their associated properties as the
         class level attributes are marked private.
         """
-        setup_logging()
 
         self._mqtt_client_thread = None
         self._watchdog_thread = None
@@ -1544,17 +1540,3 @@ class BambuPrinter:
     @property
     def skipped_objects(self):
         return self._skipped_objects
-
-
-def setup_logging():
-    config_file = (
-        os.path.dirname(os.path.realpath(__file__)) + "/bambuprintermanagerlogger.json"
-    )
-    with open(config_file) as f_in:
-        config = json.load(f_in)
-
-    logging.config.dictConfig(config)
-    queue_handler = logging.getHandlerByName("queue_handler")
-    if queue_handler is not None:
-        queue_handler.listener.start()
-        atexit.register(queue_handler.listener.stop)

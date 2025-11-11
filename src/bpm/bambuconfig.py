@@ -1,12 +1,8 @@
-import atexit
-import json
-import logging.config
-import logging.handlers
-import os
+import logging
 
 from bpm.bambutools import PrinterModel, getModelBySerial
 
-logger = logging.getLogger("bambuprinter")
+logger = logging.getLogger(__name__)
 
 
 class BambuConfig:
@@ -68,7 +64,6 @@ class BambuConfig:
         * _calibrate_remain_flag : bool - AMS will calculate remaining amount of filament in spool (unverified)
         * _buildplate_marker_detector : bool - printer will attempt to validate build plate
         """
-        setup_logging()
 
         self._hostname = hostname
         self._access_code = access_code
@@ -262,17 +257,3 @@ class BambuConfig:
             "log level changed",
             extra={"new_level": logging.getLevelName(fileHandler.level)},
         )
-
-
-def setup_logging():
-    config_file = (
-        os.path.dirname(os.path.realpath(__file__)) + "/bambuprintermanagerlogger.json"
-    )
-    with open(config_file) as f_in:
-        config = json.load(f_in)
-
-    logging.config.dictConfig(config)
-    queue_handler = logging.getHandlerByName("queue_handler")
-    if queue_handler is not None:
-        queue_handler.listener.start()
-        atexit.register(queue_handler.listener.stop)
