@@ -229,8 +229,7 @@ class BambuPrinter:
         self.client.on_disconnect = on_disconnect
         self.client.on_message = on_message
 
-        self.client.tls_set(tls_version=ssl.PROTOCOL_TLS, cert_reqs=ssl.CERT_NONE)
-        self.client.tls_insecure_set(True)
+        self.client.tls_set(tls_version=ssl.PROTOCOL_TLS)
         self.client.reconnect_delay_set(min_delay=1, max_delay=1)
 
         self.client.username_pw_set(self.config.mqtt_username, password=self.config.access_code)
