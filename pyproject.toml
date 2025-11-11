@@ -27,6 +27,13 @@ classifiers = [
 dependencies = [
   "webcolors",
   "paho-mqtt",
+]
+
+[project.optional-dependencies]
+develop = [
+  "pre-commit",
+]
+docs = [
   "mkdocstrings[python]>=0.18",
 ]
 
