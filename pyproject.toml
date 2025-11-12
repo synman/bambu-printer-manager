@@ -1,6 +1,10 @@
+[build-system]
+requires = ["setuptools == 76.1.0"]
+build-backend = "setuptools.build_meta"
+
 [tool.black]
 line-length = 100
-target-version = ['py311']
+target-version = ['py312']
 include = '\.pyi?$'
 exclude = '''
 /(
@@ -12,3 +16,40 @@ exclude = '''
  | __pycache__
 )/
 '''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+known_third_party = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src/"]
+exclude = ["bpm/ftpsclient"]
+
+[tool.setuptools.package-data]
+"bpm" = ["*.json"]
+
+[project]
+name = "bambu-printer-manager"
+version = "0.4.5"
+authors = [
+  { name="Shell M. Shrader", email="shell@shellware.com" },
+]
+description = "A pure python library for managing Bambu Labs printers"
+readme = "README.md"
+requires-python = ">=3.12.1"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: Freely Distributable",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+  "webcolors",
+  "paho-mqtt",
+  "mkdocstrings[python]>=0.18",
+]
+
+[project.urls]
+Homepage = "https://github.com/synman/bambu-printer-manager"
+Documentation = "https://synman.github.io/bambu-printer-manager/"
+Issues = "https://github.com/synman/bambu-printer-manager/issues"
