@@ -218,7 +218,7 @@ class BambuPrinter:
                 self.state = PrinterState.DISCONNECTED
 
         def on_message(client, userdata, msg):
-            logger.debug("session on_message", extra={"state": self.state.name})
+            # logger.debug(f"session on_message - state: {self.state.name}")
             if self._lastMessageTime and self._recent_update:
                 self._lastMessageTime = time.time()
             self._on_message(json.loads(msg.payload.decode("utf-8")))
@@ -254,8 +254,7 @@ class BambuPrinter:
         except Exception as e:
             self._internalException = e
             logger.warning(
-                f"unable to connect to printer - reason: {e}",
-                extra={"exception": traceback.format_exc()},
+                f"unable to connect to printer - reason: [{e}] stacktrace: [{traceback.format_exc()}]"
             )
             self.state = PrinterState.QUIT
             return
@@ -369,8 +368,7 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(msg)
         )
         logger.debug(
-            f"published AMS_FILAMENT_CHANGE to [device/{self.config.serial_number}/request]",
-            extra={"target": slot, "bambu_msg": msg},
+            f"published AMS_FILAMENT_CHANGE to [device/{self.config.serial_number}/request] - target: [{slot}], bambu_msg: [{msg}]"
         )
 
     def send_gcode(self, gcode: str):
@@ -392,8 +390,7 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request]",
-            extra={"gcode": gcode},
+            f"published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] gcode: [{gcode}]"
         )
 
     def print_3mf_file(
@@ -465,8 +462,7 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(file)
         )
         logger.debug(
-            f"published PRINT_3MF_FILE to [device/{self.config.serial_number}/request]",
-            extra={"print_command": file},
+            f"published PRINT_3MF_FILE to [device/{self.config.serial_number}/request] print_command: [{file}]"
         )
 
     def stop_printing(self):
@@ -533,7 +529,7 @@ class BambuPrinter:
             ssl_implicit=True,
         )
         fs = self._get_sftp_files(ftps, "/")
-        logger.debug("read all sdcard files", extra={"fs": fs})
+        logger.debug(f"read all sdcard files fs: [{fs}]")
         self._sdcard_contents = fs
 
         def search_for_and_remove_all_other_files(mask: str, entry: dict):
@@ -560,7 +556,7 @@ class BambuPrinter:
         ----------
         * file : str - the full path filename to be deleted
         """
-        logger.debug(f"deleting remote file: [{file}]", extra={"file": file})
+        logger.debug(f"deleting remote file: [{file}]")
         ftps = IoTFTPSClient(
             self._config.hostname,
             990,
@@ -700,8 +696,7 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"published PRINT_OPTION_COMMAND to [device/{self.config.serial_number}/request]",
-            extra={"bambu_msg": cmd},
+            f"published PRINT_OPTION_COMMAND to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
     def set_ams_user_setting(
@@ -735,8 +730,7 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"published AMS_USER_SETTING to [device/{self.config.serial_number}/request]",
-            extra={"bambu_msg": cmd},
+            f"published AMS_USER_SETTING to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
     def set_spool_k_factor(
@@ -767,8 +761,7 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"published EXTRUSION_CALI_SET to [device/{self.config.serial_number}/request]",
-            extra={"bambu_msg": cmd},
+            f"published EXTRUSION_CALI_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
     def set_spool_details(
@@ -827,8 +820,7 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"published AMS_FILAMENT_SETTING to [device/{self.config.serial_number}/request]",
-            extra={"bambu_msg": cmd},
+            f"published AMS_FILAMENT_SETTING to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
     def send_ams_control_command(self, ams_control_cmd: AMSControlCommand):
@@ -843,8 +835,7 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"published AMS_CONTROL to [device/{self.config.serial_number}/request]",
-            extra={"bambu_msg": cmd},
+            f"published AMS_CONTROL to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
     def skip_objects(self, objects):
@@ -865,8 +856,7 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"published SKIP_OBJECTS to [device/{self.config.serial_number}/request]",
-            extra={"bambu_msg": cmd},
+            f"published SKIP_OBJECTS to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
     def set_buildplate_marker_detector(self, enabled: bool):
@@ -881,8 +871,7 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request]",
-            extra={"bambu_msg": cmd},
+            f"published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
     def toJson(self):
@@ -907,7 +896,7 @@ class BambuPrinter:
                 return "this space intentionally left blank"
             return obj.__dict__
         except Exception:
-            logger.warning("unable to serialize object", extra={"obj": obj})
+            logger.warning(f"unable to serialize object - 'obj': [{obj}]")
             return "not available"
 
     def _start_watchdog(self):
@@ -944,7 +933,7 @@ class BambuPrinter:
         self._watchdog_thread.start()
 
     def _on_message(self, message: str):
-        logger.debug("_on_message", extra={"bambu_msg": message})
+        logger.debug(f"_on_message - bambu_msg: [{message}]")
 
         if "system" in message:
             # TODO: what is the purpose of this, 'system' is unused
@@ -1205,7 +1194,7 @@ class BambuPrinter:
             pass
 
         else:
-            logger.warning("unknown message type received", extra={"bambu_msg": message})
+            logger.warning(f"unknown message type received - bambu_msg: [{message}]")
 
         if self._gcode_state in ("PREPARE", "RUNNING", "PAUSE"):
             if self._start_time == 0:
