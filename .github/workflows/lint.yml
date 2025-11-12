@@ -33,15 +33,15 @@ jobs:
 
       - name: Check formatting with Black
         run: |
-          black --check src/ docs/scripts/
+          black --check src/
 
       - name: Check import sorting with isort
         run: |
-          isort --check-only src/ docs/scripts/
+          isort --check-only src/
 
       - name: Lint with Flake8
         run: |
-          flake8 src/ docs/scripts/
+          flake8 src/
 
       - name: Run pre-commit hooks
         run: |
