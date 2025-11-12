@@ -1,3 +1,5 @@
+"""Derived from https://github.com/Doridian/OpenBambuAPI"""
+
 import ssl
 
 import paho.mqtt.client as mqtt
