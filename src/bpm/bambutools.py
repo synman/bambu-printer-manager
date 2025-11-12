@@ -175,10 +175,10 @@ class PrinterState(Enum):
     * `QUIT` - When this state is triggered, all session based resources and threads are released.
     """
 
-    NO_STATE = (0,)
-    CONNECTED = (1,)
-    DISCONNECTED = (2,)
-    PAUSED = (3,)
+    NO_STATE = 0
+    CONNECTED = 1
+    DISCONNECTED = 2
+    PAUSED = 3
     QUIT = 4
 
 
@@ -188,10 +188,10 @@ class PlateType(Enum):
     starting a print job.
     """
 
-    AUTO = (0,)
-    COOL_PLATE = (1,)
-    ENG_PLATE = (2,)
-    HOT_PLATE = (3,)
+    AUTO = 0
+    COOL_PLATE = 1
+    ENG_PLATE = 2
+    HOT_PLATE = 3
     TEXTURED_PLATE = 4
 
 
@@ -200,9 +200,9 @@ class PrintOption(Enum):
     Print Option enum
     """
 
-    AUTO_RECOVERY = (0,)
-    FILAMENT_TANGLE_DETECT = (1,)
-    SOUND_ENABLE = (2,)
+    AUTO_RECOVERY = 0
+    FILAMENT_TANGLE_DETECT = 1
+    SOUND_ENABLE = 2
     AUTO_SWITCH_FILAMENT = 3
 
 
@@ -211,8 +211,8 @@ class AMSUserSetting(Enum):
     AMS User Settings enum
     """
 
-    CALIBRATE_REMAIN_FLAG = (0,)
-    STARTUP_READ_OPTION = (1,)
+    CALIBRATE_REMAIN_FLAG = 0
+    STARTUP_READ_OPTION = 1
     TRAY_READ_OPTION = 2
 
 
@@ -221,8 +221,8 @@ class AMSControlCommand(Enum):
     AMS Control Commands enum
     """
 
-    PAUSE = (0,)
-    RESUME = (1,)
+    PAUSE = 0
+    RESUME = 1
     RESET = 2
 
 
@@ -231,13 +231,13 @@ class PrinterModel(Enum):
     Printer model enum
     """
 
-    UNKNOWN = (0,)
-    X1C = (1,)
-    X1 = (2,)
-    X1E = (3,)
-    P1P = (4,)
-    P1S = (5,)
-    A1_MINI = (6,)
+    UNKNOWN = 0
+    X1C = 1
+    X1 = 2
+    X1E = 3
+    P1P = 4
+    P1S = 5
+    A1_MINI = 6
     A1 = 7
 
 
