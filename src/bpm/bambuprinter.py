@@ -1,3 +1,4 @@
+import importlib.resources
 import json
 from webcolors import hex_to_name, name_to_hex
 import paho.mqtt.client as mqtt
@@ -17,6 +18,7 @@ from .bambuspool import BambuSpool
 from .bambutools import PrinterState, PlateType, PrintOption, AMSControlCommand, AMSUserSetting
 from .bambutools import parseStage, parseFan
 from .bambuconfig import BambuConfig
+from .mqtt_client import MQTTSClient, create_local_ssl_context
 
 from .ftpsclient.ftpsclient import IoTFTPSClient
 
@@ -27,7 +29,7 @@ import logging.handlers
 import copy
 
 logger = logging.getLogger("bambuprintermanager")
-    
+
 class BambuPrinter:
     """
     `BambuPrinter` is the main class within `bambu-printer-manager` for interacting with and
@@ -157,7 +159,7 @@ class BambuPrinter:
         self._elapsed_time = 0
         self._layer_count = 0
         self._current_layer = 0
-        
+
         self._current_stage = 0
         self._current_stage_text = ""
 
@@ -223,13 +225,26 @@ class BambuPrinter:
                 if printer.client and printer.client.is_connected(): printer.client.disconnect() 
             printer.state = PrinterState.QUIT
 
-        self.client =  mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+        self._cloud_mqtt = "mqtt.bambulab.com" in self.config.hostname
+
+        if self._cloud_mqtt:
+            self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+        else:
+            self.client = MQTTSClient(mqtt.CallbackAPIVersion.VERSION2, server_name=self.config.serial_number)
 
         self.client.on_connect = on_connect
         self.client.on_disconnect = on_disconnect
         self.client.on_message = on_message
 
-        self.client.tls_set(tls_version=ssl.PROTOCOL_TLS)
+        if self._cloud_mqtt:
+            self.client.tls_set(tls_version=ssl.PROTOCOL_TLS)
+        else:
+            with importlib.resources.as_file(
+                importlib.resources.files("bpm").joinpath("bambu-ca-cert.pem")
+            ) as cert:
+
+                self.client.tls_set_context(create_local_ssl_context(cafile=str(cert)))
+
         self.client.reconnect_delay_set(min_delay=1, max_delay=1)
 
         self.client.username_pw_set(self.config.mqtt_username, password=self.config.access_code)
@@ -509,7 +524,7 @@ class BambuPrinter:
         ftps = IoTFTPSClient(self._config.hostname, 990, self._config.mqtt_username, self._config.access_code, ssl_implicit=True)
         ftps.download_file(src, dest)
         return 
-    
+
     def make_sdcard_directory(self, dir: str) -> {}:
         """
         Creates the specified directory on the printer and returns an updated dict of all files on the printer
@@ -612,7 +627,7 @@ class BambuPrinter:
             cmd["print"]["bed_temp"] = bed_temp
         if max_volumetric_speed != -1:
             cmd["print"]["max_volumetric_speed"] = max_volumetric_speed
-        
+
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
         logger.debug(f"published EXTRUSION_CALI_SET to [device/{self.config.serial_number}/request]", extra={"bambu_msg": cmd})
 
@@ -664,7 +679,7 @@ class BambuPrinter:
             cmd["print"]["nozzle_temp_min"] = nozzle_temp_min
         if nozzle_temp_max != -1:
             cmd["print"]["nozzle_temp_max"] = nozzle_temp_max
-        
+
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
         logger.debug(f"published AMS_FILAMENT_SETTING to [device/{self.config.serial_number}/request]", extra={"bambu_msg": cmd})
 
@@ -704,10 +719,9 @@ class BambuPrinter:
         cmd = copy.deepcopy(XCAM_CONTROL_SET)
         cmd["xcam"]["control"] = enabled
         cmd["xcam"]["enable"] = enabled
-        
+
         self.client.publish(f"device/{self.config.serial_number}/request", json.dumps(cmd))
         logger.debug(f"published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request]", extra={"bambu_msg": cmd})
-
 
     def toJson(self):
         """
@@ -730,7 +744,6 @@ class BambuPrinter:
         except Exception as e:
             logger.warning("unable to serialize object", extra={"obj": obj})
             return "not available"
-
 
     def _start_watchdog(self): 
         def watchdog_thread(printer):
@@ -818,7 +831,7 @@ class BambuPrinter:
             if "mc_remaining_time" in status: self._time_remaining = int(status["mc_remaining_time"])
             if "total_layer_num" in status: self._layer_count = status["total_layer_num"]
             if "layer_num" in status: self._current_layer = status["layer_num"]
-            
+
             if "stg_cur" in status: 
                 self._current_stage = int(status["stg_cur"])
                 self._current_stage_text = parseStage(self._current_stage)
@@ -843,7 +856,7 @@ class BambuPrinter:
                                 tray_color = "#" + tray["tray_color"]
                             except:
                                 tray_color = ""
-                        
+
                         if tray.get("id"):
                             spool = BambuSpool( 
                                                 int(tray["id"]),  
@@ -920,7 +933,7 @@ class BambuPrinter:
 
             self._hms_data = status.get("hms", [])
             self._hms_message = ""
- 
+
             for hms in self._hms_data:
                 hms_attr = hex(hms.get("attr", 0))[2:].zfill(8).upper()
                 hms_code = hex(hms.get("code", 0))[2:].zfill(8).upper()
@@ -970,7 +983,7 @@ class BambuPrinter:
 
         else:
             logger.warning("unknown message type received", extra={"bambu_msg": message})
-            
+
         if self._gcode_state in ("PREPARE", "RUNNING", "PAUSE"):
             if (self._start_time == 0): self._start_time = int(round(time.time() / 60, 0))
             self._elapsed_time = int(round(time.time() / 60, 0)) - self._start_time
@@ -1005,7 +1018,6 @@ class BambuPrinter:
 
         if len(items) > 0: dir["children"] = items
         return dir
-
 
     @property 
     def config(self) -> BambuConfig:
