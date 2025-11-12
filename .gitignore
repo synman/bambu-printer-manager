@@ -24,7 +24,19 @@ api/uploads
 
 # python
 venv
+.venv
 __pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.eggs
+.pytest_cache
+.mypy_cache
+.tox
+*.cover
+.coverage
+htmlcov
 
 # project specific
 *.egg-info
