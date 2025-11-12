@@ -1,0 +1,6 @@
+# To ignore larger changes by linting/formatting changes in git blame,
+# make sure to run
+#
+#     git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# Relevant commits will be added here.

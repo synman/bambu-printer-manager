@@ -12,3 +12,10 @@ Open an issue, [here](https://github.com/synman/bambu-printer-manager/issues).
 The best way you can contribute to this project is to make a monetary donation to its author.   All funds received will go to the purchase of Bambu Lab hardware to support the continued development of this project.  Please show your support by becoming a [Sponsor](https://github.com/sponsors/synman) today!
 
 Developers are encouraged to submit a Pull Request to [main](https://github.com/synman/bambu-printer-manager/compare)!
+
+Please make sure to install pre-commit and lint and format your contributions through it:
+
+```
+pip install .[develop]
+pre-commit install
+```

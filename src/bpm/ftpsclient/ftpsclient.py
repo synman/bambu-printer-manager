@@ -71,17 +71,17 @@ class IoTFTPSClient:
     ftps_user: str
     ftps_pass: str
     ssl_implicit: bool
-    ftps_session: Union[ftplib.FTP, ImplicitTLS]
-    last_error: Optional[str] = None
+    ftps_session: ftplib.FTP | ImplicitTLS
+    last_error: str | None = None
     welcome: str
 
     def __init__(
             self,
             ftps_host: str,
-            ftps_port: Optional[int] = 21,
-            ftps_user: Optional[str] = "",
-            ftps_pass: Optional[str] = "",
-            ssl_implicit: Optional[bool] = False,
+            ftps_port: int | None = 21,
+            ftps_user: str | None = "",
+            ftps_pass: str | None = "",
+            ssl_implicit: bool | None = False,
     ) -> None:
         self.ftps_host = ftps_host
         self.ftps_port = ftps_port
@@ -177,7 +177,7 @@ class IoTFTPSClient:
 
     def mkdir(self, path: str) -> str:
         return self.ftps_session.mkd(path)
-    
+
     def fexists(self, path: str) -> bool:
         size = 0
         try:
@@ -192,7 +192,7 @@ class IoTFTPSClient:
         """list files under a path inside the FTPS server"""
         return self.ftps_session.dir(path, print)
 
-    def list_files_ex(self, path: str) -> Union[list[str], None]:
+    def list_files_ex(self, path: str) -> list[str] | None:
         """list files under a path inside the FTPS server"""
         try:
             f = io.StringIO()
@@ -218,5 +218,5 @@ class IoTFTPSClient:
         except Exception as ex:
             print(f"unexpected exception occurred: [{ex}]")
             pass
-        return    
-    
+        return
+
