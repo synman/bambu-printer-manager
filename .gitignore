@@ -14,6 +14,7 @@
 .env.production.local
 ._*
 BambuPrinter.log.*
+BambuPrinterManager.log.*
 /node_modules
 /.pnp
 .pnp.js
