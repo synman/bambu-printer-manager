@@ -1,7 +1,27 @@
 [build-system]
-# requires = ["setuptools"]
 requires = ["setuptools == 76.1.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 100
+target-version = ['py312']
+include = '\.pyi?$'
+exclude = '''
+/(
+  \.git
+ | \.venv
+ | venv
+ | build
+ | dist
+ | __pycache__
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+known_first_party = ["bpm"]
+known_third_party = ["pytest"]
 
 [tool.setuptools.packages.find]
 where = ["src/"]
