@@ -12,7 +12,6 @@ While caffiene and sleepness nights drive the delivery of this project, they unf
     bpm/
         bambucommands.py                # collection of constants mainly representing Bambu Lab `mqtt` request commands
         bambuconfig.py                  # contains the `BambuConfig` class used for storing configuration data
-        bambulogger.py                  # internal class used for logging
         bambuprintermanagerlogger.json  # internal configuration file for configuration of logging
         bambuprinter.py                 # the main `bambu-printer-manager` class `BambuPrinter` lives here
         bambuspool.py                   # contains the `BambuSpool` class used for storing spool data
