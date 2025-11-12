@@ -237,23 +237,14 @@
   
     
     
-      
-  
-  
-  
-    
-    
       <li class="md-tabs__item">
-        <a href="../reference/bpm/bambucommands/" class="md-tabs__link">
+        <a href="../reference/bpm/__init__/" class="md-tabs__link">
           
   
   Code Reference
 
         </a>
       </li>
-    
-  
-
     
   
 
@@ -423,16 +414,24 @@
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
         
           
-          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="">
-            
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../reference/bpm/__init__/" class="md-nav__link ">
+              
   
   <span class="md-ellipsis">
     bpm
   </span>
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_1" id="__nav_2_1_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
         
         <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2_1">
@@ -474,27 +473,6 @@
   
   <span class="md-ellipsis">
     bambuconfig
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../reference/bpm/bambulogger/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    bambulogger
   </span>
   
 
@@ -583,7 +561,7 @@
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_6" >
         
           
           
@@ -599,14 +577,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_2_1_7" id="__nav_2_1_7_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_2_1_6" id="__nav_2_1_6_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_1_7">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_6">
             <span class="md-nav__icon md-icon"></span>
             ftpsclient
           </label>
@@ -807,7 +785,7 @@
 <iframe src="https://github.com/sponsors/synman/button" title="Sponsor synman" height="32" width="114" style="border: 0; border-radius: 6px;"></iframe>
 
 <h2 id="installation">Installation</h2>
-<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><a href="#__codelineno-0-1"><span class="linenos" data-linenos="1 "></span></a># Configure the host, access code, serial # environment variables and 
+<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><a href="#__codelineno-0-1"><span class="linenos" data-linenos="1 "></span></a># Configure the host, access code, serial # environment variables and
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a><a href="#__codelineno-0-2"><span class="linenos" data-linenos="2 "></span></a># map the HAPROXY listener to a host port to launch the container
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3"></a><a href="#__codelineno-0-3"><span class="linenos" data-linenos="3 "></span></a>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4"></a><a href="#__codelineno-0-4"><span class="linenos" data-linenos="4 "></span></a>docker run \
@@ -826,17 +804,17 @@
 <img alt="Files" src="https://github.com/synman/bambu-printer-manager/assets/1299716/22f0d7c9-5812-4475-8cbe-5eea73b63bef" /></p>
 <p float="center">
   <img src="https://github.com/synman/bambu-printer-manager/assets/1299716/a1c170e5-f332-4ec9-b35d-6b773c67eac8" width="300px" />
-  <img src="https://github.com/synman/bambu-printer-manager/assets/1299716/1bdfec3a-4379-4c8f-b93b-3bfdb06de3a6" width="300px" /> 
-  <img src="https://github.com/synman/bambu-printer-manager/assets/1299716/b7f5af63-2340-4e56-9d65-4821b5911782" width="300px" /> 
+  <img src="https://github.com/synman/bambu-printer-manager/assets/1299716/1bdfec3a-4379-4c8f-b93b-3bfdb06de3a6" width="300px" />
+  <img src="https://github.com/synman/bambu-printer-manager/assets/1299716/b7f5af63-2340-4e56-9d65-4821b5911782" width="300px" />
 </p>
 
 <h2 id="external-chamber-heating">External Chamber Heating</h2>
-<p>This is an <code>advanced</code> feature of the container that allows you to use a <a href="https://www.amazon.com/Safety-Energy-saving-Portable-Desktop-Electric/dp/B07573FKSG?th=1">heater</a> to control the atmosphere within your printer's enclosure. This is very helpful if you have an A1 in an enclosure and want to use 
+<p>This is an <code>advanced</code> feature of the container that allows you to use a <a href="https://www.amazon.com/Safety-Energy-saving-Portable-Desktop-Electric/dp/B07573FKSG?th=1">heater</a> to control the atmosphere within your printer's enclosure. This is very helpful if you have an A1 in an enclosure and want to use
 exotic filaments such as ABS, ASA, Polycarbonite, and Nylon.</p>
-<p>You connect the heater to a Wi-Fi enabled power plug (tplink / tasmota / esphome / tuya / etc) for power delivery and configure the plug to respond to 
+<p>You connect the heater to a Wi-Fi enabled power plug (tplink / tasmota / esphome / tuya / etc) for power delivery and configure the plug to respond to
 power state commands and power state requests over MQTT.  Some plugs, such as tasmota and esphome flashed one can do this directly while others will
 likely require something like Home Assistant.</p>
-<p>You also need a Wi-Fi enabled temperature sensor that can do similar as the Wi-Fi power plug to publish environmental data, specifically the temperature, 
+<p>You also need a Wi-Fi enabled temperature sensor that can do similar as the Wi-Fi power plug to publish environmental data, specifically the temperature,
 to an MQTT topic.  The easiest way to do this is to build one <a href="https://github.com/synman/bme280">yourself</a>.  However, I'm sure there are a number of pre-assembled ones you could use too.</p>
 <p>The final step is configuring the <code>bambu-printer-manager</code> container to interact with the temperature sensor and power plug:
 <div class="language-dockerfile highlight"><span class="filename">Docker</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1"></a><a href="#__codelineno-1-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="k">ENV</span><span class="w"> </span><span class="nv">INTEGRATED_EXTERNAL_HEATER</span><span class="o">=</span><span class="s2">&quot;TRUE&quot;</span>
@@ -852,18 +830,18 @@ to an MQTT topic.  The easiest way to do this is to build one <a href="https://g
 </span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11"></a><a href="#__codelineno-1-11"><span class="linenos" data-linenos="11 "></span></a><span class="k">ENV</span><span class="w"> </span><span class="nv">CHAMBER_STATE_ON_VALUE</span><span class="o">=</span><span class="s2">&quot;on&quot;</span>
 </span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12"></a><a href="#__codelineno-1-12"><span class="linenos" data-linenos="12 "></span></a><span class="k">ENV</span><span class="w"> </span><span class="nv">CHAMBER_STATE_OFF_VALUE</span><span class="o">=</span><span class="s2">&quot;off&quot;</span>
 </span></code></pre></div>
-Once everything is configured properly, you will be able to monitor your chamber's temperature and set a target temperature for it the same 
+Once everything is configured properly, you will be able to monitor your chamber's temperature and set a target temperature for it the same
 way you monitor temperature and set target values for the tool (extruder), the bed, and, the part cooling fan.</p>
 <p float="center">
   <img src="https://github.com/synman/bambu-printer-manager/assets/1299716/56f011c4-2fa5-44de-8f2d-6f1a3abb89a9" />
 </p>
 
 <h2 id="troubleshooting">Troubleshooting</h2>
-<p>If you are geting a <code>port is already in use</code> type error, it is likely because you are trying to run the container using the host's 
+<p>If you are geting a <code>port is already in use</code> type error, it is likely because you are trying to run the container using the host's
 network.  It is recommended that you run the <code>bambu-printer-manager</code> container on a bridged network.  Behind the "public" port exposed by
-HAPROXY (<code>8080</code>), it also requires exclusive access to ports <code>3000</code> (nodejs react frontend), <code>5000</code> (flask waitress backend), and 
+HAPROXY (<code>8080</code>), it also requires exclusive access to ports <code>3000</code> (nodejs react frontend), <code>5000</code> (flask waitress backend), and
 <code>8090</code> (webcamd).  Some hosts, such as Synology DSM use ports like <code>5000</code> and this will cause problems.</p>
-<p>Verify your printer's information.  You must know its routable IP Address, access code, and serial #. You can find each of these on 
+<p>Verify your printer's information.  You must know its routable IP Address, access code, and serial #. You can find each of these on
 your printer's display.  These must match your Docker container's applicable environment variable values.
 <div class="language-docker highlight"><span class="filename">Docker</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1"></a><a href="#__codelineno-2-1"><span class="linenos" data-linenos="1 "></span></a><span class="k">ENV</span><span class="w"> </span><span class="nv">BAMBU_HOSTNAME</span><span class="o">=</span><span class="s2">&quot;PRINTER_HOST_OR_IP&quot;</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2"></a><a href="#__codelineno-2-2"><span class="linenos" data-linenos="2 "></span></a><span class="k">ENV</span><span class="w"> </span><span class="nv">BAMBU_ACCESS_CODE</span><span class="o">=</span><span class="s2">&quot;PRINTER_ACCESS_CODE&quot;</span>
@@ -872,25 +850,25 @@ your printer's display.  These must match your Docker container's applicable env
 So long as the backend api (api/api.py) is running, there a number of useful http endpoints you can call to assist with troubleshooting.</p>
 <ul>
 <li>
-<p><code>http://{container_host_ip}:{container_host_port}/api/health_check</code> - This service route dumps the entire <code>BambuPrinter</code> attribute 
+<p><code>http://{container_host_ip}:{container_host_port}/api/health_check</code> - This service route dumps the entire <code>BambuPrinter</code> attribute
 structure as a <code>json</code> document and adds a general success / failure node at the bottom.</p>
 </li>
 <li>
-<p><code>http://{container_host_ip}:{container_host_port}/api/toggle_verbosity</code> - This service route toggles the underlying log level of all components between <code>WARNING</code> and <code>DEBUG</code>.  </p>
+<p><code>http://{container_host_ip}:{container_host_port}/api/toggle_verbosity</code> - This service route toggles the underlying log level of all components between <code>WARNING</code> and <code>DEBUG</code>.</p>
 </li>
 <li>
-<p><code>http://{container_host_ip}:{container_host_port}/api/trigger_printer_refresh</code> - This service route requests the printer send full status and version 
+<p><code>http://{container_host_ip}:{container_host_port}/api/trigger_printer_refresh</code> - This service route requests the printer send full status and version
 reports.</p>
 </li>
 <li>
 <p><code>http://{container_host_ip}:{container_host_port}/api/dump_log</code> - This service route serves the entire contents of the application log.</p>
 </li>
 <li>
-<p><code>http://{container_host_ip}:{container_host_port}/api/truncate_log</code> - This service route deletes the current application log.  A restart may be 
+<p><code>http://{container_host_ip}:{container_host_port}/api/truncate_log</code> - This service route deletes the current application log.  A restart may be
 required for logging to resume.</p>
 </li>
 <li>
-<p><code>http://{container_host_ip}:{container_host_port}/api/toggle_session</code> - This service route pauses or resumes the <code>BambuPrinter</code> session.  This may be 
+<p><code>http://{container_host_ip}:{container_host_port}/api/toggle_session</code> - This service route pauses or resumes the <code>BambuPrinter</code> session.  This may be
 helpful on machines such as the <code>A1</code> where only one client can be connected at a time.</p>
 </li>
 </ul>

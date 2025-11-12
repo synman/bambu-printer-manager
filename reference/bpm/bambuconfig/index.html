@@ -14,7 +14,7 @@
         <link rel="prev" href="../bambucommands/">
       
       
-        <link rel="next" href="../bambulogger/">
+        <link rel="next" href="../bambuprinter/">
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
@@ -239,25 +239,14 @@
   
     
     
-      
-  
-  
-    
-  
-  
-    
-    
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../bambucommands/" class="md-tabs__link">
+        <a href="../__init__/" class="md-tabs__link">
           
   
   Code Reference
 
         </a>
       </li>
-    
-  
-
     
   
 
@@ -429,16 +418,24 @@
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" checked>
         
           
-          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="">
-            
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../__init__/" class="md-nav__link ">
+              
   
   <span class="md-ellipsis">
     bpm
   </span>
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_1" id="__nav_2_1_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
         
         <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2_1">
@@ -589,27 +586,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../bambulogger/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    bambulogger
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../bambuprinter/" class="md-nav__link">
         
   
@@ -682,7 +658,7 @@
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_6" >
         
           
           
@@ -698,14 +674,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_2_1_7" id="__nav_2_1_7_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_2_1_6" id="__nav_2_1_6_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_1_7">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_6">
             <span class="md-nav__icon md-icon"></span>
             ftpsclient
           </label>
@@ -849,7 +825,7 @@
   
       <p>This is the main configuration class for <code>BambuPrinter</code> and is how it knows where to connect to a printer,
 what access code, and serial # to use. Further, it contains a number of printer behavioral settings that
-can be changed based on client needs. <code>BambuConfig</code> can also be used to change the log level of 
+can be changed based on client needs. <code>BambuConfig</code> can also be used to change the log level of
 <code>bambu-printer-manager</code>'s logging engine.</p>
 
 
@@ -882,7 +858,7 @@ can be changed based on client needs. <code>BambuConfig</code> can also be used 
 <h5 id="bpm.bambuconfig.BambuConfig.__init__--parameters">Parameters</h5>
 <ul>
 <li>hostname : Optional[str] = None</li>
-<li>access_code : Optional[str] = None </li>
+<li>access_code : Optional[str] = None</li>
 <li>serial_number : Optional[str] = None</li>
 <li>mqtt_port : Optional[int] = 8883</li>
 <li>mqtt_client_id : Optional[str] = "studio_client_id:0c1f"</li>
@@ -891,12 +867,12 @@ can be changed based on client needs. <code>BambuConfig</code> can also be used 
 <li>external_chamber : Optional[bool] = False</li>
 <li>verbose : Optional[bool] = False</li>
 </ul>
-<p><code>external_chamber</code> can be used to tell <code>BambuPrinter</code> not to use any of the chamber 
+<p><code>external_chamber</code> can be used to tell <code>BambuPrinter</code> not to use any of the chamber
 temperature data received from the printer.  This can be useful if you are using an
 external chamber temperature sensor / heater and want to inject the sensor value and
 target temperatures into <code>BambuPrinter</code> directly.</p>
 <p><code>verbose</code> triggers a global log level change (within the scope of <code>bambu-printer-manager</code>)
-based on its value.  <code>True</code> will set a log level of <code>DEBUG</code> and <code>False</code> (the default) will 
+based on its value.  <code>True</code> will set a log level of <code>DEBUG</code> and <code>False</code> (the default) will
 set the log level to <code>WARNING</code>.</p>
 <h5 id="bpm.bambuconfig.BambuConfig.__init__--attributes">Attributes</h5>
 <ul>

@@ -239,25 +239,14 @@
   
     
     
-      
-  
-  
-    
-  
-  
-    
-    
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../bambucommands/" class="md-tabs__link">
+        <a href="../__init__/" class="md-tabs__link">
           
   
   Code Reference
 
         </a>
       </li>
-    
-  
-
     
   
 
@@ -429,16 +418,24 @@
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" checked>
         
           
-          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="">
-            
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../__init__/" class="md-nav__link ">
+              
   
   <span class="md-ellipsis">
     bpm
   </span>
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_1" id="__nav_2_1_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
         
         <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2_1">
@@ -480,27 +477,6 @@
   
   <span class="md-ellipsis">
     bambuconfig
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bambulogger/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    bambulogger
   </span>
   
 
@@ -748,7 +724,7 @@
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_6" >
         
           
           
@@ -764,14 +740,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_2_1_7" id="__nav_2_1_7_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_2_1_6" id="__nav_2_1_6_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_1_7">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_6">
             <span class="md-nav__icon md-icon"></span>
             ftpsclient
           </label>
@@ -998,7 +974,7 @@ by</code>bambu-printer-manager`.</p>
             Bases: <code><span title="enum.Enum">Enum</span></code></p>
 
   
-      <p>Used by <code>BambuPrinter.print_3mf_file</code> to specify which plate should be used when 
+      <p>Used by <code>BambuPrinter.print_3mf_file</code> to specify which plate should be used when
 starting a print job.</p>
 
 
@@ -1119,7 +1095,7 @@ starting a print job.</p>
             Bases: <code><span title="enum.Enum">Enum</span></code></p>
 
   
-      <p>This enum is used by <code>bambu-printer-manager</code> to track the underlying state 
+      <p>This enum is used by <code>bambu-printer-manager</code> to track the underlying state
 of the <code>mqtt</code> connection to the printer.</p>
 <h4 id="bpm.bambutools.PrinterState--states">States</h4>
 <ul>

@@ -11,7 +11,7 @@
         <link rel="canonical" href="https://github.com/synman/bambu-printer-manager/reference/bpm/bambuprinter/">
       
       
-        <link rel="prev" href="../bambulogger/">
+        <link rel="prev" href="../bambuconfig/">
       
       
         <link rel="next" href="../bambuspool/">
@@ -239,25 +239,14 @@
   
     
     
-      
-  
-  
-    
-  
-  
-    
-    
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../bambucommands/" class="md-tabs__link">
+        <a href="../__init__/" class="md-tabs__link">
           
   
   Code Reference
 
         </a>
       </li>
-    
-  
-
     
   
 
@@ -429,16 +418,24 @@
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" checked>
         
           
-          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="">
-            
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../__init__/" class="md-nav__link ">
+              
   
   <span class="md-ellipsis">
     bpm
   </span>
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_1" id="__nav_2_1_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
         
         <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2_1">
@@ -480,27 +477,6 @@
   
   <span class="md-ellipsis">
     bambuconfig
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bambulogger/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    bambulogger
   </span>
   
 
@@ -1150,7 +1126,7 @@
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_6" >
         
           
           
@@ -1166,14 +1142,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_2_1_7" id="__nav_2_1_7_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_2_1_6" id="__nav_2_1_6_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_1_7">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_6">
             <span class="md-nav__icon md-icon"></span>
             ftpsclient
           </label>
@@ -1316,7 +1292,7 @@
 
   
       <p><code>BambuPrinter</code> is the main class within <code>bambu-printer-manager</code> for interacting with and
-managing your Bambu Lab 3d printer. It provides an object oriented abstraction layer 
+managing your Bambu Lab 3d printer. It provides an object oriented abstraction layer
 between your project and the <code>mqtt</code> and <code>ftps</code> based mechanisms in place for communicating
 with your printer.</p>
 
@@ -1339,7 +1315,7 @@ with your printer.</p>
 
 
 <h3 id="bpm.bambuprinter.BambuPrinter.__init__" class="doc doc-heading">
-          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">BambuConfig</span><span class="p">())</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h3>
 
@@ -1350,7 +1326,7 @@ with your printer.</p>
 logging engine.</p>
 <h5 id="bpm.bambuprinter.BambuPrinter.__init__--parameters">Parameters</h5>
 <ul>
-<li>config : Optional[BambuConfig] = BambuConfig()</li>
+<li>config : Optional[BambuConfig] = None</li>
 </ul>
 <h5 id="bpm.bambuprinter.BambuPrinter.__init__--attributes">Attributes</h5>
 <ul>
@@ -1411,8 +1387,8 @@ logging engine.</p>
 <li>_nozzle_diameter `READ/WRITE the diameter of the nozzle loaded into the printer</li>
 </ul>
 <p>The attributes (where appropriate) are included whenever the class is serialized
-using its <code>toJson()</code> method.  </p>
-<p>When accessing the class level attributes, use their associated properties as the 
+using its <code>toJson()</code> method.</p>
+<p>When accessing the class level attributes, use their associated properties as the
 class level attributes are marked private.</p>
 
   </div>
@@ -1455,7 +1431,7 @@ class level attributes are marked private.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Downloads a file from the printer </p>
+      <p>Downloads a file from the printer</p>
 <h5 id="bpm.bambuprinter.BambuPrinter.download_sdcard_file--parameters">Parameters</h5>
 <ul>
 <li>src : str - the full path filename on the printer to be downloaded to the host</li>
@@ -1479,7 +1455,7 @@ class level attributes are marked private.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Returns a <code>dict</code> (json document) of all <code>.3mf</code> files on the printer's SD card. 
+      <p>Returns a <code>dict</code> (json document) of all <code>.3mf</code> files on the printer's SD card.
 The private class level <code>_sdcard_3mf_files</code> attribute is also populated.</p>
 <h5 id="bpm.bambuprinter.BambuPrinter.get_sdcard_3mf_files--usage">Usage</h5>
 <p>The return value of this method is very useful for binding to things like a clientside <code>TreeView</code></p>
@@ -1501,7 +1477,7 @@ The private class level <code>_sdcard_3mf_files</code> attribute is also populat
 
   <div class="doc doc-contents ">
   
-      <p>Returns a <code>dict</code> (json document) of ALL files on the printer's SD card. 
+      <p>Returns a <code>dict</code> (json document) of ALL files on the printer's SD card.
 The private class level <code>_sdcard_contents</code> attribute is also populated.</p>
 <h5 id="bpm.bambuprinter.BambuPrinter.get_sdcard_contents--usage">Usage</h5>
 <p>The return value of this method is very useful for binding to things like a clientside <code>TreeView</code></p>
@@ -1633,7 +1609,7 @@ printer data refreshes.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Submits a request to execute the <code>name</code> 3mf file on the printer's SDCard. </p>
+      <p>Submits a request to execute the <code>name</code> 3mf file on the printer's SDCard.</p>
 <h5 id="bpm.bambuprinter.BambuPrinter.print_3mf_file--parameters">Parameters</h5>
 <ul>
 <li>name : str                         - path, filename, and extension to execute</li>
@@ -1675,7 +1651,7 @@ printer data refreshes.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Shuts down all threads.  Your <code>BambuPrinter</code> instance should probably be 
+      <p>Shuts down all threads.  Your <code>BambuPrinter</code> instance should probably be
 considered dead after making this call although you may be able to restart a
 session with <a href="./#bpm.bambuprinter.BambuPrinter.start_session">start_session</a>().</p>
 
@@ -1964,9 +1940,9 @@ For the external tray (254), send <code>no_filament</code> as the <code>tray_inf
   <div class="doc doc-contents ">
   
       <p>Initiates a connection to the Bambu Lab printer and provides a stateful
-session, with built-in recovery in the event <code>BambuPrinter</code> 
+session, with built-in recovery in the event <code>BambuPrinter</code>
 becomes disconnected from the machine.</p>
-<p>This method is required to be called before any commands or data 
+<p>This method is required to be called before any commands or data
 collection / callbacks can take place with the machine.</p>
 
   </div>
