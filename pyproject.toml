@@ -34,3 +34,31 @@ dependencies = [
 Homepage = "https://github.com/synman/bambu-printer-manager"
 Documentation = "https://synman.github.io/bambu-printer-manager/"
 Issues = "https://github.com/synman/bambu-printer-manager/issues"
+
+[tool.black]
+line-length = 100
+target-version = ['py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | venv
+  | build
+  | dist
+  | node_modules
+  | site
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+skip_gitignore = true
+known_first_party = ["bpm"]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
