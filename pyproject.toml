@@ -18,7 +18,7 @@ authors = [
 ]
 description = "A pure python library for managing Bambu Labs printers"
 readme = "README.md"
-requires-python = ">=3.12.1"
+requires-python = ">=3.11"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: Freely Distributable",
@@ -27,6 +27,14 @@ classifiers = [
 dependencies = [
   "webcolors",
   "paho-mqtt",
+  "typing-extensions ; python_version<'3.12'",
+]
+
+[project.optional-dependencies]
+develop = [
+  "pre-commit",
+]
+docs = [
   "mkdocstrings[python]>=0.18",
 ]
 
@@ -34,3 +42,60 @@ dependencies = [
 Homepage = "https://github.com/synman/bambu-printer-manager"
 Documentation = "https://synman.github.io/bambu-printer-manager/"
 Issues = "https://github.com/synman/bambu-printer-manager/issues"
+
+[tool.ruff]
+exclude = [
+    # repo specific
+    "src/bpm/ftpsclient",
+
+    # standard stuff
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+]
+
+line-length = 90
+indent-width = 4
+
+# Assume Python 3.11
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["B", "C", "E", "F", "I", "W", "B9"]
+ignore = [
+    "E501",  # line too long
+    "E701",  #
+    "C901",  # method complexity
+]
+fixable = ["I", "C4", "E"]
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.isort]
+known-first-party = [
+    "bmp",
+]

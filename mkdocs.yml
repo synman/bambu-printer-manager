@@ -15,7 +15,7 @@ markdown_extensions:
   - pymdownx.mark
   - pymdownx.tilde
   - pymdownx.critic
-  - pymdownx.details 
+  - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
       use_pygments: true
@@ -23,13 +23,12 @@ markdown_extensions:
       auto_title: true
       linenums: true
       linenums_style: pymdownx-inline
-      anchor_linenums: true
       line_spans: __span
   - pymdownx.inlinehilite
   - pymdownx.keys
   - pymdownx.smartsymbols
   - pymdownx.snippets
-theme: 
+theme:
   name: material
   features:
     - navigation.tabs
@@ -40,19 +39,19 @@ theme:
     - search.highlight
     - content.tabs.link
     - content.code.annotation
-    - content.code.copy  
+    - content.code.copy
   language: en
   palette:
     - scheme: default
       toggle:
-        icon: material/toggle-switch-off-outline 
+        icon: material/toggle-switch-off-outline
         name: Switch to dark mode
       primary: teal
-      accent: purple 
-    - scheme: slate 
+      accent: purple
+    - scheme: slate
       toggle:
         icon: material/toggle-switch
-        name: Switch to light mode    
+        name: Switch to light mode
       primary: teal
       accent: lime
 validation:
@@ -63,7 +62,7 @@ plugins:
 - search
 - gen-files:
     scripts:
-    - docs/scripts/gen_ref_pages.py 
+    - docs/scripts/gen_ref_pages.py
 - literate-nav:
     nav_file: SUMMARY.md
 - section-index
@@ -71,7 +70,7 @@ plugins:
     default_handler: python
     handlers:
       python:
-        paths: 
+        paths:
           - src/bpm
         options:
           show_source: false

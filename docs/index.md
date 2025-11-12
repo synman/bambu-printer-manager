@@ -1,7 +1,7 @@
 [![PyPI version](https://badge.fury.io/py/bambu-printer-manager.svg)](https://badge.fury.io/py/bambu-printer-manager)
 
 # bambu-printer-manager
-`bambu-printer-manager` is an all in one pure python wrapper for interacting with and managing Bambu Lab printers.  
+`bambu-printer-manager` is an all in one pure python wrapper for interacting with and managing Bambu Lab printers.
 
 ## Become a Sponsor
 While caffiene and sleepness nights drive the delivery of this project, they unfortunately do not cover the financial expense necessary to further its development.  Please consider becoming a `bambu-printer-manager` sponsor today!
@@ -9,10 +9,9 @@ While caffiene and sleepness nights drive the delivery of this project, they unf
 
 ## Project Composition
 
-    bpm/  
-        bambucommands.py                # collection of constants mainly representing Bambu Lab `mqtt` request commands 
+    bpm/
+        bambucommands.py                # collection of constants mainly representing Bambu Lab `mqtt` request commands
         bambuconfig.py                  # contains the `BambuConfig` class used for storing configuration data
-        bambulogger.py                  # internal class used for logging
         bambuprintermanagerlogger.json  # internal configuration file for configuration of logging
         bambuprinter.py                 # the main `bambu-printer-manager` class `BambuPrinter` lives here
         bambuspool.py                   # contains the `BambuSpool` class used for storing spool data
@@ -72,11 +71,11 @@ printer = BambuPrinter(config=BambuConfig(hostname="{host name}", access_code="{
 ```
 
 ### Usage Patterns
-You can either poll `BambuPrinter` periodically for data updates or rely on a callback when 
-new data becomes available.  The preferred pattern should be callback based, however both 
-of these approaches will work fine.  
+You can either poll `BambuPrinter` periodically for data updates or rely on a callback when
+new data becomes available.  The preferred pattern should be callback based, however both
+of these approaches will work fine.
 
-Please consider the examples provided here as mere starting points.  
+Please consider the examples provided here as mere starting points.
 
 #### Data Polling Example
 ```py
@@ -118,10 +117,10 @@ print("bpm is ready for business\r\n")
 
 while True:
     print(f"tool=[{round(printer.tool_temp, 1)}/{round(printer.tool_temp_target, 1)}] " +
-          f"bed=[{round(printer.bed_temp, 1)}/{round(printer.bed_temp_target, 1)}] " + 
+          f"bed=[{round(printer.bed_temp, 1)}/{round(printer.bed_temp_target, 1)}] " +
           f"fan=[{parseFan(printer.fan_speed)}] print=[{printer.gcode_state}] speed=[{printer.speed_level}] " +
           f"light=[{'on' if printer.light_state else 'off'}]")
-    
+
     print(f"stg_cur=[{parseStage(printer.current_stage)}] file=[{printer.gcode_file}] " +
           f"layers=[{printer.layer_count}] layer=[{printer.current_layer}] " +
           f"%=[{printer.percent_complete}] eta=[{printer.time_remaining} min] " +
@@ -132,7 +131,7 @@ while True:
 @app.route('/api/printer')
 def get_printer_info():
     global printer
-    # checking both the spools tuple and recent_update 
+    # checking both the spools tuple and recent_update
     # states ensure we have a healthy data stream
     if printer.recent_update and printer.spools:
         return printer.toJson()
@@ -164,10 +163,10 @@ printer = BambuPrinter(config=config)
 
 def on_update(printer):
     print(f"tool=[{round(printer.tool_temp, 1)}/{round(printer.tool_temp_target, 1)}] " +
-          f"bed=[{round(printer.bed_temp, 1)}/{round(printer.bed_temp_target, 1)}] " + 
+          f"bed=[{round(printer.bed_temp, 1)}/{round(printer.bed_temp_target, 1)}] " +
           f"fan=[{parseFan(printer.fan_speed)}] print=[{printer.gcode_state}] speed=[{printer.speed_level}] " +
           f"light=[{'on' if printer.light_state else 'off'}]")
-    
+
     print(f"stg_cur=[{parseStage(printer.current_stage)}] file=[{printer.gcode_file}] " +
           f"layers=[{printer.layer_count}] layer=[{printer.current_layer}] " +
           f"%=[{printer.percent_complete}] eta=[{printer.time_remaining} min] " +
@@ -208,21 +207,21 @@ def on_update(printer):
     if firmware != printer.config.firmware_version:
         firmware = printer.config.firmware_version
         print(f"\r\nprinter firmware: [{firmware}] serial #: [{printer.config.serial_number}]\r")
-    if ams_firmware != printer.config.ams_firmware_version: 
+    if ams_firmware != printer.config.ams_firmware_version:
         ams_firmware = printer.config.ams_firmware_version
         print(f"ams firmware: [{ams_firmware}]\r")
 
     print(f"\r\ntool=[{round(printer.tool_temp * 1.0, 1)}/{round(printer.tool_temp_target * 1.0, 1)}] " +
-         f"bed=[{round(printer.bed_temp * 1.0, 1)}/{round(printer.bed_temp_target * 1.0, 1)}] " + 
+         f"bed=[{round(printer.bed_temp * 1.0, 1)}/{round(printer.bed_temp_target * 1.0, 1)}] " +
          f"fan=[{parseFan(printer.fan_speed)}] print=[{printer.gcode_state}] speed=[{printer.speed_level}] " +
          f"light=[{'on' if printer.light_state else 'off'}]")
-    
+
     print(f"\rstg_cur=[{parseStage(printer.current_stage)}] file=[{printer.gcode_file}] " +
           f"layers=[{printer.layer_count}] layer=[{printer.current_layer}] " +
           f"%=[{printer.percent_complete}] eta=[{printer.time_remaining} min] " +
           f"spool=[{printer.active_spool} ({printer.spool_state})]\r")
-    
-print("\r")                    
+
+print("\r")
 
 hostname = os.getenv('BAMBU_HOSTNAME')
 access_code = os.getenv('BAMBU_ACCESS_CODE')
@@ -248,9 +247,9 @@ def confirm(request):
 
 special = False
 
-while True: 
+while True:
     key = wait_key()
-    if key == "\x1b": 
+    if key == "\x1b":
         special = True
         continue
     if special:
@@ -293,11 +292,11 @@ while True:
 
     if key == "w":
         print(f"\r\nwifi signal strength: [{printer.wifi_signal}]")
-        
+
     if key == "v":
         printer.config.verbose = not printer.config.verbose
 
-    if key == "q": 
+    if key == "q":
         break
 
     if key == "Q":
@@ -320,7 +319,7 @@ while True:
         printer.resume_session()
         if temp.isnumeric():
             printer.bed_temp_target = temp
-            
+
     if key == "f":
         printer.pause_session()
         speed = input("\r\nFan Speed (%): ")
@@ -330,7 +329,7 @@ while True:
 
     if key == "r":
         printer.refresh()
-        
+
     if key == "u" and confirm("UNLOAD_FILAMENT"):
         printer.unload_filament()
 

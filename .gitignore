@@ -30,5 +30,8 @@ __pycache__
 *.egg-info
 /dist
 
+# Ruff stuff:
+.ruff_cache/
+
 #mkdocs
 /site
