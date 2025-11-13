@@ -209,7 +209,8 @@ jobs:
 
   publish-on-testpypi:
     name: 📦 Publish on TestPyPI
-    if: github.event_name == 'release'
+    # 🚨 CONDITION: Only run if the release is marked as a pre-release
+    if: github.event.release.prerelease == true
     needs:
       - build
       - pre-commit
@@ -241,30 +242,30 @@ jobs:
         with:
           repository-url: https://test.pypi.org/legacy/
 
-  publish-on-pypi:
-    name: 📦 Publish tagged releases to PyPI
-    if: github.event_name == 'release'
-    needs: publish-on-testpypi
-    runs-on: ubuntu-latest
+  # publish-on-pypi:
+  #   name: 📦 Publish tagged releases to PyPI
+  #   if: github.event_name == 'release'
+  #   needs: publish-on-testpypi
+  #   runs-on: ubuntu-latest
 
-    environment:
-      name: pypi
-      url: https://pypi.org/p/bambu-printer-manager
+  #   environment:
+  #     name: pypi
+  #     url: https://pypi.org/p/bambu-printer-manager
 
-    permissions:
-      id-token: write
+  #   permissions:
+  #     id-token: write
 
-    steps:
-      - name: ⬇ Download build result
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
+  #   steps:
+  #     - name: ⬇ Download build result
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: dist
+  #         path: dist
 
-      - name: 🧹 Remove some stuff that won't make it through twine check
-        run: |
-          rm dist/*.source.tar.gz
-          rm dist/sha512sums.txt
+  #     - name: 🧹 Remove some stuff that won't make it through twine check
+  #       run: |
+  #         rm dist/*.source.tar.gz
+  #         rm dist/sha512sums.txt
 
-      - name: 📦 Publish to index
-        uses: pypa/gh-action-pypi-publish@release/v1
+  #     - name: 📦 Publish to index
+  #       uses: pypa/gh-action-pypi-publish@release/v1
