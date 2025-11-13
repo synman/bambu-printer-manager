@@ -2,7 +2,8 @@ import logging
 
 from bpm.bambutools import PrinterModel, getModelBySerial
 
-logger = logging.getLogger(__name__)
+LoggerName = "bambu_printer_manager"
+logger = logging.getLogger(LoggerName)
 
 
 class BambuConfig:
