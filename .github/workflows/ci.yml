@@ -1,0 +1,270 @@
+# Uses Trusted Publishing to push releases to PyPI (and Test PyPI),
+# see https://docs.pypi.org/trusted-publishers/adding-a-publisher/
+#
+# Expects environments testpypi and pypi to be configured on the GitHub project
+# and trusted publishing to be enabled for the project for publishing to
+# Test PyPI and PyPI respectively.
+
+name: CI
+on:
+  push:
+  pull_request:
+  release:
+    types: [released]
+  workflow_dispatch:
+
+env:
+  DEFAULT_PYTHON: "3.11"
+
+jobs:
+  build:
+    name: 🔨 Build distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 🏗 Set up Python ${{ env.DEFAULT_PYTHON }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: "${{ env.DEFAULT_PYTHON }}"
+
+      - name: 🏗 Install build dependencies
+        shell: bash
+        run: |
+          python -m pip install build twine --user
+      - name: 🔨 Build a binary wheel & an sdist tarball
+        shell: bash
+        run: |
+          python -m build .
+      - name: 🔎 Check wheel and sdist with twine
+        shell: bash
+        run: |
+          twine check --strict dist/*
+      - name: 🔨 Build a source tarball
+        id: srcball
+        shell: bash
+        run: |
+          sdist=$(ls dist/*.tar.gz)
+          echo "sdist=$sdist" >> $GITHUB_OUTPUT
+
+          prefix=$(basename ${sdist%.tar.gz})
+          echo "prefix=$prefix" >> $GITHUB_OUTPUT
+
+          wheel=$(ls dist/$prefix*.whl)
+          echo "wheel=$wheel" >> $GITHUB_OUTPUT
+
+          source="dist/$prefix.source.tar.gz"
+          echo "source=$source" >> $GITHUB_OUTPUT
+
+          # create the source tarball
+          git archive --prefix "$prefix/" HEAD --output "$source"
+
+          # list the files
+          tree dist
+      - name: 🔨 Create sha512sums of dist files
+        shell: bash
+        run: |
+          cd dist
+          sha512sum *.whl *.tar.gz > sha512sums.txt
+
+          cat sha512sums.txt
+      - name: Generate report
+        shell: bash
+        run: |
+          cat << EOF >> $GITHUB_STEP_SUMMARY
+          ### Dist Build Result
+
+          \`\`\`
+          $(tree dist)
+          \`\`\`
+
+          <details>
+          <summary>sdist contents</summary>
+
+          \`\`\`
+          $(tar -tvf ${{ steps.srcball.outputs.sdist }})
+          \`\`\`
+
+          </details>
+
+          <details>
+          <summary>wheel contents</summary>
+
+          \`\`\`
+          $(unzip -l ${{ steps.srcball.outputs.wheel }})
+          \`\`\`
+
+          </details>
+
+          <details>
+          <summary>source tarball contents</summary>
+
+          \`\`\`
+          $(tar -tvf ${{ steps.srcball.outputs.source }})
+          \`\`\`
+
+          </details>
+
+          <details>
+          <summary>SHA512 sums</summary>
+
+          \`\`\`
+          $(cat dist/sha512sums.txt)
+          \`\`\`
+
+          </details>
+          EOF
+      - name: ⬆ Upload build result
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+
+  pre-commit:
+    name: 🧹 Pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 🏗 Set up Python ${{ env.DEFAULT_PYTHON }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: "${{ env.DEFAULT_PYTHON }}"
+
+      - name: 🏗 Set up dev dependencies
+        run: |
+          pip install -e .[develop]
+
+      - name: 🚀 Run pre-commit
+        run: |
+          pre-commit run --all-files --show-diff-on-failure
+
+#  test-unit:
+#    name: 🧪 Unit tests
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        python: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - name: 🏗 Set up Python ${{ matrix.python }}
+#        uses: actions/setup-python@v4
+#        with:
+#          python-version: ${{ matrix.python }}
+#
+#      - name: 🏗 Set up test dependencies
+#        run: |
+#          pip install -e .[develop]
+#
+#      - name: 🚀 Run test suite
+#        run: |
+#          pytest | tee report.txt
+#          pytest_exit=${PIPESTATUS[0]}
+#
+#          # generate summary
+#          python=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')
+#          today=$(date +'%Y-%m-%d')
+#          now=$(date +'%H:%M')
+#          summary=$(tail -n1 report.txt | sed 's/^=*\s//g' | sed 's/\s=*$//g')
+#
+#          cat << EOF >> $GITHUB_STEP_SUMMARY
+#          ### Test Report
+#
+#          *generated on $today at $now under Python $python*
+#
+#          <details>
+#          <summary>$summary</summary>
+#
+#          \`\`\`
+#          $(cat report.txt)
+#          \`\`\`
+#
+#          </details>
+#          EOF
+#
+#          # make sure we fail if pytest fails!
+#          exit $pytest_exit
+
+  test-install:
+    name: 🧪 Installation test
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13", "3.14"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 🏗 Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: 🚀 Run test install
+        run: |
+          pip install -e .
+
+  publish-on-testpypi:
+    name: 📦 Publish on TestPyPI
+    if: github.event_name == 'release'
+    needs:
+      - build
+      - pre-commit
+      - test-install
+      #- test-unit
+    runs-on: ubuntu-latest
+
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/bambu-printer-manager
+
+    permissions:
+      id-token: write
+
+    steps:
+      - name: ⬇ Download build result
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: 🧹 Remove some stuff that won't make it through twine check
+        run: |
+          rm dist/*.source.tar.gz
+          rm dist/sha512sums.txt
+
+      - name: 📦 Publish to index
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  publish-on-pypi:
+    name: 📦 Publish tagged releases to PyPI
+    if: github.event_name == 'release'
+    needs: publish-on-testpypi
+    runs-on: ubuntu-latest
+
+    environment:
+      name: pypi
+      url: https://pypi.org/p/bambu-printer-manager
+
+    permissions:
+      id-token: write
+
+    steps:
+      - name: ⬇ Download build result
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: 🧹 Remove some stuff that won't make it through twine check
+        run: |
+          rm dist/*.source.tar.gz
+          rm dist/sha512sums.txt
+
+      - name: 📦 Publish to index
+        uses: pypa/gh-action-pypi-publish@release/v1
