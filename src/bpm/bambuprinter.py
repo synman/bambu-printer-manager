@@ -12,7 +12,7 @@ import paho.mqtt.client as mqtt
 from webcolors import hex_to_name, name_to_hex
 
 from . import bambucommands
-from .bambuconfig import BambuConfig
+from .bambuconfig import BambuConfig, LoggerName
 from .bambuspool import BambuSpool
 from .bambutools import (
     AMSControlCommand,
@@ -25,7 +25,7 @@ from .bambutools import (
 )
 from .ftpsclient.ftpsclient import IoTFTPSClient
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(LoggerName)
 
 
 class BambuPrinter:
@@ -220,7 +220,7 @@ class BambuPrinter:
         def on_message(client, userdata, msg):
             # logger.debug(f"session on_message - state: {self.state.name}")
             if self._lastMessageTime and self._recent_update:
-                self._lastMessageTime = time.time()
+                self._lastMessageTime = time.monotonic()
             self._on_message(json.loads(msg.payload.decode("utf-8")))
 
         def loop_forever(printer):
@@ -288,7 +288,7 @@ class BambuPrinter:
         ):
             self.client.subscribe(f"device/{self.config.serial_number}/report")
             logger.debug(f"subscribed to [device/{self.config.serial_number}/report]")
-            self._lastMessageTime = time.time()
+            self._lastMessageTime = time.monotonic()
             self.state = PrinterState.CONNECTED
             return
         self.state = PrinterState.QUIT
@@ -906,11 +906,11 @@ class BambuPrinter:
                     if printer.state == PrinterState.CONNECTED and (
                         printer._lastMessageTime is None
                         or printer._lastMessageTime + printer.config.watchdog_timeout
-                        < time.time()
+                        < time.monotonic()
                     ):
                         if printer._lastMessageTime:
                             logger.warning("BambuPrinter watchdog timeout")
-                        printer._lastMessageTime = time.time()
+                        printer._lastMessageTime = time.monotonic()
                         printer._recent_update = False
                         printer.client.publish(
                             f"device/{printer.config.serial_number}/request",
