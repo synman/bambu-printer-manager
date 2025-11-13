@@ -1,3 +1,4 @@
+import contextlib
 import copy
 import json
 import logging
@@ -315,6 +316,27 @@ class BambuPrinter:
             self._watchdog_thread.join()
         logger.debug("all threads have terminated")
 
+    @contextlib.contextmanager
+    def ftp_connection(self):
+        """
+        Opens a connection to the printer's FTP server to support file management.
+
+        Acts as a context manager, so can be used with the with statement. In that case,
+        the connection will be closed automatically, otherwise the calling code has to make
+        sure to close it again.
+        """
+        try:
+            ftps = IoTFTPSClient(
+                self._config.hostname,
+                990,
+                self._config.mqtt_username,
+                self._config.access_code,
+                ssl_implicit=True,
+            )
+            yield ftps
+        finally:
+            ftps.disconnect()
+
     def refresh(self):
         """
         Triggers a full data refresh from the printer (if it is connected).  You should use this
@@ -521,25 +543,20 @@ class BambuPrinter:
         -----
         The return value of this method is very useful for binding to things like a clientside `TreeView`
         """
-        ftps = IoTFTPSClient(
-            self._config.hostname,
-            990,
-            self._config.mqtt_username,
-            self._config.access_code,
-            ssl_implicit=True,
-        )
-        fs = self._get_sftp_files(ftps, "/")
+
+        with self.ftp_connection() as ftps:
+            fs = self._get_sftp_files(ftps, "/")
+
         logger.debug(f"read all sdcard files fs: [{fs}]")
         self._sdcard_contents = fs
 
         def search_for_and_remove_all_other_files(mask: str, entry: dict):
             if "children" in entry:
-                entry["children"] = list(
-                    filter(
-                        lambda i: i["id"].endswith(mask) or "children" in i.keys(),
-                        entry["children"],
-                    )
-                )
+                entry["children"] = [
+                    x
+                    for x in entry["children"]
+                    if x["id"].endswith(mask) or "children" in x
+                ]
                 for child in entry["children"]:
                     search_for_and_remove_all_other_files(mask, child)
 
@@ -557,14 +574,9 @@ class BambuPrinter:
         * file : str - the full path filename to be deleted
         """
         logger.debug(f"deleting remote file: [{file}]")
-        ftps = IoTFTPSClient(
-            self._config.hostname,
-            990,
-            self._config.mqtt_username,
-            self._config.access_code,
-            ssl_implicit=True,
-        )
-        ftps.delete_file(file)
+
+        with self.ftp_connection() as ftps:
+            ftps.delete_file(file)
 
         def search_for_and_remove_file(file: str, entry: dict):
             if "children" in entry:
@@ -588,14 +600,8 @@ class BambuPrinter:
         * dest : str - the full path filename on the printer to upload to
         """
         logger.debug(f"uploading file src: [{src}] dest: [{dest}]")
-        ftps = IoTFTPSClient(
-            self._config.hostname,
-            990,
-            self._config.mqtt_username,
-            self._config.access_code,
-            ssl_implicit=True,
-        )
-        ftps.upload_file(src, dest)
+        with self.ftp_connection() as ftps:
+            ftps.upload_file(src, dest)
         return self.get_sdcard_contents()
 
     def download_sdcard_file(self, src: str, dest: str):
@@ -608,15 +614,8 @@ class BambuPrinter:
         * dest : str - the full path filename on the host to store the downloaded file
         """
         logger.debug(f"downloading file src: [{src}] dest: [{dest}]")
-        ftps = IoTFTPSClient(
-            self._config.hostname,
-            990,
-            self._config.mqtt_username,
-            self._config.access_code,
-            ssl_implicit=True,
-        )
-        ftps.download_file(src, dest)
-        return
+        with self.ftp_connection() as ftps:
+            ftps.download_file(src, dest)
 
     def make_sdcard_directory(self, dir: str) -> dict:
         """
@@ -626,15 +625,9 @@ class BambuPrinter:
         ----------
         * dir : str - the full path directory name to be created
         """
-        ftps = IoTFTPSClient(
-            self._config.hostname,
-            990,
-            self._config.mqtt_username,
-            self._config.access_code,
-            ssl_implicit=True,
-        )
         logger.debug(f"creating remote directory [{dir}]")
-        ftps.mkdir(dir)
+        with self.ftp_connection() as ftps:
+            ftps.mkdir(dir)
         return self.get_sdcard_contents()
 
     def rename_sdcard_file(self, src: str, dest: str) -> dict:
@@ -646,15 +639,9 @@ class BambuPrinter:
         * src : str - the full path name to be renamed
         * dest : str - the full path name to be renamed to
         """
-        ftps = IoTFTPSClient(
-            self._config.hostname,
-            990,
-            self._config.mqtt_username,
-            self._config.access_code,
-            ssl_implicit=True,
-        )
         logger.debug(f"renaming printer file [{src}] to [{dest}]")
-        ftps.move_file(src, dest)
+        with self.ftp_connection() as ftps:
+            ftps.move_file(src, dest)
         return self.get_sdcard_contents()
 
     def sdcard_file_exists(self, path: str) -> bool:
@@ -665,15 +652,9 @@ class BambuPrinter:
         ----------
         * path : str - the full path name to check
         """
-        ftps = IoTFTPSClient(
-            self._config.hostname,
-            990,
-            self._config.mqtt_username,
-            self._config.access_code,
-            ssl_implicit=True,
-        )
         logger.debug(f"checking if printer file [{path}] exists")
-        return ftps.fexists(path)
+        with self.ftp_connection() as ftps:
+            return ftps.fexists(path)
 
     def set_print_option(self, option: PrintOption, enabled: bool):
         """
@@ -1205,43 +1186,51 @@ class BambuPrinter:
             self.on_update(self)
 
     def _get_sftp_files(
-        self, ftps: IoTFTPSClient, directory: str, mask: str | None = None
-    ):
+        self,
+        ftps: IoTFTPSClient,
+        directory: str,
+        mask: str | None = None,
+    ) -> dict:
         try:
-            files = sorted(ftps.list_files_ex(directory))
+            files = ftps.list_files_ex(directory)
         except Exception:
-            logger.warning("unexpected ftps exception")
+            logger.exception("unexpected ftps exception")
             return None
 
-        dir = {}
-
-        dir["id"] = directory + ("/" if directory != "/" else "")
-        dir["name"] = (
-            directory[directory.rindex("/") + 1 :]
-            if "/" in directory and directory != "/"
-            else directory
-        )
+        dir = {
+            "id": directory + ("/" if directory != "/" else ""),
+            "name": (
+                directory[directory.rindex("/") + 1 :]
+                if "/" in directory and directory != "/"
+                else directory
+            ),
+        }
 
         items = []
 
-        for file in files:
-            if file[0][:1] == "d":
-                item = {}
-                item = self._get_sftp_files(
-                    ftps,
-                    directory + ("/" if directory != "/" else "") + file[1],
-                    mask=mask,
-                )
-                items.append(item)
-            else:
-                if not mask or (mask and file[1].lower().endswith(mask)):
-                    item = {}
-                    item["id"] = dir["id"] + file[1]
-                    item["name"] = file[1]
-                    items.append(item)
+        for entry in files:
+            if entry.is_dir:
+                item = self._get_sftp_files(ftps, entry.path)
+                if not item:
+                    continue
 
-        if len(items) > 0:
-            dir["children"] = items
+                item["timestamp"] = entry.timestamp.timestamp()
+                items.append(item)
+
+            else:
+                if mask and not entry.name.lower().endswith(mask):
+                    continue
+
+                items.append(
+                    {
+                        "id": entry.path,
+                        "name": entry.name,
+                        "size": entry.size,
+                        "timestamp": entry.timestamp.timestamp(),
+                    }
+                )
+
+        dir["children"] = items
         return dir
 
     @property
