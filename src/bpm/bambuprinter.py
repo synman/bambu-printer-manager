@@ -600,15 +600,24 @@ class BambuPrinter:
         """
         logger.debug(f"deleting remote folder: [{path}]")
 
-        with self.ftp_connection() as ftps:
+        def delete_all_contents(ftps: IoTFTPSClient, path: str):
+            fs = ftps.list_files_ex(path)
+            for item in fs:
+                if item.is_dir:
+                    delete_all_contents(ftps, item.path)
+                else:
+                    ftps.delete_file(item.path)
             ftps.delete_folder(path)
+
+        with self.ftp_connection() as ftps:
+            delete_all_contents(ftps, path)
 
         def search_for_and_remove_folder(path: str, entry: dict):
             if not path.endswith("/"):
                 path = f"{path}/"
             if "children" in entry:
                 entry["children"] = list(
-                    filter(lambda i: i["id"] != path, entry["children"])
+                    filter(lambda i: not i["id"].startswith(path), entry["children"])
                 )
                 for child in entry["children"]:
                     search_for_and_remove_folder(path, child)
