@@ -604,15 +604,14 @@ class BambuPrinter:
             ftps.delete_folder(path)
 
         def search_for_and_remove_folder(path: str, entry: dict):
+            if not path.endswith("/"):
+                path = f"{path}/"
             if "children" in entry:
                 entry["children"] = list(
                     filter(lambda i: i["id"] != path, entry["children"])
                 )
                 for child in entry["children"]:
                     search_for_and_remove_folder(path, child)
-
-        if not path.endswith("/"):
-            path = f"{path}/"
 
         search_for_and_remove_folder(path, self._sdcard_contents)
         search_for_and_remove_folder(path, self._sdcard_3mf_files)
