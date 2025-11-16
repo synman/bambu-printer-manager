@@ -590,6 +590,31 @@ class BambuPrinter:
         search_for_and_remove_file(file, self._sdcard_3mf_files)
         return self._sdcard_contents
 
+    def delete_sdcard_folder(self, path: str):
+        """
+        Delete the specified folder on the printer's SDCard and returns an updated dict of all files on the printer
+
+        Parameters
+        ----------
+        * path : str - the full path to folder to be deleted
+        """
+        logger.debug(f"deleting remote folder: [{path}]")
+
+        with self.ftp_connection() as ftps:
+            ftps.delete_folder(path)
+
+        def search_for_and_remove_folder(path: str, entry: dict):
+            if "children" in entry:
+                entry["children"] = list(
+                    filter(lambda i: i["id"] != path, entry["children"])
+                )
+                for child in entry["children"]:
+                    search_for_and_remove_folder(path, child)
+
+        search_for_and_remove_folder(path, self._sdcard_contents)
+        search_for_and_remove_folder(path, self._sdcard_3mf_files)
+        return self._sdcard_contents
+
     def upload_sdcard_file(self, src: str, dest: str) -> dict:
         """
         Uploads the local filesystem file to the printer and returns an updated dict of all files on the printer
