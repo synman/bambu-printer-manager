@@ -134,7 +134,7 @@ class IoTFTPSClient:
             f"user: {self.ftps_user}\n"
             f"ssl: {self.ssl_implicit}"
         )
-    
+
     def instantiate_ftps_session(self) -> None:
         """init ftps_session based on input params"""
         self.ftps_session = ImplicitTLS() if self.ssl_implicit else ftplib.FTP()
@@ -208,6 +208,10 @@ class IoTFTPSClient:
     def delete_file(self, path: str):
         """delete a file from under a path inside the FTPS server"""
         self.ftps_session.delete(path)
+
+    def delete_folder(self, path: str):
+        """delete a folder inside the FTPS server"""
+        self.ftps_session.rmd(path)
 
     def move_file(self, source: str, dest: str):
         """move a file inside the FTPS server to another path inside the FTPS server"""
