@@ -611,8 +611,11 @@ class BambuPrinter:
                 for child in entry["children"]:
                     search_for_and_remove_folder(path, child)
 
-        search_for_and_remove_folder(f"{path}/", self._sdcard_contents)
-        search_for_and_remove_folder(f"{path}/", self._sdcard_3mf_files)
+        if not path.endswith("/"):
+            path = f"{path}/"
+
+        search_for_and_remove_folder(path, self._sdcard_contents)
+        search_for_and_remove_folder(path, self._sdcard_3mf_files)
         return self._sdcard_contents
 
     def upload_sdcard_file(self, src: str, dest: str) -> dict:
