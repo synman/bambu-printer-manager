@@ -261,3 +261,35 @@ def getModelBySerial(serial: str) -> PrinterModel:
         return PrinterModel.A1
     else:
         return PrinterModel.UNKNOWN
+
+
+def sortFileTreeAlphabetically(source):
+    """
+    Sorts a dict of file/directory nodes hierarchically in case-insensitive
+    alphabetical order (ascending).
+
+    Args:
+        source (dict): A dict of lists representing files and/or directories.
+
+    Returns:
+        dict: The sorted dict of lists.
+    """
+
+    def sort_node_list(node_list):
+        # 1. Recursively sort the contents of any sub-directories first
+        for item in node_list:
+            if item.get("id", "").endswith("/") and "children" in item:
+                item["children"] = sort_node_list(item["children"])
+
+        # 2. Define the custom sorting key
+        def sort_key(item):
+            # The sort key tuple:
+            # 1. Directory Precedence: True (directory) maps to 0, False (file) maps to 1.
+            # 2. Alphabetical Order: The cleaned name is used for the case-insensitive sort.
+            return (not item.get("id", "").endswith("/"), item.get("name", "").lower())
+
+        # Apply the custom sort logic
+        return sorted(node_list, key=sort_key)
+
+    source["children"] = sort_node_list(source["children"])
+    return source

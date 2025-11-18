@@ -23,6 +23,7 @@ from .bambutools import (
     PrintOption,
     parseFan,
     parseStage,
+    sortFileTreeAlphabetically,
 )
 from .ftpsclient.ftpsclient import IoTFTPSClient
 
@@ -548,7 +549,7 @@ class BambuPrinter:
             fs = self._get_sftp_files(ftps, "/")
 
         logger.debug(f"read all sdcard files fs: [{fs}]")
-        self._sdcard_contents = fs
+        self._sdcard_contents = sortFileTreeAlphabetically(fs)
 
         def search_for_and_remove_all_other_files(mask: str, entry: dict):
             if "children" in entry:
