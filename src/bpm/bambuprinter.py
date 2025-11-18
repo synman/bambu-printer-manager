@@ -1189,11 +1189,7 @@ class BambuPrinter:
                     "buildplate_marker_detector"
                 ]
 
-        elif (
-            "info" in message
-            and "result" in message["info"]
-            and message["info"]["result"] == "success"
-        ):
+        elif "info" in message and "module" in message["info"]:
             self._recent_update = True
             info = message["info"]
             for module in info["module"]:
