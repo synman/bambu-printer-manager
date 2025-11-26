@@ -245,7 +245,7 @@ jobs:
   publish-on-pypi:
     name: 📦 Publish tagged releases to PyPI
     # 🚨 CONDITION: only production releases go to PyPI
-    if: github.event_name == 'release' && github.event.release.prerelease == false
+    if: github.event_name == 'release'
     needs: publish-on-testpypi
     runs-on: ubuntu-latest
 

@@ -325,6 +325,7 @@ class BambuPrinter:
         the connection will be closed automatically, otherwise the calling code has to make
         sure to close it again.
         """
+        ftps = None
         try:
             ftps = IoTFTPSClient(
                 self._config.hostname,
@@ -335,7 +336,8 @@ class BambuPrinter:
             )
             yield ftps
         finally:
-            ftps.disconnect()
+            if ftps and ftps.ftps_session:
+                ftps.disconnect()
 
     def refresh(self):
         """
