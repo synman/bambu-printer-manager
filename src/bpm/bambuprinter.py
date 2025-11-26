@@ -308,8 +308,7 @@ class BambuPrinter:
             logger.debug("mqtt client was already disconnected")
 
         self._state = PrinterState.QUIT
-        if self.on_update:
-            self.on_update(self)
+        self._notify_update()
 
         if self._mqtt_client_thread.is_alive():
             self._mqtt_client_thread.join()
@@ -1215,8 +1214,7 @@ class BambuPrinter:
                 self._start_time = int(round(time.time() / 60, 0))
             self._elapsed_time = int(round(time.time() / 60, 0)) - self._start_time
 
-        if self.on_update:
-            self.on_update(self)
+        self._notify_update()
 
     def _get_sftp_files(
         self,
@@ -1281,6 +1279,7 @@ class BambuPrinter:
     @state.setter
     def state(self, value: PrinterState):
         self._state = value
+        self._notify_update()  # make sure we notify about EVERY state change!
 
     @property
     def client(self):
@@ -1551,3 +1550,7 @@ class BambuPrinter:
     @property
     def skipped_objects(self):
         return self._skipped_objects
+
+    def _notify_update(self):
+        if self.on_update:
+            self.on_update(self)
