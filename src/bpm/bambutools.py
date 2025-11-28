@@ -193,6 +193,7 @@ class PlateType(Enum):
     ENG_PLATE = 2
     HOT_PLATE = 3
     TEXTURED_PLATE = 4
+    NONE = 999
 
 
 class PrintOption(Enum):

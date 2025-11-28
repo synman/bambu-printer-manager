@@ -3,6 +3,7 @@ import copy
 import json
 import logging
 import math
+import re
 import ssl
 import threading
 import time
@@ -78,7 +79,9 @@ class BambuPrinter:
         * _gcode_state `READ ONLY` State reported for job status (FAILED/RUNNING/PAUSE/IDLE/FINISH).
         * _gcode_file `READ ONLY` The name of the current or last printed gcode file.
         * _3mf_file `READ ONLY` The name of the 3mf file currently being printed.
+        * _3mf_file_md5 `READ ONLY` The md5 of the 3mf file currently being printed.
         * _plate_num `READ ONLY` The selected plate # for the current 3mf file.
+        * _plate_type `READ ONLY` The selected plate type for the current 3mf file.
         * _subtask_name `READ ONLY` The name of the active subtask.
         * _print_type `READ ONLY` Not entirely sure.  Reports "idle" when no job is active.
         * _percent_complete `READ ONLY` Percentage complete for the current active job.
@@ -152,7 +155,9 @@ class BambuPrinter:
         self._gcode_state = ""
         self._gcode_file = ""
         self._3mf_file = ""
+        self._3mf_file_md5 = ""
         self._plate_num = 0
+        self._plate_type = PlateType.NONE
         self._subtask_name = ""
         self._print_type = ""
         self._percent_complete = 0
@@ -456,6 +461,7 @@ class BambuPrinter:
         """
         self._3mf_file = f"{name}"
         self._plate_num = int(plate)
+        self._plate_type = bed
 
         file = copy.deepcopy(bambucommands.PRINT_3MF_FILE)
 
@@ -961,20 +967,32 @@ class BambuPrinter:
         elif "print" in message:
             status = message["print"]
 
-            if "command" in status and status["command"] == "project_file":
+            if (
+                status.get("command") == "project_file"
+                and status.get("result") == "success"
+            ):
                 self._start_time = 0
-                if self._3mf_file:
-                    logger.debug("project_file request acknowledged")
-                else:
-                    url = status.get("url", None)
-                    subtask = status.get("subtask_name", None)
-                    if url and subtask and url.startswith("https://"):
-                        self._3mf_file = f"/cache/{subtask}.3mf"
-                    else:
-                        if "file" in status:
-                            self._3mf_file = status.get("file", "")
-                        else:
-                            logger.warning("unable to determine file being printed")
+
+                url = status.get("url", "")
+                parts = url.split("://", 1)
+                if len(parts) == 2:
+                    self._3mf_file = parts[1]
+
+                self._3mf_file_md5 = status.get("md5", "")
+                self._subtask_name = status.get("subtask_name", "")
+
+                param = status.get("param", None)
+                if param:
+                    match = re.search(r"plate_(\d{1,2})", param)
+                    if match:
+                        self._plate_num = int(match.group(1))
+
+                bed_type = status.get("bed_type", None)
+                self._plate_type = (
+                    PlateType[bed_type.upper()]
+                    if bed_type and bed_type.upper() in PlateType.__members__
+                    else PlateType.NONE
+                )
 
             # let's sleep for a couple seconds and do a full refresh
             # if ams filament settings have changed
@@ -1025,6 +1043,10 @@ class BambuPrinter:
                 self._gcode_state = status["gcode_state"]
                 if self._gcode_state in ("FINISH", "FAILED") and self._3mf_file:
                     self._3mf_file = ""
+                    self._3mf_file_md5 = ""
+                    self._plate_num = None
+                    self._plate_type = PlateType.NONE
+                    self._subtask_name = ""
 
             if "subtask_name" in status:
                 self._subtask_name = status["subtask_name"]
@@ -1454,8 +1476,16 @@ class BambuPrinter:
         return self._3mf_file
 
     @property
+    def current_3mf_file_md5(self):
+        return self._3mf_file_md5
+
+    @property
     def current_plate_num(self):
         return self._plate_num
+
+    @property
+    def current_plate_type(self):
+        return self._plate_type
 
     @property
     def gcode_file(self):
