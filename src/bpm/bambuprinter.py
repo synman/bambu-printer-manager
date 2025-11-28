@@ -103,6 +103,7 @@ class BambuPrinter:
         * _sdcard_3mf_files `READ ONLY` `dict` (json) value of all `.3mf` files on the SDCard (requires `get_sdcard_3mf_files` be called first).
         * _hms_data `READ ONLY` `dict` (json) value of any active hms codes with descriptions attached if they are known codes.
         * _hms_message `READ ONLY` all hms_data `desc` fields concatinated into a single string for ease of use.
+        * _last_hms_message `READ ONLY` a saved copy ofthe last hms_message in the event we get a repeat print_error.
         * _print_type `READ ONLY` can be `cloud` or `local`
         * _skipped_objects `READ ONLY` array of objects that have been skipped / cancelled
         * _nozzle_type `READ/WRITE` the type of nozzle loaded into the printer
@@ -183,6 +184,8 @@ class BambuPrinter:
 
         self._hms_data = None
         self._hms_message = ""
+        self._last_hms_message = ""
+
         self._print_type = ""
         self._skipped_objects = []
 
@@ -1174,19 +1177,35 @@ class BambuPrinter:
                 else:
                     self._spool_state = "Loaded"
 
-            self._hms_data = status.get("hms", [])
-            self._hms_message = ""
+            if "print_error" in status:
+                err = status["print_error"]
+                if err == 0 and self._hms_data or self._hms_message:
+                    logger.debug("clearing hms data and message")
+                    self._hms_data = []
+                    self._last_hms_message = self._hms_message
+                    self._hms_message = ""
+                else:
+                    if err != 0 and self._last_hms_message:
+                        logger.debug("restoring last hms message")
+                        self._hms_message = self._last_hms_message
 
-            for hms in self._hms_data:
-                hms_attr = hex(hms.get("attr", 0))[2:].zfill(8).upper()
-                hms_code = hex(hms.get("code", 0))[2:].zfill(8).upper()
-                for entry in bambucommands.HMS_STATUS["data"]["device_hms"]["en"]:
-                    if entry["ecode"] == f"{hms_attr}{hms_code}":
-                        hms["desc"] = entry["intro"]
-                        self._hms_message = f"{self._hms_message}{entry['intro']} "
-                        break
+            if "hms" in status:
+                logger.debug(f"parsing hms data: [{status['hms']}]")
+                self._hms_data = status.get("hms", [])
+                self._hms_message = ""
+                for hms in self._hms_data:
+                    hms_attr = hex(hms.get("attr", 0))[2:].zfill(8).upper()
+                    hms_code = hex(hms.get("code", 0))[2:].zfill(8).upper()
+                    for entry in bambucommands.HMS_STATUS["data"]["device_hms"]["en"]:
+                        if entry["ecode"] == f"{hms_attr}{hms_code}":
+                            hms["desc"] = entry["intro"]
+                            self._hms_message = f"{self._hms_message}{entry['intro']} "
+                            logger.debug(
+                                f"found hms message: [{hms_attr}{hms_code} - {entry['intro']}]"
+                            )
+                            break
 
-            self._hms_message = self._hms_message.rstrip()
+                self._hms_message = self._hms_message.rstrip()
 
             if "home_flag" in status:
                 flag = int(status["home_flag"])
