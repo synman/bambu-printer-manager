@@ -201,7 +201,7 @@ class BambuPrinter:
         This method is required to be called before any commands or data
         collection / callbacks can take place with the machine.
         """
-        logger.debug("session start_session")
+        logger.debug("start_session - starting session")
         if (
             self.config.hostname is None
             or self.config.access_code is None
@@ -212,33 +212,33 @@ class BambuPrinter:
             raise Exception("a session is already active")
 
         def on_connect(client, userdata, flags, reason_code, properties):
-            logger.debug("session on_connect")
+            logger.debug("on_connect - session on_connect")
             if self.state != PrinterState.PAUSED:
                 self.state = PrinterState.CONNECTED
                 client.subscribe(f"device/{self.config.serial_number}/report")
                 logger.debug(f"subscribed to [device/{self.config.serial_number}/report]")
 
         def on_disconnect(client, userdata, flags, reason_code, properties):
-            logger.debug("session on_disconnect")
+            logger.debug("on_disconnect - session on_disconnect")
             if self._internalException:
-                logger.exception("an internal exception occurred")
+                logger.exception("on_disconnect - an internal exception occurred")
                 self.state = PrinterState.QUIT
                 raise self._internalException
             if self.state != PrinterState.PAUSED:
                 self.state = PrinterState.DISCONNECTED
 
         def on_message(client, userdata, msg):
-            # logger.debug(f"session on_message - state: {self.state.name}")
+            logger.debug(f"on_message - topic: [{msg.topic}]")
             if self._lastMessageTime and self._recent_update:
                 self._lastMessageTime = time.monotonic()
             self._on_message(json.loads(msg.payload.decode("utf-8")))
 
         def loop_forever(printer):
-            logger.debug("session loop_forever")
+            logger.debug("loop_forever - starting mqtt loop_forever")
             try:
                 printer.client.loop_forever(retry_first_connection=True)
             except Exception as e:
-                logger.exception("an internal exception occurred")
+                logger.exception("loop_forever - an internal exception occurred")
                 printer._internalException = e
                 if printer.client and printer.client.is_connected():
                     printer.client.disconnect()
@@ -264,7 +264,7 @@ class BambuPrinter:
         except Exception as e:
             self._internalException = e
             logger.warning(
-                f"unable to connect to printer - reason: [{e}] stacktrace: [{traceback.format_exc()}]"
+                f"start_session - unable to connect to printer - reason: [{e}] stacktrace: [{traceback.format_exc()}]"
             )
             self.state = PrinterState.QUIT
             return
@@ -284,7 +284,9 @@ class BambuPrinter:
         """
         if self.state != PrinterState.PAUSED:
             self.client.unsubscribe(f"device/{self.config.serial_number}/report")
-            logger.debug(f"unsubscribed from [device/{self.config.serial_number}/report]")
+            logger.debug(
+                f"pause_session - unsubscribed from [device/{self.config.serial_number}/report]"
+            )
             self.state = PrinterState.PAUSED
 
     def resume_session(self):
@@ -297,7 +299,9 @@ class BambuPrinter:
             and self.state == PrinterState.PAUSED
         ):
             self.client.subscribe(f"device/{self.config.serial_number}/report")
-            logger.debug(f"subscribed to [device/{self.config.serial_number}/report]")
+            logger.debug(
+                f"resume_session - subscribed to [device/{self.config.serial_number}/report]"
+            )
             self._lastMessageTime = time.monotonic()
             self.state = PrinterState.CONNECTED
             return
@@ -311,9 +315,9 @@ class BambuPrinter:
         """
         if self.client and self.client.is_connected():
             self.client.disconnect()
-            logger.debug("mqtt client was connected and is now disconnected")
+            logger.debug("quit - mqtt client was connected and is now disconnected")
         else:
-            logger.debug("mqtt client was already disconnected")
+            logger.debug("quit - mqtt client was already disconnected")
 
         self._state = PrinterState.QUIT
         self._notify_update()
@@ -322,7 +326,7 @@ class BambuPrinter:
             self._mqtt_client_thread.join()
         if self._watchdog_thread.is_alive():
             self._watchdog_thread.join()
-        logger.debug("all threads have terminated")
+        logger.debug("quit - all threads have terminated")
 
     @contextlib.contextmanager
     def ftp_connection(self):
@@ -354,14 +358,14 @@ class BambuPrinter:
         """
         if self.state == PrinterState.CONNECTED:
             logger.debug(
-                f"publishing ANNOUNCE_PUSH to [device/{self.config.serial_number}/request]"
+                f"refresh - publishing ANNOUNCE_PUSH to [device/{self.config.serial_number}/request]"
             )
             self.client.publish(
                 f"device/{self.config.serial_number}/request",
                 json.dumps(bambucommands.ANNOUNCE_PUSH),
             )
             logger.debug(
-                f"publishing ANNOUNCE_VERSION to [device/{self.config.serial_number}/request]"
+                f"refresh - publishing ANNOUNCE_VERSION to [device/{self.config.serial_number}/request]"
             )
             self.client.publish(
                 f"device/{self.config.serial_number}/request",
@@ -377,7 +381,7 @@ class BambuPrinter:
             json.dumps(bambucommands.UNLOAD_FILAMENT),
         )
         logger.debug(
-            f"published UNLOAD_FILAMENT to [device/{self.config.serial_number}/request]"
+            f"unload_filament - published UNLOAD_FILAMENT to [device/{self.config.serial_number}/request]"
         )
 
     def load_filament(self, slot: int):
@@ -400,7 +404,7 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(msg)
         )
         logger.debug(
-            f"published AMS_FILAMENT_CHANGE to [device/{self.config.serial_number}/request] - target: [{slot}], bambu_msg: [{msg}]"
+            f"load_filament - published AMS_FILAMENT_CHANGE to [device/{self.config.serial_number}/request] - target: [{slot}], bambu_msg: [{msg}]"
         )
 
     def send_gcode(self, gcode: str):
@@ -422,7 +426,7 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] gcode: [{gcode}]"
+            f"send_gcode - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] gcode: [{gcode}]"
         )
 
     def print_3mf_file(
@@ -495,7 +499,7 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(file)
         )
         logger.debug(
-            f"published PRINT_3MF_FILE to [device/{self.config.serial_number}/request] print_command: [{file}]"
+            f"print_3mf_file - published PRINT_3MF_FILE to [device/{self.config.serial_number}/request] print_command: [{file}]"
         )
 
     def stop_printing(self):
@@ -507,7 +511,7 @@ class BambuPrinter:
             json.dumps(bambucommands.STOP_PRINT),
         )
         logger.debug(
-            f"published STOP_PRINT to [device/{self.config.serial_number}/request]"
+            f"stop_printing - published STOP_PRINT to [device/{self.config.serial_number}/request]"
         )
 
     def pause_printing(self):
@@ -519,7 +523,7 @@ class BambuPrinter:
             json.dumps(bambucommands.PAUSE_PRINT),
         )
         logger.debug(
-            f"published PAUSE_PRINT to [device/{self.config.serial_number}/request]"
+            f"pause_printing - published PAUSE_PRINT to [device/{self.config.serial_number}/request]"
         )
 
     def resume_printing(self):
@@ -531,7 +535,7 @@ class BambuPrinter:
             json.dumps(bambucommands.RESUME_PRINT),
         )
         logger.debug(
-            f"published RESUME_PRINT to [device/{self.config.serial_number}/request]"
+            f"resume_printing - published RESUME_PRINT to [device/{self.config.serial_number}/request]"
         )
 
     def get_sdcard_3mf_files(self):
@@ -543,6 +547,7 @@ class BambuPrinter:
         -----
         The return value of this method is very useful for binding to things like a clientside `TreeView`
         """
+        logger.debug("get_sdcard_3mf_files - retrieving .3mf files from sdcard")
         return self._sdcard_3mf_files
 
     def get_sdcard_contents(self):
@@ -557,8 +562,6 @@ class BambuPrinter:
 
         with self.ftp_connection() as ftps:
             fs = self._get_sftp_files(ftps, "/")
-
-        logger.debug(f"read all sdcard files fs: [{fs}]")
         self._sdcard_contents = sortFileTreeAlphabetically(fs)
 
         def search_for_and_remove_all_other_files(mask: str, entry: dict):
@@ -574,6 +577,7 @@ class BambuPrinter:
         self._sdcard_3mf_files = json.loads(json.dumps(self._sdcard_contents))
         search_for_and_remove_all_other_files(".3mf", self._sdcard_3mf_files)
 
+        logger.debug("get_sdcard_contents - retrieved all files from sdcard")
         return fs
 
     def delete_sdcard_file(self, file: str):
@@ -599,6 +603,8 @@ class BambuPrinter:
 
         search_for_and_remove_file(file, self._sdcard_contents)
         search_for_and_remove_file(file, self._sdcard_3mf_files)
+
+        logger.debug(f"delete_sdcard_file - deleted file [{file}] from sdcard")
         return self._sdcard_contents
 
     def delete_sdcard_folder(self, path: str):
@@ -609,7 +615,7 @@ class BambuPrinter:
         ----------
         * path : str - the full path to folder to be deleted
         """
-        logger.debug(f"deleting remote folder: [{path}]")
+        logger.debug(f"delete_sdcard_folder - deleting remote folder: [{path}]")
 
         def delete_all_contents(ftps: IoTFTPSClient, path: str):
             fs = ftps.list_files_ex(path)
@@ -646,7 +652,7 @@ class BambuPrinter:
         * src : str - the full path filename on the host to be uploaded to the printer
         * dest : str - the full path filename on the printer to upload to
         """
-        logger.debug(f"uploading file src: [{src}] dest: [{dest}]")
+        logger.debug(f"upload_sdcard_file - uploading file src: [{src}] dest: [{dest}]")
         with self.ftp_connection() as ftps:
             ftps.upload_file(src, dest)
         return self.get_sdcard_contents()
@@ -660,7 +666,9 @@ class BambuPrinter:
         * src : str - the full path filename on the printer to be downloaded to the host
         * dest : str - the full path filename on the host to store the downloaded file
         """
-        logger.debug(f"downloading file src: [{src}] dest: [{dest}]")
+        logger.debug(
+            f"download_sdcard_file - downloading file src: [{src}] dest: [{dest}]"
+        )
         with self.ftp_connection() as ftps:
             ftps.download_file(src, dest)
 
@@ -672,7 +680,7 @@ class BambuPrinter:
         ----------
         * dir : str - the full path directory name to be created
         """
-        logger.debug(f"creating remote directory [{dir}]")
+        logger.debug(f"make_sdcard_directory - creating remote directory [{dir}]")
         with self.ftp_connection() as ftps:
             ftps.mkdir(dir)
         return self.get_sdcard_contents()
@@ -686,7 +694,7 @@ class BambuPrinter:
         * src : str - the full path name to be renamed
         * dest : str - the full path name to be renamed to
         """
-        logger.debug(f"renaming printer file [{src}] to [{dest}]")
+        logger.debug(f"rename_sdcard_file - renaming printer file [{src}] to [{dest}]")
         with self.ftp_connection() as ftps:
             ftps.move_file(src, dest)
         return self.get_sdcard_contents()
@@ -699,7 +707,7 @@ class BambuPrinter:
         ----------
         * path : str - the full path name to check
         """
-        logger.debug(f"checking if printer file [{path}] exists")
+        logger.debug(f"sdcard_file_exists - checking if printer file [{path}] exists")
         with self.ftp_connection() as ftps:
             return ftps.fexists(path)
 
@@ -724,7 +732,7 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"published PRINT_OPTION_COMMAND to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+            f"set_print_option - published PRINT_OPTION_COMMAND to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
     def set_ams_user_setting(
@@ -758,7 +766,7 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"published AMS_USER_SETTING to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+            f"set_ams_user_setting - published AMS_USER_SETTING to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
     def set_spool_k_factor(
@@ -789,7 +797,7 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"published EXTRUSION_CALI_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+            f"set_spool_k_factor - published EXTRUSION_CALI_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
     def set_spool_details(
@@ -848,7 +856,7 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"published AMS_FILAMENT_SETTING to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+            f"set_spool_details - published AMS_FILAMENT_SETTING to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
     def send_ams_control_command(self, ams_control_cmd: AMSControlCommand):
@@ -863,7 +871,7 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"published AMS_CONTROL to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+            f"send_ams_control_commandpublished AMS_CONTROL to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
     def skip_objects(self, objects):
@@ -884,7 +892,7 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"published SKIP_OBJECTS to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+            f"skip_objects - published SKIP_OBJECTS to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
     def set_buildplate_marker_detector(self, enabled: bool):
@@ -899,7 +907,7 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+            f"set_buildplate_marker_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
     def toJson(self):
@@ -908,6 +916,7 @@ class BambuPrinter:
         level attributes that are serializable (most are).
         """
         response = json.dumps(self, default=self.jsonSerializer, indent=4, sort_keys=True)
+        # logger.debug(f"toJson - json: [{response}]")
         return json.loads(response)
 
     def jsonSerializer(self, obj):
@@ -924,7 +933,9 @@ class BambuPrinter:
                 return "this space intentionally left blank"
             return obj.__dict__
         except Exception:
-            logger.warning(f"unable to serialize object - 'obj': [{obj}]")
+            logger.warning(
+                f"jsonSerializer - unable to serialize object - 'obj': [{obj}]"
+            )
             return "not available"
 
     def _start_watchdog(self):
@@ -950,7 +961,7 @@ class BambuPrinter:
                         )
                     time.sleep(0.1)
             except Exception as e:
-                logger.exception("an internal exception occurred")
+                logger.exception("watchdog_thread - an internal exception occurred")
                 printer._internalException = e
                 if printer.client and printer.client.is_connected():
                     printer.client.disconnect()
@@ -1180,17 +1191,17 @@ class BambuPrinter:
             if "print_error" in status:
                 err = status["print_error"]
                 if err == 0 and self._hms_data or self._hms_message:
-                    logger.debug("clearing hms data and message")
+                    logger.debug("_on_message - clearing hms data and message")
                     self._hms_data = []
                     self._last_hms_message = self._hms_message
                     self._hms_message = ""
                 else:
                     if err != 0 and self._last_hms_message:
-                        logger.debug("restoring last hms message")
+                        logger.debug("_on_message - restoring last hms message")
                         self._hms_message = self._last_hms_message
 
             if "hms" in status:
-                logger.debug(f"parsing hms data: [{status['hms']}]")
+                logger.debug(f"_on_message - parsing hms data: [{status['hms']}]")
                 self._hms_data = status.get("hms", [])
                 self._hms_message = ""
                 for hms in self._hms_data:
@@ -1250,7 +1261,9 @@ class BambuPrinter:
             pass
 
         else:
-            logger.warning(f"unknown message type received - bambu_msg: [{message}]")
+            logger.warning(
+                f"_on_message - unknown message type received - bambu_msg: [{message}]"
+            )
 
         if self._gcode_state in ("PREPARE", "RUNNING", "PAUSE"):
             if self._start_time == 0:
@@ -1268,7 +1281,7 @@ class BambuPrinter:
         try:
             files = ftps.list_files_ex(directory)
         except Exception:
-            logger.exception("unexpected ftps exception")
+            logger.exception("_get_sftp_files - unexpected ftps exception")
             return None
 
         dir = {
