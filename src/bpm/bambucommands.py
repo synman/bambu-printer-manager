@@ -146,12 +146,11 @@ SKIP_OBJECTS = {
 }
 
 SET_ACCESSORIES = {
-    "print": {
+    "system": {
         "accessory_type": "nozzle",
         "command": "set_accessories",
         "nozzle_diameter": 0.4000000059604645,
         "nozzle_type": "hardened_steel",
-        "sequence_id": "0",
     }
 }
 

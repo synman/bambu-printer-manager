@@ -19,6 +19,8 @@ from .bambuspool import BambuSpool
 from .bambutools import (
     AMSControlCommand,
     AMSUserSetting,
+    NozzleDiameter,
+    NozzleType,
     PlateType,
     PrinterState,
     PrintOption,
@@ -908,6 +910,23 @@ class BambuPrinter:
         )
         logger.debug(
             f"set_buildplate_marker_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+        )
+
+    def set_nozzle_details(
+        self, nozzle_diameter: NozzleDiameter, nozzle_type: NozzleType
+    ):
+        """
+        Sets the nozzle details.
+        """
+        cmd = copy.deepcopy(bambucommands.SET_ACCESSORIES)
+        cmd["system"]["nozzle_diameter"] = nozzle_diameter.value
+        cmd["system"]["nozzle_type"] = nozzle_type.name.lower()
+
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+        logger.debug(
+            f"set_nozzle_details - published SET_ACCESSORIES to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
     def toJson(self):

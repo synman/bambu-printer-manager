@@ -227,6 +227,26 @@ class AMSControlCommand(Enum):
     RESET = 2
 
 
+class NozzleDiameter(Enum):
+    """
+    Nozzle Diameter enum
+    """
+
+    POINT_TWO_MM = 0.2
+    POINT_FOUR_MM = 0.4
+    POINT_SIX_MM = 0.6
+    POINT_EIGHT_MM = 0.8
+
+
+class NozzleType(Enum):
+    """
+    Nozzle Type enum
+    """
+
+    STAINLESS_STEEL = 0
+    HARDENED_STEEL = 1
+
+
 class PrinterModel(Enum):
     """
     Printer model enum
