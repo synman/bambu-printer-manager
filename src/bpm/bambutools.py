@@ -236,6 +236,7 @@ class NozzleDiameter(Enum):
     POINT_FOUR_MM = 0.4
     POINT_SIX_MM = 0.6
     POINT_EIGHT_MM = 0.8
+    UNKNOWN = 0.0
 
 
 class NozzleType(Enum):
@@ -243,8 +244,9 @@ class NozzleType(Enum):
     Nozzle Type enum
     """
 
-    STAINLESS_STEEL = 0
-    HARDENED_STEEL = 1
+    STAINLESS_STEEL = 1
+    HARDENED_STEEL = 2
+    UNKNOWN = 0
 
 
 class PrinterModel(Enum):

@@ -1634,6 +1634,25 @@ class BambuPrinter:
     def skipped_objects(self):
         return self._skipped_objects
 
+    @property
+    def nozzle_diameter(self) -> NozzleDiameter:
+        try:
+            return NozzleDiameter(float(self._nozzle_diameter))
+        except (ValueError, TypeError, KeyError) as e:
+            logger.warning(f"nozzle_diameter - exception: [{e}]")
+            return NozzleDiameter.UNKNOWN
+
+    @property
+    def nozzle_type(self) -> NozzleType:
+        if not self._nozzle_type:
+            return NozzleType.UNKNOWN
+
+        try:
+            return NozzleType[self._nozzle_type.upper()]
+        except (ValueError, TypeError, KeyError) as e:
+            logger.warning(f"nozzle_type - exception: [{e}]")
+            return NozzleType.UNKNOWN
+
     def _notify_update(self):
         if self.on_update:
             self.on_update(self)
