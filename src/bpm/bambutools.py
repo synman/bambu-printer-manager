@@ -262,6 +262,9 @@ class PrinterModel(Enum):
     P1S = 5
     A1_MINI = 6
     A1 = 7
+    P2S = 8
+    H2S = 9
+    H2D = 10
 
 
 def getModelBySerial(serial: str) -> PrinterModel:
@@ -282,6 +285,12 @@ def getModelBySerial(serial: str) -> PrinterModel:
         return PrinterModel.A1_MINI
     elif serial.startswith("039"):
         return PrinterModel.A1
+    elif serial.startswith("22E"):
+        return PrinterModel.P2S
+    elif serial.startswith("093"):
+        return PrinterModel.H2S
+    elif serial.startswith("094"):
+        return PrinterModel.H2D
     else:
         return PrinterModel.UNKNOWN
 

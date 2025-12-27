@@ -929,6 +929,18 @@ class BambuPrinter:
             f"set_nozzle_details - published SET_ACCESSORIES to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
+    def send_anything(self, anything: str):
+        """
+        puts an arbritary string on the request topic
+        """
+        self.client.publish(
+            f"device/{self.config.serial_number}/request",
+            json.dumps(json.loads(anything)),
+        )
+        logger.debug(
+            f"send_anything - published message to [device/{self.config.serial_number}/request] message: [{anything}]"
+        )
+
     def toJson(self):
         """
         Returns a `dict` (json document) representing this object's private class
@@ -1646,7 +1658,6 @@ class BambuPrinter:
     def nozzle_type(self) -> NozzleType:
         if not self._nozzle_type:
             return NozzleType.UNKNOWN
-
         try:
             return NozzleType[self._nozzle_type.upper()]
         except (ValueError, TypeError, KeyError) as e:
