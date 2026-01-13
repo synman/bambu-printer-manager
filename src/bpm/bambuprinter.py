@@ -543,13 +543,12 @@ class BambuPrinter:
     def get_sdcard_3mf_files(self):
         """
         Returns a `dict` (json document) of all `.3mf` files on the printer's SD card.
-        The private class level `_sdcard_3mf_files` attribute is also populated.
 
         Usage
         -----
         The return value of this method is very useful for binding to things like a clientside `TreeView`
         """
-        logger.debug("get_sdcard_3mf_files - retrieving .3mf files from sdcard")
+        logger.debug("get_sdcard_3mf_files - returning sdcard_3mf_files")
         return self._sdcard_3mf_files
 
     def get_sdcard_contents(self):
