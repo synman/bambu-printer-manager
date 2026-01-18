@@ -1165,7 +1165,9 @@ class BambuPrinter:
                     self._spools = tuple(spools)
 
             if "vt_tray" in status or "vir_slot" in status:
-                tray = status.get("vt_tray", status["vir_slot"][0])
+                tray = status.get(
+                    "vt_tray", status["vir_slot"][0] if "vir_slot" in status else {}
+                )
                 try:
                     tray_color = hex_to_name("#" + tray["tray_color"][:6])
                 except Exception:
