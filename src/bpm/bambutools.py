@@ -246,6 +246,8 @@ class NozzleType(Enum):
 
     STAINLESS_STEEL = 1
     HARDENED_STEEL = 2
+    HS01 = 3
+    HH01 = 4
     UNKNOWN = 0
 
 

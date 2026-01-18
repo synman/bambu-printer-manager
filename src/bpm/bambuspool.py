@@ -23,6 +23,12 @@ class BambuSpool:
         bed_temp: int,
         nozzle_temp_min: int,
         nozzle_temp_max: int,
+        drying_temp: int = 0,
+        drying_time: int = 0,
+        remaining_percent: int = 0,
+        state: int = 0,
+        total_length: int = 0,
+        tray_weight: int = 0,
     ):
         """
         Sets up all internal storage attributes for `BambuSpool`.
@@ -39,6 +45,12 @@ class BambuSpool:
         * bed_temp : int - The target bed temperature to use.
         * nozzle_temp_min : int - The minimum usable nozzle temperature to use.
         * nozzle_temp_max : int - The maximum usable nozzle temperature to use.
+        * drying_temp : int - The drying temperature for the filament spool.
+        * drying_time : int - The drying time for the filament spool.
+        * remaining_percent : int - The estimated remaining filament percentage.
+        * state : int - The current state of the spool.
+        * total_length : int - The total length of filament on the spool in millimeters.
+        * tray_weight : int - The weight of the filament spool in grams.
         """
         self.id = id
         self.name = name
@@ -50,6 +62,12 @@ class BambuSpool:
         self.bed_temp = bed_temp
         self.nozzle_temp_min = nozzle_temp_min
         self.nozzle_temp_max = nozzle_temp_max
+        self.drying_temp = drying_temp
+        self.drying_time = drying_time
+        self.remaining_percent = remaining_percent
+        self.state = state
+        self.total_length = total_length
+        self.tray_weight = tray_weight
 
     @property
     def id(self):
@@ -130,3 +148,51 @@ class BambuSpool:
     @nozzle_temp_max.setter
     def nozzle_temp_max(self, value):
         self._nozzle_temp_max = value
+
+    @property
+    def drying_temp(self):
+        return self._drying_temp
+
+    @drying_temp.setter
+    def drying_temp(self, value):
+        self._drying_temp = value
+
+    @property
+    def drying_time(self):
+        return self._drying_time
+
+    @drying_time.setter
+    def drying_time(self, value):
+        self._drying_time = value
+
+    @property
+    def remaining_percent(self):
+        return self._remaining_percent
+
+    @remaining_percent.setter
+    def remaining_percent(self, value):
+        self._remaining_percent = value
+
+    @property
+    def state(self):
+        return self._state
+
+    @state.setter
+    def state(self, value):
+        self._state = value
+
+    @property
+    def total_length(self):
+        return self._total_length
+
+    @total_length.setter
+    def total_length(self, value):
+        self._total_length = value
+
+    @property
+    def tray_weight(self):
+        return self._tray_weight
+
+    @tray_weight.setter
+    def tray_weight(self, value):
+        self._tray_weight = value

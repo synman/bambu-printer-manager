@@ -67,6 +67,7 @@ class BambuPrinter:
         * _tool_temp: `READ ONLY` The current printer tool temperature.
         * _tool_temp_target: `READ/WRITE` The target tool temperature for the printer.
         * _tool_temp_target_time: `READ ONLY` Epoch timetamp for when target tool temperature was last set.
+        * _target_tool_num: `READ ONLY` The target tool number for the printer.
         * _chamber_temp `READ/WRITE` Not currently integrated but can be used as a stub for external chambers.
         * _chamber_temp_target `READ/WRITE` Not currently integrated but can be used as a stub for external chambers.
         * _chamber_temp_target_time: `READ ONLY` Epoch timetamp for when target chamber temperature was last set.
@@ -140,6 +141,7 @@ class BambuPrinter:
         self._tool_temp = 0.0
         self._tool_temp_target = 0.0
         self._tool_temp_target_time = 0
+        self._target_tool_num = -1
 
         self._chamber_temp = 0.0
         self._chamber_temp_target = 0.0
@@ -1152,12 +1154,18 @@ class BambuPrinter:
                                 tray.get("bed_temp", 0),
                                 tray.get("nozzle_temp_min", 0),
                                 tray.get("nozzle_temp_max", 0),
+                                tray.get("drying_temp", 0),
+                                tray.get("drying_time", 0),
+                                tray.get("remain", -1),
+                                tray.get("state", -1),
+                                tray.get("total_len", 0),
+                                tray.get("tray_weight", 0),
                             )
                             spools.append(spool)
                     self._spools = tuple(spools)
 
-            if "vt_tray" in status:
-                tray = status["vt_tray"]
+            if "vt_tray" in status or "vir_slot" in status:
+                tray = status.get("vt_tray", status["vir_slot"][0])
                 try:
                     tray_color = hex_to_name("#" + tray["tray_color"][:6])
                 except Exception:
@@ -1166,7 +1174,7 @@ class BambuPrinter:
                     except Exception:
                         tray_color = ""
 
-                if tray.get("id", None):
+                if int(tray.get("id", 255)) == 254:
                     spool = BambuSpool(
                         int(tray.get("id")),
                         tray.get("tray_id_name", ""),
@@ -1178,6 +1186,12 @@ class BambuPrinter:
                         tray.get("bed_temp", 0),
                         tray.get("nozzle_temp_min", 0),
                         tray.get("nozzle_temp_max", 0),
+                        tray.get("drying_temp", 0),
+                        tray.get("drying_time", 0),
+                        -1,
+                        tray.get("state", -1),
+                        tray.get("total_len", 0),
+                        tray.get("tray_weight", 0),
                     )
                     if not self._ams_exists:
                         spools = (spool,)
@@ -1191,16 +1205,22 @@ class BambuPrinter:
             tray_now = None
             tray_pre = None
 
-            if "ams" in status and "tray_tar" in status["ams"]:
-                tray_tar = int(status["ams"]["tray_tar"])
-                self._target_spool = tray_tar
+            if "ams" in status and status["ams"]:
+                for ams in status["ams"].get("ams", {}):
+                    logger.debug(
+                        f"_on_message - ams [{ams['id']}] temp: [{ams.get('temp', 0)}] humidity:[{ams.get('humidity_raw', 0)}] index: [{ams.get('humidity', 0)}]"
+                    )
 
-            if "ams" in status and "tray_now" in status["ams"]:
-                tray_now = int(status["ams"]["tray_now"])
-                self._active_spool = tray_now
+                if "tray_tar" in status["ams"]:
+                    tray_tar = int(status["ams"]["tray_tar"])
+                    self._target_spool = tray_tar
 
-            if "ams" in status and "tray_pre" in status["ams"]:
-                tray_pre = int(status["ams"]["tray_pre"])
+                if "tray_now" in status["ams"]:
+                    tray_now = int(status["ams"]["tray_now"])
+                    self._active_spool = tray_now
+
+                if "tray_pre" in status["ams"]:
+                    tray_pre = int(status["ams"]["tray_pre"])
 
             if tray_tar is not None or tray_now is not None or tray_pre is not None:
                 if self._target_spool == 255 and self._active_spool == 255:
@@ -1230,21 +1250,44 @@ class BambuPrinter:
                         logger.debug("_on_message - restoring last hms message")
                         self._hms_message = self._last_hms_message
 
-            if "hms" in status:
+            if "hms" in status and status["hms"]:
                 logger.debug(f"_on_message - parsing hms data: [{status['hms']}]")
+
                 self._hms_data = status.get("hms", [])
                 self._hms_message = ""
+                wiki_code = ""
+
                 for hms in self._hms_data:
-                    hms_attr = hex(hms.get("attr", 0))[2:].zfill(8).upper()
-                    hms_code = hex(hms.get("code", 0))[2:].zfill(8).upper()
+                    attr_raw = hms.get("attr", 0)
+                    code_raw = hms.get("code", 0)
+
+                    attr_masked = attr_raw & 0xFF00FFFF
+
+                    h_attr = f"{attr_masked:08X}"
+                    h_code = f"{code_raw:08X}"
+
+                    wiki_code = f"{h_attr[:4]}_{h_attr[4:]}_{h_code[:4]}_{h_code[4:]}"
+                    wiki_url = f"https://wiki.bambulab.com/en/x1/troubleshooting/hmscode/{wiki_code}"
+                    logger.debug(
+                        f"_on_message - hms ecode: [{h_attr}{h_code}] wiki: [{wiki_code}]"
+                    )
+
                     for entry in bambucommands.HMS_STATUS["data"]["device_hms"]["en"]:
-                        if entry["ecode"] == f"{hms_attr}{hms_code}":
-                            hms["desc"] = entry["intro"]
-                            self._hms_message = f"{self._hms_message}{entry['intro']} "
+                        if (
+                            entry["ecode"]
+                            == f"{h_attr[:4]}{h_attr[4:]}{h_code[:4]}{h_code[4:]}"
+                        ):
+                            self._hms_message = (
+                                f"{self._hms_message}{entry['intro']} ({wiki_url}) "
+                            )
                             logger.debug(
-                                f"found hms message: [{hms_attr}{hms_code} - {entry['intro']}]"
+                                f"_on_message - found hms message: [{entry['intro']}]"
                             )
                             break
+                if self._hms_message == "":
+                    self._hms_message = (
+                        f"HMS Error [{wiki_code.replace('_', '-')}] - message NOT found"
+                    )
 
                 self._hms_message = self._hms_message.rstrip()
 
@@ -1271,6 +1314,30 @@ class BambuPrinter:
                 self.config.buildplate_marker_detector = status["xcam"][
                     "buildplate_marker_detector"
                 ]
+
+            if "device" in status:
+                device = status["device"]
+                if "ctc" in device:
+                    ctc = device["ctc"]
+                    self._chamber_temp = float(ctc["info"]["temp"])
+                if "extruder" in device:
+                    info = device["extruder"].get("info", {})
+                    temp = 0
+                    tool = 0
+                    for extruder in info:
+                        # logger.debug(
+                        #     f"_on_message - extruder [{extruder["id"]} temp: [{int(extruder["temp"] / 65536.0)} hnow: [{extruder["hnow"]}] target: [{extruder["htar"]}]"
+                        # )
+                        if int(extruder["temp"] / 65536.0) > temp:
+                            temp = int(extruder["temp"] / 65536.0)
+                            tool = extruder["id"]
+                    if temp > 0:
+                        self._tool_temp = float(temp)
+                        self._tool_temp_target = float(temp)
+                        self._target_tool_num = tool
+                        logger.debug(
+                            f"_on_message - tool temp: [{self._tool_temp}] target: [{self._tool_temp_target}] tool: [{self._target_tool_num}]"
+                        )
 
         elif "info" in message and "module" in message["info"]:
             self._recent_update = True
@@ -1428,6 +1495,10 @@ class BambuPrinter:
         self._tool_temp_target_time = round(time.time())
 
     @property
+    def target_tool_num(self):
+        return self._target_tool_num
+
+    @property
     def chamber_temp(self):
         return self._chamber_temp
 
@@ -1503,11 +1574,15 @@ class BambuPrinter:
     @light_state.setter
     def light_state(self, value: bool):
         value = bool(value)
-        cmd = bambucommands.CHAMBER_LIGHT_TOGGLE
+        cmd = copy.deepcopy(bambucommands.CHAMBER_LIGHT_TOGGLE)
         if value:
             cmd["system"]["led_mode"] = "on"
         else:
             cmd["system"]["led_mode"] = "off"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+        cmd["system"]["led_node"] = "chamber_light2"
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )

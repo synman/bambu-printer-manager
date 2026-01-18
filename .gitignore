@@ -29,6 +29,7 @@ __pycache__
 # project specific
 *.egg-info
 /dist
+/.vscode
 
 # Ruff stuff:
 .ruff_cache/
