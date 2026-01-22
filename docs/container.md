@@ -1,7 +1,11 @@
 # bambu-printer-manager Client Container
 This container is a Material UI / React application for monitoring and administering Bambu Lab printers.  It runs on an `Alpine Linux` image with `HAPROXY` working as a reverse proxy for the frontend, backend, and webcam services.
 
-The frontend is written in `nodejs` and uses the `React Material UI` library for producing a content rich user experience.  The backend is written in `Python` and uses a `Flask Waitress` server for responding to frontend api calls with the help of a [custom python library](https://github.com/synman/bambu-printer-manager) developed specifically for interacting with `Bambu Lab` printers. The webcam service is a [custom python daemon](https://github.com/synman/webcamd/tree/bambu) that decodes the printer's built-in webcam data and produces a `MJPEG` stream that  is served by the frontend.
+The frontend is written in `nodejs` and uses the `React Material UI` library for producing a content rich user experience.  The backend is written in `Python` and uses a `Flask Waitress` server for responding to frontend api calls and a [custom python library](https://github.com/synman/bambu-printer-manager) developed specifically for interacting with `Bambu Lab` printers.
+
+The webcam service for A1 and P1 series printers is a [custom python daemon](https://github.com/synman/webcamd/tree/bambu) that decodes the printer's built-in webcam data and produces a `MJPEG` stream that is served by the frontend.
+
+The video stream for P2/H2/X1 series printers is produced using `go2rtc` and `ffmpeg`.
 
 ## Become a Sponsor
 While caffiene and sleepness nights drive the delivery of this project, they unfortunately do not cover the financial expense necessary to further its development.  Please consider becoming a `bambu-printer-manager` sponsor today!
@@ -9,18 +13,19 @@ While caffiene and sleepness nights drive the delivery of this project, they unf
 
 ## Installation
 ```
-# Configure the host, access code, serial # environment variables and
-# map the HAPROXY listener to a host port to launch the container
+# Configure the host, access code, serial #, stream type environment variables and
+# map the NGINX listener to a host port to launch the container
 
 docker run \
        -e BAMBU_HOSTNAME='PRINTER_HOSTNAME_OR_IP' \
        -e BAMBU_ACCESS_CODE='PRINTER_ACCESS_CODE' \
        -e BAMBU_SERIAL_NUMBER='PRINTER_SERIAL_NUMBER' \
+       -e BAMBU_VIDEO_STREAM_TYPE='MJPEG or RTSPS' \
        -p 80:8080 \
        --name bambu-printer-manager synman/bambu-printer-manager
 ```
 ## Usage
-To use `bambu-printer-manager` you only need to pull the image, configure a couple environment variables, and map the `HAPROXY` listener (port 8080) to a usable port on the host machine.  You then access it like you would any other web based application.
+To use `bambu-printer-manager` you only need to pull the image, configure a couple environment variables, and map the `nginx` listener (port 8080) to a usable port on the host machine.  You then access it like you would any other web based application.
 
 ![Cards](https://github.com/synman/bambu-printer-manager/assets/1299716/5015c3ff-dbde-4427-8e6c-ba0ec9a18588)
 ![Charts](https://github.com/synman/bambu-printer-manager/assets/1299716/9e1aae05-9fca-4e42-a8d4-8d53c5db53de)
@@ -33,6 +38,12 @@ To use `bambu-printer-manager` you only need to pull the image, configure a coup
   <img src="https://github.com/synman/bambu-printer-manager/assets/1299716/1bdfec3a-4379-4c8f-b93b-3bfdb06de3a6" width="300px" />
   <img src="https://github.com/synman/bambu-printer-manager/assets/1299716/b7f5af63-2340-4e56-9d65-4821b5911782" width="300px" />
 </p>
+
+## Video Stream
+```dockerfile
+ENV BAMBU_VIDEO_STREAM_TYPE="MJPEG-or-RTSPS"
+```
+You need to set which stream format to use.  The A1 and P1 series require `MJPEG` and all other machines use `RTSPS`. If you do not define this variable, the container will default to MJPEG.
 
 ## External Chamber Heating
 This is an `advanced` feature of the container that allows you to use a [heater](https://www.amazon.com/Safety-Energy-saving-Portable-Desktop-Electric/dp/B07573FKSG?th=1) to control the atmosphere within your printer's enclosure. This is very helpful if you have an A1 in an enclosure and want to use

@@ -94,6 +94,20 @@ AMS_FILAMENT_SETTING = {
     }
 }
 
+AMS_FILAMENT_DRYING = {
+    "print": {
+        "sequence_id": "0",
+        "command": "ams_filament_drying",
+        "ams_id": 0,
+        "mode": 0,
+        "temp": 0,
+        "cooling_temp": 45,
+        "duration": 0,
+        "humidity": 0,
+        "rotate_tray": False,
+    }
+}
+
 AMS_USER_SETTING = {
     "print": {
         "ams_id": 0,
@@ -152,6 +166,10 @@ SET_ACCESSORIES = {
         "nozzle_diameter": 0.4000000059604645,
         "nozzle_type": "hardened_steel",
     }
+}
+
+SET_ACTIVE_TOOL = {
+    "print": {"command": "select_extruder", "extruder_index": 0, "sequence_id": "0"}
 }
 
 XCAM_CONTROL_SET = {

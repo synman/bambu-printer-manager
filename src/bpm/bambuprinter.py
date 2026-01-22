@@ -11,12 +11,37 @@ import traceback
 from threading import Thread
 
 import paho.mqtt.client as mqtt
+from typing_extensions import deprecated
 from webcolors import hex_to_name, name_to_hex
 
-from . import bambucommands
-from .bambuconfig import BambuConfig, LoggerName
-from .bambuspool import BambuSpool
-from .bambutools import (
+from bpm.bambucommands import (
+    AMS_CONTROL,
+    AMS_FILAMENT_CHANGE,
+    AMS_FILAMENT_DRYING,
+    AMS_FILAMENT_SETTING,
+    AMS_USER_SETTING,
+    ANNOUNCE_PUSH,
+    ANNOUNCE_VERSION,
+    CHAMBER_LIGHT_TOGGLE,
+    EXTRUSION_CALI_SET,
+    HMS_STATUS,
+    PAUSE_PRINT,
+    PRINT_3MF_FILE,
+    PRINT_OPTION_COMMAND,
+    RESUME_PRINT,
+    SEND_GCODE_TEMPLATE,
+    SET_ACCESSORIES,
+    SET_ACTIVE_TOOL,
+    SKIP_OBJECTS,
+    SPEED_PROFILE_TEMPLATE,
+    STOP_PRINT,
+    UNLOAD_FILAMENT,
+    XCAM_CONTROL_SET,
+)
+from bpm.bambuconfig import BambuConfig, LoggerName
+from bpm.bambuspool import BambuSpool
+from bpm.bambustate import BambuState
+from bpm.bambutools import (
     AMSControlCommand,
     AMSUserSetting,
     NozzleDiameter,
@@ -28,17 +53,17 @@ from .bambutools import (
     parseStage,
     sortFileTreeAlphabetically,
 )
-from .ftpsclient.ftpsclient import IoTFTPSClient
+from bpm.ftpsclient.ftpsclient import IoTFTPSClient
 
 logger = logging.getLogger(LoggerName)
 
 
 class BambuPrinter:
     """
-    `BambuPrinter` is the main class within `bambu-printer-manager` for interacting with and
-    managing your Bambu Lab 3d printer. It provides an object oriented abstraction layer
-    between your project and the `mqtt` and `ftps` based mechanisms in place for communicating
-    with your printer.
+    `BambuPrinter` is the main class within `bambu-printer-manager`
+    It is responsible for interacting with and managing your Bambu Lab 3d printer.
+    It provides an object oriented abstraction layer between your project and the
+    `mqtt` and `ftps` based mechanisms in place for communicating with your printer.
     """
 
     def __init__(self, config: BambuConfig | None = None):
@@ -49,76 +74,10 @@ class BambuPrinter:
         Parameters
         ----------
         * config : Optional[BambuConfig] = None
-
-        Attributes
-        ----------
-        * _mqtt_client_thread: `PRIVATE` Thread handle for the mqtt client thread
-        * _watchdog_thread: `PRIVATE` Thread handle for the watchdog thread
-        * _internalExcepton: `READ ONLY` Returns the underlying `Exception` object if a failure occurred.
-        * _lastMessageTime: `READ ONLY` Epoch timestamp (in seconds) for the last time an update was received from the printer.
-        * _recent_update: `READ ONLY` Indicates that a message from the printer has been recently processed.
-        * _config: `READ/WRITE` `bambuconfig.BambuConfig` Configuration object associated with this instance.
-        * _state: `READ/WRITE` `bambutools.PrinterState` enum reports on health / status of the connection to the printer.
-        * _client: `READ ONLY` Provides access to the underlying `paho.mqtt.client` library.
-        * _on_update: `READ/WRITE` Callback used for pushing updates.  Includes a self reference to `BambuPrinter` as an argument.
-        * _bed_temp: `READ ONLY` The current printer bed temperature.
-        * _bed_temp_target: `READ/WRITE` The target bed temperature for the printer.
-        * _bed_temp_target_time: `READ ONLY` Epoch timetamp for when target bed temperature was last set.
-        * _tool_temp: `READ ONLY` The current printer tool temperature.
-        * _tool_temp_target: `READ/WRITE` The target tool temperature for the printer.
-        * _tool_temp_target_time: `READ ONLY` Epoch timetamp for when target tool temperature was last set.
-        * _target_tool_num: `READ ONLY` The target tool number for the printer.
-        * _chamber_temp `READ/WRITE` Not currently integrated but can be used as a stub for external chambers.
-        * _chamber_temp_target `READ/WRITE` Not currently integrated but can be used as a stub for external chambers.
-        * _chamber_temp_target_time: `READ ONLY` Epoch timetamp for when target chamber temperature was last set.
-        * _fan_gear `READ ONLY` Combined fan(s) reporting value.  Can be bit shifted for individual speeds.
-        * _heat_break_fan_speed `READ_ONLY` The heatbreak (heater block) fan speed in percent.
-        * _fan_speed `READ ONLY` The parts cooling fan speed in percent.
-        * _fan_speed_target `READ/WRITE` The parts cooling fan target speed in percent.
-        * _fan_speed_target_time: `READ ONLY` Epoch timetamp for when target fan speed was last set.
-        * _light_state `READ/WRITE` Boolean value indicating the state of the work light.
-        * _wifi_signal `READ ONLY` The current Wi-Fi signal strength of the printer.
-        * _speed_level `READ/WRITE` System Print Speed (1=Quiet, 2=Standard, 3=Sport, 4=Ludicrous).
-        * _gcode_state `READ ONLY` State reported for job status (FAILED/RUNNING/PAUSE/IDLE/FINISH).
-        * _gcode_file `READ ONLY` The name of the current or last printed gcode file.
-        * _3mf_file `READ ONLY` The name of the 3mf file currently being printed.
-        * _3mf_file_md5 `READ ONLY` The md5 of the 3mf file currently being printed.
-        * _plate_num `READ ONLY` The selected plate # for the current 3mf file.
-        * _plate_type `READ ONLY` The selected plate type for the current 3mf file.
-        * _subtask_name `READ ONLY` The name of the active subtask.
-        * _print_type `READ ONLY` Not entirely sure.  Reports "idle" when no job is active.
-        * _percent_complete `READ ONLY` Percentage complete for the current active job.
-        * _time_remaining `READ ONLY` The number of estimated minutes remaining for the active job.
-        * _start_time `READ ONLY` The start time of the last (or current) active job in epoch minutes.
-        * _elapsed_time `READ ONLY` The number of elapsed minutes for the last (or current) active job.
-        * _layer_count `READ ONLY` The total number of layers for the current active job.
-        * _current_layer `READ ONLY` The current layer being printed for the current active job.
-        * _current_stage `READ ONLY` Maps to `bambutools.parseStage`.
-        * _current_stage_text `READ ONLY` Parsed `current_stage` value.
-        * _spools `READ ONLY` A Tuple of all loaded spools.  Can contain up to 5 `BambuSpool` objects.
-        * _target_spool `READ_ONLY` The spool # the printer is transitioning to (`0-3`=AMS, `254`=External, `255`=None).
-        * _active_spool `READ_ONLY` The spool # the printer is using right now (`0-3`=AMS, `254`=External, `255`=None).
-        * _spool_state `READ ONLY` Indicates whether the spool is Loaded, Loading, Unloaded, or Unloading.
-        * _ams_status `READ ONLY` Bitwise encoded status of the AMS (not currently used).
-        * _ams_exists `READ ONLY` Boolean value represents the detected presense of an AMS.
-        * _ams_rfid_status `READ ONLY` Bitwise encoded status of the AMS RFID reader (not currently used).
-        * _sdcard_contents `READ ONLY` `dict` (json) value of all files on the SDCard (requires `get_sdcard_contents` be called first).
-        * _sdcard_3mf_files `READ ONLY` `dict` (json) value of all `.3mf` files on the SDCard (requires `get_sdcard_3mf_files` be called first).
-        * _hms_data `READ ONLY` `dict` (json) value of any active hms codes with descriptions attached if they are known codes.
-        * _hms_message `READ ONLY` all hms_data `desc` fields concatinated into a single string for ease of use.
-        * _last_hms_message `READ ONLY` a saved copy ofthe last hms_message in the event we get a repeat print_error.
-        * _print_type `READ ONLY` can be `cloud` or `local`
-        * _skipped_objects `READ ONLY` array of objects that have been skipped / cancelled
-        * _nozzle_type `READ/WRITE` the type of nozzle loaded into the printer
-        * _nozzle_diameter `READ/WRITE the diameter of the nozzle loaded into the printer
-
-        The attributes (where appropriate) are included whenever the class is serialized
-        using its `toJson()` method.
-
-        When accessing the class level attributes, use their associated properties as the
-        class level attributes are marked private.
+            An optional `BambuConfig` instance that provides configuration information
+            for the printer connection.  If not provided, a default `BambuConfig` instance
+            will be created.
         """
-
         self._mqtt_client_thread = None
         self._watchdog_thread = None
 
@@ -175,7 +134,8 @@ class BambuPrinter:
         self._current_stage = 0
         self._current_stage_text = ""
 
-        self._spools = ()
+        self._spools = []
+        self._printer_state = BambuState()
         self._target_spool = 255
         self._active_spool = 255
         self._spool_state = ""
@@ -235,7 +195,7 @@ class BambuPrinter:
             logger.debug(f"on_message - topic: [{msg.topic}]")
             if self._lastMessageTime and self._recent_update:
                 self._lastMessageTime = time.monotonic()
-            self._on_message(json.loads(msg.payload.decode("utf-8")))
+            self._on_message(msg.payload.decode("utf-8"))
 
         def loop_forever(printer):
             logger.debug("loop_forever - starting mqtt loop_forever")
@@ -248,7 +208,7 @@ class BambuPrinter:
                     printer.client.disconnect()
             printer.state = PrinterState.QUIT
 
-        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)  # type: ignore
 
         self.client.on_connect = on_connect
         self.client.on_disconnect = on_disconnect
@@ -315,7 +275,7 @@ class BambuPrinter:
         """
         Shuts down all threads.  Your `BambuPrinter` instance should probably be
         considered dead after making this call although you may be able to restart a
-        session with [start_session](./#bpm.bambuprinter.BambuPrinter.start_session)().
+        session with [start_session](#bpm.bambuprinter.BambuPrinter.start_session)().
         """
         if self.client and self.client.is_connected():
             self.client.disconnect()
@@ -326,9 +286,9 @@ class BambuPrinter:
         self._state = PrinterState.QUIT
         self._notify_update()
 
-        if self._mqtt_client_thread.is_alive():
+        if self._mqtt_client_thread and self._mqtt_client_thread.is_alive():
             self._mqtt_client_thread.join()
-        if self._watchdog_thread.is_alive():
+        if self._watchdog_thread and self._watchdog_thread.is_alive():
             self._watchdog_thread.join()
         logger.debug("quit - all threads have terminated")
 
@@ -366,14 +326,14 @@ class BambuPrinter:
             )
             self.client.publish(
                 f"device/{self.config.serial_number}/request",
-                json.dumps(bambucommands.ANNOUNCE_PUSH),
+                json.dumps(ANNOUNCE_PUSH),
             )
             logger.debug(
                 f"refresh - publishing ANNOUNCE_VERSION to [device/{self.config.serial_number}/request]"
             )
             self.client.publish(
                 f"device/{self.config.serial_number}/request",
-                json.dumps(bambucommands.ANNOUNCE_VERSION),
+                json.dumps(ANNOUNCE_VERSION),
             )
 
     def unload_filament(self):
@@ -382,7 +342,7 @@ class BambuPrinter:
         """
         self.client.publish(
             f"device/{self.config.serial_number}/request",
-            json.dumps(bambucommands.UNLOAD_FILAMENT),
+            json.dumps(UNLOAD_FILAMENT),
         )
         logger.debug(
             f"unload_filament - published UNLOAD_FILAMENT to [device/{self.config.serial_number}/request]"
@@ -402,7 +362,9 @@ class BambuPrinter:
         * `3` - AMS Spool #4
         * `254` - External Spool
         """
-        msg = bambucommands.AMS_FILAMENT_CHANGE
+        # TODO: refactor to support multiple AMSs
+
+        msg = AMS_FILAMENT_CHANGE
         msg["print"]["target"] = int(slot)
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(msg)
@@ -424,7 +386,7 @@ class BambuPrinter:
         * `send_gcode("G91\\nG0 X0\\nG0 X50")` - queues 3 gcode commands on the printer for processing
         * `send_gcode("G28")` - queues 1 gcode command on the printer for processing
         """
-        cmd = copy.deepcopy(bambucommands.SEND_GCODE_TEMPLATE)
+        cmd = copy.deepcopy(SEND_GCODE_TEMPLATE)
         cmd["print"]["param"] = f"{gcode} \n"
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
@@ -474,7 +436,7 @@ class BambuPrinter:
         self._plate_num = int(plate)
         self._plate_type = bed
 
-        file = copy.deepcopy(bambucommands.PRINT_3MF_FILE)
+        file = copy.deepcopy(PRINT_3MF_FILE)
 
         subtask = name[name.rindex("/") + 1 : :] if "/" in name else name
         subtask = (
@@ -494,7 +456,7 @@ class BambuPrinter:
         file["print"]["bed_type"] = bed.name.lower()
         file["print"]["param"] = file["print"]["param"].replace("#", str(self._plate_num))
         file["print"]["use_ams"] = use_ams
-        if len(ams_mapping) > 0:
+        if ams_mapping and len(ams_mapping) > 0:
             file["print"]["ams_mapping"] = json.loads(ams_mapping)
         file["print"]["bed_leveling"] = bedlevel
         file["print"]["flow_cali"] = flow
@@ -512,7 +474,7 @@ class BambuPrinter:
         """
         self.client.publish(
             f"device/{self.config.serial_number}/request",
-            json.dumps(bambucommands.STOP_PRINT),
+            json.dumps(STOP_PRINT),
         )
         logger.debug(
             f"stop_printing - published STOP_PRINT to [device/{self.config.serial_number}/request]"
@@ -524,7 +486,7 @@ class BambuPrinter:
         """
         self.client.publish(
             f"device/{self.config.serial_number}/request",
-            json.dumps(bambucommands.PAUSE_PRINT),
+            json.dumps(PAUSE_PRINT),
         )
         logger.debug(
             f"pause_printing - published PAUSE_PRINT to [device/{self.config.serial_number}/request]"
@@ -536,7 +498,7 @@ class BambuPrinter:
         """
         self.client.publish(
             f"device/{self.config.serial_number}/request",
-            json.dumps(bambucommands.RESUME_PRINT),
+            json.dumps(RESUME_PRINT),
         )
         logger.debug(
             f"resume_printing - published RESUME_PRINT to [device/{self.config.serial_number}/request]"
@@ -565,6 +527,12 @@ class BambuPrinter:
 
         with self.ftp_connection() as ftps:
             fs = self._get_sftp_files(ftps, "/")
+        if fs is None:
+            logger.warning("get_sdcard_contents - failed to retrieve files from sdcard")
+            self._sdcard_contents = None
+            self._sdcard_3mf_files = None
+            return None
+
         self._sdcard_contents = sortFileTreeAlphabetically(fs)
 
         def search_for_and_remove_all_other_files(mask: str, entry: dict):
@@ -604,8 +572,10 @@ class BambuPrinter:
                 for child in entry["children"]:
                     search_for_and_remove_file(file, child)
 
-        search_for_and_remove_file(file, self._sdcard_contents)
-        search_for_and_remove_file(file, self._sdcard_3mf_files)
+        if self._sdcard_contents:
+            search_for_and_remove_file(file, self._sdcard_contents)
+        if self._sdcard_3mf_files:
+            search_for_and_remove_file(file, self._sdcard_3mf_files)
 
         logger.debug(f"delete_sdcard_file - deleted file [{file}] from sdcard")
         return self._sdcard_contents
@@ -622,11 +592,12 @@ class BambuPrinter:
 
         def delete_all_contents(ftps: IoTFTPSClient, path: str):
             fs = ftps.list_files_ex(path)
-            for item in fs:
-                if item.is_dir:
-                    delete_all_contents(ftps, item.path)
-                else:
-                    ftps.delete_file(item.path)
+            if fs is not None:
+                for item in fs:
+                    if item.is_dir:
+                        delete_all_contents(ftps, item.path)
+                    else:
+                        ftps.delete_file(item.path)
             ftps.delete_folder(path)
 
         with self.ftp_connection() as ftps:
@@ -642,11 +613,13 @@ class BambuPrinter:
                 for child in entry["children"]:
                     search_for_and_remove_folder(path, child)
 
-        search_for_and_remove_folder(path, self._sdcard_contents)
-        search_for_and_remove_folder(path, self._sdcard_3mf_files)
+        if self._sdcard_contents is not None:
+            search_for_and_remove_folder(path, self._sdcard_contents)
+        if self._sdcard_3mf_files is not None:
+            search_for_and_remove_folder(path, self._sdcard_3mf_files)
         return self._sdcard_contents
 
-    def upload_sdcard_file(self, src: str, dest: str) -> dict:
+    def upload_sdcard_file(self, src: str, dest: str):
         """
         Uploads the local filesystem file to the printer and returns an updated dict of all files on the printer
 
@@ -675,7 +648,7 @@ class BambuPrinter:
         with self.ftp_connection() as ftps:
             ftps.download_file(src, dest)
 
-    def make_sdcard_directory(self, dir: str) -> dict:
+    def make_sdcard_directory(self, dir: str):
         """
         Creates the specified directory on the printer and returns an updated dict of all files on the printer
 
@@ -688,7 +661,7 @@ class BambuPrinter:
             ftps.mkdir(dir)
         return self.get_sdcard_contents()
 
-    def rename_sdcard_file(self, src: str, dest: str) -> dict:
+    def rename_sdcard_file(self, src: str, dest: str):
         """
         Renames the specified file on the printer and returns an updated dict of all files on the printer
 
@@ -718,11 +691,11 @@ class BambuPrinter:
         """
         Enable or disable one of the `PrintOption` options
         """
-        cmd = bambucommands.PRINT_OPTION_COMMAND
-        cmd["print"][option.name.lower()] = enabled
+        cmd = PRINT_OPTION_COMMAND
+        cmd["print"][option.name.lower()] = "true" if enabled else "false"
 
         if option == PrintOption.AUTO_RECOVERY:
-            cmd["print"]["option"] = 1 if enabled else 0
+            cmd["print"]["option"] = "1" if enabled else "0"
             self.config.auto_recovery = enabled
         elif option == PrintOption.AUTO_SWITCH_FILAMENT:
             self.config.auto_switch_filament = enabled
@@ -744,7 +717,7 @@ class BambuPrinter:
         """
         Enable or disable one of the `AMSUserSetting` options
         """
-        cmd = copy.deepcopy(bambucommands.AMS_USER_SETTING)
+        cmd = copy.deepcopy(AMS_USER_SETTING)
         cmd["print"]["ams_id"] = ams_id
         cmd["print"][AMSUserSetting.CALIBRATE_REMAIN_FLAG.name.lower()] = (
             self.config.calibrate_remain_flag
@@ -784,7 +757,7 @@ class BambuPrinter:
         """
         Sets the linear advance k factor for a specific spool / tray
         """
-        cmd = copy.deepcopy(bambucommands.EXTRUSION_CALI_SET)
+        cmd = copy.deepcopy(EXTRUSION_CALI_SET)
         cmd["print"]["tray_id"] = tray_id
         cmd["print"]["k_value"] = k_value
         cmd["print"]["n_coef"] = n_coef
@@ -817,7 +790,7 @@ class BambuPrinter:
         Sets spool / tray details such as filament type, color, and nozzle min/max temperature.
         For the external tray (254), send `no_filament` as the `tray_info_idx` value to empty the tray.
         """
-        cmd = copy.deepcopy(bambucommands.AMS_FILAMENT_SETTING)
+        cmd = copy.deepcopy(AMS_FILAMENT_SETTING)
 
         ams_id = math.floor(tray_id / 4)
         if tray_id == 254:
@@ -843,7 +816,7 @@ class BambuPrinter:
             cmd["print"]["tray_id_name"] = tray_id_name
         if tray_type != "":
             cmd["print"]["tray_type"] = tray_type
-        if tray_color != "":
+        if tray_color and tray_color != "":
             color = ""
             try:
                 color = f"{name_to_hex(tray_color)}FF".replace("#", "").upper()
@@ -867,7 +840,7 @@ class BambuPrinter:
         Send an AMS Control Command - will pause, resume, or reset the AMS.
         """
         ams_cmd = ams_control_cmd.name.lower()
-        cmd = copy.deepcopy(bambucommands.AMS_CONTROL)
+        cmd = copy.deepcopy(AMS_CONTROL)
         cmd["print"]["param"] = ams_cmd
 
         self.client.publish(
@@ -889,7 +862,7 @@ class BambuPrinter:
         for obj in objects:
             objs.append(int(obj))
 
-        cmd = copy.deepcopy(bambucommands.SKIP_OBJECTS)
+        cmd = copy.deepcopy(SKIP_OBJECTS)
         cmd["print"]["obj_list"] = objs
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
@@ -902,7 +875,7 @@ class BambuPrinter:
         """
         Enables or disables the buildplate_marker_detector
         """
-        cmd = copy.deepcopy(bambucommands.XCAM_CONTROL_SET)
+        cmd = copy.deepcopy(XCAM_CONTROL_SET)
         cmd["xcam"]["control"] = enabled
         cmd["xcam"]["enable"] = enabled
 
@@ -919,7 +892,7 @@ class BambuPrinter:
         """
         Sets the nozzle details.
         """
-        cmd = copy.deepcopy(bambucommands.SET_ACCESSORIES)
+        cmd = copy.deepcopy(SET_ACCESSORIES)
         cmd["system"]["nozzle_diameter"] = nozzle_diameter.value
         cmd["system"]["nozzle_type"] = nozzle_type.name.lower()
 
@@ -942,6 +915,79 @@ class BambuPrinter:
             f"send_anything - published message to [device/{self.config.serial_number}/request] message: [{anything}]"
         )
 
+    def turn_on_ams_dryer(
+        self,
+        target_temp: int,
+        duration: int,
+        target_humidity: int = 0,
+        cooling_temp: int = 45,
+        rotate_tray: bool = False,
+        ams_id: int = 0,
+    ):
+        """
+        Sends a command to the printer to turn on the AMS dryer with specified parameters.
+
+        Parameters
+        ----------
+        * target_temp : int - The target drying temperature.
+        * duration : int - The drying duration in minutes.
+        * target_humidity : int - The target humidity level.
+        * cooling_temp : int - The cooling temperature after drying (default is 45).
+        * rotate_tray : bool - Whether to rotate the tray during drying (default is False).
+        * ams_id : int - The AMS ID to control (default is 0).
+        """
+        cmd = copy.deepcopy(AMS_FILAMENT_DRYING)
+        cmd["print"]["ams_id"] = ams_id
+        cmd["print"]["mode"] = 1  # Turn on drying mode
+        cmd["print"]["temp"] = target_temp
+        cmd["print"]["duration"] = duration
+        cmd["print"]["humidity"] = target_humidity
+        cmd["print"]["cooling_temp"] = cooling_temp
+        cmd["print"]["rotate_tray"] = rotate_tray
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+
+        ams = self.printer_state.ams_units[ams_id]
+        ams.temp_target = target_temp
+
+        logger.debug(
+            f"turn_on_ams_dryer - published AMS_FILAMENT_DRYING to [device/{self.config.serial_number}/request] command: [{cmd}]"
+        )
+
+    def turn_off_ams_dryer(self, ams_id: int = 0):
+        """
+        Sends a command to the printer to turn off the AMS dryer.
+        """
+        cmd = copy.deepcopy(AMS_FILAMENT_DRYING)
+        cmd["print"]["ams_id"] = ams_id
+        cmd["print"]["mode"] = 0  # Turn off drying mode
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+
+        ams = self.printer_state.ams_units[ams_id]
+        ams.temp_target = 0
+
+        logger.debug(
+            f"turn_off_ams_dryer - published AMS_FILAMENT_DRYING to [device/{self.config.serial_number}/request] command: [{cmd}]"
+        )
+
+    def set_active_tool(self, id: int):
+        """
+        sets the current active tool / extruder for machines (H2 series)
+        that have multiple extruders
+        """
+        cmd = copy.deepcopy(SET_ACTIVE_TOOL)
+        cmd["print"]["extruder_index"] = id
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+        logger.debug(
+            f"set_active_tool - published SET_ACTIVE_TOOL to [device/{self.config.serial_number}/request] command: [{cmd}]"
+        )
+        # self.send_gcode(f"T{id}\n")
+
     def toJson(self):
         """
         Returns a `dict` (json document) representing this object's private class
@@ -949,6 +995,7 @@ class BambuPrinter:
         """
         response = json.dumps(self, default=self.jsonSerializer, indent=4, sort_keys=True)
         # logger.debug(f"toJson - json: [{response}]")
+
         return json.loads(response)
 
     def jsonSerializer(self, obj):
@@ -985,11 +1032,11 @@ class BambuPrinter:
                         printer._recent_update = False
                         printer.client.publish(
                             f"device/{printer.config.serial_number}/request",
-                            json.dumps(bambucommands.ANNOUNCE_PUSH),
+                            json.dumps(ANNOUNCE_PUSH),
                         )
                         printer.client.publish(
                             f"device/{printer.config.serial_number}/request",
-                            json.dumps(bambucommands.ANNOUNCE_VERSION),
+                            json.dumps(ANNOUNCE_VERSION),
                         )
                     time.sleep(0.1)
             except Exception as e:
@@ -1003,19 +1050,31 @@ class BambuPrinter:
         )
         self._watchdog_thread.start()
 
-    def _on_message(self, message: str):
-        logger.debug(f"_on_message - bambu_msg: [{message}]")
+    def _on_message(self, msg: str):
+        logger.debug(f"_on_message - bambu_msg: [{msg}]")
 
+        message = json.loads(msg)
         if "system" in message:
-            # TODO: what is the purpose of this, 'system' is unused
-            system = message["system"]  # noqa: F841
+            # system = message["system"]
+            logger.warning(
+                f"\r_on_message - system message type received - bambu_msg: [{message}]"
+            )
 
         elif "print" in message:
+            if (
+                "command" in message["print"]
+                and not message["print"]["command"] == "push_status"
+            ):
+                logger.warning(
+                    f"\r_on_message - command message type received - bambu_msg: [{message}]"
+                )
+
+            self._printer_state = BambuState.fromJson(message, self._printer_state)
             status = message["print"]
 
             if (
-                status.get("command") == "project_file"
-                and status.get("result") == "success"
+                status.get("command", "") == "project_file"
+                and status.get("result", "") == "success"
             ):
                 self._start_time = 0
 
@@ -1049,7 +1108,7 @@ class BambuPrinter:
                 )
                 self.client.publish(
                     f"device/{self.config.serial_number}/request",
-                    json.dumps(bambucommands.ANNOUNCE_PUSH),
+                    json.dumps(ANNOUNCE_PUSH),
                 )
 
             if "bed_temper" in status:
@@ -1126,48 +1185,47 @@ class BambuPrinter:
                 self._ams_exists = int(status["ams"]["ams_exist_bits"]) == 1
                 if self._ams_exists:
                     spools = []
-                    ams = (status["ams"]["ams"])[0]
 
                     self.config.startup_read_option = status["ams"].get(
                         "power_on_flag", False
                     )
                     self.config.tray_read_option = status["ams"].get("insert_flag", False)
 
-                    for tray in ams["tray"]:
-                        try:
-                            tray_color = hex_to_name("#" + tray["tray_color"][:6])
-                        except Exception:
+                    for ams in status["ams"]["ams"]:
+                        for tray in ams["tray"]:
                             try:
-                                tray_color = "#" + tray["tray_color"]
+                                tray_color = hex_to_name("#" + tray["tray_color"][:6])
                             except Exception:
-                                tray_color = ""
+                                try:
+                                    tray_color = "#" + tray["tray_color"]
+                                except Exception:
+                                    tray_color = ""
 
-                        if tray.get("id"):
-                            spool = BambuSpool(
-                                int(tray["id"]),
-                                tray.get("tray_id_name", ""),
-                                tray.get("tray_type", ""),
-                                tray.get("tray_sub_brands", ""),
-                                tray_color,
-                                tray.get("tray_info_idx", ""),
-                                tray.get("k", 0.0),
-                                tray.get("bed_temp", 0),
-                                tray.get("nozzle_temp_min", 0),
-                                tray.get("nozzle_temp_max", 0),
-                                tray.get("drying_temp", 0),
-                                tray.get("drying_time", 0),
-                                tray.get("remain", -1),
-                                tray.get("state", -1),
-                                tray.get("total_len", 0),
-                                tray.get("tray_weight", 0),
-                            )
-                            spools.append(spool)
+                            if tray.get("id"):
+                                spool = BambuSpool(
+                                    int(tray["id"]) + int(ams["id"]) * 4,
+                                    tray.get("tray_id_name", ""),
+                                    tray.get("tray_type", ""),
+                                    tray.get("tray_sub_brands", ""),
+                                    tray_color,
+                                    tray.get("tray_info_idx", ""),
+                                    tray.get("k", 0.0),
+                                    tray.get("bed_temp", 0),
+                                    tray.get("nozzle_temp_min", 0),
+                                    tray.get("nozzle_temp_max", 0),
+                                    tray.get("drying_temp", 0),
+                                    tray.get("drying_time", 0),
+                                    tray.get("remain", -1),
+                                    tray.get("state", -1),
+                                    tray.get("total_len", 0),
+                                    tray.get("tray_weight", 0),
+                                )
+                                spools.append(spool)
+
                     self._spools = tuple(spools)
 
-            if "vt_tray" in status or "vir_slot" in status:
-                tray = status.get(
-                    "vt_tray", status["vir_slot"][0] if "vir_slot" in status else {}
-                )
+            if "vt_tray" in status:
+                tray = status.get("vt_tray", {})
                 try:
                     tray_color = hex_to_name("#" + tray["tray_color"][:6])
                 except Exception:
@@ -1176,7 +1234,44 @@ class BambuPrinter:
                     except Exception:
                         tray_color = ""
 
-                if int(tray.get("id", 255)) == 254:
+                spool = BambuSpool(
+                    int(tray.get("id")),
+                    tray.get("tray_id_name", ""),
+                    tray.get("tray_type", ""),
+                    tray.get("tray_sub_brands", ""),
+                    tray_color,
+                    tray.get("tray_info_idx", ""),
+                    tray.get("k", 0.0),
+                    tray.get("bed_temp", 0),
+                    tray.get("nozzle_temp_min", 0),
+                    tray.get("nozzle_temp_max", 0),
+                    tray.get("drying_temp", 0),
+                    tray.get("drying_time", 0),
+                    -1,
+                    tray.get("state", -1),
+                    tray.get("total_len", 0),
+                    tray.get("tray_weight", 0),
+                )
+                if not self._ams_exists:
+                    spools = (spool,)
+                else:
+                    spools = list(self.spools)
+                    spools.append(spool)
+                self._spools = tuple(spools)
+
+            if "vir_slot" in status:
+                if not spools:
+                    spools = []
+                else:
+                    spools = list(self.spools)
+                for tray in status["vir_slot"]:
+                    try:
+                        tray_color = hex_to_name("#" + tray["tray_color"][:6])
+                    except Exception:
+                        try:
+                            tray_color = "#" + tray["tray_color"]
+                        except Exception:
+                            tray_color = ""
                     spool = BambuSpool(
                         int(tray.get("id")),
                         tray.get("tray_id_name", ""),
@@ -1195,24 +1290,14 @@ class BambuPrinter:
                         tray.get("total_len", 0),
                         tray.get("tray_weight", 0),
                     )
-                    if not self._ams_exists:
-                        spools = (spool,)
-                    else:
-                        spools = list(self.spools)
-                        spools.append(spool)
-
-                    self._spools = tuple(spools)
+                    spools.append(spool)
+                self._spools = tuple(spools)
 
             tray_tar = None
             tray_now = None
             tray_pre = None
 
             if "ams" in status and status["ams"]:
-                for ams in status["ams"].get("ams", {}):
-                    logger.debug(
-                        f"_on_message - ams [{ams['id']}] temp: [{ams.get('temp', 0)}] humidity:[{ams.get('humidity_raw', 0)}] index: [{ams.get('humidity', 0)}]"
-                    )
-
                 if "tray_tar" in status["ams"]:
                     tray_tar = int(status["ams"]["tray_tar"])
                     self._target_spool = tray_tar
@@ -1269,12 +1354,12 @@ class BambuPrinter:
                     h_code = f"{code_raw:08X}"
 
                     wiki_code = f"{h_attr[:4]}_{h_attr[4:]}_{h_code[:4]}_{h_code[4:]}"
-                    wiki_url = f"https://wiki.bambulab.com/en/x1/troubleshooting/hmscode/{wiki_code}"
+                    wiki_url = f"https://wiki.bambulab.com/en/h2/troubleshooting/hmscode/{wiki_code}"
                     logger.debug(
                         f"_on_message - hms ecode: [{h_attr}{h_code}] wiki: [{wiki_code}]"
                     )
 
-                    for entry in bambucommands.HMS_STATUS["data"]["device_hms"]["en"]:
+                    for entry in HMS_STATUS["data"]["device_hms"]["en"]:
                         if (
                             entry["ecode"]
                             == f"{h_attr[:4]}{h_attr[4:]}{h_code[:4]}{h_code[4:]}"
@@ -1350,7 +1435,6 @@ class BambuPrinter:
                     self.config.firmware_version = module["sw_ver"]
                 if "ams" in module["name"]:
                     self.config.ams_firmware_version = module["sw_ver"]
-
         elif (
             "xcam" in message
             and "result" in message["xcam"]
@@ -1361,7 +1445,7 @@ class BambuPrinter:
 
         else:
             logger.warning(
-                f"_on_message - unknown message type received - bambu_msg: [{message}]"
+                f"\r_on_message - unknown message type received - bambu_msg: [{message}]"
             )
 
         if self._gcode_state in ("PREPARE", "RUNNING", "PAUSE"):
@@ -1381,9 +1465,9 @@ class BambuPrinter:
             files = ftps.list_files_ex(directory)
         except Exception:
             logger.exception("_get_sftp_files - unexpected ftps exception")
-            return None
+            return {}
 
-        dir = {
+        dir: dict = {
             "id": directory + ("/" if directory != "/" else ""),
             "name": (
                 directory[directory.rindex("/") + 1 :]
@@ -1394,7 +1478,7 @@ class BambuPrinter:
 
         items = []
 
-        for entry in files:
+        for entry in files if files else {}:
             if entry.is_dir:
                 item = self._get_sftp_files(ftps, entry.path)
                 if not item:
@@ -1437,8 +1521,11 @@ class BambuPrinter:
         self._notify_update()  # make sure we notify about EVERY state change!
 
     @property
-    def client(self):
-        return self._client
+    def client(self) -> mqtt.Client:
+        if self._client:
+            return self._client
+        else:
+            return mqtt.Client()
 
     @client.setter
     def client(self, value: mqtt.Client):
@@ -1446,6 +1533,11 @@ class BambuPrinter:
 
     @property
     def on_update(self):
+        """
+        sets or returns the callback function that is called when the printer state is updated
+
+        :param self: Description
+        """
         return self._on_update
 
     @on_update.setter
@@ -1457,19 +1549,42 @@ class BambuPrinter:
         return self._recent_update
 
     @property
+    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.bed_temp`.")
     def bed_temp(self):
-        return self._bed_temp
+        """
+        returns the current bed temperature
+        !!! danger "Deprecated"
+        This property is deprecated (v1.0.0). Use `BambuState.bed_temp` instead.
+        """
+        return self._printer_state.bed_temp
 
     @property
+    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.bed_temp_target`.")
     def bed_temp_target(self):
-        return self._bed_temp_target
+        """
+        returns or sets the bed temperature target
+        !!! danger "Deprecated"
+        This property is deprecated (v1.0.0). Use `BambuState.bed_temp_target` and `set_bed_temp_target`.
+        """
+        return self._printer_state.bed_temp_target
 
     @bed_temp_target.setter
+    @deprecated("This property is deprecated (v1.0.0). Use `set_bed_temp_target`.")
     def bed_temp_target(self, value: float):
+        self.set_bed_temp_target(value)
+
+    def set_bed_temp_target(self, value: float):
+        """
+        Sets the bed temperature target.
+
+        Parameters
+        ----------
+        * value : float - The target bed temperature.
+        """
         value = float(value)
         if value < 0.0:
             value = 0.0
-        gcode = bambucommands.SEND_GCODE_TEMPLATE
+        gcode = SEND_GCODE_TEMPLATE
         gcode["print"]["param"] = f"M140 S{value}\n"
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(gcode)
@@ -1477,20 +1592,48 @@ class BambuPrinter:
         self._bed_temp_target_time = round(time.time())
 
     @property
+    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.nozzle_temp`.")
     def tool_temp(self):
-        return self._tool_temp
+        """
+        returns or sets the tool temperature
+        !!! danger "Deprecated"
+        This property is deprecated (v1.0.0). Use `BambuState.nozzle_temp`.
+        """
+        return self._printer_state.nozzle_temp
 
     @property
+    @deprecated(
+        "This property is deprecated (v1.0.0). Use `BambuState.nozzle_temp_target`."
+    )
     def tool_temp_target(self):
-        return self._tool_temp_target
+        """
+        returns or sets the nozzle temperature target
+        !!! danger "Deprecated"
+        This property is deprecated (v1.0.0). Use `BambuState.nozzle_temp`.
+        """
+        return self._printer_state.nozzle_temp_target
 
     @tool_temp_target.setter
+    @deprecated("This property is deprecated (v1.0.0). Use `set_nozzle_temp_target`.")
     def tool_temp_target(self, value: float):
+        self.set_nozzle_temp_target(value)
+
+    def set_nozzle_temp_target(self, value: float, tool_num: int = 0):
+        """
+        Sets the nozzle temperature target.
+
+        Parameters
+        ----------
+        * value : float - The target nozzle temperature.
+        * tool_num : int - The tool number (default is 0).
+        """
         value = float(value)
         if value < 0.0:
             value = 0.0
-        gcode = bambucommands.SEND_GCODE_TEMPLATE
-        gcode["print"]["param"] = f"M104 S{value}\n"
+        gcode = SEND_GCODE_TEMPLATE
+        gcode["print"]["param"] = (
+            f"M104 S{value}{'' if tool_num == 0 else ' T' + str(tool_num)}\n"
+        )
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(gcode)
         )
@@ -1532,7 +1675,7 @@ class BambuPrinter:
             value = 0
         self._fan_speed_target = value
         speed = round(value * 2.55, 0)
-        gcode = bambucommands.SEND_GCODE_TEMPLATE
+        gcode = SEND_GCODE_TEMPLATE
         gcode["print"]["param"] = (
             f"M106 P1 S{speed}\nM106 P2 S{speed}\nM106 P3 S{speed}\n"
         )
@@ -1576,7 +1719,7 @@ class BambuPrinter:
     @light_state.setter
     def light_state(self, value: bool):
         value = bool(value)
-        cmd = copy.deepcopy(bambucommands.CHAMBER_LIGHT_TOGGLE)
+        cmd = copy.deepcopy(CHAMBER_LIGHT_TOGGLE)
         if value:
             cmd["system"]["led_mode"] = "on"
         else:
@@ -1596,7 +1739,7 @@ class BambuPrinter:
     @speed_level.setter
     def speed_level(self, value: str):
         value = str(value)
-        cmd = bambucommands.SPEED_PROFILE_TEMPLATE
+        cmd = SPEED_PROFILE_TEMPLATE
         cmd["print"]["param"] = value
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
@@ -1679,6 +1822,9 @@ class BambuPrinter:
         return self._spools
 
     @property
+    def printer_state(self) -> BambuState:
+        return self._printer_state if self._printer_state else BambuState()
+
     def target_spool(self):
         return self._target_spool
 

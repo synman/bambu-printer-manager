@@ -3,143 +3,185 @@
 by `bambu-printer-manager`.
 """
 
-from enum import Enum
+from enum import Enum, IntEnum
 
 
+@staticmethod
 def parseStage(stage: int) -> str:
     """
     Mainly an internal method used for parsing stage data from the printer.
     """
-    if type(stage) is int or stage.isnumeric():
-        stage = int(stage)
-        if stage == 0:
-            return ""
-        elif stage == 1:
-            return "Auto bed leveling"
-        elif stage == 2:
-            return "Heatbed preheating"
-        elif stage == 3:
-            return "Sweeping XY mech mode"
-        elif stage == 4:
-            return "Changing filament"
-        elif stage == 5:
-            return "M400 pause"
-        elif stage == 6:
-            return "Paused due to filament runout"
-        elif stage == 7:
-            return "Heating hotend"
-        elif stage == 8:
-            return "Calibrating extrusion"
-        elif stage == 9:
-            return "Scanning bed surface"
-        elif stage == 10:
-            return "Inspecting first layer"
-        elif stage == 11:
-            return "Identifying build plate type"
-        elif stage == 12:
-            return "Calibrating Micro Lidar"
-        elif stage == 13:
-            return "Homing toolhead"
-        elif stage == 14:
-            return "Cleaning nozzle tip"
-        elif stage == 15:
-            return "Checking extruder temperature"
-        elif stage == 16:
-            return "Printing was paused by the user"
-        elif stage == 17:
-            return "Pause of front cover falling"
-        elif stage == 18:
-            return "Calibrating the micro lida"
-        elif stage == 19:
-            return "Calibrating extrusion flow"
-        elif stage == 20:
-            return "Paused due to nozzle temperature malfunction"
-        elif stage == 21:
-            return "Paused due to heat bed temperature malfunction"
-        elif stage == 22:
-            return "Filament unloading"
-        elif stage == 23:
-            return "Skip step pause"
-        elif stage == 24:
-            return "Filament loading"
-        elif stage == 25:
-            return "Motor noise calibration"
-        elif stage == 26:
-            return "Paused due to AMS lost"
-        elif stage == 27:
-            return "Paused due to low speed of the heat break fan"
-        elif stage == 28:
-            return "Paused due to chamber temperature control error"
-        elif stage == 29:
-            return "Cooling chamber"
-        elif stage == 30:
-            return "Paused by the Gcode inserted by user"
-        elif stage == 31:
-            return "Motor noise showoff"
-        elif stage == 32:
-            return "Nozzle filament covered detected pause"
-        elif stage == 33:
-            return "Cutter error pause"
-        elif stage == 34:
-            return "First layer error pause"
-        elif stage == 35:
-            return "Nozzle clog pause"
+    if stage == 0:
         return ""
+    elif stage == 1:
+        return "Auto bed leveling"
+    elif stage == 2:
+        return "Heatbed preheating"
+    elif stage == 3:
+        return "Sweeping XY mech mode"
+    elif stage == 4:
+        return "Changing filament"
+    elif stage == 5:
+        return "M400 pause"
+    elif stage == 6:
+        return "Paused due to filament runout"
+    elif stage == 7:
+        return "Heating hotend"
+    elif stage == 8:
+        return "Calibrating extrusion"
+    elif stage == 9:
+        return "Scanning bed surface"
+    elif stage == 10:
+        return "Inspecting first layer"
+    elif stage == 11:
+        return "Identifying build plate type"
+    elif stage == 12:
+        return "Calibrating Micro Lidar"
+    elif stage == 13:
+        return "Homing toolhead"
+    elif stage == 14:
+        return "Cleaning nozzle tip"
+    elif stage == 15:
+        return "Checking extruder temperature"
+    elif stage == 16:
+        return "Printing was paused by the user"
+    elif stage == 17:
+        return "Pause of front cover falling"
+    elif stage == 18:
+        return "Calibrating the micro lida"
+    elif stage == 19:
+        return "Calibrating extrusion flow"
+    elif stage == 20:
+        return "Paused due to nozzle temperature malfunction"
+    elif stage == 21:
+        return "Paused due to heat bed temperature malfunction"
+    elif stage == 22:
+        return "Filament unloading"
+    elif stage == 23:
+        return "Skip step pause"
+    elif stage == 24:
+        return "Filament loading"
+    elif stage == 25:
+        return "Motor noise calibration"
+    elif stage == 26:
+        return "Paused due to AMS lost"
+    elif stage == 27:
+        return "Paused due to low speed of the heat break fan"
+    elif stage == 28:
+        return "Paused due to chamber temperature control error"
+    elif stage == 29:
+        return "Cooling chamber"
+    elif stage == 30:
+        return "Paused by the Gcode inserted by user"
+    elif stage == 31:
+        return "Motor noise showoff"
+    elif stage == 32:
+        return "Nozzle filament covered detected pause"
+    elif stage == 33:
+        return "Cutter error pause"
+    elif stage == 34:
+        return "First layer error pause"
+    elif stage == 35:
+        return "Nozzle clog pause"
+    return ""
 
 
-def parseFan(fan: int) -> str:
+@staticmethod
+def parseFan(fan: int) -> int:
     """
     Mainly an internal method used for parsing Fan data
     """
-    if type(fan) is int or fan.isnumeric():
-        fan = int(fan)
-        if fan == 1:
-            return 10
-        elif fan == 2:
-            return 20
-        elif fan in (3, 4):
-            return 30
-        elif fan in (5, 6):
-            return 40
-        elif fan in (7, 8):
-            return 50
-        elif fan == 9:
-            return 60
-        elif fan in (10, 11):
-            return 70
-        elif fan == 12:
-            return 80
-        elif fan in (13, 14):
-            return 90
-        elif fan == 15:
-            return 100
+    fan = int(fan)
+    if fan == 1:
+        return 10
+    elif fan == 2:
+        return 20
+    elif fan in (3, 4):
+        return 30
+    elif fan in (5, 6):
+        return 40
+    elif fan in (7, 8):
+        return 50
+    elif fan == 9:
+        return 60
+    elif fan in (10, 11):
+        return 70
+    elif fan == 12:
+        return 80
+    elif fan in (13, 14):
+        return 90
+    elif fan == 15:
+        return 100
     return 0
 
 
-def parseAMSStatus(status: int) -> str:
+@staticmethod
+def parseAMSInfo(info: int, has_temp: bool = False):
+    """
+    Mainly an internal method used for parsing AMS Info data
+    """
+    # BASE BITS: Shared across all AMS generations
+    status = {
+        "is_powered": bool(info & (1 << 0)),  # Bit 0
+        "is_connected": bool(info & (1 << 1)),  # Bit 1
+        "rfid_ready": bool(info & (1 << 2)),  # Bit 2
+        "hub_sensor_triggered": bool(info & (1 << 3)),  # Bit 3
+        "circ_fan_on": bool(info & (1 << 4)),  # Bit 4
+        "exhaust_fan_on": bool(info & (1 << 5)),  # Bit 5
+        "humidity_sensor_ok": bool(info & (1 << 6)),  # Bit 6
+        "heater_on": bool(info & (1 << 7)),  # Bit 7
+    }
+
+    # ADVANCED BITS: H2D / AMS 2 Pro specific
+    if has_temp:
+        status.update(
+            {
+                "is_rotating": bool(info & (1 << 14)),  # Bit 13
+                "venting_active": bool(info & (1 << 13)),  # Bit 14
+                "high_power_mode": bool(info & (1 << 17)),  # Bit 17
+                "hardware_fault": bool(info & (1 << 30)),  # Bit 30
+            }
+        )
+    else:
+        # Defaults for legacy AMS (X1/P1/A1)
+        status.update(
+            {
+                "is_rotating": False,
+                "venting_active": False,
+                "high_power_mode": False,
+                "hardware_fault": False,
+            }
+        )
+
+    return status
+
+
+@staticmethod
+def parseAMSStatus(status):
     """
     Can be used to parse `ams_status`
     """
-    main_status = (status & 0xFF00) >> 8
-    # sub_status = status & 0xFF
-    if main_status == 0x00:
-        return "AMS Idle"
-    elif main_status == 0x01:
-        return "AMS Filament Change"
-    elif main_status == 0x02:
-        return "AMS RFID Identifying"
-    elif main_status == 0x03:
-        return "AMS Assist"
-    elif main_status == 0x04:
-        return "AMS Calibration"
-    elif main_status == 0x10:
-        return "AMS Self-Check"
-    elif main_status == 0x20:
-        return "AMS Debug"
+    if status == 0:
+        return "Offline"
+    elif status == 768:
+        return "Idle"
+    elif status == 1024:
+        return "Pre-loading"
+    elif status == 1280:
+        return "Loading"
+    elif status == 1536:
+        return "Unloading"
+    elif status == 1792:
+        return "Cutting"
+    elif status == 2048:
+        return "Switching"
+    elif status == 2304:
+        return "Stall/Error"
     else:
         return "Unknown"
 
 
+@staticmethod
 def parseRFIDStatus(status):
     """
     Can be used to parse `ams_rfid_status`
@@ -160,6 +202,36 @@ def parseRFIDStatus(status):
         return "Has Filament"
     else:
         return "Unknown"
+
+
+@staticmethod
+def parseExtruderInfo(bits: int) -> str:
+    """Parses the info_bits bitmask into a comma-separated string."""
+    flags = []
+    if bits & 1:
+        flags.append("Detected")
+    if bits & 2:
+        flags.append("Loaded")
+    if bits & 4:
+        flags.append("Motor")
+    if bits & 8:
+        flags.append("Fan")
+    if bits & 16:
+        flags.append("Heating")
+    if bits & 32:
+        flags.append("Clog/Res")  # Bit 5 often reserved or clog
+    if bits & 64:
+        flags.append("Error")
+    return ", ".join(flags) if flags else "Idle"
+
+
+@staticmethod
+def parseExtruderState(state_val: int) -> str:
+    """Parses the state bitmask to determine operational status."""
+    # Check bits 8 and 9 (0x300 = 768) which indicate the active driving tool
+    if (state_val & 0x300) == 0x300:
+        return "Active"
+    return "Idle"
 
 
 class PrinterState(Enum):
@@ -194,6 +266,21 @@ class PlateType(Enum):
     HOT_PLATE = 3
     TEXTURED_PLATE = 4
     NONE = 999
+
+
+class ActiveTool(IntEnum):
+    """
+    Enum representing the currently active toolhead/extruder.
+
+    Attributes:
+        INACTIVE (-1): No tool is currently active or filament is unloaded.
+        RIGHT_EXTRUDER (0): The primary or right-side extruder (Tool 0).
+        LEFT_EXTRUDER (1): The secondary or left-side extruder (Tool 1).
+    """
+
+    INACTIVE = -1
+    RIGHT_EXTRUDER = 0
+    LEFT_EXTRUDER = 1
 
 
 class PrintOption(Enum):
@@ -251,6 +338,19 @@ class NozzleType(Enum):
     UNKNOWN = 0
 
 
+class PrinterSeries(Enum):
+    """
+    Printer Series enum
+    """
+
+    UNKNOWN = 0
+    X1 = 1
+    P1 = 2
+    A1 = 3
+    P2 = 4
+    H2 = 5
+
+
 class PrinterModel(Enum):
     """
     Printer model enum
@@ -267,6 +367,16 @@ class PrinterModel(Enum):
     P2S = 8
     H2S = 9
     H2D = 10
+
+
+def getSeriesByModel(model: PrinterModel) -> PrinterSeries:
+    """
+    Returns the Printer series enum based on the provided model.
+    """
+    try:
+        return PrinterSeries[model.name[:2]]
+    except (KeyError, AttributeError):
+        return PrinterSeries.UNKNOWN
 
 
 def getModelBySerial(serial: str) -> PrinterModel:
@@ -297,7 +407,7 @@ def getModelBySerial(serial: str) -> PrinterModel:
         return PrinterModel.UNKNOWN
 
 
-def sortFileTreeAlphabetically(source):
+def sortFileTreeAlphabetically(source) -> dict:
     """
     Sorts a dict of file/directory nodes hierarchically in case-insensitive
     alphabetical order (ascending).

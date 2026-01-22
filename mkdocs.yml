@@ -1,16 +1,20 @@
 site_name: bambu-printer-manager
-site_url: https://github.com/synman/bambu-printer-manager
-repo_url: https://github.com/synman/bambu-printer-manager/
+site_url: https://github.com
+repo_url: https://github.com/
+watch:
+  - src
 nav:
   - Home: index.md
   - Code Reference: reference/
   - Client Container: container.md
   - License: license.md
+
 markdown_extensions:
+  - admonition
+  - pymdownx.superfences
   - pymdownx.arithmatex:
       generic: true
   - pymdownx.betterem
-  - pymdownx.superfences
   - pymdownx.caret
   - pymdownx.mark
   - pymdownx.tilde
@@ -28,6 +32,7 @@ markdown_extensions:
   - pymdownx.keys
   - pymdownx.smartsymbols
   - pymdownx.snippets
+
 theme:
   name: material
   features:
@@ -42,39 +47,131 @@ theme:
     - content.code.copy
   language: en
   palette:
-    - scheme: default
+    # Light mode (System default)
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: green
       toggle:
-        icon: material/toggle-switch-off-outline
+        icon: material/brightness-7
         name: Switch to dark mode
-      primary: teal
-      accent: purple
-    - scheme: slate
+
+    # Dark mode (System default)
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: green
+      accent: teal
       toggle:
-        icon: material/toggle-switch
+        icon: material/brightness-4
         name: Switch to light mode
-      primary: teal
-      accent: lime
+
 validation:
   omitted_files: warn
   absolute_links: warn
   unrecognized_links: warn
+
 plugins:
-- search
-- gen-files:
-    scripts:
-    - docs/scripts/gen_ref_pages.py
-- literate-nav:
-    nav_file: SUMMARY.md
-- section-index
-- mkdocstrings:
-    default_handler: python
-    handlers:
-      python:
-        paths:
-          - src/bpm
-        options:
-          show_source: false
-          attributes: true
-        setup_commands:
-          - import sys
-          - sys.path.append("src/bpm")
+  - search
+  - gen-files:
+      scripts:
+        - docs/scripts/gen_ref_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - section-index
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: ["src/" ]
+          options:
+            # DOCSTRINGS -------------------------------------------------------------
+            docstring_options:
+              # Discard first line of `__init__` method docstrings,
+              # useful when merging such docstrings into their parent class'.
+              ignore_init_summary: true
+
+            # Tables are generally too large, lists will fix this.
+            # docstring_section_style: list
+
+            # CROSS-REFERENCES -------------------------------------------------------
+            # Enable relative crossrefs and scoped crossrefs, see Docstrings options.
+            # relative_crossrefs: true  # Sponsors only!
+            # scoped_crossrefs: true  # Sponsors only!
+
+            # Enable cross-references in signatures.
+            signature_crossrefs: true
+
+            # Unwrap actual types from `Annotated` type annotations.
+            unwrap_annotated: true
+
+            # MEMBERS ----------------------------------------------------------------
+            # Only render pulic symbols.
+            # filters: public  # Sponsors only!
+            # Comment the option otherwise to get the default filters.
+
+            # Show class inherited members.
+            inherited_members: true
+
+            # Render auto-generated summaries of attributes, functions, etc.
+            # at the start of each symbol's documentation.
+            summary: true
+
+            # HEADINGS ---------------------------------------------------------------
+            # For auto-generated pages, one module per page,
+            # make the module heading be the H1 heading of the page.
+            heading_level: 1
+
+            # Render headings for parameters, making them linkable.
+            parameter_headings: true
+
+            # Render headings for type parameters too.
+            type_parameter_headings: true
+
+            # Always show the heading for the symbol you render with `::: id`.
+            show_root_heading: true
+
+            # Only show the name of the symbols you inject render `::: id`.
+            show_root_full_path: false
+
+            # Show the type of symbol (class, function, etc.) in the heading.
+            show_symbol_type_heading: true
+
+            # Show the type of symbol (class, function, etc.) in the table of contents.
+            show_symbol_type_toc: true
+
+            # SIGNATURES -------------------------------------------------------------
+            # Format code to 80 + 10% margin (Black and Ruff defaults)
+            # in signatures and attribute value code blocks.
+            # Needs Black/Ruff installed.
+            line_length: 88
+
+            # Merge signature and docstring of `__init__` methods
+            # into their parent class signature and docstring.
+            merge_init_into_class: true
+
+            # Render signatures and attribute values in a separate code block,
+            # below the symbol heading.
+            separate_signature: true
+
+            # Show type annotations in signatures.
+            show_signature_annotations: true
+
+            # Show type parameters in signatures.
+            show_signature_type_parameters: true
+
+            # OTHER ------------------------------------------------------------------
+            # Show backlinks to other documentation sections within each symbol.
+            # backlinks: tree  # Sponsors only!
+
+            # Show base classes OR inheritance diagram.
+            show_bases: true
+            # show_inheritance_diagram: true  # Sponsors only!
+            show_labels: true
+            show_docstring_description: true
+            extra:
+              render_deprecated: true
+            extensions:
+              - griffe_warnings_deprecated:
+                  kind: danger
+                  title: Deprecated
+                  label: deprecated  # Add this explicitly

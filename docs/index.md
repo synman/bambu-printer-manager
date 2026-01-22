@@ -12,9 +12,9 @@ While caffiene and sleepness nights drive the delivery of this project, they unf
     bpm/
         bambucommands.py                # collection of constants mainly representing Bambu Lab `mqtt` request commands
         bambuconfig.py                  # contains the `BambuConfig` class used for storing configuration data
-        bambuprintermanagerlogger.json  # internal configuration file for configuration of logging
         bambuprinter.py                 # the main `bambu-printer-manager` class `BambuPrinter` lives here
         bambuspool.py                   # contains the `BambuSpool` class used for storing spool data
+        bambustate.py                   # contains the `BambuState` and `AMSUnitState` classes
         bambutools.py                   # contains a collection of methods used as tools (mostly internal)
 
         ftpsclient/
@@ -22,7 +22,7 @@ While caffiene and sleepness nights drive the delivery of this project, they unf
 
 ### Dependencies
 ```
-Python 3.12.1+
+Python 3.11+
 
 * mkdocstrings, webcolors and paho-mqtt install automatically as predefined dependencies
 ```
@@ -69,6 +69,8 @@ or even
 ```py
 printer = BambuPrinter(config=BambuConfig(hostname="{host name}", access_code="{access code}", serial_number="{serial #}"))
 ```
+### Future Compatibility
+This library is evolving and expect to see shifting variables and classes leading up to v1.0.0. Deprecated methods and attributes will be removed upon its release.
 
 ### Usage Patterns
 You can either poll `BambuPrinter` periodically for data updates or rely on a callback when
