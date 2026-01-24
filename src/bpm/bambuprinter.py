@@ -9,6 +9,7 @@ import threading
 import time
 import traceback
 from threading import Thread
+from typing import Any
 
 import paho.mqtt.client as mqtt
 from typing_extensions import deprecated
@@ -42,15 +43,16 @@ from bpm.bambuconfig import BambuConfig, LoggerName
 from bpm.bambuspool import BambuSpool
 from bpm.bambustate import BambuState
 from bpm.bambutools import (
+    ActiveTool,
     AMSControlCommand,
     AMSUserSetting,
     NozzleDiameter,
     NozzleType,
     PlateType,
-    PrinterState,
     PrintOption,
-    parseFan,
+    ServiceState,
     parseStage,
+    scaleFanSpeed,
     sortFileTreeAlphabetically,
 )
 from bpm.ftpsclient.ftpsclient import IoTFTPSClient
@@ -88,7 +90,7 @@ class BambuPrinter:
         if config is None:
             config = BambuConfig()
         self._config = config
-        self._state = PrinterState.NO_STATE
+        self._service_state = ServiceState.NO_STATE
 
         self._client = None
         self._on_update = None
@@ -100,7 +102,6 @@ class BambuPrinter:
         self._tool_temp = 0.0
         self._tool_temp_target = 0.0
         self._tool_temp_target_time = 0
-        self._target_tool_num = -1
 
         self._chamber_temp = 0.0
         self._chamber_temp_target = 0.0
@@ -177,8 +178,8 @@ class BambuPrinter:
 
         def on_connect(client, userdata, flags, reason_code, properties):
             logger.debug("on_connect - session on_connect")
-            if self.state != PrinterState.PAUSED:
-                self.state = PrinterState.CONNECTED
+            if self.service_state != ServiceState.PAUSED:
+                self.service_state = ServiceState.CONNECTED
                 client.subscribe(f"device/{self.config.serial_number}/report")
                 logger.debug(f"subscribed to [device/{self.config.serial_number}/report]")
 
@@ -186,10 +187,10 @@ class BambuPrinter:
             logger.debug("on_disconnect - session on_disconnect")
             if self._internalException:
                 logger.exception("on_disconnect - an internal exception occurred")
-                self.state = PrinterState.QUIT
+                self.service_state = ServiceState.QUIT
                 raise self._internalException
-            if self.state != PrinterState.PAUSED:
-                self.state = PrinterState.DISCONNECTED
+            if self.service_state != ServiceState.PAUSED:
+                self.service_state = ServiceState.DISCONNECTED
 
         def on_message(client, userdata, msg):
             logger.debug(f"on_message - topic: [{msg.topic}]")
@@ -197,7 +198,7 @@ class BambuPrinter:
                 self._lastMessageTime = time.monotonic()
             self._on_message(msg.payload.decode("utf-8"))
 
-        def loop_forever(printer):
+        def loop_forever(printer: BambuPrinter):
             logger.debug("loop_forever - starting mqtt loop_forever")
             try:
                 printer.client.loop_forever(retry_first_connection=True)
@@ -206,7 +207,7 @@ class BambuPrinter:
                 printer._internalException = e
                 if printer.client and printer.client.is_connected():
                     printer.client.disconnect()
-            printer.state = PrinterState.QUIT
+            printer.service_state = ServiceState.QUIT
 
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)  # type: ignore
 
@@ -230,7 +231,7 @@ class BambuPrinter:
             logger.warning(
                 f"start_session - unable to connect to printer - reason: [{e}] stacktrace: [{traceback.format_exc()}]"
             )
-            self.state = PrinterState.QUIT
+            self.service_state = ServiceState.QUIT
             return
 
         self._mqtt_client_thread = threading.Thread(
@@ -246,12 +247,12 @@ class BambuPrinter:
         method unsubscribes from the `/report` topic, essentially disabling all
         printer data refreshes.
         """
-        if self.state != PrinterState.PAUSED:
+        if self.service_state != ServiceState.PAUSED:
             self.client.unsubscribe(f"device/{self.config.serial_number}/report")
             logger.debug(
                 f"pause_session - unsubscribed from [device/{self.config.serial_number}/report]"
             )
-            self.state = PrinterState.PAUSED
+            self.service_state = ServiceState.PAUSED
 
     def resume_session(self):
         """
@@ -260,16 +261,16 @@ class BambuPrinter:
         if (
             self.client
             and self.client.is_connected()
-            and self.state == PrinterState.PAUSED
+            and self.service_state == ServiceState.PAUSED
         ):
             self.client.subscribe(f"device/{self.config.serial_number}/report")
             logger.debug(
                 f"resume_session - subscribed to [device/{self.config.serial_number}/report]"
             )
             self._lastMessageTime = time.monotonic()
-            self.state = PrinterState.CONNECTED
+            self.service_state = ServiceState.CONNECTED
             return
-        self.state = PrinterState.QUIT
+        self.service_state = ServiceState.QUIT
 
     def quit(self):
         """
@@ -283,7 +284,7 @@ class BambuPrinter:
         else:
             logger.debug("quit - mqtt client was already disconnected")
 
-        self._state = PrinterState.QUIT
+        self._service_state = ServiceState.QUIT
         self._notify_update()
 
         if self._mqtt_client_thread and self._mqtt_client_thread.is_alive():
@@ -320,20 +321,20 @@ class BambuPrinter:
         Triggers a full data refresh from the printer (if it is connected).  You should use this
         method sparingly as resorting to it indicates something is not working properly.
         """
-        if self.state == PrinterState.CONNECTED:
-            logger.debug(
-                f"refresh - publishing ANNOUNCE_PUSH to [device/{self.config.serial_number}/request]"
-            )
-            self.client.publish(
-                f"device/{self.config.serial_number}/request",
-                json.dumps(ANNOUNCE_PUSH),
-            )
+        if self.service_state == ServiceState.CONNECTED:
             logger.debug(
                 f"refresh - publishing ANNOUNCE_VERSION to [device/{self.config.serial_number}/request]"
             )
             self.client.publish(
                 f"device/{self.config.serial_number}/request",
                 json.dumps(ANNOUNCE_VERSION),
+            )
+            logger.debug(
+                f"refresh - publishing ANNOUNCE_PUSH to [device/{self.config.serial_number}/request]"
+            )
+            self.client.publish(
+                f"device/{self.config.serial_number}/request",
+                json.dumps(ANNOUNCE_PUSH),
             )
 
     def unload_filament(self):
@@ -986,7 +987,65 @@ class BambuPrinter:
         logger.debug(
             f"set_active_tool - published SET_ACTIVE_TOOL to [device/{self.config.serial_number}/request] command: [{cmd}]"
         )
-        # self.send_gcode(f"T{id}\n")
+
+    def get_current_bind_list(self, state: "BambuState") -> list[dict[str, Any]]:
+        """
+        Generates the manual_ams_bind list based on current AMS toolhead assignments.
+
+        This method implements the H2D cross-over hardware targeting:
+        - RIGHT_EXTRUDER (0) -> Hardware Index 1
+        - LEFT_EXTRUDER (1)  -> Hardware Index 0
+
+        Includes sentinel placeholder logic for single-AMS configurations to satisfy
+        dual-extruder firmware array requirements.
+        """
+        bind_list = []
+
+        # 1. Map physical units based on current logical assignments
+        for unit in state.ams_units:
+            # Hardware register inversion logic
+            hw_target = 1 if unit.assigned_to_extruder == ActiveTool.RIGHT_EXTRUDER else 0
+
+            bind_list.append(
+                {"ams_f_bind": int(unit.ams_id), "ams_s_bind": 0, "extruder": hw_target}
+            )
+
+        # 2. Dual-Extruder Array Completeness Requirement
+        # If only one AMS is connected, firmware requires a placeholder for the unused register.
+        if state.ams_connected_count == 1 and len(bind_list) == 1:
+            existing_assignment = bind_list[0]
+
+            # Determine the unassigned hardware register
+            placeholder_hw_target = 0 if existing_assignment["extruder"] == 1 else 1
+
+            # Add sentinel placeholder (Unit ID 1) to complete the dual-path mapping
+            bind_list.append(
+                {
+                    "ams_f_bind": 1,  # Placeholder Unit ID
+                    "ams_s_bind": 0,
+                    "extruder": placeholder_hw_target,
+                }
+            )
+
+        return bind_list
+
+    # def set_ams_to_extruder_binding(self, ams: int, extruder: int):
+    #     """
+    #     sets the current active tool / extruder for machines (H2 series)
+    #     that have multiple extruders
+    #     """
+    #     cmd = copy.deepcopy(SET_AMS_TO_EXTRUDER_BINDING)
+    #     extruder0 = cmd["print"]["bind_list"][1]
+    #     extruder1 = cmd["print"]["bind_list"][0]
+
+    #     if extruder == 0:
+    #         extruder
+    #     self.client.publish(
+    #         f"device/{self.config.serial_number}/request", json.dumps(cmd)
+    #     )
+    #     logger.debug(
+    #         f"set_active_tool - published SET_AMS_TO_EXTRUDER_BINDING to [device/{self.config.serial_number}/request] command: [{cmd}]"
+    #     )
 
     def toJson(self):
         """
@@ -1020,8 +1079,8 @@ class BambuPrinter:
     def _start_watchdog(self):
         def watchdog_thread(printer):
             try:
-                while printer.state != PrinterState.QUIT:
-                    if printer.state == PrinterState.CONNECTED and (
+                while printer.service_state != ServiceState.QUIT:
+                    if printer.service_state == ServiceState.CONNECTED and (
                         printer._lastMessageTime is None
                         or printer._lastMessageTime + printer.config.watchdog_timeout
                         < time.monotonic()
@@ -1032,11 +1091,11 @@ class BambuPrinter:
                         printer._recent_update = False
                         printer.client.publish(
                             f"device/{printer.config.serial_number}/request",
-                            json.dumps(ANNOUNCE_PUSH),
+                            json.dumps(ANNOUNCE_VERSION),
                         )
                         printer.client.publish(
                             f"device/{printer.config.serial_number}/request",
-                            json.dumps(ANNOUNCE_VERSION),
+                            json.dumps(ANNOUNCE_PUSH),
                         )
                     time.sleep(0.1)
             except Exception as e:
@@ -1054,6 +1113,8 @@ class BambuPrinter:
         logger.debug(f"_on_message - bambu_msg: [{msg}]")
 
         message = json.loads(msg)
+        self._printer_state = BambuState.fromJson(message, self._printer_state)
+
         if "system" in message:
             # system = message["system"]
             logger.warning(
@@ -1069,7 +1130,6 @@ class BambuPrinter:
                     f"\r_on_message - command message type received - bambu_msg: [{message}]"
                 )
 
-            self._printer_state = BambuState.fromJson(message, self._printer_state)
             status = message["print"]
 
             if (
@@ -1104,6 +1164,13 @@ class BambuPrinter:
             if "command" in status and status["command"] == "ams_filament_setting":
                 time.sleep(2)
                 logger.debug(
+                    f"filament change triggered publishing ANNOUNCE_VERSION to [device/{self.config.serial_number}/request]"
+                )
+                self.client.publish(
+                    f"device/{self.config.serial_number}/request",
+                    json.dumps(ANNOUNCE_VERSION),
+                )
+                logger.debug(
                     f"filament change triggered publishing ANNOUNCE_PUSH to [device/{self.config.serial_number}/request]"
                 )
                 self.client.publish(
@@ -1135,7 +1202,7 @@ class BambuPrinter:
             if "heatbreak_fan_speed" in status:
                 self._heatbreak_fan_speed = int(status["heatbreak_fan_speed"])
             if "cooling_fan_speed" in status:
-                self._fan_speed = parseFan(int(status["cooling_fan_speed"]))
+                self._fan_speed = scaleFanSpeed(int(status["cooling_fan_speed"]))
 
             if "wifi_signal" in status:
                 self._wifi_signal = status["wifi_signal"]
@@ -1309,6 +1376,8 @@ class BambuPrinter:
                 if "tray_pre" in status["ams"]:
                     tray_pre = int(status["ams"]["tray_pre"])
 
+                # logger.warning(f"\rtray tar: {tray_pre} {tray_tar} {tray_now}")
+
             if tray_tar is not None or tray_now is not None or tray_pre is not None:
                 if self._target_spool == 255 and self._active_spool == 255:
                     self._spool_state = "Unloaded"
@@ -1402,30 +1471,6 @@ class BambuPrinter:
                     "buildplate_marker_detector"
                 ]
 
-            if "device" in status:
-                device = status["device"]
-                if "ctc" in device:
-                    ctc = device["ctc"]
-                    self._chamber_temp = float(ctc["info"]["temp"])
-                if "extruder" in device:
-                    info = device["extruder"].get("info", {})
-                    temp = 0
-                    tool = 0
-                    for extruder in info:
-                        # logger.debug(
-                        #     f"_on_message - extruder [{extruder["id"]} temp: [{int(extruder["temp"] / 65536.0)} hnow: [{extruder["hnow"]}] target: [{extruder["htar"]}]"
-                        # )
-                        if int(extruder["temp"] / 65536.0) > temp:
-                            temp = int(extruder["temp"] / 65536.0)
-                            tool = extruder["id"]
-                    if temp > 0:
-                        self._tool_temp = float(temp)
-                        self._tool_temp_target = float(temp)
-                        self._target_tool_num = tool
-                        logger.debug(
-                            f"_on_message - tool temp: [{self._tool_temp}] target: [{self._tool_temp_target}] tool: [{self._target_tool_num}]"
-                        )
-
         elif "info" in message and "module" in message["info"]:
             self._recent_update = True
             info = message["info"]
@@ -1433,7 +1478,7 @@ class BambuPrinter:
                 if "ota" in module["name"]:
                     self.config.serial_number = module["sn"]
                     self.config.firmware_version = module["sw_ver"]
-                if "ams" in module["name"]:
+                if "ams" in module.get("product_name", "").lower():
                     self.config.ams_firmware_version = module["sw_ver"]
         elif (
             "xcam" in message
@@ -1512,12 +1557,17 @@ class BambuPrinter:
         self._config = value
 
     @property
+    @deprecated("This property is deprecated (v1.0.0). Use `service_state`.")
     def state(self):
-        return self._state
+        return self._service_state.value
 
-    @state.setter
-    def state(self, value: PrinterState):
-        self._state = value
+    @property
+    def service_state(self):
+        return self._service_state
+
+    @service_state.setter
+    def service_state(self, value: ServiceState):
+        self._service_state = value
         self._notify_update()  # make sure we notify about EVERY state change!
 
     @property
@@ -1536,7 +1586,9 @@ class BambuPrinter:
         """
         sets or returns the callback function that is called when the printer state is updated
 
-        :param self: Description
+        Parameters
+        ----------
+        * value : method - (setter) The method to call.
         """
         return self._on_update
 
@@ -1599,7 +1651,7 @@ class BambuPrinter:
         !!! danger "Deprecated"
         This property is deprecated (v1.0.0). Use `BambuState.nozzle_temp`.
         """
-        return self._printer_state.nozzle_temp
+        return self._printer_state.active_nozzle_temp
 
     @property
     @deprecated(
@@ -1611,14 +1663,14 @@ class BambuPrinter:
         !!! danger "Deprecated"
         This property is deprecated (v1.0.0). Use `BambuState.nozzle_temp`.
         """
-        return self._printer_state.nozzle_temp_target
+        return self._printer_state.active_nozzle_temp_target
 
     @tool_temp_target.setter
     @deprecated("This property is deprecated (v1.0.0). Use `set_nozzle_temp_target`.")
     def tool_temp_target(self, value: float):
         self.set_nozzle_temp_target(value)
 
-    def set_nozzle_temp_target(self, value: float, tool_num: int = 0):
+    def set_nozzle_temp_target(self, value: float, tool_num: int = -1):
         """
         Sets the nozzle temperature target.
 
@@ -1632,7 +1684,7 @@ class BambuPrinter:
             value = 0.0
         gcode = SEND_GCODE_TEMPLATE
         gcode["print"]["param"] = (
-            f"M104 S{value}{'' if tool_num == 0 else ' T' + str(tool_num)}\n"
+            f"M104 S{value}{'' if tool_num == -1 else ' T' + str(tool_num)}\n"
         )
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(gcode)
@@ -1640,40 +1692,101 @@ class BambuPrinter:
         self._tool_temp_target_time = round(time.time())
 
     @property
-    def target_tool_num(self):
-        return self._target_tool_num
-
-    @property
+    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.chamber_temp`.")
     def chamber_temp(self):
-        return self._chamber_temp
+        """
+        returns or sets the nozzle temperature target
+        !!! danger "Deprecated"
+        This property is deprecated (v1.0.0). Use `BambuState.chamber_temp` and `set_chamber_temp`.
+        """
+        return self._printer_state.chamber_temp
 
     @chamber_temp.setter
+    @deprecated("This property is deprecated (v1.0.0). Use `set_chamber_temp`.")
     def chamber_temp(self, value: float):
-        self._chamber_temp = value
+        self.set_chamber_temp(value)
+
+    def set_chamber_temp(self, value: float):
+        """
+        for printers that do not have managed chambers, this enables you to inject
+        a chamber temperature value from an external source
+
+        Parameters
+        ----------
+        * value : float - The chamber temperature.
+        """
+        self._printer_state.chamber_temp = value
 
     @property
+    @deprecated(
+        "This property is deprecated (v1.0.0). Use `BambuState.chamber_temp_target`."
+    )
     def chamber_temp_target(self):
-        return self._chamber_temp_target
+        """
+        returns or sets the chamber temperature target
+        !!! danger "Deprecated"
+        This property is deprecated (v1.0.0). Use `BambuState.chamber_temp_target` and `set_chamber_temp_target`.
+        """
+        return self._printer_state.chamber_temp_target
 
     @chamber_temp_target.setter
+    @deprecated("This property is deprecated (v1.0.0). Use `set_chamber_temp_target`.")
     def chamber_temp_target(self, value: float):
-        self._chamber_temp_target = value
+        self.set_chamber_temp_target(value)
+
+    def set_chamber_temp_target(self, value: float):
+        """
+        currently only functional when using an "external" chamber heater
+
+        Parameters
+        ----------
+        * value : float - The target chamber temperature.
+        """
+        self._printer_state.chamber_temp_target = value
         self._chamber_temp_target_time = round(time.time())
 
     @property
+    @deprecated(
+        "This property is deprecated (v1.0.0). Use `BambuState.part_cooling_fan_speed_percent`."
+    )
     def fan_speed(self):
-        return self._fan_speed
+        """
+        returns the part fan speed in percent
+        !!! danger "Deprecated"
+        This property is deprecated (v1.0.0). Use `BambuState.part_cooling_fan_speed_percent`.
+        """
+        return self._printer_state.part_cooling_fan_speed_percent
 
     @property
+    @deprecated(
+        "This property is deprecated (v1.0.0). Use `BambuState.part_cooling_fan_speed_target_percent`."
+    )
     def fan_speed_target(self):
-        return self._fan_speed_target
+        """
+        returns or sets the part cooling fan target speed in percent
+        !!! danger "Deprecated"
+        This property is deprecated (v1.0.0). Use `BambuState.part_cooling_fan_speed_target_percent` and `set_part_cooling_fan_speed_target_percent`.
+        """
+        return self._printer_state.part_cooling_fan_speed_target_percent
 
     @fan_speed_target.setter
+    @deprecated(
+        "This property is deprecated (v1.0.0). Use `set_part_cooling_fan_speed_target_percent`."
+    )
     def fan_speed_target(self, value: int):
-        value = int(value)
+        self.set_part_cooling_fan_speed_target_percent(value)
+
+    def set_part_cooling_fan_speed_target_percent(self, value: int):
+        """
+        sets the part cooling fan speed target represented in percent
+
+        Parameters
+        ----------
+        * value : int - The target speed in percent
+        """
         if value < 0:
             value = 0
-        self._fan_speed_target = value
+        self._printer_state.part_cooling_fan_speed_target_percent = value
         speed = round(value * 2.55, 0)
         gcode = SEND_GCODE_TEMPLATE
         gcode["print"]["param"] = (
@@ -1705,8 +1818,16 @@ class BambuPrinter:
         return self._fan_gear
 
     @property
+    @deprecated(
+        "This property is deprecated (v1.0.0). Use `BambuState.heatbreak_fan_speed_percent`."
+    )
     def heatbreak_fan_speed(self):
-        return self._heatbreak_fan_speed
+        """
+        returns the heatbreak fan's current speed in percent
+        !!! danger "Deprecated"
+        This property is deprecated (v1.0.0). Use `BambuState.heatbreak_fan_speed_percent`.
+        """
+        return self._printer_state.heatbreak_fan_speed_percent
 
     @property
     def wifi_signal(self):
@@ -1727,10 +1848,10 @@ class BambuPrinter:
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
-        cmd["system"]["led_node"] = "chamber_light2"
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(cmd)
-        )
+        # cmd["system"]["led_node"] = "chamber_light2"
+        # self.client.publish(
+        #     f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        # )
 
     @property
     def speed_level(self):
@@ -1746,8 +1867,9 @@ class BambuPrinter:
         )
 
     @property
+    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.gcode_state`.")
     def gcode_state(self):
-        return self._gcode_state
+        return self._printer_state.gcode_state
 
     @property
     def subtask_name(self):
@@ -1782,16 +1904,18 @@ class BambuPrinter:
         return self._print_type
 
     @property
+    @deprecated(
+        "This property is deprecated (v1.0.0). Use `BambuState.print_percentage`."
+    )
     def percent_complete(self) -> int:
-        return (
-            int(self._percent_complete)
-            if str(self._percent_complete).isnumeric()
-            else int(0)
-        )
+        return self.printer_state.print_percentage
 
     @property
+    @deprecated(
+        "This property is deprecated (v1.0.0). Use `BambuState.remaining_minutes`."
+    )
     def time_remaining(self) -> int:
-        return self._time_remaining
+        return self._printer_state.remaining_minutes
 
     @property
     def start_time(self) -> int:
@@ -1802,20 +1926,28 @@ class BambuPrinter:
         return self._elapsed_time
 
     @property
+    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.total_layers`.")
     def layer_count(self):
-        return self._layer_count
+        return self._printer_state.total_layers
 
     @property
+    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.current_layer`.")
     def current_layer(self):
-        return self._current_layer
+        return self._printer_state.current_layer
 
     @property
+    @deprecated(
+        "This property is deprecated (v1.0.0). Use `BambuState.current_stage_id`."
+    )
     def current_stage(self):
-        return self._current_stage
+        return self._printer_state.current_stage_id
 
     @property
+    @deprecated(
+        "This property is deprecated (v1.0.0). Use `BambuState.current_stage_name`."
+    )
     def current_stage_text(self):
-        return parseStage(self._current_stage)
+        return self.printer_state.current_stage_name
 
     @property
     def spools(self):
@@ -1825,28 +1957,44 @@ class BambuPrinter:
     def printer_state(self) -> BambuState:
         return self._printer_state if self._printer_state else BambuState()
 
+    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.target_tray_id`.")
     def target_spool(self):
-        return self._target_spool
+        return self._printer_state.target_tray_id
 
     @property
+    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.active_tray_id`.")
     def active_spool(self):
-        return self._active_spool
+        return self._printer_state.active_tray_id
 
     @property
+    @deprecated(
+        "This property is deprecated (v1.0.0). Use `BambuState.active_tray_state`."
+    )
     def spool_state(self):
-        return self._spool_state
+        return self._printer_state.active_tray_state
 
     @property
+    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.ams_status_text`.")
     def ams_status(self):
-        return self._ams_status
+        return self._printer_state.ams_status_text
 
     @property
+    @deprecated(
+        "This property is deprecated (v1.0.0). Use `BambuState.ams_connected_count > 0`."
+    )
     def ams_exists(self):
-        return self._ams_exists
+        return self._printer_state.ams_connected_count > 0
 
     @property
+    @deprecated(
+        "This property is deprecated (v1.0.0). Use `BambuState.ams_units[0].rfid_ready`."
+    )
     def ams_rfid_status(self):
-        return self._ams_rfid_status
+        return (
+            self._printer_state.ams_units[0].rfid_ready
+            if self._printer_state.ams_connected_count > 0
+            else ""
+        )
 
     @property
     def internalException(self):

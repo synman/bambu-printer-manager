@@ -1,519 +1,404 @@
+"""
+`bambustate` provides a unified, thread-safe representation of a Bambu Lab printer's
+operational state, synchronized via MQTT telemetry.
+"""
+
 import logging
+import re
 from dataclasses import asdict, dataclass, field, replace
 from typing import Any, Optional
 
-# Core bpm imports
-from bpm.bambuconfig import LoggerName
 from bpm.bambutools import (
     ActiveTool,
+    ExtruderInfoState,
+    ExtruderStatus,
+    TrayState,
+    decodeHMS,
+    parseAMSInfo,
     parseAMSStatus,
     parseExtruderInfo,
-    parseExtruderState,
+    parseExtruderStatus,
     parseStage,
+    scaleFanSpeed,
+    unpackTemperature,
 )
 
-logger = logging.getLogger(LoggerName)
+logger = logging.getLogger("bpm")
+
+
+@dataclass
+class PrinterCapabilities:
+    """
+    Discovery features based on dev_feature_bits and logical presence of JSON data blocks.
+    """
+
+    has_ams: bool = False
+    """True if an AMS unit is supported or detected."""
+    has_lidar: bool = False
+    """True if the printer has a LiDAR sensor."""
+    has_camera: bool = False
+    """True if the printer has an internal camera."""
+    has_dual_extruder: bool = False
+    """True if the printer is an H2D (Dual Extruder) architecture."""
+    has_air_filtration: bool = False
+    """True if the printer supports active air filtration."""
+    has_chamber_temp: bool = False
+    """True if the printer has a dedicated chamber temperature sensor."""
 
 
 @dataclass
 class ExtruderState:
-    """Detailed state for an individual physical extruder tool."""
+    """
+    Detailed state for an individual physical extruder toolhead.
+    """
 
     id: int = 0
-    """The physical ID of the extruder (0 or 1)."""
-
+    """Physical ID of the extruder (0 or 1)."""
     temp: float = 0.0
-    """The current nozzle temperature in Celsius."""
-
-    target: float = 0.0
-    """The target nozzle temperature in Celsius."""
-
-    state: int = 0
-    """The raw state bitmask for this specific tool."""
-
+    """Current nozzle temperature in Celsius."""
+    temp_target: float = 0.0
+    """Target nozzle temperature in Celsius."""
     info_bits: int = 0
-    """Additional status bits regarding the tool's health/status."""
-
-    info_text: str = "Unknown"
-    """Human-readable description of the tool's status (e.g., 'Loaded, Heating')."""
-
-    state_text: str = "Idle"
-    """Human-readable operational state (e.g., 'Active', 'Idle')."""
+    """Raw bitmask for filament and nozzle detection."""
+    state: ExtruderInfoState = ExtruderInfoState.NO_NOZZLE
+    """Human-readable filament/nozzle status."""
+    status: ExtruderStatus = ExtruderStatus.IDLE
+    """Human-readable operational state."""
+    active_tray: int = 255
+    """Physical Source ID currently feeding this extruder (0-3: AMS, 254: Virtual, 255: External)."""
+    slot_id: int = 255
+    """Physical AMS slot (0-3) currently feeding this extruder."""
 
 
 @dataclass
 class AMSUnitState:
-    """Detailed state information about each AMS unit."""
+    """
+    Detailed state information about an individual AMS unit.
+    """
 
     ams_id: str
-    """The unique identifier for this AMS unit (e.g., "0", "1")."""
-
+    """Unique physical identifier for the AMS unit."""
     chip_id: str = ""
-    """The hardware serial/chip ID of the AMS."""
-
+    """Hardware serial or chip ID."""
     is_ams_lite: bool = False
-    """True if this is an AMS Lite (A1 series), False for standard AMS."""
-
+    """True if this hardware is identified as an AMS Lite."""
     temp_actual: float = 0.0
-    """Current temperature inside the AMS (Celsius)."""
-
+    """Current internal temperature of the AMS."""
     temp_target: int = 0
-    """Target drying temperature (0 if inactive). Always int."""
-
+    """Target drying temperature."""
     humidity_index: int = 0
-    """The humidity level index (1-5) reported by the sensor."""
-
+    """Humidity level index (1-5)."""
     humidity_raw: int = 0
-    """The raw sensor value for humidity. "0" often indicates AMS Lite."""
-
+    """Raw humidity sensor value."""
     is_online: bool = False
-    """Whether the AMS is communicating with the printer."""
-
+    """True if the unit is communicating with the printer."""
     is_powered: bool = False
-    """Whether the AMS has power."""
-
+    """True if the unit has power."""
     rfid_ready: bool = False
-    """True if the RFID readers are idle/ready to read."""
-
+    """True if the RFID reader is operational."""
     hub_sensor_triggered: bool = False
-    """True if the filament hub sensor detects filament."""
-
+    """True if filament is detected at the AMS hub."""
     humidity_sensor_ok: bool = False
-    """True if the humidity sensor is functioning."""
-
+    """True if the humidity sensor is functional."""
     heater_on: bool = False
-    """True if the AMS dryer/heater is active."""
-
+    """True if the drying heater is active."""
     circ_fan_on: bool = False
-    """True if the circulation fan is running."""
-
+    """True if the internal circulation fan is running."""
     exhaust_fan_on: bool = False
     """True if the exhaust fan is running."""
-
     dry_time: int = 0
     """Remaining drying time in minutes."""
-
     is_rotating: bool = False
-    """True if the spool rollers are currently rotating."""
-
+    """True if the rollers are currently turning (specifically for drying rotation)."""
     venting_active: bool = False
-    """True if the venting mechanism is engaged."""
-
+    """True if the venting mechanism is active."""
     high_power_mode: bool = False
-    """True if AMS is in high power/performance mode."""
-
+    """True if the unit is in performance power mode."""
     hardware_fault: bool = False
     """True if a hardware fault bit is set."""
-
     tray_exists: list[bool] = field(default_factory=lambda: [False] * 4)
-    """A list of 4 booleans indicating if a tray is present in slots 0-3."""
+    """Presence indicators for the four filament slots."""
+    assigned_to_extruder: ActiveTool = ActiveTool.SINGLE_EXTRUDER
+    """The toolhead currently mapped to this AMS unit."""
 
-    assigned_to_extruder: int = 0
-    """The extruder ID (0=Right, 1=Left) this AMS is physically mapped to."""
 
-
-@dataclass(frozen=True)
+@dataclass
 class BambuState:
-    """Full representation of the Bambu printer state."""
+    """
+    Full representation of the Bambu printer state, synchronized via MQTT telemetry.
+    """
 
     gcode_state: str = "IDLE"
-    """Current G-code execution state (e.g., "RUNNING", "IDLE", "PAUSE")."""
-
+    """Current G-code execution state (e.g., IDLE, RUNNING)."""
     current_stage_id: int = 0
     """Numeric ID of the current print stage."""
-
     current_stage_name: str = ""
-    """Human-readable name of the print stage."""
-
+    """Human-readable name of the current print stage."""
     print_percentage: int = 0
-    """Completion percentage (0-100)."""
-
+    """Completion percentage of the current print job."""
     remaining_minutes: int = 0
-    """Estimated time remaining in minutes."""
-
+    """Estimated remaining time in minutes."""
     current_layer: int = 0
-    """The current layer number being printed."""
-
+    """The layer currently being printed."""
     total_layers: int = 0
     """The total number of layers in the print job."""
-
     active_tray_id: int = 255
-    """The ID of the tray currently in use (0-15 AMS, 254/255 External, 255 Idle)."""
-
-    target_tray_id: int = 255
-    """The ID of the tray requested for the next operation."""
-
-    active_tool: ActiveTool = ActiveTool.RIGHT_EXTRUDER
-    """The currently active toolhead. Defaults to RIGHT_EXTRUDER (0)."""
-
+    """ID of the filament tray currently in use."""
+    active_tray_state: TrayState = TrayState.UNLOADED
+    """Loading status of the active tray."""
+    target_tray_id: int = -1
+    """Target tray ID for filament changes."""
+    active_tool: ActiveTool = ActiveTool.SINGLE_EXTRUDER
+    """The index of the currently active toolhead."""
     is_external_spool_active: bool = False
-    """True if printing from an external spool (virtual tray 254/255)."""
-
-    nozzle_temp: float = 0.0
+    """True if the external spool is being used."""
+    active_nozzle_temp: float = 0.0
     """Current temperature of the active nozzle."""
-
-    nozzle_temp_target: float = 0.0
+    active_nozzle_temp_target: float = 0.0
     """Target temperature of the active nozzle."""
-
     bed_temp: float = 0.0
-    """Current bed temperature."""
-
+    """Current temperature of the heatbed."""
     bed_temp_target: float = 0.0
-    """Target bed temperature."""
-
+    """Target temperature of the heatbed."""
     chamber_temp: float = 0.0
-    """Current chamber temperature."""
-
+    """Current temperature of the build chamber."""
     chamber_temp_target: float = 0.0
-    """Target chamber temperature."""
-
-    part_cooling_actual_percent: int = 0
-    """Part cooling fan speed (0-100%)."""
-
-    part_cooling_target_percent: int = 0
-    """Target part cooling fan speed (0-100%)."""
-
+    """Target temperature of the build chamber."""
+    part_cooling_fan_speed_percent: int = 0
+    """Current speed of the part cooling fan."""
+    part_cooling_fan_speed_target_percent: int = 0
+    """Target speed of the part cooling fan."""
     chamber_fan_speed_percent: int = 0
-    """Chamber/Circulation fan speed (0-100%)."""
-
+    """Speed of the chamber circulation fan."""
     exhaust_fan_speed_percent: int = 0
-    """Exhaust/Filter fan speed (0-100%)."""
-
+    """Speed of the exhaust fan."""
     heatbreak_fan_speed_percent: int = 0
-    """Hotend heatbreak fan speed (0-100%)."""
-
+    """Speed of the heatbreak cooling fan."""
     has_active_filtration: bool = False
-    """True if the printer supports and reports air filtration data."""
-
-    zone_internal_percent: int = 0
-    """Internal circulation fan speed (H2D specific)."""
-
-    zone_intake_percent: int = 0
-    """Fresh air intake fan speed (H2D specific)."""
-
-    zone_exhaust_percent: int = 0
-    """Exhaust fan speed (H2D specific)."""
-
+    """True if air filtration is active."""
     ams_status_raw: int = 0
-    """Raw status code from the AMS system."""
-
+    """Raw bit-packed status of the AMS system."""
     ams_status_text: str = ""
-    """Human-readable AMS status description."""
-
+    """Human-readable status of the AMS system."""
     ams_exist_bits: int = 0
-    """Bitmask of detected AMS units."""
-
+    """Bitmask indicating which AMS units are connected."""
     ams_connected_count: int = 0
-    """Count of connected AMS units."""
-
-    clog_risk_detected: bool = False
-    """True if clog detection algorithms have triggered."""
-
+    """Total number of detected AMS units."""
     ams_units: list[AMSUnitState] = field(default_factory=list)
-    """Detailed state for every connected AMS unit."""
-
+    """Detailed states for each connected AMS unit."""
     extruders: list[ExtruderState] = field(default_factory=list)
-    """Detailed state for every toolhead/extruder."""
-
-    virtual_trays: set[int] = field(default_factory=set)
-    """Set of valid external spool IDs (e.g. {254, 255})."""
-
-    extruder_assignment: dict[int, int] = field(default_factory=lambda: {0: 0, 1: 0})
-    """Map of Extruder ID to Filament Source Index."""
+    """Detailed states for each physical extruder."""
+    ams_handle_map: dict[int, int] = field(default_factory=dict)
+    """Mapping of physical AMS indices to logical handles."""
+    hms_errors: list[dict] = field(default_factory=list)
+    """Decoded Health Management System error messages."""
+    capabilities: PrinterCapabilities = field(default_factory=PrinterCapabilities)
+    """Hardware features discovered for the current printer."""
 
     @classmethod
     def fromJson(
         cls, data: dict[str, Any], current_state: Optional["BambuState"] = None
     ) -> "BambuState":
         """
-        Parses a raw JSON message from the Bambu printer and returns an updated BambuState.
+        Parses root MQTT payloads into a unified BambuState with strict hardware gating.
+
+        Args:
+            data (Dict[str, Any]): The raw MQTT JSON payload from the printer.
+            current_state (Optional[BambuState]): The existing state to update. If None, a new state is initialized.
+
+        Returns:
+            BambuState: A new BambuState instance reflecting the merged telemetry updates.
         """
         base = current_state if current_state else cls()
-        p = data.get("print", {})
-        ams_root = p.get("ams", {})
-        device = p.get("device", {})
+        info, p = data.get("info", {}), data.get("print", {})
+        ams_root, device = p.get("ams", {}), p.get("device", {})
         extruder_root = device.get("extruder", {})
-        upgrade_state = p.get("upgrade_state", {})
-
-        def to_pct(val):
-            return round((int(val) / 15) * 100)
-
+        modules = info.get("module", [])
         updates = {}
 
-        # 0. Capture Configuration Mapping (Manual Bind)
-        if p.get("command") == "manual_ams_bind":
-            bind_list = p.get("bind_list", [])
-            new_map = base.extruder_assignment.copy()
-            for b in bind_list:
-                if "extruder" in b and "ams_f_bind" in b:
-                    new_map[int(b["extruder"])] = int(b["ams_f_bind"])
-            updates["extruder_assignment"] = new_map
-        else:
-            updates["extruder_assignment"] = base.extruder_assignment
+        # 1. CAPABILITIES & HARDWARE CROSS-VALIDATION
+        feat_bits = info.get(
+            "dev_feature_bits", device.get("dev_feature_bits", p.get("dev_feature_bits"))
+        )
+        caps = asdict(base.capabilities)
+        if feat_bits is not None:
+            b = int(feat_bits)
+            caps.update(
+                {
+                    "has_air_filtration": bool(b & 0x01),
+                    "has_dual_extruder": bool(b & 0x10),
+                    # Zero-Inference Rule: LiDAR is physically impossible on H2D despite feature bit
+                    "has_lidar": bool(b & 0x20) and ("xcam" in p or "xcam" in info),
+                    "has_chamber_temp": bool(b & 0x40),
+                }
+            )
 
-        # 1. AMS Units
-        if "ams" in ams_root:
-            root_tray_exist_bits = 0
-            if "tray_exist_bits" in ams_root:
-                val = ams_root["tray_exist_bits"]
-                root_tray_exist_bits = int(val, 16) if isinstance(val, str) else int(val)
+        # Feature Persistence Fix
+        if "ctc" in device:
+            caps["has_chamber_temp"] = True
+        if "airduct" in device:
+            caps["has_air_filtration"] = True
+        if "ams" in ams_root or "ams" in p:
+            caps["has_ams"] = True
+        if len(extruder_root.get("info", [])) > 1:
+            caps["has_dual_extruder"] = True
+        caps["has_camera"] = True
+        updates["capabilities"] = PrinterCapabilities(**caps)
 
-            new_ams_units = [AMSUnitState(**asdict(u)) for u in base.ams_units]
-            ams_on_left_exists = False
-            ams_on_right_exists = False
+        # 2. AMS HANDLE MAPPING
+        new_handle_map = base.ams_handle_map.copy()
+        for m in modules:
+            if m.get("name", "").startswith("n3f/"):
+                try:
+                    idx = int(m["name"].split("/")[-1])
+                    if match := re.search(r"\((\d+)\)", m.get("product_name", "")):
+                        new_handle_map[idx] = int(match.group(1))
+                except (ValueError, IndexError):
+                    pass
+        updates["ams_handle_map"] = new_handle_map
 
-            for ams_raw in ams_root.get("ams", []):
-                ams_id = ams_raw.get("id")
-                if ams_id is None:
-                    continue
-                idx = next(
-                    (i for i, u in enumerate(new_ams_units) if u.ams_id == ams_id), None
-                )
-                u = new_ams_units[idx] if idx is not None else AMSUnitState(ams_id=ams_id)
-                if idx is None:
-                    new_ams_units.append(u)
-
-                raw_fw_id = upgrade_state.get("mc_for_ams_firmware", {}).get(
-                    "current_run_firmware_id"
-                )
-                u.is_ams_lite = (
-                    (int(raw_fw_id) == 0)
-                    if raw_fw_id is not None
-                    else (ams_raw.get("humidity_raw") == "0")
-                )
-
-                if "temp" in ams_raw:
-                    u.temp_actual = float(ams_raw["temp"])
-                if "temp_target" in ams_raw:
-                    u.temp_target = int(float(ams_raw["temp_target"]))
-                if "humidity" in ams_raw:
-                    u.humidity_index = int(ams_raw["humidity"])
-                if "humidity_raw" in ams_raw:
-                    u.humidity_raw = int(ams_raw["humidity_raw"])
-                if "chip_id" in ams_raw:
-                    u.chip_id = ams_raw["chip_id"]
-                if "dry_time" in ams_raw:
-                    u.dry_time = int(ams_raw["dry_time"])
-
-                if "info" in ams_raw:
-                    info = (
-                        int(ams_raw["info"], 16)
-                        if isinstance(ams_raw["info"], str)
-                        else int(ams_raw["info"])
-                    )
-                    u.is_powered, u.is_online = bool(info & 1), bool(info & 2)
-                    u.rfid_ready, u.hub_sensor_triggered = bool(info & 4), bool(info & 8)
-                    u.humidity_sensor_ok = bool(info & 64)
-
-                    u.assigned_to_extruder = 1 if (info & 0x100) else 0
-
-                    if u.assigned_to_extruder == 1:
-                        ams_on_left_exists = True
-                    else:
-                        ams_on_right_exists = True
-
-                    if not u.is_ams_lite:
-                        u.circ_fan_on, u.exhaust_fan_on = bool(info & 16), bool(info & 32)
-                        u.heater_on = bool(info & 128)
-
-                        if u.assigned_to_extruder == 1:
-                            u.is_rotating = False
-                        else:
-                            u.is_rotating = bool(info & 256)
-
-                        u.venting_active = bool(info & 512)
-                        u.high_power_mode = bool(info & 1024)
-                        u.hardware_fault = bool(info & 2048)
-
-                if "tray_exist_bits" in ams_raw:
-                    eb = (
-                        int(ams_raw["tray_exist_bits"], 16)
-                        if isinstance(ams_raw["tray_exist_bits"], str)
-                        else int(ams_raw["tray_exist_bits"])
-                    )
-                    u.tray_exists = [bool(eb & (1 << i)) for i in range(4)]
-                elif ams_id.isdigit():
-                    aid = int(ams_id)
-                    eb = (root_tray_exist_bits >> (aid * 4)) & 0xF
-                    u.tray_exists = [bool(eb & (1 << i)) for i in range(4)]
-
-            updates["ams_units"] = new_ams_units
-        else:
-            ams_on_left_exists = any(u.assigned_to_extruder == 1 for u in base.ams_units)
-            ams_on_right_exists = any(u.assigned_to_extruder == 0 for u in base.ams_units)
-
-        # 2. Virtual Trays
-        if "vir_slot" in p or "vir_slot" in ams_root:
-            raw_vir_slots = p.get("vir_slot", ams_root.get("vir_slot", []))
-            new_vir_set = set()
-            for vt in raw_vir_slots:
-                if "id" in vt:
-                    try:
-                        new_vir_set.add(int(vt["id"]))
-                    except ValueError:
-                        pass
-            updates["virtual_trays"] = new_vir_set
-        else:
-            updates["virtual_trays"] = base.virtual_trays
-
-        # 3. Extruders
-        new_extruders = base.extruders
+        # 3. EXTRUDER TELEMETRY
+        new_extruders = []
         if "info" in extruder_root:
-            new_extruders = []
-            for ext_raw in extruder_root.get("info", []):
-                e_id = int(ext_raw.get("id", 0))
-                raw_v = int(ext_raw.get("temp", 0))
-                act_t, tar_t = float(raw_v & 0xFFFF), float((raw_v >> 16) & 0xFFFF)
-                stat = int(ext_raw.get("stat", 0))
-                info = int(ext_raw.get("info", 0))
-
+            for r in extruder_root["info"]:
+                act, tar = unpackTemperature(int(r.get("temp", 0)))
                 new_extruders.append(
                     ExtruderState(
-                        id=e_id,
-                        temp=act_t,
-                        target=tar_t,
-                        state=stat,
-                        info_bits=info,
-                        info_text=parseExtruderInfo(info),
-                        state_text=parseExtruderState(stat),
+                        id=int(r.get("id", 0)),
+                        temp=act,
+                        temp_target=tar,
+                        active_tray=(int(r.get("snow", 0)) >> 8) & 0xFF,
+                        slot_id=int(r.get("snow", 0)) & 0xFF,
+                        state=parseExtruderInfo(int(r.get("info", 0))),
+                        status=parseExtruderStatus(int(r.get("stat", 0))),
                     )
                 )
-            updates["extruders"] = new_extruders
+        updates["extruders"] = new_extruders if new_extruders else base.extruders
 
-        # 4. Active Tool Logic
-        tool_val = base.active_tool.value
-
-        active_from_stat = -1
-        for ext in new_extruders:
-            if (ext.state & 0x300) == 0x300:
-                active_from_stat = ext.id
-                break
-
-        if active_from_stat != -1:
-            tool_val = active_from_stat
-        elif p.get("command") == "select_extruder":
-            tool_val = int(p.get("extruder_index", 0))
-        elif "state" in extruder_root:
-            raw_ext_bits = int(extruder_root.get("state", 0))
-            if raw_ext_bits > 0:
-                fallback_val = (raw_ext_bits & -raw_ext_bits).bit_length() - 1
-                current_gcode = p.get("gcode_state", base.gcode_state)
-                is_idle = current_gcode in ["IDLE", "FINISH", "READY"]
-                if not is_idle:
-                    tool_val = fallback_val
-
-        try:
-            updates["active_tool"] = ActiveTool(tool_val)
-        except ValueError:
-            logger.warning(
-                f"Unknown tool ID {tool_val} detected. Defaulting to RIGHT_EXTRUDER."
+        # 4. ACTIVE TOOLHEAD RECONCILIATION
+        if "state" in extruder_root:
+            updates["active_tool"] = (
+                ActiveTool((int(extruder_root["state"]) >> 4) & 0xF)
+                if updates["capabilities"].has_dual_extruder
+                else ActiveTool.SINGLE_EXTRUDER
             )
-            updates["active_tool"] = ActiveTool.RIGHT_EXTRUDER
-
-        # 5. Active Tray Logic
-        raw_tray_now = p.get("tray_now", ams_root.get("tray_now"))
-
-        if raw_tray_now is not None:
-            tray_now = int(raw_tray_now)
-            active_tool_id = updates["active_tool"].value
-            tool_0_ext_id = 255 if 255 in updates["virtual_trays"] else 254
-
-            if active_tool_id == 1:
-                if not ams_on_left_exists and tray_now == 0:
-                    updates["active_tray_id"] = 254
-                else:
-                    updates["active_tray_id"] = tray_now
-            else:
-                if not ams_on_right_exists and tray_now == 0:
-                    updates["active_tray_id"] = tool_0_ext_id
-                else:
-                    updates["active_tray_id"] = tray_now
-
-            updates["is_external_spool_active"] = updates["active_tray_id"] in [
-                254,
-                255,
-                253,
-            ]
-
         else:
-            updates["active_tray_id"] = base.active_tray_id
-            updates["is_external_spool_active"] = base.is_external_spool_active
+            updates["active_tool"] = base.active_tool
 
-        # 6. Global Nozzle Sync
-        active_ext = next(
-            (e for e in new_extruders if e.id == updates["active_tool"].value), None
+        # 5. AMS UNIT RECONCILIATION
+        cur_ams = {u.ams_id: u for u in base.ams_units}
+        for m in modules:
+            if "ams" in m.get("name", "") or "n3f" in m.get("name", ""):
+                ams_id_str = m.get("name", "").split("/")[-1]
+                unit = cur_ams.get(ams_id_str, AMSUnitState(ams_id=ams_id_str))
+                unit.chip_id = m.get("sn", unit.chip_id)
+                unit.is_ams_lite = "lite" in m.get("product_name", "").lower()
+                cur_ams[ams_id_str] = unit
+
+        for r in ams_root.get("ams", []):
+            ams_idx = int(r.get("id", "0"))
+            id_s = str(ams_idx)
+            u = cur_ams.get(id_s, AMSUnitState(ams_id=id_s))
+
+            if "info" in r:
+                p_ams = parseAMSInfo(int(r["info"]))
+                u.is_online, u.is_powered = p_ams["is_online"], p_ams["is_powered"]
+                u.rfid_ready = p_ams["rfid_ready"]
+                u.humidity_sensor_ok = p_ams["humidity_sensor_ok"]
+                u.heater_on, u.is_rotating = p_ams["heater_on"], p_ams["is_rotating"]
+                # H2D Architecture Assignment
+                if updates["capabilities"].has_dual_extruder:
+                    u.assigned_to_extruder = ActiveTool(
+                        p_ams.get("h2d_toolhead_index", 0)
+                    )
+
+            # Robust Humidity/Timer Parsing (Fix for string "0")
+            try:
+                if "humidity_raw" in r:
+                    u.humidity_raw = int(float(r["humidity_raw"]))
+                if "dry_time" in r:
+                    u.dry_time = int(float(r["dry_time"]))
+                if "humidity" in r:
+                    u.humidity_index = int(float(r["humidity"]))
+            except (ValueError, TypeError):
+                pass
+
+            u.temp_actual = float(r.get("temp", u.temp_actual))
+
+            # Bitmask-Based Tray Reconciliation (Nybble Shifting)
+            rb = r.get("tray_exist_bits", ams_root.get("tray_exist_bits"))
+            if rb is not None:
+                eb = int(rb, 16) if isinstance(rb, str) else int(rb)
+                u.tray_exists = [bool((eb >> (4 * ams_idx)) & (1 << j)) for j in range(4)]
+            cur_ams[id_s] = u
+
+        updates["ams_units"] = list(cur_ams.values())
+
+        # 6. THERMAL & TRAY HANDOFF
+        #
+        a_ext = next(
+            (e for e in updates["extruders"] if e.id == updates["active_tool"].value),
+            None,
         )
-        if active_ext:
-            updates["nozzle_temp"], updates["nozzle_temp_target"] = (
-                active_ext.temp,
-                active_ext.target,
+        if a_ext:
+            updates["active_nozzle_temp"], updates["active_nozzle_temp_target"] = (
+                a_ext.temp,
+                a_ext.temp_target,
             )
-        elif "nozzle_temper" in p:
-            updates["nozzle_temp"] = float(p["nozzle_temper"])
-            updates["nozzle_temp_target"] = float(p.get("nozzle_target_temper", 0))
-
-        # 7. General State
-        field_map = {
-            "gcode_state": "gcode_state",
-            "mc_percent": "print_percentage",
-            "mc_remaining_time": "remaining_minutes",
-            "bed_temper": "bed_temp",
-            "bed_target_temper": "bed_temp_target",
-            "clog_risk": "clog_risk_detected",
-        }
-        for jk, attr in field_map.items():
-            if jk in p:
-                updates[attr] = p[jk]
-
-        if "stg_cur" in p:
-            updates["current_stage_id"] = int(p["stg_cur"])
-            updates["current_stage_name"] = parseStage(updates["current_stage_id"])
-
-        if "ams_status" in p:
-            updates["ams_status_raw"] = int(p["ams_status"])
-            updates["ams_status_text"] = parseAMSStatus(updates["ams_status_raw"])
-
-        if "tray_tar" in ams_root:
-            updates["target_tray_id"] = int(ams_root["tray_tar"])
-
-        if "ams_exist_bits" in ams_root:
-            updates["ams_exist_bits"] = int(ams_root["ams_exist_bits"])
-            updates["ams_connected_count"] = bin(updates["ams_exist_bits"]).count("1")
-
-        # 8. Layer Logic
-        three_d = p.get("3D", {})
-        updates["current_layer"] = three_d.get(
-            "layer_num", p.get("layer_num", base.current_layer)
-        )
-        updates["total_layers"] = three_d.get(
-            "total_layer_num", p.get("total_layer_num", base.total_layers)
-        )
-
-        # 9. Zones (H2D Fix: Use raw 0-100 values and Correct IDs)
-        if "airduct" in device:
-            updates["has_active_filtration"] = True
-            # IDs: 16=Internal(Func0), 32=Intake(Func1), 48=Exhaust(Func2)
-            parts = {
-                part["id"]: part["state"] for part in device["airduct"].get("parts", [])
-            }
-
-            # Use raw values (no to_pct scaling)
-            updates["zone_internal_percent"] = parts.get(16, 0)
-            updates["zone_intake_percent"] = parts.get(32, 0)
-            updates["zone_exhaust_percent"] = parts.get(48, 0)
-
-        if "ctc" in device:
-            updates["chamber_temp"] = float(
-                device["ctc"].get("info", {}).get("temp", base.chamber_temp)
+            if a_ext.active_tray != 0:
+                updates["active_tray_id"] = (
+                    a_ext.active_tray
+                    if a_ext.active_tray >= 254
+                    else (a_ext.active_tray << 2) | a_ext.slot_id
+                )
+                updates["active_tray_state"] = (
+                    TrayState.LOADED
+                    if a_ext.state == ExtruderInfoState.LOADED
+                    else TrayState.UNLOADED
+                )
+        else:
+            updates["active_nozzle_temp"] = float(
+                p.get("nozzle_temper", base.active_nozzle_temp)
+            )
+            updates["active_nozzle_temp_target"] = float(
+                p.get("nozzle_target_temper", base.active_nozzle_temp_target)
+            )
+            updates["active_tray_id"] = int(
+                ams_root.get("tray_now", p.get("tray_now", base.active_tray_id))
             )
 
-        # 10. Fans
-        fan_map = {
-            "cooling_fan_speed": "part_cooling_actual_percent",
-            "big_fan2_speed": "exhaust_fan_speed_percent",
-        }
-        for jk, attr in fan_map.items():
-            if jk in p:
-                updates[attr] = to_pct(p[jk])
+        # 32-bit Packed Bed Thermal Unpacking (0x130013 -> 19.0)
+        bed_raw = device.get("bed", {}).get("info", {}).get("temp")
+        if bed_raw is not None:
+            act, tar = unpackTemperature(int(bed_raw))
+            updates["bed_temp"], updates["bed_temp_target"] = act, tar
+        else:
+            updates["bed_temp"] = float(p.get("bed_temper", base.bed_temp))
+            updates["bed_temp_target"] = float(
+                p.get("bed_target_temper", base.bed_temp_target)
+            )
+
+        # 7. GLOBAL METADATA & FANS
+        raw_exist = ams_root.get("ams_exist_bits", base.ams_exist_bits)
+        updates["ams_exist_bits"] = (
+            int(raw_exist, 16) if isinstance(raw_exist, str) else int(raw_exist)
+        )
+        updates["ams_connected_count"] = bin(updates["ams_exist_bits"]).count("1")
+        updates["ams_status_text"] = parseAMSStatus(
+            int(p.get("ams_status", base.ams_status_raw))
+        )
+        updates["gcode_state"] = p.get("gcode_state", base.gcode_state)
+        updates["current_stage_name"] = parseStage(
+            int(p.get("stg_cur", base.current_stage_id))
+        )
+        updates["hms_errors"] = [decodeHMS(hex(c)) for c in p.get("hms", [])]
+        updates["part_cooling_fan_speed_percent"] = scaleFanSpeed(
+            p.get("cooling_fan_speed", 0)
+        )
+        updates["exhaust_fan_speed_percent"] = scaleFanSpeed(p.get("big_fan2_speed", 0))
+        updates["has_active_filtration"] = (
+            updates["capabilities"].has_air_filtration
+            and updates["exhaust_fan_speed_percent"] > 0
+        )
 
         return replace(base, **updates)

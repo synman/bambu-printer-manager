@@ -172,6 +172,17 @@ SET_ACTIVE_TOOL = {
     "print": {"command": "select_extruder", "extruder_index": 0, "sequence_id": "0"}
 }
 
+SET_AMS_TO_EXTRUDER_BINDING = {
+    "print": {
+        "bind_list": [
+            {"ams_f_bind": 0, "ams_s_bind": 0, "extruder": 1},
+            {"ams_f_bind": 1, "ams_s_bind": 0, "extruder": 0},
+        ],
+        "command": "manual_ams_bind",
+        "sequence_id": "0",
+    }
+}
+
 XCAM_CONTROL_SET = {
     "xcam": {
         "command": "xcam_control_set",

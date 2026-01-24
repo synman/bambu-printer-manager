@@ -1,95 +1,72 @@
+from enum import Enum, IntEnum
+from typing import Any
+
+from typing_extensions import deprecated
+
+from bpm.bambucommands import HMS_STATUS
+
 """
 `bambutools' hosts various classes and methods used internally and externally
 by `bambu-printer-manager`.
 """
 
-from enum import Enum, IntEnum
+
+@staticmethod
+def parseStage(stage_int: int) -> str:
+    """
+    Maps stg_cur numeric codes to human-readable print stages.
+    Definitive mapping reconciled against Bambu Studio's internal string tables.
+    """
+    stage_map = {
+        -1: "",
+        0: "",  # BBL_STG_IDLE
+        1: "Auto bed leveling",  # BBL_STG_ABL
+        2: "Heatbed preheating",  # BBL_STG_BED_PREHEAT
+        3: "Sweeping XY mech mode",  # BBL_STG_XY_SWEEP
+        4: "Changing filament",  # BBL_STG_FILAMENT_CHANGE
+        5: "M400 pause",  # BBL_STG_M400_PAUSE
+        6: "Paused due to filament runout",  # BBL_STG_RUNOUT_PAUSE
+        7: "Heating hotend",  # BBL_STG_HOTEND_HEATING
+        8: "Calibrating extrusion",  # BBL_STG_EXTRUSION_CALI
+        9: "Scanning bed surface",  # BBL_STG_BED_SCAN
+        10: "Inspecting first layer",  # BBL_STG_FIRST_LAYER_INSPECT
+        11: "Identifying build plate type",  # BBL_STG_PLATE_IDENTIFY
+        12: "Calibrating Micro Lidar",  # BBL_STG_LIDAR_CALI
+        13: "Homing toolhead",  # BBL_STG_HOMING
+        14: "Cleaning nozzle tip",  # BBL_STG_NOZZLE_CLEAN
+        15: "Checking extruder temperature",  # BBL_STG_EXTRUDER_TEMP_CHECK
+        16: "Printing was paused by the user",  # BBL_STG_USER_PAUSE
+        17: "Pause of front cover falling",  # BBL_STG_COVER_PAUSE
+        18: "Calibrating the micro lidar",  # BBL_STG_LIDAR_CALI_2
+        19: "Calibrating extrusion flow",  # BBL_STG_FLOW_CALI
+        20: "Paused due to nozzle temperature malfunction",  # BBL_STG_NOZZLE_TEMP_PAUSE
+        21: "Paused due to heat bed temperature malfunction",  # BBL_STG_BED_TEMP_PAUSE
+        22: "Filament unloading",  # BBL_STG_FILAMENT_UNLOAD
+        23: "Skip step pause",  # BBL_STG_SKIP_STEP_PAUSE
+        24: "Filament loading",  # BBL_STG_FILAMENT_LOAD
+        25: "Motor noise calibration",  # BBL_STG_MOTOR_CALI
+        26: "Paused due to AMS lost",  # BBL_STG_AMS_LOST_PAUSE
+        27: "Paused due to low speed of the heat break fan",  # BBL_STG_FAN_PAUSE
+        28: "Paused due to chamber temperature control error",  # BBL_STG_CHAMBER_PAUSE
+        29: "Cooling chamber",  # BBL_STG_CHAMBER_COOLING
+        30: "Paused by the Gcode inserted by user",  # BBL_STG_GCODE_PAUSE
+        31: "Motor noise showoff",  # BBL_STG_MOTOR_SHOWOFF
+        32: "Nozzle filament covered detected pause",  # BBL_STG_NOZZLE_COVER_PAUSE
+        33: "Cutter error pause",  # BBL_STG_CUTTER_PAUSE
+        34: "First layer error pause",  # BBL_STG_FIRST_LAYER_PAUSE
+        35: "Nozzle clog pause",  # BBL_STG_NOZZLE_CLOG_PAUSE
+        255: "",
+    }
+    return stage_map.get(stage_int, f"Stage [{stage_int}]")
 
 
 @staticmethod
-def parseStage(stage: int) -> str:
-    """
-    Mainly an internal method used for parsing stage data from the printer.
-    """
-    if stage == 0:
-        return ""
-    elif stage == 1:
-        return "Auto bed leveling"
-    elif stage == 2:
-        return "Heatbed preheating"
-    elif stage == 3:
-        return "Sweeping XY mech mode"
-    elif stage == 4:
-        return "Changing filament"
-    elif stage == 5:
-        return "M400 pause"
-    elif stage == 6:
-        return "Paused due to filament runout"
-    elif stage == 7:
-        return "Heating hotend"
-    elif stage == 8:
-        return "Calibrating extrusion"
-    elif stage == 9:
-        return "Scanning bed surface"
-    elif stage == 10:
-        return "Inspecting first layer"
-    elif stage == 11:
-        return "Identifying build plate type"
-    elif stage == 12:
-        return "Calibrating Micro Lidar"
-    elif stage == 13:
-        return "Homing toolhead"
-    elif stage == 14:
-        return "Cleaning nozzle tip"
-    elif stage == 15:
-        return "Checking extruder temperature"
-    elif stage == 16:
-        return "Printing was paused by the user"
-    elif stage == 17:
-        return "Pause of front cover falling"
-    elif stage == 18:
-        return "Calibrating the micro lida"
-    elif stage == 19:
-        return "Calibrating extrusion flow"
-    elif stage == 20:
-        return "Paused due to nozzle temperature malfunction"
-    elif stage == 21:
-        return "Paused due to heat bed temperature malfunction"
-    elif stage == 22:
-        return "Filament unloading"
-    elif stage == 23:
-        return "Skip step pause"
-    elif stage == 24:
-        return "Filament loading"
-    elif stage == 25:
-        return "Motor noise calibration"
-    elif stage == 26:
-        return "Paused due to AMS lost"
-    elif stage == 27:
-        return "Paused due to low speed of the heat break fan"
-    elif stage == 28:
-        return "Paused due to chamber temperature control error"
-    elif stage == 29:
-        return "Cooling chamber"
-    elif stage == 30:
-        return "Paused by the Gcode inserted by user"
-    elif stage == 31:
-        return "Motor noise showoff"
-    elif stage == 32:
-        return "Nozzle filament covered detected pause"
-    elif stage == 33:
-        return "Cutter error pause"
-    elif stage == 34:
-        return "First layer error pause"
-    elif stage == 35:
-        return "Nozzle clog pause"
-    return ""
-
-
-@staticmethod
+@deprecated("This property is deprecated (v1.0.0). Use `scaleFanSpeed`.")
 def parseFan(fan: int) -> int:
     """
     Mainly an internal method used for parsing Fan data
+    !!! danger "Deprecated"
+    This property is deprecated (v1.0.0). Use `scaleFanSpeed`.
     """
     fan = int(fan)
     if fan == 1:
@@ -116,69 +93,52 @@ def parseFan(fan: int) -> int:
 
 
 @staticmethod
-def parseAMSInfo(info: int, has_temp: bool = False):
+def parseAMSInfo(info_int: int) -> dict:
     """
-    Mainly an internal method used for parsing AMS Info data
+    Parses decimal bit-packed AMS info for status and feature reconciliation.
+    Reconciled against Bambu Studio source logic for H2D/X1/P1 hardware.
     """
-    # BASE BITS: Shared across all AMS generations
-    status = {
-        "is_powered": bool(info & (1 << 0)),  # Bit 0
-        "is_connected": bool(info & (1 << 1)),  # Bit 1
-        "rfid_ready": bool(info & (1 << 2)),  # Bit 2
-        "hub_sensor_triggered": bool(info & (1 << 3)),  # Bit 3
-        "circ_fan_on": bool(info & (1 << 4)),  # Bit 4
-        "exhaust_fan_on": bool(info & (1 << 5)),  # Bit 5
-        "humidity_sensor_ok": bool(info & (1 << 6)),  # Bit 6
-        "heater_on": bool(info & (1 << 7)),  # Bit 7
+    return {
+        "is_powered": bool(info_int & 1),
+        "is_online": bool(info_int & 2),
+        "rfid_ready": bool(info_int & 4),
+        "hub_sensor_triggered": bool(info_int & 8),
+        "circ_fan_on": bool(info_int & 16),
+        "h2d_toolhead_index": (info_int >> 5) & 0x1,
+        "exhaust_fan_on": bool(info_int & 64),
+        "humidity_sensor_ok": bool((info_int & 128) or (info_int & 131072)),
+        "heater_on": bool(info_int & 256),
+        "motor_running": bool(info_int & 512),
+        "is_rotating": bool(info_int & 1024),  # Specific to AMS Drying Rotation
+        "venting_active": bool(info_int & 2048),
+        "high_power_mode": bool(info_int & 8192),
+        "hardware_fault": bool((info_int & 4096) or (info_int & 16384)),
     }
-
-    # ADVANCED BITS: H2D / AMS 2 Pro specific
-    if has_temp:
-        status.update(
-            {
-                "is_rotating": bool(info & (1 << 14)),  # Bit 13
-                "venting_active": bool(info & (1 << 13)),  # Bit 14
-                "high_power_mode": bool(info & (1 << 17)),  # Bit 17
-                "hardware_fault": bool(info & (1 << 30)),  # Bit 30
-            }
-        )
-    else:
-        # Defaults for legacy AMS (X1/P1/A1)
-        status.update(
-            {
-                "is_rotating": False,
-                "venting_active": False,
-                "high_power_mode": False,
-                "hardware_fault": False,
-            }
-        )
-
-    return status
 
 
 @staticmethod
-def parseAMSStatus(status):
+def parseAMSStatus(status_int: int) -> str:
     """
-    Can be used to parse `ams_status`
+    Maps the ams_status code to human-readable descriptions.
+    Definitive mapping reconciled against Bambu Studio source code.
     """
-    if status == 0:
-        return "Offline"
-    elif status == 768:
-        return "Idle"
-    elif status == 1024:
-        return "Pre-loading"
-    elif status == 1280:
-        return "Loading"
-    elif status == 1536:
-        return "Unloading"
-    elif status == 1792:
-        return "Cutting"
-    elif status == 2048:
-        return "Switching"
-    elif status == 2304:
-        return "Stall/Error"
-    else:
-        return "Unknown"
+    # The high byte represents the primary operational state
+    main_status = (status_int >> 8) & 0xFF
+
+    status_map = {
+        0x00: "Idle",  # BBL_AMS_STATUS_IDLE
+        0x01: "Filament Changing",  # BBL_AMS_STATUS_FILAMENT_CHANGE
+        0x02: "RFID Identifying",  # BBL_AMS_STATUS_RFID_READING
+        0x03: "Assist/Engaged",  # BBL_AMS_STATUS_ASSIST (Feed Assist)
+        0x04: "Calibration",  # BBL_AMS_STATUS_CALIBRATION
+        0x10: "Self Check",  # BBL_AMS_STATUS_SELF_CHECK
+        0x20: "Debug",  # BBL_AMS_STATUS_DEBUG
+        0xFF: "Unknown",  # BBL_AMS_STATUS_UNKNOWN
+    }
+
+    # Audit Note: In H2D telemetry (e.g., 768 / 0x0300),
+    # the 0x03 high byte correctly resolves to "Assist/Engaged".
+    return status_map.get(main_status, "Idle")
 
 
 @staticmethod
@@ -204,37 +164,81 @@ def parseRFIDStatus(status):
         return "Unknown"
 
 
-@staticmethod
-def parseExtruderInfo(bits: int) -> str:
-    """Parses the info_bits bitmask into a comma-separated string."""
-    flags = []
-    if bits & 1:
-        flags.append("Detected")
-    if bits & 2:
-        flags.append("Loaded")
-    if bits & 4:
-        flags.append("Motor")
-    if bits & 8:
-        flags.append("Fan")
-    if bits & 16:
-        flags.append("Heating")
-    if bits & 32:
-        flags.append("Clog/Res")  # Bit 5 often reserved or clog
-    if bits & 64:
-        flags.append("Error")
-    return ", ".join(flags) if flags else "Idle"
+class ExtruderInfoState(IntEnum):
+    """
+    Consolidated logical states for extruder sensor status.
+    Values represent unique state IDs to prevent bitmask collisions.
+    """
+
+    NO_NOZZLE = 0
+    EMPTY = 1
+    BUFFER_LOADED = 2
+    LOADED = 3
 
 
 @staticmethod
-def parseExtruderState(state_val: int) -> str:
-    """Parses the state bitmask to determine operational status."""
-    # Check bits 8 and 9 (0x300 = 768) which indicate the active driving tool
-    if (state_val & 0x300) == 0x300:
-        return "Active"
-    return "Idle"
+def parseExtruderInfo(info_int: int) -> ExtruderInfoState:
+    """
+    Decodes the extruder 'info' bit-packed status using unique ExtruderInfoState names.
+    Bitmask logic (0x02, 0x04, 0x08) is reconciled against Bambu Studio source.
+    """
+    # 1. Hardware Interlock: Bit 3 (0x08) presence is mandatory for nozzle detection.
+    if not (info_int & 0x08):
+        return ExtruderInfoState.NO_NOZZLE
+
+    # 2. Downstream Precedence: Bit 1 (0x02) indicates filament at the toolhead gears.
+    if info_int & 0x02:
+        return ExtruderInfoState.LOADED
+
+    # 3. Upstream State: Bit 2 (0x04) indicates filament is only at the buffer/hub.
+    if info_int & 0x04:
+        return ExtruderInfoState.BUFFER_LOADED
+
+    # 4. Default: Nozzle detected (Bit 3 is high), but no filament in the path.
+    return ExtruderInfoState.EMPTY
 
 
-class PrinterState(Enum):
+class ExtruderStatus(IntEnum):
+    """
+    Operational states for physical extruders.
+    Values are mapped directly from the Bambu Studio source code (BBL_EXTRUDER_STATE).
+    """
+
+    IDLE = 0
+    HEATING = 1
+    ACTIVE = 2
+    SUCCESS = 3
+
+
+@staticmethod
+def parseExtruderStatus(stat_int: int) -> ExtruderStatus:
+    """
+    Decodes the operational extruder state using the exhaustive Enum map.
+    Definitive mapping reconciled against Bambu Studio source.
+    """
+    # 1. Operational Precedence:
+    # The 'working bits' at 8-9 (0x0300) are the primary indicators of
+    # the extruder's mechanical state machine.
+    working_bits = (stat_int >> 8) & 0x03
+
+    # Check for the rare SUCCESS state (3)
+    if working_bits == 0x03:
+        return ExtruderStatus.ACTIVE
+    elif working_bits == 0x02:
+        # In the source, 0x02 is sometimes used for specific transitions,
+        # but 0x03 is the official 'Working' flag.
+        return ExtruderStatus.ACTIVE
+
+    # 2. Thermal State:
+    # Bit 0 (0x01) is the official 'Heater Active' flag in the stat register.
+    if stat_int & 0x01:
+        return ExtruderStatus.HEATING
+
+    # 3. Default: The toolhead is in a standby or idle state.
+    return ExtruderStatus.IDLE
+
+
+class ServiceState(Enum):
     """
     This enum is used by `bambu-printer-manager` to track the underlying state
     of the `mqtt` connection to the printer.
@@ -270,17 +274,32 @@ class PlateType(Enum):
 
 class ActiveTool(IntEnum):
     """
-    Enum representing the currently active toolhead/extruder.
+    The currently active extruder index.
 
-    Attributes:
-        INACTIVE (-1): No tool is currently active or filament is unloaded.
-        RIGHT_EXTRUDER (0): The primary or right-side extruder (Tool 0).
-        LEFT_EXTRUDER (1): The secondary or left-side extruder (Tool 1).
+    * `SINGLE_EXTRUDER (-1)`: Standard single-toolhead architecture (X1/P1/A1).
+    * `RIGHT_EXTRUDER (0)`: The primary/right toolhead in H2D (Dual Extruder) systems.
+    * `LEFT_EXTRUDER (1)`: The secondary/left toolhead in H2D (Dual Extruder) systems.
     """
 
-    INACTIVE = -1
+    SINGLE_EXTRUDER = -1
     RIGHT_EXTRUDER = 0
     LEFT_EXTRUDER = 1
+
+
+class TrayState(IntEnum):
+    """
+    Operational status of the filament tray.
+
+    * `UNLOADED (0)`: No filament detected in the toolhead path.
+    * `LOADED (1)`: Filament is fully loaded into the toolhead.
+    * `LOADING (2)`: Filament is currently being fed to the toolhead.
+    * `UNLOADING (3)`: Filament is currently being retracted from the toolhead.
+    """
+
+    UNLOADED = 0
+    LOADED = 1
+    LOADING = 2
+    UNLOADING = 3
 
 
 class PrintOption(Enum):
@@ -369,6 +388,7 @@ class PrinterModel(Enum):
     H2D = 10
 
 
+@staticmethod
 def getSeriesByModel(model: PrinterModel) -> PrinterSeries:
     """
     Returns the Printer series enum based on the provided model.
@@ -407,6 +427,72 @@ def getModelBySerial(serial: str) -> PrinterModel:
         return PrinterModel.UNKNOWN
 
 
+def decodeHMS(hex_val: Any) -> dict[str, Any]:
+    """
+    Decodes a raw integer or hex string into a rich diagnostic object
+    using the HMS_STATUS lookup tables.
+    """
+    # 1. Normalization
+    if isinstance(hex_val, int):
+        clean_hex = hex(hex_val).replace("0x", "").upper()
+    else:
+        clean_hex = str(hex_val).replace("0x", "").upper()
+
+    # 2. Proper Padding (8 for errors, 16 for HMS)
+    if len(clean_hex) <= 8:
+        clean_hex = clean_hex.zfill(8)
+    else:
+        clean_hex = clean_hex.zfill(16)
+
+    # 3. Correct Dual-Bucket Lookup (Fixes the TypeError)
+    data = HMS_STATUS.get("data", {})
+    # Access the "en" list within each hardware dictionary bucket
+    error_list = data.get("device_error", {}).get("en", [])
+    hms_list = data.get("device_hms", {}).get("en", [])
+
+    combined_list = error_list + hms_list
+    entry = next((item for item in combined_list if item.get("ecode") == clean_hex), None)
+
+    # 4. Metadata Extraction (Bitmasking)
+    module_code = clean_hex[:4]
+    severity_code = clean_hex[4:6] if len(clean_hex) == 8 else "00"
+
+    severity_map = {"40": "Fatal", "80": "Warning", "10": "Info"}
+    module_map = {
+        "0300": "Toolhead/Heatbed",
+        "0700": "AMS",
+        "0B00": "MC (Motion Controller)",
+        "0C00": "OTA/System",
+        "1800": "Interface/Expansion",
+    }
+
+    return {
+        "code": clean_hex,
+        "module": module_map.get(module_code, f"Module {module_code}"),
+        "severity": severity_map.get(severity_code, "Unknown"),
+        "is_critical": severity_code in ["40", "80"],
+        "intro": entry["intro"] if entry else "No description available for this code.",
+    }
+
+
+def scaleFanSpeed(raw_val: Any) -> int:
+    """
+    Scales proprietary 0-15 fan speed values to a 0-100 percentage.
+    """
+    try:
+        val = int(raw_val)
+        return min(max(round((val / 15.0) * 100), 0), 100)
+    except Exception:
+        return 0
+
+
+def unpackTemperature(raw_temp: int) -> tuple[float, float]:
+    """
+    Unpacks a 32-bit packed temperature integer into a tuple of (Actual, Target).
+    """
+    return float(raw_temp & 0xFFFF), float((raw_temp >> 16) & 0xFFFF)
+
+
 def sortFileTreeAlphabetically(source) -> dict:
     """
     Sorts a dict of file/directory nodes hierarchically in case-insensitive
@@ -420,19 +506,13 @@ def sortFileTreeAlphabetically(source) -> dict:
     """
 
     def sort_node_list(node_list):
-        # 1. Recursively sort the contents of any sub-directories first
         for item in node_list:
             if item.get("id", "").endswith("/") and "children" in item:
                 item["children"] = sort_node_list(item["children"])
 
-        # 2. Define the custom sorting key
         def sort_key(item):
-            # The sort key tuple:
-            # 1. Directory Precedence: True (directory) maps to 0, False (file) maps to 1.
-            # 2. Alphabetical Order: The cleaned name is used for the case-insensitive sort.
             return (not item.get("id", "").endswith("/"), item.get("name", "").lower())
 
-        # Apply the custom sort logic
         return sorted(node_list, key=sort_key)
 
     source["children"] = sort_node_list(source["children"])
