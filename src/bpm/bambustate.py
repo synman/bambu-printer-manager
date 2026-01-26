@@ -10,9 +10,11 @@ from typing import Any, Optional
 
 from bpm.bambutools import (
     ActiveTool,
+    AMSDryingStage,
     ExtruderInfoState,
     ExtruderStatus,
     TrayState,
+    decodeError,
     decodeHMS,
     parseAMSInfo,
     parseAMSStatus,
@@ -29,13 +31,13 @@ logger = logging.getLogger("bpm")
 @dataclass
 class PrinterCapabilities:
     """
-    Discovery features based on dev_feature_bits and logical presence of JSON data blocks.
+    Discovery features based on dev_feature_bits and hardware block presence.
     """
 
     has_ams: bool = False
     """True if an AMS unit is supported or detected."""
     has_lidar: bool = False
-    """True if the printer has a LiDAR sensor."""
+    """True if the printer has a LiDAR sensor (verified against xcam presence)."""
     has_camera: bool = False
     """True if the printer has an internal camera."""
     has_dual_extruder: bool = False
@@ -53,7 +55,7 @@ class ExtruderState:
     """
 
     id: int = 0
-    """Physical ID of the extruder (0 or 1)."""
+    """Physical ID of the extruder (0: Right, 1: Left)."""
     temp: float = 0.0
     """Current nozzle temperature in Celsius."""
     temp_target: float = 0.0
@@ -65,9 +67,9 @@ class ExtruderState:
     status: ExtruderStatus = ExtruderStatus.IDLE
     """Human-readable operational state."""
     active_tray: int = 255
-    """Physical Source ID currently feeding this extruder (0-3: AMS, 254: Virtual, 255: External)."""
+    """Physical Source ID currently feeding this extruder."""
     slot_id: int = 255
-    """Physical AMS slot (0-3) currently feeding this extruder."""
+    """Physical AMS slot currently feeding this extruder."""
 
 
 @dataclass
@@ -89,7 +91,7 @@ class AMSUnitState:
     humidity_index: int = 0
     """Humidity level index (1-5)."""
     humidity_raw: int = 0
-    """Raw humidity sensor value."""
+    """Raw humidity sensor value (parsed from telemetry string)."""
     is_online: bool = False
     """True if the unit is communicating with the printer."""
     is_powered: bool = False
@@ -119,7 +121,9 @@ class AMSUnitState:
     tray_exists: list[bool] = field(default_factory=lambda: [False] * 4)
     """Presence indicators for the four filament slots."""
     assigned_to_extruder: ActiveTool = ActiveTool.SINGLE_EXTRUDER
-    """The toolhead currently mapped to this AMS unit."""
+    """The toolhead currently mapped to this AMS unit (0: Right, 1: Left, 15: Transition)."""
+    drying_stage: AMSDryingStage = AMSDryingStage.IDLE
+    """Current stage of the drying cycle (e.g. HEATING, PURGING)."""
 
 
 @dataclass
@@ -145,6 +149,8 @@ class BambuState:
     active_tray_id: int = 255
     """ID of the filament tray currently in use."""
     active_tray_state: TrayState = TrayState.UNLOADED
+    """Loading status name of the active tray."""
+    active_tray_state_name: str = TrayState.UNLOADED.name
     """Loading status of the active tray."""
     target_tray_id: int = -1
     """Target tray ID for filament changes."""
@@ -190,10 +196,37 @@ class BambuState:
     """Detailed states for each physical extruder."""
     ams_handle_map: dict[int, int] = field(default_factory=dict)
     """Mapping of physical AMS indices to logical handles."""
+    print_error: int = 0
+    """primary blocking error."""
     hms_errors: list[dict] = field(default_factory=list)
-    """Decoded Health Management System error messages."""
+    """Consolidated list of all active HMS errors, including the primary print_error."""
     capabilities: PrinterCapabilities = field(default_factory=PrinterCapabilities)
     """Hardware features discovered for the current printer."""
+
+    @staticmethod
+    def _resolve_drying_stage(parsed: dict, dry_time: int) -> AMSDryingStage:
+        """
+        Determines the AMSDryingStage based on parsed bitmask flags and dry_time
+        """
+
+        if dry_time < 1:
+            return AMSDryingStage.IDLE
+
+        if parsed.get("hardware_fault", False):
+            return AMSDryingStage.FAULT
+
+        if parsed.get("venting_active", False):
+            if parsed.get("heater_on", False):
+                return AMSDryingStage.PURGING
+            return AMSDryingStage.CONDITIONING
+
+        if parsed.get("heater_on", False):
+            return AMSDryingStage.HEATING
+
+        if parsed.get("exhaust_fan_on", False) or parsed.get("circ_fan_on", False):
+            return AMSDryingStage.MAINTENANCE
+
+        return AMSDryingStage.IDLE
 
     @classmethod
     def fromJson(
@@ -204,10 +237,10 @@ class BambuState:
 
         Args:
             data (Dict[str, Any]): The raw MQTT JSON payload from the printer.
-            current_state (Optional[BambuState]): The existing state to update. If None, a new state is initialized.
+            current_state (Optional[BambuState]): The existing state to update.
 
         Returns:
-            BambuState: A new BambuState instance reflecting the merged telemetry updates.
+            BambuState: A new BambuState instance reflecting merged telemetry.
         """
         base = current_state if current_state else cls()
         info, p = data.get("info", {}), data.get("print", {})
@@ -227,13 +260,13 @@ class BambuState:
                 {
                     "has_air_filtration": bool(b & 0x01),
                     "has_dual_extruder": bool(b & 0x10),
-                    # Zero-Inference Rule: LiDAR is physically impossible on H2D despite feature bit
+                    # LiDAR cross-validation: must have bit AND data block presence
                     "has_lidar": bool(b & 0x20) and ("xcam" in p or "xcam" in info),
                     "has_chamber_temp": bool(b & 0x40),
                 }
             )
 
-        # Feature Persistence Fix
+        # Persistence for status packets
         if "ctc" in device:
             caps["has_chamber_temp"] = True
         if "airduct" in device:
@@ -275,10 +308,12 @@ class BambuState:
                 )
         updates["extruders"] = new_extruders if new_extruders else base.extruders
 
-        # 4. ACTIVE TOOLHEAD RECONCILIATION
+        # 4. ACTIVE TOOLHEAD SELECTION
         if "state" in extruder_root:
+            raw_tool_idx = (int(extruder_root["state"]) >> 4) & 0xF
+            # Safe instantiation thanks to ActiveTool.NOT_ACTIVE = 15
             updates["active_tool"] = (
-                ActiveTool((int(extruder_root["state"]) >> 4) & 0xF)
+                ActiveTool(raw_tool_idx)
                 if updates["capabilities"].has_dual_extruder
                 else ActiveTool.SINGLE_EXTRUDER
             )
@@ -300,19 +335,6 @@ class BambuState:
             id_s = str(ams_idx)
             u = cur_ams.get(id_s, AMSUnitState(ams_id=id_s))
 
-            if "info" in r:
-                p_ams = parseAMSInfo(int(r["info"]))
-                u.is_online, u.is_powered = p_ams["is_online"], p_ams["is_powered"]
-                u.rfid_ready = p_ams["rfid_ready"]
-                u.humidity_sensor_ok = p_ams["humidity_sensor_ok"]
-                u.heater_on, u.is_rotating = p_ams["heater_on"], p_ams["is_rotating"]
-                # H2D Architecture Assignment
-                if updates["capabilities"].has_dual_extruder:
-                    u.assigned_to_extruder = ActiveTool(
-                        p_ams.get("h2d_toolhead_index", 0)
-                    )
-
-            # Robust Humidity/Timer Parsing (Fix for string "0")
             try:
                 if "humidity_raw" in r:
                     u.humidity_raw = int(float(r["humidity_raw"]))
@@ -325,6 +347,21 @@ class BambuState:
 
             u.temp_actual = float(r.get("temp", u.temp_actual))
 
+            if "info" in r:
+                p_ams = parseAMSInfo(int(r["info"]))
+                u.is_online, u.is_powered = p_ams["is_online"], p_ams["is_powered"]
+                u.rfid_ready = p_ams["rfid_ready"]
+                u.humidity_sensor_ok = p_ams["humidity_sensor_ok"]
+                u.heater_on, u.is_rotating = p_ams["heater_on"], p_ams["is_rotating"]
+                # Injected: Venting and Drying Stage Logic
+                u.venting_active = p_ams.get("venting_active", False)
+                u.drying_stage = cls._resolve_drying_stage(p_ams, u.dry_time)
+
+                if updates["capabilities"].has_dual_extruder:
+                    u.assigned_to_extruder = ActiveTool(
+                        p_ams.get("h2d_toolhead_index", 15)
+                    )
+
             # Bitmask-Based Tray Reconciliation (Nybble Shifting)
             rb = r.get("tray_exist_bits", ams_root.get("tray_exist_bits"))
             if rb is not None:
@@ -335,27 +372,64 @@ class BambuState:
         updates["ams_units"] = list(cur_ams.values())
 
         # 6. THERMAL & TRAY HANDOFF
-        #
+
+        # 6.1 Target Tray Translation (Gated by Stage)
+        # tray_tar is valid ONLY during active load/unload stages.
+        # Valid Stages: 22 (Unloading), 24 (Loading).
+        # Otherwise, report -1 to prevent displaying stale target data.
+        current_stage = int(p.get("stg_cur", base.current_stage_id))
+        raw_tar_val = int(ams_root.get("tray_tar", p.get("tray_tar", 255)))
+
+        # Gate 1: Check for active filament loading stage (24)
+        if current_stage != 24:
+            updates["target_tray_id"] = -1
+
+        # Gate 2: Universal "No Target" value
+        elif raw_tar_val == 255:
+            updates["target_tray_id"] = -1
+
+        # Gate 3: H2D External Spool Translation
+        # We check the dataclass instance we created in Step 1
+        elif raw_tar_val == 254 and updates["capabilities"].has_dual_extruder:
+            # Extruder 0 (Right) -> 254 + 1 = 255
+            # Extruder 1 (Left)  -> 254 + 0 = 254
+            tool_idx = updates.get("active_tool", base.active_tool).value
+            updates["target_tray_id"] = 254 + (1 if tool_idx == 0 else 0)
+
+        # Gate 4: Standard AMS Mapping
+        else:
+            updates["target_tray_id"] = raw_tar_val
+
+        # 6.2 Active Extruder State Handoff
         a_ext = next(
             (e for e in updates["extruders"] if e.id == updates["active_tool"].value),
             None,
         )
-        if a_ext:
+
+        # Path A: Multi-Extruder Architecture (H2D)
+        if a_ext and updates["active_tool"] != ActiveTool.NOT_ACTIVE:
             updates["active_nozzle_temp"], updates["active_nozzle_temp_target"] = (
                 a_ext.temp,
                 a_ext.temp_target,
             )
+
             if a_ext.active_tray != 0:
-                updates["active_tray_id"] = (
-                    a_ext.active_tray
-                    if a_ext.active_tray >= 254
-                    else (a_ext.active_tray << 2) | a_ext.slot_id
-                )
+                # 254 (Left) and 255 (Right) bypass nybble shifting
+                if a_ext.active_tray >= 254:
+                    updates["active_tray_id"] = a_ext.active_tray
+                else:
+                    # Align AMS Index (1-4) with global tray ID map (0-15)
+                    updates["active_tray_id"] = (
+                        (a_ext.active_tray - 1) << 2
+                    ) | a_ext.slot_id
+
                 updates["active_tray_state"] = (
                     TrayState.LOADED
                     if a_ext.state == ExtruderInfoState.LOADED
                     else TrayState.UNLOADED
                 )
+
+        # Path B: Single-Extruder Architecture (X1/P1/A1)
         else:
             updates["active_nozzle_temp"] = float(
                 p.get("nozzle_temper", base.active_nozzle_temp)
@@ -363,20 +437,20 @@ class BambuState:
             updates["active_nozzle_temp_target"] = float(
                 p.get("nozzle_target_temper", base.active_nozzle_temp_target)
             )
-            updates["active_tray_id"] = int(
-                ams_root.get("tray_now", p.get("tray_now", base.active_tray_id))
+            updates["active_tray_id"] = int(ams_root.get("tray_now", base.active_tray_id))
+            if updates["active_tray_id"] == 255:
+                updates["active_tray_id"] = -1
+            updates["active_tray_state"] = (
+                TrayState.UNLOADED
+                if updates["active_tray_id"] == -1
+                else TrayState.LOADED
             )
 
-        # 32-bit Packed Bed Thermal Unpacking (0x130013 -> 19.0)
-        bed_raw = device.get("bed", {}).get("info", {}).get("temp")
-        if bed_raw is not None:
-            act, tar = unpackTemperature(int(bed_raw))
-            updates["bed_temp"], updates["bed_temp_target"] = act, tar
-        else:
-            updates["bed_temp"] = float(p.get("bed_temper", base.bed_temp))
-            updates["bed_temp_target"] = float(
-                p.get("bed_target_temper", base.bed_temp_target)
-            )
+        updates["active_tray_state_name"] = updates["active_tray_state"].name
+
+        # default to active tray if not unloading
+        if updates["target_tray_id"] == -1 and current_stage != 22:
+            updates["target_tray_id"] = updates["active_tray_id"]
 
         # 7. GLOBAL METADATA & FANS
         raw_exist = ams_root.get("ams_exist_bits", base.ams_exist_bits)
@@ -391,7 +465,27 @@ class BambuState:
         updates["current_stage_name"] = parseStage(
             int(p.get("stg_cur", base.current_stage_id))
         )
-        updates["hms_errors"] = [decodeHMS(hex(c)) for c in p.get("hms", [])]
+
+        updates["gcode_state"] = p.get("gcode_state", base.gcode_state)
+        updates["current_stage_name"] = parseStage(
+            int(p.get("stg_cur", base.current_stage_id))
+        )
+
+        # 7. ERROR HANDLING
+        updates["print_error"] = int(p.get("print_error", base.print_error))
+
+        decoded_error = {}
+        if updates["print_error"] != 0:
+            decoded_error = decodeError(updates["print_error"])
+
+        # decodeHMS handles only the hms list segment
+        updates["hms_errors"] = decodeHMS(
+            p.get("hms", base.hms_errors if "hms" not in p else [])
+        )
+
+        if decoded_error and decoded_error not in updates["hms_errors"]:
+            updates["hms_errors"].insert(0, decoded_error)
+
         updates["part_cooling_fan_speed_percent"] = scaleFanSpeed(
             p.get("cooling_fan_speed", 0)
         )

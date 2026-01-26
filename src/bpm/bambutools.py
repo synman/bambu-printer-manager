@@ -238,6 +238,20 @@ def parseExtruderStatus(stat_int: int) -> ExtruderStatus:
     return ExtruderStatus.IDLE
 
 
+class AMSDryingStage(IntEnum):
+    """
+    Represents the operational stages of the AMS2 drying cycle.
+    Resolved from heater, vent, and fan bitmasks.
+    """
+
+    IDLE = 0
+    HEATING = 1  # Heater active, Vent closed
+    PURGING = 2  # Vent open, Heater likely active
+    CONDITIONING = 3  # Heater off, Vent open, Fan running
+    MAINTENANCE = 4  # Post-cycle humidity monitoring
+    FAULT = 5  # Error detected during cycle
+
+
 class ServiceState(Enum):
     """
     This enum is used by `bambu-printer-manager` to track the underlying state
@@ -279,11 +293,13 @@ class ActiveTool(IntEnum):
     * `SINGLE_EXTRUDER (-1)`: Standard single-toolhead architecture (X1/P1/A1).
     * `RIGHT_EXTRUDER (0)`: The primary/right toolhead in H2D (Dual Extruder) systems.
     * `LEFT_EXTRUDER (1)`: The secondary/left toolhead in H2D (Dual Extruder) systems.
+    * `NOT_ACTIVE (15)`: The multi-extruder system is in a transitonal state.
     """
 
     SINGLE_EXTRUDER = -1
     RIGHT_EXTRUDER = 0
     LEFT_EXTRUDER = 1
+    NOT_ACTIVE = 15
 
 
 class TrayState(IntEnum):
@@ -370,6 +386,16 @@ class PrinterSeries(Enum):
     H2 = 5
 
 
+class AMSSeries(Enum):
+    """
+    AMS Series enum
+    """
+
+    UNKNOWN = 0
+    GEN_1 = 1
+    GEN_2 = 2
+
+
 class PrinterModel(Enum):
     """
     Printer model enum
@@ -388,8 +414,26 @@ class PrinterModel(Enum):
     H2D = 10
 
 
+class AMSModel(Enum):
+    """
+    AMS model enum
+    """
+
+    UNKNOWN = 0
+    AMS_1 = 1
+    AMS_LITE = 2
+    AMS_HT = 3
+    AMS_2_PRO = 4
+
+
 @staticmethod
+@deprecated("This method is deprecated (v1.0.0). Use `getPrinterSeriesByModel`.")
 def getSeriesByModel(model: PrinterModel) -> PrinterSeries:
+    return getPrinterSeriesByModel(model)
+
+
+@staticmethod
+def getPrinterSeriesByModel(model: PrinterModel) -> PrinterSeries:
     """
     Returns the Printer series enum based on the provided model.
     """
@@ -399,7 +443,25 @@ def getSeriesByModel(model: PrinterModel) -> PrinterSeries:
         return PrinterSeries.UNKNOWN
 
 
+@staticmethod
+def getAMSSeriesByModel(model: AMSModel) -> AMSSeries:
+    """
+    Returns the AMS series enum based on the provided model.
+    """
+
+    if model in (AMSModel.AMS_1, AMSModel.AMS_LITE):
+        return AMSSeries.GEN_1
+    if model in (AMSModel.AMS_HT, AMSModel.AMS_2_PRO):
+        return AMSSeries.GEN_2
+    return AMSSeries.UNKNOWN
+
+
+@deprecated("This method is deprecated (v1.0.0). Use `getPrinterModelBySerial`.")
 def getModelBySerial(serial: str) -> PrinterModel:
+    return getPrinterModelBySerial(serial)
+
+
+def getPrinterModelBySerial(serial: str) -> PrinterModel:
     """
     Returns the Printer model enum based on the provided serial #.
     """
@@ -427,52 +489,161 @@ def getModelBySerial(serial: str) -> PrinterModel:
         return PrinterModel.UNKNOWN
 
 
-def decodeHMS(hex_val: Any) -> dict[str, Any]:
+def getAMSModelBySerial(serial: str) -> AMSModel:
     """
-    Decodes a raw integer or hex string into a rich diagnostic object
-    using the HMS_STATUS lookup tables.
+    Returns the hardware model based on the serial number prefix.
     """
-    # 1. Normalization
-    if isinstance(hex_val, int):
-        clean_hex = hex(hex_val).replace("0x", "").upper()
-    else:
-        clean_hex = str(hex_val).replace("0x", "").upper()
+    prefix = serial[:3].upper()
 
-    # 2. Proper Padding (8 for errors, 16 for HMS)
-    if len(clean_hex) <= 8:
-        clean_hex = clean_hex.zfill(8)
-    else:
-        clean_hex = clean_hex.zfill(16)
+    if prefix == "19C":
+        return AMSModel.AMS_2_PRO
+    if prefix == "19F":
+        return AMSModel.AMS_HT
+    if prefix == "006":
+        return AMSModel.AMS_1
+    if prefix == "03C":
+        return AMSModel.AMS_LITE
+    return AMSModel.UNKNOWN
 
-    # 3. Correct Dual-Bucket Lookup (Fixes the TypeError)
-    data = HMS_STATUS.get("data", {})
-    # Access the "en" list within each hardware dictionary bucket
-    error_list = data.get("device_error", {}).get("en", [])
-    hms_list = data.get("device_hms", {}).get("en", [])
 
-    combined_list = error_list + hms_list
-    entry = next((item for item in combined_list if item.get("ecode") == clean_hex), None)
+def decodeHMS(hms_list: list) -> list[dict]:
+    """
+    Decodes the raw HMS list from telemetry into a structured list of dictionaries.
+    Reverts to the stable baseline prior to print_error integration.
+    """
+    decoded_errors = []
 
-    # 4. Metadata Extraction (Bitmasking)
-    module_code = clean_hex[:4]
-    severity_code = clean_hex[4:6] if len(clean_hex) == 8 else "00"
+    for item in hms_list:
+        # Persistence check: If already decoded, keep as-is
+        if isinstance(item, dict) and isinstance(item.get("code"), str):
+            decoded_errors.append(item)
+            continue
 
-    severity_map = {"40": "Fatal", "80": "Warning", "10": "Info"}
+        try:
+            attr = int(item.get("attr", 0))
+            code = int(item.get("code", 0))
+        except (AttributeError, ValueError, TypeError):
+            continue
+
+        if attr == 0:
+            continue
+
+        # Construct ecode and wiki slug
+        ecode = f"{attr:08X}{code:08X}"
+        wiki_slug = "_".join(ecode[i : i + 4] for i in range(0, 16, 4))
+
+        res = {
+            "code": f"HMS_{wiki_slug}",
+            "msg": "Unknown HMS Error",
+            "module": "System",
+            "severity": "Error",
+            "is_critical": False,
+            "type": "device_hms",
+            "url": f"https://wiki.bambulab.com/en/x1/troubleshooting/hmscode/{wiki_slug}",
+        }
+
+        # Module and Severity parsing (0xMMSSQECC)
+        mid = (attr >> 24) & 0xFF
+        mask = (attr >> 16) & 0xFF
+        module_map = {
+            0x03: "Mainboard",
+            0x05: "AMS",
+            0x12: "AMS",
+            0x07: "Toolhead",
+            0x0B: "Webcam",
+            0x10: "HMS",
+        }
+        res["module"] = module_map.get(mid, "System")
+
+        # Dictionary Lookup (Search device_hms only)
+        msg_list = HMS_STATUS.get("data", {}).get("device_hms", {}).get("en", [])
+        for entry in msg_list:
+            if entry.get("ecode", "").upper() == ecode:
+                res["msg"] = entry.get("intro", res["msg"])
+                break
+
+        # Severity Mapping
+        if mask in (0x00, 0x01):
+            res["severity"], res["is_critical"] = (
+                ("Fatal" if mask == 0x00 else "Error"),
+                True,
+            )
+        elif mask == 0x02:
+            res["severity"] = "Warning"
+        else:
+            res["severity"] = "Info"
+
+        decoded_errors.append(res)
+
+    return decoded_errors
+
+
+def decodeError(error: int) -> dict:
+    """
+    Decodes a raw print_error integer into a full HMS dictionary.
+    Uses nibble-swapping to find the message but preserves the original
+    module ID and code context in the result.
+    """
+    if error == 0:
+        return {}
+
+    # Valid Bambu Lab Module IDs for brute-force search
+    modules = ("03", "05", "07", "0B", "0C", "10", "12")
+    raw_hex = f"{error:08X}".upper()
+
+    # 1. Base Metadata (using the ORIGINAL error code)
+    wiki_slug = "_".join(raw_hex[i : i + 4] for i in range(0, 8, 4))
+    res = {
+        "code": f"HMS_{wiki_slug}",
+        "msg": "Unknown HMS Error",
+        "module": "System",
+        "severity": "Error",
+        "is_critical": False,
+        "type": "device_error",
+        "url": "https://wiki.bambulab.com/en/hms/error-code",
+    }
+
+    # 2. Map Original Module Name (based on original error bits)
+    mid_orig = (error >> 24) & 0xFF
     module_map = {
-        "0300": "Toolhead/Heatbed",
-        "0700": "AMS",
-        "0B00": "MC (Motion Controller)",
-        "0C00": "OTA/System",
-        "1800": "Interface/Expansion",
+        0x03: "Mainboard",
+        0x05: "AMS",
+        0x12: "AMS",
+        0x07: "Toolhead",
+        0x0B: "Webcam",
+        0x10: "HMS",
     }
+    res["module"] = module_map.get(mid_orig, "System")
 
-    return {
-        "code": clean_hex,
-        "module": module_map.get(module_code, f"Module {module_code}"),
-        "severity": severity_map.get(severity_code, "Unknown"),
-        "is_critical": severity_code in ["40", "80"],
-        "intro": entry["intro"] if entry else "No description available for this code.",
-    }
+    # 3. Targeted Brute-Force Lookup for Message Only
+    msg_list = HMS_STATUS.get("data", {}).get("device_error", {}).get("en", [])
+
+    for module in modules:
+        # Swap the first nibble to try and find a match in the dictionary
+        current_hex = f"{module}{raw_hex[2:]}"
+
+        for entry in msg_list:
+            if entry.get("ecode", "").upper() == current_hex.upper():
+                res["msg"] = entry.get("intro", res["msg"])
+                break
+
+        if res["msg"] != "Unknown HMS Error":
+            break
+
+    # 4. Severity and Criticality Mapping (0xSS byte)
+    mask = (error >> 16) & 0xFF
+    if mask in (0x00, 0x01):
+        # 00 = Fatal, 01 = Error. Both are critical blockers.
+        res["severity"] = "Fatal" if mask == 0x00 else "Error"
+        res["is_critical"] = True
+    elif mask == 0x02:
+        res["severity"] = "Warning"
+        res["is_critical"] = False
+    else:
+        res["severity"] = "Info"
+        res["is_critical"] = False
+
+    return res
 
 
 def scaleFanSpeed(raw_val: Any) -> int:

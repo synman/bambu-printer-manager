@@ -1,6 +1,6 @@
 import logging
 
-from bpm.bambutools import PrinterModel, getModelBySerial
+from bpm.bambutools import PrinterModel, getPrinterModelBySerial
 
 LoggerName = "bambu_printer_manager"
 logger = logging.getLogger(LoggerName)
@@ -111,11 +111,11 @@ class BambuConfig:
     @serial_number.setter
     def serial_number(self, value: str):
         self._serial_number = str(value)
-        self._printer_model = getModelBySerial(self._serial_number)
+        self._printer_model = getPrinterModelBySerial(self._serial_number)
 
     @property
     def printer_model(self) -> PrinterModel:
-        return getModelBySerial(self._serial_number)
+        return getPrinterModelBySerial(self._serial_number)
 
     @property
     def mqtt_port(self) -> int:
