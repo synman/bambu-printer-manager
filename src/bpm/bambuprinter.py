@@ -96,15 +96,15 @@ class BambuPrinter:
         self._on_update = None
 
         self._bed_temp = 0.0
-        self._bed_temp_target = 0.0
+        self._bed_temp_target = 0
         self._bed_temp_target_time = 0
 
         self._tool_temp = 0.0
-        self._tool_temp_target = 0.0
+        self._tool_temp_target = 0
         self._tool_temp_target_time = 0
 
         self._chamber_temp = 0.0
-        self._chamber_temp_target = 0.0
+        self._chamber_temp_target = 0
         self._chamber_temp_target_time = 0
 
         self._fan_gear = 0
@@ -1181,7 +1181,7 @@ class BambuPrinter:
             if "bed_temper" in status:
                 self._bed_temp = float(status["bed_temper"])
             if "bed_target_temper" in status:
-                bed_temp_target = float(status["bed_target_temper"])
+                bed_temp_target = int(status["bed_target_temper"])
                 if bed_temp_target != self._bed_temp_target:
                     self._bed_temp_target = bed_temp_target
                     self._bed_temp_target_time = round(time.time())
@@ -1189,7 +1189,7 @@ class BambuPrinter:
             if "nozzle_temper" in status:
                 self._tool_temp = float(status["nozzle_temper"])
             if "nozzle_target_temper" in status:
-                tool_temp_target = float(status["nozzle_target_temper"])
+                tool_temp_target = int(status["nozzle_target_temper"])
                 if tool_temp_target != self._tool_temp_target:
                     self._tool_temp_target = tool_temp_target
                     self._tool_temp_target_time = round(time.time())
@@ -1622,10 +1622,10 @@ class BambuPrinter:
 
     @bed_temp_target.setter
     @deprecated("This property is deprecated (v1.0.0). Use `set_bed_temp_target`.")
-    def bed_temp_target(self, value: float):
+    def bed_temp_target(self, value: int):
         self.set_bed_temp_target(value)
 
-    def set_bed_temp_target(self, value: float):
+    def set_bed_temp_target(self, value: int):
         """
         Sets the bed temperature target.
 
@@ -1633,9 +1633,8 @@ class BambuPrinter:
         ----------
         * value : float - The target bed temperature.
         """
-        value = float(value)
-        if value < 0.0:
-            value = 0.0
+        if value < 0:
+            value = 0
         gcode = SEND_GCODE_TEMPLATE
         gcode["print"]["param"] = f"M140 S{value}\n"
         self.client.publish(
@@ -1667,10 +1666,10 @@ class BambuPrinter:
 
     @tool_temp_target.setter
     @deprecated("This property is deprecated (v1.0.0). Use `set_nozzle_temp_target`.")
-    def tool_temp_target(self, value: float):
+    def tool_temp_target(self, value: int):
         self.set_nozzle_temp_target(value)
 
-    def set_nozzle_temp_target(self, value: float, tool_num: int = -1):
+    def set_nozzle_temp_target(self, value: int, tool_num: int = -1):
         """
         Sets the nozzle temperature target.
 
@@ -1679,9 +1678,8 @@ class BambuPrinter:
         * value : float - The target nozzle temperature.
         * tool_num : int - The tool number (default is 0).
         """
-        value = float(value)
-        if value < 0.0:
-            value = 0.0
+        if value < 0:
+            value = 0
         gcode = SEND_GCODE_TEMPLATE
         gcode["print"]["param"] = (
             f"M104 S{value}{'' if tool_num == -1 else ' T' + str(tool_num)}\n"
@@ -1731,10 +1729,10 @@ class BambuPrinter:
 
     @chamber_temp_target.setter
     @deprecated("This property is deprecated (v1.0.0). Use `set_chamber_temp_target`.")
-    def chamber_temp_target(self, value: float):
+    def chamber_temp_target(self, value: int):
         self.set_chamber_temp_target(value)
 
-    def set_chamber_temp_target(self, value: float):
+    def set_chamber_temp_target(self, value: int):
         """
         currently only functional when using an "external" chamber heater
 

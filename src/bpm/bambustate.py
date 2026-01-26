@@ -54,7 +54,7 @@ class ExtruderState:
     """Physical ID. Population: `int(r.get("id"))`."""
     temp: float = 0.0
     """Current Temp. Population: `unpackTemperature(r.temp)`."""
-    temp_target: float = 0.0
+    temp_target: int = 0
     """Target Temp. Population: `unpackTemperature(r.temp)`."""
     info_bits: int = 0
     """Raw bitmask. Population: `int(r.get("info"))`."""
@@ -152,16 +152,16 @@ class BambuState:
     """Ext spool flag. Population: `active_tray_id in [254, 255]`."""
     active_nozzle_temp: float = 0.0
     """Nozzle temp. Population: Handoff from `a_ext` or `p`."""
-    active_nozzle_temp_target: float = 0.0
+    active_nozzle_temp_target: int = 0
     """Nozzle target. Population: Handoff from `a_ext` or `p`."""
     bed_temp: float = 0.0
     """Bed temp. Population: `float(p.get("bed_temper"))`."""
-    bed_temp_target: float = 0.0
+    bed_temp_target: int = 0
     """Bed target. Population: `float(p.get("bed_target_temper"))`."""
     chamber_temp: float = 0.0
-    """Chamber temp. Population: `ctc_root.info.temp`."""
-    chamber_temp_target: float = 0.0
-    """Chamber target. Population: Base persistence."""
+    """Chamber temp. Population: `unpackTemperature(ctc_root.info.temp)`."""
+    chamber_temp_target: int = 0
+    """Chamber target. Population: `unpackTemperature(ctc_root.info.temp)`."""
     part_cooling_fan_speed_percent: int = 0
     """Part fan %. Population: `scaleFanSpeed(p.cooling_fan_speed)`."""
     part_cooling_fan_speed_target_percent: int = 0
@@ -211,7 +211,6 @@ class BambuState:
 
     @staticmethod
     def _resolve_drying_stage(parsed: dict, dry_time: int) -> AMSDryingStage:
-        """Determines cycle stage based on bitmask and time."""
         if dry_time < 1:
             return AMSDryingStage.IDLE
         if parsed.get("hardware_fault", False):
@@ -245,7 +244,7 @@ class BambuState:
         modules = info.get("module", [])
         updates = {}
 
-        # CAPABILITIES
+        # 1. CAPABILITIES
         caps = asdict(base.capabilities)
         if ctc_root:
             caps["has_chamber_temp"] = True
@@ -260,7 +259,7 @@ class BambuState:
         caps["has_camera"] = True
         updates["capabilities"] = PrinterCapabilities(**caps)
 
-        # STATUS & PROGRESS
+        # 2. STATUS & PROGRESS
         updates["gcode_state"] = p.get("gcode_state", base.gcode_state)
         updates["current_stage_id"] = int(p.get("stg_cur", base.current_stage_id))
         updates["current_stage_name"] = parseStage(updates["current_stage_id"])
@@ -271,21 +270,19 @@ class BambuState:
         updates["current_layer"] = int(p.get("layer_num", base.current_layer))
         updates["total_layers"] = int(p.get("total_layer_num", base.total_layers))
 
-        # THERMALS & AIRDUCT
+        # 3. THERMALS & CTC DECODING
         updates["bed_temp"] = float(p.get("bed_temper", base.bed_temp))
-        updates["bed_temp_target"] = float(
-            p.get("bed_target_temper", base.bed_temp_target)
-        )
+        updates["bed_temp_target"] = int(p.get("bed_target_temper", base.bed_temp_target))
 
         if ctc_root:
-            updates["chamber_temp"] = float(
-                ctc_root.get("info", {}).get("temp", base.chamber_temp)
-            )
+            ctc_temp = unpackTemperature(ctc_root.get("info", {}).get("temp", 0.0))[0]
+            updates["chamber_temp"] = ctc_temp
         else:
-            updates["chamber_temp"] = float(p.get("chamber_temper", base.chamber_temp))
+            updates["chamber_temp"] = base.chamber_temp
 
         updates["chamber_temp_target"] = base.chamber_temp_target
 
+        # 4. AIRDUCT
         if airduct_root:
             updates["airduct_state_raw"] = int(
                 airduct_root.get("state", base.airduct_state_raw)
@@ -302,26 +299,27 @@ class BambuState:
             updates["zone_intake_percent"] = parts.get(32, base.zone_intake_percent)
             updates["zone_exhaust_percent"] = parts.get(48, base.zone_exhaust_percent)
 
-        # EXTRUDERS
+        # 5. EXTRUDERS
         new_extruders = []
         if "info" in extruder_root:
-            for ams in extruder_root["info"]:
-                act_t, tar_t = unpackTemperature(int(ams.get("temp", 0)))
-                raw_sn = int(ams.get("snow", 0))
+            for ams_ex in extruder_root["info"]:
+                raw_t = int(ams_ex.get("temp", 0))
+                act_t, tar_t = unpackTemperature(raw_t)
+                raw_sn = int(ams_ex.get("snow", 0))
 
                 ext = ExtruderState()
-                ext.id = int(ams.get("id", 0))
+                ext.id = int(ams_ex.get("id", 0))
                 ext.temp = act_t
-                ext.temp_target = tar_t
-                ext.info_bits = int(ams.get("info", 0))
+                ext.temp_target = int(tar_t)
+                ext.info_bits = int(ams_ex.get("info", 0))
                 ext.state = parseExtruderInfo(ext.info_bits)
-                ext.status = parseExtruderStatus(int(ams.get("stat", 0)))
+                ext.status = parseExtruderStatus(int(ams_ex.get("stat", 0)))
                 ext.active_tray = (raw_sn >> 8) & 0xFF
                 ext.slot_id = raw_sn & 0xFF
                 new_extruders.append(ext)
         updates["extruders"] = new_extruders if new_extruders else base.extruders
 
-        # TOOL SELECTION
+        # 6. TOOL SELECTION
         if "state" in extruder_root:
             raw_t_idx = (int(extruder_root["state"]) >> 4) & 0xF
             if updates["capabilities"].has_dual_extruder:
@@ -331,7 +329,7 @@ class BambuState:
         else:
             updates["active_tool"] = base.active_tool
 
-        # AMS UNITS & HANDLE MAPPING
+        # 7. AMS UNITS & HANDLE MAPPING
         new_handle_map = base.ams_handle_map.copy()
         cur_ams = {u.ams_id: u for u in base.ams_units}
 
@@ -352,16 +350,16 @@ class BambuState:
 
         updates["ams_handle_map"] = new_handle_map
 
-        for ams in ams_root.get("ams", []):
-            id_s = str(ams.get("id", "0"))
+        for ams_u in ams_root.get("ams", []):
+            id_s = str(ams_u.get("id", "0"))
             u = cur_ams.get(id_s, AMSUnitState(ams_id=id_s))
-            u.temp_actual = float(ams.get("temp", u.temp_actual))
-            u.humidity_index = int(float(ams.get("humidity", u.humidity_index)))
-            u.humidity_raw = int(float(ams.get("humidity_raw", u.humidity_raw)))
-            u.dry_time = int(float(ams.get("dry_time", u.dry_time)))
+            u.temp_actual = float(ams_u.get("temp", u.temp_actual))
+            u.humidity_index = int(float(ams_u.get("humidity", u.humidity_index)))
+            u.humidity_raw = int(float(ams_u.get("humidity_raw", u.humidity_raw)))
+            u.dry_time = int(float(ams_u.get("dry_time", u.dry_time)))
 
-            if "info" in ams:
-                p_ams = parseAMSInfo(int(ams["info"]))
+            if "info" in ams_u:
+                p_ams = parseAMSInfo(int(ams_u["info"]))
                 u.is_online = p_ams["is_online"]
                 u.is_powered = p_ams["is_powered"]
                 u.rfid_ready = p_ams["rfid_ready"]
@@ -381,7 +379,7 @@ class BambuState:
                         p_ams.get("h2d_toolhead_index", 15)
                     )
 
-            rb = ams.get("tray_exist_bits", ams_root.get("tray_exist_bits"))
+            rb = ams_u.get("tray_exist_bits", ams_root.get("tray_exist_bits"))
             if rb is not None:
                 eb = int(rb, 16) if isinstance(rb, str) else int(rb)
                 u.tray_exists = [
@@ -392,7 +390,7 @@ class BambuState:
 
         updates["ams_units"] = list(cur_ams.values())
 
-        # TRAY HANDOFF
+        # 8. TRAY HANDOFF & KEY ERROR FIX
         raw_tar_val = int(ams_root.get("tray_tar", p.get("tray_tar", 255)))
         if updates["current_stage_id"] != 24 or raw_tar_val == 255:
             updates["target_tray_id"] = -1
@@ -423,11 +421,14 @@ class BambuState:
                     updates["active_tray_state"] = TrayState.LOADED
                 else:
                     updates["active_tray_state"] = TrayState.UNLOADED
+            else:
+                updates["active_tray_id"] = base.active_tray_id
+                updates["active_tray_state"] = base.active_tray_state
         else:
             updates["active_nozzle_temp"] = float(
                 p.get("nozzle_temper", base.active_nozzle_temp)
             )
-            updates["active_nozzle_temp_target"] = float(
+            updates["active_nozzle_temp_target"] = int(
                 p.get("nozzle_target_temper", base.active_nozzle_temp_target)
             )
             updates["active_tray_id"] = int(ams_root.get("tray_now", base.active_tray_id))
@@ -442,7 +443,7 @@ class BambuState:
         updates["active_tray_state_name"] = updates["active_tray_state"].name
         updates["is_external_spool_active"] = updates["active_tray_id"] in [254, 255]
 
-        # GLOBAL METADATA & FANS
+        # 9. GLOBAL METADATA & FANS
         raw_exist = ams_root.get("ams_exist_bits", base.ams_exist_bits)
         updates["ams_exist_bits"] = (
             int(raw_exist, 16) if isinstance(raw_exist, str) else int(raw_exist)
@@ -465,7 +466,7 @@ class BambuState:
             p.get("big_fan1_speed", base.chamber_fan_speed_percent)
         )
 
-        # ERROR HANDLING
+        # 10. ERROR HANDLING
         updates["print_error"] = int(p.get("print_error", base.print_error))
 
         if updates["print_error"] != 0:
