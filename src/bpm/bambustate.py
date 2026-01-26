@@ -275,12 +275,14 @@ class BambuState:
         updates["bed_temp_target"] = int(p.get("bed_target_temper", base.bed_temp_target))
 
         if ctc_root:
-            ctc_temp = unpackTemperature(ctc_root.get("info", {}).get("temp", 0.0))[0]
+            ctc_temp_raw = unpackTemperature(ctc_root.get("info", {}).get("temp", 0.0))
+            ctc_temp = ctc_temp_raw[0]
+            ctc_temp_target = ctc_temp_raw[1]
             updates["chamber_temp"] = ctc_temp
+            updates["chamber_temp_target"] = int(ctc_temp_target)
         else:
             updates["chamber_temp"] = base.chamber_temp
-
-        updates["chamber_temp_target"] = base.chamber_temp_target
+            updates["chamber_temp_target"] = base.chamber_temp_target
 
         # 4. AIRDUCT
         if airduct_root:

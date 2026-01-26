@@ -33,6 +33,7 @@ from bpm.bambucommands import (
     SEND_GCODE_TEMPLATE,
     SET_ACCESSORIES,
     SET_ACTIVE_TOOL,
+    SET_CHAMBER_TEMP_TARGET,
     SKIP_OBJECTS,
     SPEED_PROFILE_TEMPLATE,
     STOP_PRINT,
@@ -1640,6 +1641,9 @@ class BambuPrinter:
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(gcode)
         )
+        logger.debug(
+            f"set_bed_temp_target - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
         self._bed_temp_target_time = round(time.time())
 
     @property
@@ -1687,6 +1691,9 @@ class BambuPrinter:
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(gcode)
         )
+        logger.debug(
+            f"set_nozzle_temp_target - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
         self._tool_temp_target_time = round(time.time())
 
     @property
@@ -1732,15 +1739,29 @@ class BambuPrinter:
     def chamber_temp_target(self, value: int):
         self.set_chamber_temp_target(value)
 
-    def set_chamber_temp_target(self, value: int):
+    def set_chamber_temp_target(self, value: int, temper_check: bool = True):
         """
-        currently only functional when using an "external" chamber heater
+        set chamber temperature target if printer supports it, otherwise just
+        store the value
 
         Parameters
         ----------
         * value : float - The target chamber temperature.
+        * temper_check : OPTIONAL bool - perform a temperature check?
         """
-        self._printer_state.chamber_temp_target = value
+        if self.printer_state.capabilities.has_chamber_temp:
+            cmd = copy.deepcopy(SET_CHAMBER_TEMP_TARGET)
+            cmd["print"]["ctt_val"] = value
+            cmd["print"]["temper_check"] = temper_check
+
+            self.client.publish(
+                f"device/{self.config.serial_number}/request", json.dumps(cmd)
+            )
+            logger.debug(
+                f"set_chamber_temp_target - published SET_CHAMBER_TEMP_TARGET to [device/{self.config.serial_number}/request] command: [{cmd}]"
+            )
+        else:
+            self._printer_state.chamber_temp_target = value
         self._chamber_temp_target_time = round(time.time())
 
     @property
@@ -1792,6 +1813,9 @@ class BambuPrinter:
         )
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(gcode)
+        )
+        logger.debug(
+            f"set_part_cooling_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
         )
         self._fan_speed_target_time = round(time.time())
 

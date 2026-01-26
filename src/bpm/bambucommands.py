@@ -203,6 +203,14 @@ GET_ACCESSORIES = {
     }
 }
 
+SET_CHAMBER_TEMP_TARGET = {
+    "print": {
+        "command": "set_ctt",
+        "ctt_val": 40,
+        "sequence_id": "0",
+        "temper_check": True,
+    }
+}
 #
 # https://e.bambulab.com/query.php?lang=en
 #
