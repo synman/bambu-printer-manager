@@ -234,18 +234,12 @@ class BambuState:
     ) -> "BambuState":
         """
         Parses root MQTT payloads into a unified BambuState with strict hardware gating.
-
-        Args:
-            data (Dict[str, Any]): The raw MQTT JSON payload from the printer.
-            current_state (Optional[BambuState]): The existing state to update.
-
-        Returns:
-            BambuState: A new BambuState instance reflecting merged telemetry.
         """
         base = current_state if current_state else cls()
         info, p = data.get("info", {}), data.get("print", {})
         ams_root, device = p.get("ams", {}), p.get("device", {})
         extruder_root = device.get("extruder", {})
+        ctc_root = device.get("ctc", {})
         modules = info.get("module", [])
         updates = {}
 
@@ -373,52 +367,55 @@ class BambuState:
 
         # 6. THERMAL & TRAY HANDOFF
 
-        # 6.1 Target Tray Translation (Gated by Stage)
-        # tray_tar is valid ONLY during active load/unload stages.
-        # Valid Stages: 22 (Unloading), 24 (Loading).
-        # Otherwise, report -1 to prevent displaying stale target data.
+        # 6.1 Standard Thermal Sensors
+        updates["bed_temp"] = float(p.get("bed_temper", base.bed_temp))
+        updates["bed_temp_target"] = float(
+            p.get("bed_target_temper", base.bed_temp_target)
+        )
+
+        if ctc_root:
+            updates["chamber_temp"] = float(
+                ctc_root.get("info", {}).get("temp", base.chamber_temp)
+            )
+            updates["chamber_temp_target"] = base.chamber_temp_target
+
+        # 6.3 Target Tray Translation (Gated by Stage)
         current_stage = int(p.get("stg_cur", base.current_stage_id))
         raw_tar_val = int(ams_root.get("tray_tar", p.get("tray_tar", 255)))
 
-        # Gate 1: Check for active filament loading stage (24)
         if current_stage != 24:
             updates["target_tray_id"] = -1
-
-        # Gate 2: Universal "No Target" value
         elif raw_tar_val == 255:
             updates["target_tray_id"] = -1
-
-        # Gate 3: H2D External Spool Translation
-        # We check the dataclass instance we created in Step 1
         elif raw_tar_val == 254 and updates["capabilities"].has_dual_extruder:
-            # Extruder 0 (Right) -> 254 + 1 = 255
-            # Extruder 1 (Left)  -> 254 + 0 = 254
             tool_idx = updates.get("active_tool", base.active_tool).value
             updates["target_tray_id"] = 254 + (1 if tool_idx == 0 else 0)
-
-        # Gate 4: Standard AMS Mapping
         else:
             updates["target_tray_id"] = raw_tar_val
 
-        # 6.2 Active Extruder State Handoff
+        # 6.4 Active Extruder State Handoff
         a_ext = next(
-            (e for e in updates["extruders"] if e.id == updates["active_tool"].value),
+            (
+                e
+                for e in updates["extruders"]
+                if e.id == updates.get("active_tool", base.active_tool).value
+            ),
             None,
         )
 
-        # Path A: Multi-Extruder Architecture (H2D)
-        if a_ext and updates["active_tool"] != ActiveTool.NOT_ACTIVE:
+        if (
+            a_ext
+            and updates.get("active_tool", base.active_tool) != ActiveTool.NOT_ACTIVE
+        ):
             updates["active_nozzle_temp"], updates["active_nozzle_temp_target"] = (
                 a_ext.temp,
                 a_ext.temp_target,
             )
 
             if a_ext.active_tray != 0:
-                # 254 (Left) and 255 (Right) bypass nybble shifting
                 if a_ext.active_tray >= 254:
                     updates["active_tray_id"] = a_ext.active_tray
                 else:
-                    # Align AMS Index (1-4) with global tray ID map (0-15)
                     updates["active_tray_id"] = (
                         (a_ext.active_tray - 1) << 2
                     ) | a_ext.slot_id
@@ -429,7 +426,6 @@ class BambuState:
                     else TrayState.UNLOADED
                 )
 
-        # Path B: Single-Extruder Architecture (X1/P1/A1)
         else:
             updates["active_nozzle_temp"] = float(
                 p.get("nozzle_temper", base.active_nozzle_temp)
@@ -448,7 +444,6 @@ class BambuState:
 
         updates["active_tray_state_name"] = updates["active_tray_state"].name
 
-        # default to active tray if not unloading
         if updates["target_tray_id"] == -1 and current_stage != 22:
             updates["target_tray_id"] = updates["active_tray_id"]
 
@@ -458,20 +453,13 @@ class BambuState:
             int(raw_exist, 16) if isinstance(raw_exist, str) else int(raw_exist)
         )
         updates["ams_connected_count"] = bin(updates["ams_exist_bits"]).count("1")
-        updates["ams_status_text"] = parseAMSStatus(
-            int(p.get("ams_status", base.ams_status_raw))
-        )
+        updates["ams_status_raw"] = int(p.get("ams_status", base.ams_status_raw))
+        updates["ams_status_text"] = parseAMSStatus(updates["ams_status_raw"])
         updates["gcode_state"] = p.get("gcode_state", base.gcode_state)
-        updates["current_stage_name"] = parseStage(
-            int(p.get("stg_cur", base.current_stage_id))
-        )
+        updates["current_stage_id"] = current_stage
+        updates["current_stage_name"] = parseStage(current_stage)
 
-        updates["gcode_state"] = p.get("gcode_state", base.gcode_state)
-        updates["current_stage_name"] = parseStage(
-            int(p.get("stg_cur", base.current_stage_id))
-        )
-
-        # 7. ERROR HANDLING
+        # 8. ERROR HANDLING
         updates["print_error"] = int(p.get("print_error", base.print_error))
 
         decoded_error = {}
@@ -486,10 +474,20 @@ class BambuState:
         if decoded_error and decoded_error not in updates["hms_errors"]:
             updates["hms_errors"].insert(0, decoded_error)
 
+        # 9. FAN SPEEDS & FILTRATION
         updates["part_cooling_fan_speed_percent"] = scaleFanSpeed(
             p.get("cooling_fan_speed", 0)
         )
+        updates["part_cooling_fan_speed_target_percent"] = scaleFanSpeed(
+            p.get("cooling_fan_target_speed", base.part_cooling_fan_speed_target_percent)
+        )
+        updates["heatbreak_fan_speed_percent"] = scaleFanSpeed(
+            p.get("heatbreak_fan_speed", base.heatbreak_fan_speed_percent)
+        )
         updates["exhaust_fan_speed_percent"] = scaleFanSpeed(p.get("big_fan2_speed", 0))
+        updates["chamber_fan_speed_percent"] = scaleFanSpeed(
+            p.get("big_fan1_speed", base.chamber_fan_speed_percent)
+        )
         updates["has_active_filtration"] = (
             updates["capabilities"].has_air_filtration
             and updates["exhaust_fan_speed_percent"] > 0

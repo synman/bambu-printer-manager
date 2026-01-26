@@ -587,11 +587,9 @@ def decodeError(error: int) -> dict:
     if error == 0:
         return {}
 
-    # Valid Bambu Lab Module IDs for brute-force search
-    modules = ("03", "05", "07", "0B", "0C", "10", "12")
     raw_hex = f"{error:08X}".upper()
 
-    # 1. Base Metadata (using the ORIGINAL error code)
+    # Base Metadata (using the ORIGINAL error code)
     wiki_slug = "_".join(raw_hex[i : i + 4] for i in range(0, 8, 4))
     res = {
         "code": f"HMS_{wiki_slug}",
@@ -603,8 +601,10 @@ def decodeError(error: int) -> dict:
         "url": "https://wiki.bambulab.com/en/hms/error-code",
     }
 
-    # 2. Map Original Module Name (based on original error bits)
-    mid_orig = (error >> 24) & 0xFF
+    # Map Original Module Name (based on original error bits)
+    real_module = (error >> 24) & 0xFF
+
+    modules = ["03", "05", "07", "0B", "0C", "10", "12"]
     module_map = {
         0x03: "Mainboard",
         0x05: "AMS",
@@ -613,10 +613,14 @@ def decodeError(error: int) -> dict:
         0x0B: "Webcam",
         0x10: "HMS",
     }
-    res["module"] = module_map.get(mid_orig, "System")
+    res["module"] = module_map.get(real_module, "System")
 
-    # 3. Targeted Brute-Force Lookup for Message Only
     msg_list = HMS_STATUS.get("data", {}).get("device_error", {}).get("en", [])
+
+    # lets put our module at the top
+    if raw_hex[:2] in modules:
+        modules.remove(raw_hex[:2])
+    modules.insert(0, raw_hex[:2])
 
     for module in modules:
         # Swap the first nibble to try and find a match in the dictionary
@@ -630,7 +634,7 @@ def decodeError(error: int) -> dict:
         if res["msg"] != "Unknown HMS Error":
             break
 
-    # 4. Severity and Criticality Mapping (0xSS byte)
+    # Severity and Criticality Mapping (0xSS byte)
     mask = (error >> 16) & 0xFF
     if mask in (0x00, 0x01):
         # 00 = Fatal, 01 = Error. Both are critical blockers.
