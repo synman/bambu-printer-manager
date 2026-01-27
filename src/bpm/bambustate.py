@@ -497,10 +497,9 @@ class BambuState:
             decoded_error = decodeError(updates["print_error"])
         else:
             decoded_error = {}
+            base.hms_errors = []
 
-        updates["hms_errors"] = decodeHMS(
-            p.get("hms", base.hms_errors if "hms" not in p else [])
-        )
+        updates["hms_errors"] = decodeHMS(p.get("hms", base.hms_errors))
         if decoded_error and decoded_error not in updates["hms_errors"]:
             updates["hms_errors"].insert(0, decoded_error)
 
