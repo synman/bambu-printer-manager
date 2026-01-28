@@ -543,7 +543,7 @@ def decodeHMS(hms_list: list) -> list[dict]:
 
         # Construct ecode and wiki slug
         ecode = f"{attr:08X}{code:08X}"
-        wiki_slug = "_".join(ecode[i : i + 4] for i in range(0, 16, 4))
+        wiki_slug = "-".join(ecode[i : i + 4] for i in range(0, 16, 4))
 
         res = {
             "code": f"HMS_{wiki_slug}",
@@ -603,7 +603,7 @@ def decodeError(error: int) -> dict:
     raw_hex = f"{error:08X}".upper()
 
     # Base Metadata (using the ORIGINAL error code)
-    wiki_slug = "_".join(raw_hex[i : i + 4] for i in range(0, 8, 4))
+    wiki_slug = "-".join(raw_hex[i : i + 4] for i in range(0, 8, 4))
     res = {
         "code": f"HMS_{wiki_slug}",
         "msg": "Unknown HMS Error",
