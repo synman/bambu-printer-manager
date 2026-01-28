@@ -552,7 +552,7 @@ def decodeHMS(hms_list: list) -> list[dict]:
             "severity": "Error",
             "is_critical": False,
             "type": "device_hms",
-            "url": f"https://wiki.bambulab.com/en/x1/troubleshooting/hmscode/{wiki_slug}",
+            "url": f"https://e.bambulab.com/?e={ecode}",
         }
 
         # Module and Severity parsing (0xMMSSQECC)
@@ -611,7 +611,7 @@ def decodeError(error: int) -> dict:
         "severity": "Error",
         "is_critical": False,
         "type": "device_error",
-        "url": "https://wiki.bambulab.com/en/hms/error-code",
+        "url": f"https://e.bambulab.com/?e={raw_hex}",
     }
 
     # Map Original Module Name (based on original error bits)
