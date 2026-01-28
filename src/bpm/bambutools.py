@@ -20,42 +20,55 @@ def parseStage(stage_int: int) -> str:
     stage_map = {
         -1: "",
         0: "",  # BBL_STG_IDLE
-        1: "Auto bed leveling",  # BBL_STG_ABL
-        2: "Heatbed preheating",  # BBL_STG_BED_PREHEAT
-        3: "Sweeping XY mech mode",  # BBL_STG_XY_SWEEP
-        4: "Changing filament",  # BBL_STG_FILAMENT_CHANGE
-        5: "M400 pause",  # BBL_STG_M400_PAUSE
-        6: "Paused due to filament runout",  # BBL_STG_RUNOUT_PAUSE
-        7: "Heating hotend",  # BBL_STG_HOTEND_HEATING
-        8: "Calibrating extrusion",  # BBL_STG_EXTRUSION_CALI
-        9: "Scanning bed surface",  # BBL_STG_BED_SCAN
-        10: "Inspecting first layer",  # BBL_STG_FIRST_LAYER_INSPECT
-        11: "Identifying build plate type",  # BBL_STG_PLATE_IDENTIFY
-        12: "Calibrating Micro Lidar",  # BBL_STG_LIDAR_CALI
-        13: "Homing toolhead",  # BBL_STG_HOMING
-        14: "Cleaning nozzle tip",  # BBL_STG_NOZZLE_CLEAN
-        15: "Checking extruder temperature",  # BBL_STG_EXTRUDER_TEMP_CHECK
-        16: "Printing was paused by the user",  # BBL_STG_USER_PAUSE
-        17: "Pause of front cover falling",  # BBL_STG_COVER_PAUSE
-        18: "Calibrating the micro lidar",  # BBL_STG_LIDAR_CALI_2
-        19: "Calibrating extrusion flow",  # BBL_STG_FLOW_CALI
-        20: "Paused due to nozzle temperature malfunction",  # BBL_STG_NOZZLE_TEMP_PAUSE
-        21: "Paused due to heat bed temperature malfunction",  # BBL_STG_BED_TEMP_PAUSE
-        22: "Filament unloading",  # BBL_STG_FILAMENT_UNLOAD
-        23: "Skip step pause",  # BBL_STG_SKIP_STEP_PAUSE
-        24: "Filament loading",  # BBL_STG_FILAMENT_LOAD
-        25: "Motor noise calibration",  # BBL_STG_MOTOR_CALI
-        26: "Paused due to AMS lost",  # BBL_STG_AMS_LOST_PAUSE
-        27: "Paused due to low speed of the heat break fan",  # BBL_STG_FAN_PAUSE
-        28: "Paused due to chamber temperature control error",  # BBL_STG_CHAMBER_PAUSE
-        29: "Cooling chamber",  # BBL_STG_CHAMBER_COOLING
-        30: "Paused by the Gcode inserted by user",  # BBL_STG_GCODE_PAUSE
-        31: "Motor noise showoff",  # BBL_STG_MOTOR_SHOWOFF
-        32: "Nozzle filament covered detected pause",  # BBL_STG_NOZZLE_COVER_PAUSE
-        33: "Cutter error pause",  # BBL_STG_CUTTER_PAUSE
-        34: "First layer error pause",  # BBL_STG_FIRST_LAYER_PAUSE
-        35: "Nozzle clog pause",  # BBL_STG_NOZZLE_CLOG_PAUSE
-        255: "",
+        1: "Auto bed leveling",  # print.hpp:102
+        2: "Heatbed preheating",  # print.hpp:103
+        3: "Sweeping XY mech mode",  # print.hpp:104
+        4: "Changing filament",  # print.hpp:105
+        5: "M400 pause",  # print.hpp:106
+        6: "Filament runout pause",  # print.hpp:107
+        7: "Heating hotend",  # print.hpp:108
+        8: "Calibrating extrusion",  # print.hpp:109
+        9: "Scanning bed surface",  # print.hpp:110
+        10: "Inspecting first layer",  # print.hpp:111
+        11: "Identifying build plate",  # print.hpp:112
+        12: "Calibrating Micro Lidar",  # print.hpp:113
+        13: "Homing toolhead",  # print.hpp:114
+        14: "Cleaning nozzle tip",  # print.hpp:115
+        15: "Temp check",  # print.hpp:116
+        16: "Paused by user",  # print.hpp:117
+        17: "Front cover falling",  # print.hpp:118
+        18: "Lidar calibration (alt)",  # print.hpp:119
+        19: "Calibrating flow",  # print.hpp:120
+        20: "Nozzle temp malfunction",  # print.hpp:121
+        21: "Bed temp malfunction",  # print.hpp:122
+        22: "Filament unloading",  # print.hpp:123
+        23: "Skip step pause",  # print.hpp:124
+        24: "Filament loading",  # print.hpp:125
+        25: "Motor noise calibration",  # print.hpp:126
+        26: "AMS lost pause",  # print.hpp:127
+        27: "Fan speed pause",  # print.hpp:128
+        28: "Chamber control error",  # print.hpp:129
+        29: "Cooling chamber",  # print.hpp:130
+        30: "Custom Gcode pause",  # print.hpp:131
+        31: "Motor noise showoff",  # print.hpp:132
+        32: "Nozzle cover pause",  # print.hpp:133
+        33: "Cutter error pause",  # print.hpp:134
+        34: "First layer error pause",  # print.hpp:135
+        35: "Nozzle clog pause",  # print.hpp:136
+        37: "Chamber control",  # BambuPublishStat:442
+        38: "Chamber pre-heat (Legacy)",  # BambuPublishStat:443
+        39: "Nozzle Offset Calibration",  # H2D/X1E Override
+        49: "Heating chamber",  # VERIFIED H2D/X1E Override
+        70: "Leading filament",  # print.hpp:170
+        71: "Reached toolhead",  # print.hpp:171
+        72: "Grabbing filament",  # print.hpp:172
+        73: "Purging",  # print.hpp:173
+        74: "Unloading",  # print.hpp:174 (Verified cur_stg 74)
+        75: "Returning to AMS",  # print.hpp:175
+        76: "Cutting",  # print.hpp:176
+        77: "Tool switching",  # print.hpp:177
+        100: "Printing",  # print.hpp:200
+        255: "Completed",  # print.hpp:355
     }
     return stage_map.get(stage_int, f"Stage [{stage_int}]")
 
@@ -659,6 +672,23 @@ def scaleFanSpeed(raw_val: Any) -> int:
         return min(max(round((val / 15.0) * 100), 0), 100)
     except Exception:
         return 0
+
+
+def parseExtruderTrayState(extruder: int, idx, status) -> int:
+    if (
+        idx == 254
+        or (extruder == 0 and status == 65280)
+        or (extruder == 1 and status == 65024)
+    ):
+        return 254
+    if (
+        idx == 255
+        or (extruder == 0 and status & 0xFF == 255)
+        or (extruder == 1 and status & 0xFE == 255)
+    ):
+        return -1
+    else:
+        return status & 0xFF if extruder == 0 else status & 0xFE
 
 
 def unpackTemperature(raw_temp: int) -> tuple[float, float]:

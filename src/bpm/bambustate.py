@@ -20,6 +20,7 @@ from bpm.bambutools import (
     parseAMSStatus,
     parseExtruderInfo,
     parseExtruderStatus,
+    parseExtruderTrayState,
     parseStage,
     scaleFanSpeed,
     unpackTemperature,
@@ -62,10 +63,12 @@ class ExtruderState:
     """Filament status. Population: `parseExtruderInfo`."""
     status: ExtruderStatus = ExtruderStatus.IDLE
     """Op state. Population: `parseExtruderStatus`."""
-    active_tray: int = 255
-    """Source ID. Population: `(r.snow >> 8) & 0xFF`."""
-    slot_id: int = 255
-    """AMS Slot. Population: `r.snow & 0xFF`."""
+    active_tray_id: int = -1
+    """The active tray for this extruder. Population: `int(r.hnow)`"""
+    target_tray_id: int = -1
+    """The target tray for this extruder. Population: `int(r.htar >> 8)`."""
+    tray_state: TrayState = TrayState.LOADED
+    """The tray state of this extruder"""
 
 
 @dataclass
@@ -242,6 +245,7 @@ class BambuState:
         cls, data: dict[str, Any], current_state: Optional["BambuState"] = None
     ) -> "BambuState":
         """Parses root MQTT payloads into a unified BambuState with 100% attribute traceability."""
+
         base = current_state if current_state else cls()
         info = data.get("info", {})
         p = data.get("print", {})
@@ -322,17 +326,56 @@ class BambuState:
             for ams_ex in extruder_root["info"]:
                 raw_t = int(ams_ex.get("temp", 0))
                 act_t, tar_t = unpackTemperature(raw_t)
-                raw_sn = int(ams_ex.get("snow", 0))
+
+                sn = int(ams_ex.get("snow", -1))
+                hn = int(ams_ex.get("hnow", -1))
+
+                st = int(ams_ex.get("star", -1))
+                ht = int(ams_ex.get("htar", -1))
 
                 ext = ExtruderState()
                 ext.id = int(ams_ex.get("id", 0))
+
                 ext.temp = act_t
                 ext.temp_target = int(tar_t)
+
                 ext.info_bits = int(ams_ex.get("info", 0))
                 ext.state = parseExtruderInfo(ext.info_bits)
                 ext.status = parseExtruderStatus(int(ams_ex.get("stat", 0)))
-                ext.active_tray = (raw_sn >> 8) & 0xFF
-                ext.slot_id = raw_sn & 0xFF
+
+                ext.active_tray_id = parseExtruderTrayState(ext.id, hn, sn)
+                ext.target_tray_id = parseExtruderTrayState(ext.id, ht, st)
+
+                if base.extruders and len(base.extruders) > ext.id:
+                    base_tray_state = base.extruders[ext.id].tray_state
+                else:
+                    base_tray_state = (
+                        TrayState.LOADED
+                        if ext.state != ExtruderInfoState.EMPTY
+                        else TrayState.UNLOADED
+                    )
+
+                if (
+                    ext.state == ExtruderInfoState.LOADED
+                    and ext.status == ExtruderStatus.ACTIVE
+                ):
+                    ext.tray_state = TrayState.LOADED
+                elif (
+                    ext.state == ExtruderInfoState.EMPTY
+                    and ext.status == ExtruderStatus.IDLE
+                ):
+                    ext.tray_state = TrayState.UNLOADED
+                elif (
+                    ext.state == ExtruderInfoState.LOADED
+                    and ext.status == ExtruderStatus.HEATING
+                    and base_tray_state not in (TrayState.LOADING, TrayState.UNLOADED)
+                ):
+                    ext.tray_state = TrayState.UNLOADING
+                elif ext.status is not ExtruderStatus.IDLE:
+                    ext.tray_state = TrayState.LOADING
+                else:
+                    ext.tray_state = base.active_tray_state
+
                 new_extruders.append(ext)
         updates["extruders"] = new_extruders if new_extruders else base.extruders
 
@@ -407,41 +450,23 @@ class BambuState:
 
         updates["ams_units"] = list(cur_ams.values())
 
-        # ACTIVE AND TARGET TRAY
-        raw_tar_val = int(ams_root.get("tray_tar", p.get("tray_tar", 255)))
-        if updates["current_stage_id"] != 24 or raw_tar_val == 255:
-            updates["target_tray_id"] = -1
-        elif raw_tar_val == 254 and updates["capabilities"].has_dual_extruder:
-            updates["target_tray_id"] = 255 - updates["active_tool"].value
-        else:
-            updates["target_tray_id"] = raw_tar_val
-
+        # ACTIVE / TARGET TRAYS AND TOOL TEMP
         # if multi-extruder return the active one
         a_ext = next(
             (e for e in updates["extruders"] if e.id == updates["active_tool"].value),
             None,
         )
         if a_ext:
-            if a_ext.status == ExtruderStatus.ACTIVE:
-                updates["active_tray_id"] = a_ext.active_tray
-                updates["active_nozzle_temp"] = a_ext.temp
-                updates["active_nozzle_temp_target"] = a_ext.temp_target
+            # if a_ext.status == ExtruderStatus.ACTIVE:
+            updates["active_tray_id"] = a_ext.active_tray_id
+            updates["target_tray_id"] = a_ext.target_tray_id
 
-                if a_ext.state == ExtruderInfoState.LOADED:
-                    updates["active_tray_state"] = TrayState.LOADED
-                elif updates["current_stage_id"] == 24:
-                    updates["active_tray_state"] = TrayState.LOADING
-                elif updates["current_stage_id"] == 22:
-                    updates["active_tray_state"] = TrayState.UNLOADING
-                else:
-                    updates["active_tray_state"] = TrayState.UNLOADED
+            updates["active_tray_state"] = a_ext.tray_state
 
-            if a_ext.active_tray == 254:
-                updates["target_tray_id"] = 255 - a_ext.id
-            else:
-                updates["target_tray_id"] = a_ext.active_tray
+            updates["active_nozzle_temp"] = a_ext.temp
+            updates["active_nozzle_temp_target"] = a_ext.temp_target
         else:
-            # otherwise process a single exruder printer update
+            # otherwise process a single extruder printer update
             updates["active_nozzle_temp"] = float(
                 p.get("nozzle_temper", base.active_nozzle_temp)
             )
