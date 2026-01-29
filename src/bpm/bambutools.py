@@ -481,7 +481,7 @@ def parseExtruderTrayState(extruder: int, idx, status) -> int:
         or (extruder == 0 and status == 65280)
         or (extruder == 1 and status == 65024)
     ):
-        return 254
+        return 255 - extruder
     if (extruder == 0 and status & 0xFF == 255) or (
         extruder == 1 and status & 0xFE == 255
     ):
