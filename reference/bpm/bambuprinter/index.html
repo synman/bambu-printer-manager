@@ -4657,7 +4657,7 @@ For the external tray (254), send <code>no_filament</code> as the <code>tray_inf
 
 <details class="danger" open>
   <summary>Deprecated</summary>
-  <p>This property is deprecated. The closest alternative is <code>select_extrusion_calibration_profile</code>.</p>
+  <p>This method is deprecated. The closest alternative is <code>select_extrusion_calibration_profile</code>.</p>
 </details>        <p>Sets the linear advance k factor for a specific spool / tray</p>
 <p>broken in recent firmware -- will require implementing
 k factor list management</p>
@@ -4666,7 +4666,7 @@ k factor list management</p>
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/bpm/bambuprinter.py</code></summary>
               <div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-751"><a id="__codelineno-0-751" name="__codelineno-0-751"></a><a href="#__codelineno-0-751"><span class="linenos" data-linenos="751 "></span></a><span class="nd">@deprecated</span><span class="p">(</span>
-</span><span id="__span-0-752"><a id="__codelineno-0-752" name="__codelineno-0-752"></a><a href="#__codelineno-0-752"><span class="linenos" data-linenos="752 "></span></a>    <span class="s2">&quot;This property is deprecated. The closest alternative is `select_extrusion_calibration_profile`.&quot;</span>
+</span><span id="__span-0-752"><a id="__codelineno-0-752" name="__codelineno-0-752"></a><a href="#__codelineno-0-752"><span class="linenos" data-linenos="752 "></span></a>    <span class="s2">&quot;This method is deprecated. The closest alternative is `select_extrusion_calibration_profile`.&quot;</span>
 </span><span id="__span-0-753"><a id="__codelineno-0-753" name="__codelineno-0-753"></a><a href="#__codelineno-0-753"><span class="linenos" data-linenos="753 "></span></a><span class="p">)</span>
 </span><span id="__span-0-754"><a id="__codelineno-0-754" name="__codelineno-0-754"></a><a href="#__codelineno-0-754"><span class="linenos" data-linenos="754 "></span></a><span class="k">def</span> <span class="nf">set_spool_k_factor</span><span class="p">(</span>
 </span><span id="__span-0-755"><a id="__codelineno-0-755" name="__codelineno-0-755"></a><a href="#__codelineno-0-755"><span class="linenos" data-linenos="755 "></span></a>    <span class="bp">self</span><span class="p">,</span>
