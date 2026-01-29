@@ -24,6 +24,7 @@ from bpm.bambucommands import (
     ANNOUNCE_PUSH,
     ANNOUNCE_VERSION,
     CHAMBER_LIGHT_TOGGLE,
+    EXTRUSION_CALI_SEL,
     EXTRUSION_CALI_SET,
     HMS_STATUS,
     PAUSE_PRINT,
@@ -747,6 +748,9 @@ class BambuPrinter:
             f"set_ams_user_setting - published AMS_USER_SETTING to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
+    @deprecated(
+        "This property is deprecated. The closest alternative is `select_extrusion_calibration_profile`."
+    )
     def set_spool_k_factor(
         self,
         tray_id: int,
@@ -758,9 +762,15 @@ class BambuPrinter:
     ):
         """
         Sets the linear advance k factor for a specific spool / tray
+
+        broken in recent firmware -- will require implementing
+        k factor list management
         """
         cmd = copy.deepcopy(EXTRUSION_CALI_SET)
+
         cmd["print"]["tray_id"] = tray_id
+        cmd["print"]["slot_id"] = tray_id % 4
+
         cmd["print"]["k_value"] = k_value
         cmd["print"]["n_coef"] = n_coef
 
@@ -795,11 +805,13 @@ class BambuPrinter:
         cmd = copy.deepcopy(AMS_FILAMENT_SETTING)
 
         ams_id = math.floor(tray_id / 4)
-        if tray_id == 254:
-            ams_id = 255
+        if tray_id == 254 or tray_id == 255:
+            ams_id = tray_id
+            tray_id = 0
 
         cmd["print"]["ams_id"] = ams_id
         cmd["print"]["tray_id"] = tray_id
+        cmd["print"]["slot_id"] = tray_id % 4
 
         if tray_info_idx == "no_filament":
             tray_info_idx = ""
@@ -808,16 +820,12 @@ class BambuPrinter:
             tray_color = "FFFFFF00"
             nozzle_temp_min = 0
             nozzle_temp_max = 0
-            cmd["print"]["setting_id"] = ""
-            cmd["print"]["slot_id"] = tray_id
-            cmd["print"]["tray_type"] = tray_type
 
         cmd["print"]["tray_info_idx"] = tray_info_idx
 
-        if tray_id_name != "":
-            cmd["print"]["tray_id_name"] = tray_id_name
-        if tray_type != "":
-            cmd["print"]["tray_type"] = tray_type
+        cmd["print"]["tray_id_name"] = tray_id_name
+        cmd["print"]["tray_type"] = tray_type
+
         if tray_color and tray_color != "":
             color = ""
             try:
@@ -825,10 +833,9 @@ class BambuPrinter:
             except Exception:
                 color = tray_color
             cmd["print"]["tray_color"] = color
-        if nozzle_temp_min != -1:
-            cmd["print"]["nozzle_temp_min"] = nozzle_temp_min
-        if nozzle_temp_max != -1:
-            cmd["print"]["nozzle_temp_max"] = nozzle_temp_max
+
+        cmd["print"]["nozzle_temp_min"] = nozzle_temp_min
+        cmd["print"]["nozzle_temp_max"] = nozzle_temp_max
 
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
@@ -1047,6 +1054,35 @@ class BambuPrinter:
     #     logger.debug(
     #         f"set_active_tool - published SET_AMS_TO_EXTRUDER_BINDING to [device/{self.config.serial_number}/request] command: [{cmd}]"
     #     )
+
+    def select_extrusion_calibration_profile(self, tray_id: int, cali_idx: int = -1):
+        """
+        Sets the k factor profile for the specified tray.
+
+        Parameters
+        ----------
+        tray_id : int - tray id
+        cali_idx : calibration index , optional, defaults to -1 (the default profile)
+        """
+        cmd = copy.deepcopy(EXTRUSION_CALI_SEL)
+
+        ams_id = math.floor(tray_id / 4)
+
+        if tray_id in (254, 255):
+            ams_id = tray_id
+            tray_id = 0
+
+        cmd["print"]["ams_id"] = ams_id
+        cmd["print"]["tray_id"] = tray_id
+        cmd["print"]["slot_id"] = tray_id % 4
+        cmd["print"]["cali_idx"] = cali_idx
+
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+        logger.debug(
+            f"select_extrusion_calibration_profile - published EXTRUSION_CALI_SEL to [device/{self.config.serial_number}/request] cmd: [{cmd}]"
+        )
 
     def toJson(self):
         """
@@ -1332,32 +1368,44 @@ class BambuPrinter:
                     spools = []
                 else:
                     spools = list(self.spools)
-                for tray in status["vir_slot"]:
-                    try:
-                        tray_color = hex_to_name("#" + tray["tray_color"][:6])
-                    except Exception:
-                        try:
-                            tray_color = "#" + tray["tray_color"]
-                        except Exception:
-                            tray_color = ""
-                    spool = BambuSpool(
-                        int(tray.get("id")),
-                        tray.get("tray_id_name", ""),
-                        tray.get("tray_type", ""),
-                        tray.get("tray_sub_brands", ""),
-                        tray_color,
-                        tray.get("tray_info_idx", ""),
-                        tray.get("k", 0.0),
-                        tray.get("bed_temp", 0),
-                        tray.get("nozzle_temp_min", 0),
-                        tray.get("nozzle_temp_max", 0),
-                        tray.get("drying_temp", 0),
-                        tray.get("drying_time", 0),
-                        -1,
-                        tray.get("state", -1),
-                        tray.get("total_len", 0),
-                        tray.get("tray_weight", 0),
-                    )
+
+                virt_spools = status.get("vir_slot", [])
+                spool = None
+
+                for ext_spool_id in (254, 255):
+                    tray_found = False
+                    for tray in virt_spools:
+                        if int(tray.get("id", -1)) == ext_spool_id:
+                            try:
+                                tray_color = hex_to_name("#" + tray["tray_color"][:6])
+                            except Exception:
+                                try:
+                                    tray_color = "#" + tray["tray_color"]
+                                except Exception:
+                                    tray_color = ""
+                            spool = BambuSpool(
+                                int(tray.get("id", -1)),
+                                tray.get("tray_id_name", ""),
+                                tray.get("tray_type", ""),
+                                tray.get("tray_sub_brands", ""),
+                                tray_color,
+                                tray.get("tray_info_idx", ""),
+                                tray.get("k", 0.0),
+                                tray.get("bed_temp", 0),
+                                tray.get("nozzle_temp_min", 0),
+                                tray.get("nozzle_temp_max", 0),
+                                tray.get("drying_temp", 0),
+                                tray.get("drying_time", 0),
+                                -1,
+                                tray.get("state", -1),
+                                tray.get("total_len", 0),
+                                tray.get("tray_weight", 0),
+                            )
+                            tray_found = True
+                            break
+                    if not tray_found:
+                        spool = BambuSpool
+                        spool.id = ext_spool_id
                     spools.append(spool)
                 self._spools = tuple(spools)
 
@@ -1609,7 +1657,7 @@ class BambuPrinter:
         !!! danger "Deprecated"
         This property is deprecated (v1.0.0). Use `BambuState.bed_temp` instead.
         """
-        return self._printer_state.bed_temp
+        return self._printer_state.climate.bed_temp
 
     @property
     @deprecated("This property is deprecated (v1.0.0). Use `BambuState.bed_temp_target`.")
@@ -1619,7 +1667,7 @@ class BambuPrinter:
         !!! danger "Deprecated"
         This property is deprecated (v1.0.0). Use `BambuState.bed_temp_target` and `set_bed_temp_target`.
         """
-        return self._printer_state.bed_temp_target
+        return self._printer_state.climate.bed_temp_target
 
     @bed_temp_target.setter
     @deprecated("This property is deprecated (v1.0.0). Use `set_bed_temp_target`.")
@@ -1704,7 +1752,7 @@ class BambuPrinter:
         !!! danger "Deprecated"
         This property is deprecated (v1.0.0). Use `BambuState.chamber_temp` and `set_chamber_temp`.
         """
-        return self._printer_state.chamber_temp
+        return self._printer_state.climate.chamber_temp
 
     @chamber_temp.setter
     @deprecated("This property is deprecated (v1.0.0). Use `set_chamber_temp`.")
@@ -1720,7 +1768,7 @@ class BambuPrinter:
         ----------
         * value : float - The chamber temperature.
         """
-        self._printer_state.chamber_temp = value
+        self._printer_state.climate.chamber_temp = value
 
     @property
     @deprecated(
@@ -1732,7 +1780,7 @@ class BambuPrinter:
         !!! danger "Deprecated"
         This property is deprecated (v1.0.0). Use `BambuState.chamber_temp_target` and `set_chamber_temp_target`.
         """
-        return self._printer_state.chamber_temp_target
+        return self._printer_state.climate.chamber_temp_target
 
     @chamber_temp_target.setter
     @deprecated("This property is deprecated (v1.0.0). Use `set_chamber_temp_target`.")
@@ -1761,7 +1809,7 @@ class BambuPrinter:
                 f"set_chamber_temp_target - published SET_CHAMBER_TEMP_TARGET to [device/{self.config.serial_number}/request] command: [{cmd}]"
             )
         else:
-            self._printer_state.chamber_temp_target = value
+            self._printer_state.climate.chamber_temp_target = value
         self._chamber_temp_target_time = round(time.time())
 
     @property
@@ -1774,7 +1822,7 @@ class BambuPrinter:
         !!! danger "Deprecated"
         This property is deprecated (v1.0.0). Use `BambuState.part_cooling_fan_speed_percent`.
         """
-        return self._printer_state.part_cooling_fan_speed_percent
+        return self._printer_state.climate.part_cooling_fan_speed_percent
 
     @property
     @deprecated(
@@ -1786,7 +1834,7 @@ class BambuPrinter:
         !!! danger "Deprecated"
         This property is deprecated (v1.0.0). Use `BambuState.part_cooling_fan_speed_target_percent` and `set_part_cooling_fan_speed_target_percent`.
         """
-        return self._printer_state.part_cooling_fan_speed_target_percent
+        return self._printer_state.climate.part_cooling_fan_speed_target_percent
 
     @fan_speed_target.setter
     @deprecated(
@@ -1805,7 +1853,7 @@ class BambuPrinter:
         """
         if value < 0:
             value = 0
-        self._printer_state.part_cooling_fan_speed_target_percent = value
+        self._printer_state.climate.part_cooling_fan_speed_target_percent = value
         speed = round(value * 2.55, 0)
         gcode = SEND_GCODE_TEMPLATE
         gcode["print"]["param"] = (
@@ -1849,7 +1897,7 @@ class BambuPrinter:
         !!! danger "Deprecated"
         This property is deprecated (v1.0.0). Use `BambuState.heatbreak_fan_speed_percent`.
         """
-        return self._printer_state.heatbreak_fan_speed_percent
+        return self._printer_state.climate.heatbreak_fan_speed_percent
 
     @property
     def wifi_signal(self):

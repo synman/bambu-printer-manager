@@ -53,17 +53,43 @@ EXTRUSION_CALI = {
 
 EXTRUSION_CALI_SET = {
     "print": {
-        "sequence_id": "0",
         "command": "extrusion_cali_set",
+        "filaments": [
+            {
+                "ams_id": 0,
+                "extruder_id": 1,
+                "filament_id": "GFL99",
+                "k_value": "0.015000",
+                "n_coef": "0.000000",
+                "name": "015_K",
+                "nozzle_diameter": "0.6",
+                "nozzle_id": "HH00-0.6",
+                "setting_id": "GFSL99_06",
+                "slot_id": 0,
+                "tray_id": -1,
+            }
+        ],
+        "nozzle_diameter": "0.6",
+        "sequence_id": "0",
+    }
+}
+
+EXTRUSION_CALI_GET = {"print": {"command": "extrusion_cali_get", "sequence_id": "0"}}
+
+EXTRUSION_CALI_SEL = {
+    "print": {
+        "ams_id": 0,
+        "cali_idx": -1,
+        "command": "extrusion_cali_sel",
+        "sequence_id": "0",
+        "slot_id": 0,
         "tray_id": 0,
-        "k_value": 0.020,
     }
 }
 
 PRINT_OPTION_COMMAND = {"print": {"command": "print_option", "sequence_id": "0"}}
 
 PAUSE_PRINT = {"print": {"sequence_id": "0", "command": "pause"}}
-
 
 RESUME_PRINT = {"print": {"sequence_id": "0", "command": "resume"}}
 
@@ -87,10 +113,16 @@ AMS_FILAMENT_CHANGE = {
 
 AMS_FILAMENT_SETTING = {
     "print": {
+        "ams_id": 0,
         "command": "ams_filament_setting",
-        "ams_id": 255,
-        "tray_id": 254,
+        "nozzle_temp_max": 0,
+        "nozzle_temp_min": 0,
+        "sequence_id": "0",
+        "slot_id": 0,
+        "tray_color": "FFFFFFFF",
+        "tray_id": 0,
         "tray_info_idx": "",
+        "tray_type": "",
     }
 }
 

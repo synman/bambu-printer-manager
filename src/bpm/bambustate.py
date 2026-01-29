@@ -22,6 +22,7 @@ from bpm.bambutools import (
     parseExtruderStatus,
     parseExtruderTrayState,
     parseStage,
+    resolveAMSDryingStage,
     scaleFanSpeed,
     unpackTemperature,
 )
@@ -124,39 +125,9 @@ class AMSUnitState:
 
 
 @dataclass
-class BambuState:
-    """Representation of the Bambu printer state synchronized via MQTT."""
+class BambuClimate:
+    """Contains all climate related attributes"""
 
-    gcode_state: str = "IDLE"
-    """Execution state. Population: `p.get("gcode_state")`."""
-    current_stage_id: int = 0
-    """Stage numeric ID. Population: `int(p.get("stg_cur"))`."""
-    current_stage_name: str = ""
-    """Stage human name. Population: `parseStage`."""
-    print_percentage: int = 0
-    """Completion %. Population: `int(p.get("mc_percent"))`."""
-    remaining_minutes: int = 0
-    """Time left. Population: `int(p.get("mc_remaining_time"))`."""
-    current_layer: int = 0
-    """Layer index. Population: `int(p.get("layer_num"))`."""
-    total_layers: int = 0
-    """Layer total. Population: `int(p.get("total_layer_num"))`."""
-    active_tray_id: int = 255
-    """Current tray. Population: Computed in Tool Handoff."""
-    active_tray_state: TrayState = TrayState.UNLOADED
-    """Loading enum. Population: `ExtruderInfoState` check."""
-    active_tray_state_name: str = TrayState.UNLOADED.name
-    """Loading string. Population: `active_tray_state.name`."""
-    target_tray_id: int = -1
-    """Next tray. Population: Stage-specific targeting logic."""
-    active_tool: ActiveTool = ActiveTool.SINGLE_EXTRUDER
-    """Active toolhead. Population: `extruder_root.state` shift."""
-    is_external_spool_active: bool = False
-    """Ext spool flag. Population: `active_tray_id in [254, 255]`."""
-    active_nozzle_temp: float = 0.0
-    """Nozzle temp. Population: Handoff from `a_ext` or `p`."""
-    active_nozzle_temp_target: int = 0
-    """Nozzle target. Population: Handoff from `a_ext` or `p`."""
     bed_temp: float = 0.0
     """Bed temp. Population: `float(p.get("bed_temper"))`."""
     bed_temp_target: int = 0
@@ -203,6 +174,90 @@ class BambuState:
     """Filter pressure warning. Population: Bitwise `airduct.state & 0x02`."""
     zone_sync_error: bool = False
     """Alignment error. Population: Bitwise `airduct.state & 0x04`."""
+
+
+@dataclass
+class BambuState:
+    """Representation of the Bambu printer state synchronized via MQTT."""
+
+    gcode_state: str = "IDLE"
+    """Execution state. Population: `p.get("gcode_state")`."""
+    current_stage_id: int = 0
+    """Stage numeric ID. Population: `int(p.get("stg_cur"))`."""
+    current_stage_name: str = ""
+    """Stage human name. Population: `parseStage`."""
+    print_percentage: int = 0
+    """Completion %. Population: `int(p.get("mc_percent"))`."""
+    remaining_minutes: int = 0
+    """Time left. Population: `int(p.get("mc_remaining_time"))`."""
+    current_layer: int = 0
+    """Layer index. Population: `int(p.get("layer_num"))`."""
+    total_layers: int = 0
+    """Layer total. Population: `int(p.get("total_layer_num"))`."""
+    active_tray_id: int = 255
+    """Current tray. Population: Computed in Tool Handoff."""
+    active_tray_state: TrayState = TrayState.UNLOADED
+    """Loading enum. Population: `ExtruderInfoState` check."""
+    active_tray_state_name: str = TrayState.UNLOADED.name
+    """Loading string. Population: `active_tray_state.name`."""
+    target_tray_id: int = -1
+    """Next tray. Population: Stage-specific targeting logic."""
+    active_tool: ActiveTool = ActiveTool.SINGLE_EXTRUDER
+    """Active toolhead. Population: `extruder_root.state` shift."""
+    is_external_spool_active: bool = False
+    """Ext spool flag. Population: `active_tray_id in [254, 255]`."""
+    active_nozzle_temp: float = 0.0
+    """Nozzle temp. Population: Handoff from `a_ext` or `p`."""
+    active_nozzle_temp_target: int = 0
+    """Nozzle target. Population: Handoff from `a_ext` or `p`."""
+
+    # bed_temp: float = 0.0
+    # """Bed temp. Population: `float(p.get("bed_temper"))`."""
+    # bed_temp_target: int = 0
+    # """Bed target. Population: `float(p.get("bed_target_temper"))`."""
+    # airduct_mode: int = 0
+    # """Raw current mode. Population: airduct.modeCur."""
+    # airduct_sub_mode: int = 0
+    # """Raw sub mode. Population: airduct.subMode."""
+    # chamber_temp: float = 0.0
+    # """Chamber temp. Population: `unpackTemperature(ctc_root.info.temp)`."""
+    # chamber_temp_target: int = 0
+    # """Chamber target. Population: `unpackTemperature(ctc_root.info.temp)`."""
+    # is_chamber_heating: bool = False
+    # """True if active heating. Population: Bitwise `airduct.state & 0x10`."""
+    # is_chamber_cooling: bool = False
+    # """True if active cooling. Population: Bitwise `airduct.state & 0x20`."""
+    # is_dryer_engaged: bool = False
+    # """True if subMode Bit 0. Population: airduct.subMode & 0x01."""
+    # ac_unit_power_percent: int = 0
+    # """AC/Compressor power. Population: airduct.parts ID 96."""
+    # part_cooling_fan_speed_percent: int = 0
+    # """Part fan %. Population: `scaleFanSpeed(p.cooling_fan_speed)`."""
+    # part_cooling_fan_speed_target_percent: int = 0
+    # """Part target %. Population: `scaleFanSpeed(p.cooling_fan_target_speed)`."""
+    # chamber_fan_speed_percent: int = 0
+    # """Chamber fan %. Population: `scaleFanSpeed(p.big_fan1_speed)`."""
+    # exhaust_fan_speed_percent: int = 0
+    # """Exhaust fan %. Population: `scaleFanSpeed(p.big_fan2_speed)`."""
+    # heatbreak_fan_speed_percent: int = 0
+    # """Heatbreak fan %. Population: `scaleFanSpeed(p.heatbreak_fan_speed)`."""
+    # has_active_filtration: bool = False
+    # """Filter status. Population: Bitwise `airduct.state & 0x08`."""
+    # airduct_state_raw: int = 0
+    # """Raw airduct status mask. Population: `device.airduct.state`."""
+    # zone_internal_percent: int = 0
+    # """Internal %. Population: `airduct.parts` ID 16."""
+    # zone_intake_percent: int = 0
+    # """Intake %. Population: `airduct.parts` ID 32."""
+    # zone_exhaust_percent: int = 0
+    # """Exhaust %. Population: `airduct.parts` ID 48."""
+    # top_vent_open: bool = False
+    # """Vent status. Population: Bitwise `airduct.state & 0x01`."""
+    # filter_obstruction_detected: bool = False
+    # """Filter pressure warning. Population: Bitwise `airduct.state & 0x02`."""
+    # zone_sync_error: bool = False
+    # """Alignment error. Population: Bitwise `airduct.state & 0x04`."""
+
     ams_status_raw: int = 0
     """Raw AMS status. Population: `int(p.get("ams_status"))`."""
     ams_status_text: str = ""
@@ -223,22 +278,8 @@ class BambuState:
     """HMS list. Population: `decodeHMS` + `decodeError` synthesis."""
     capabilities: PrinterCapabilities = field(default_factory=PrinterCapabilities)
     """Machine flags. Population: `PrinterCapabilities` instantiation."""
-
-    @staticmethod
-    def _resolve_drying_stage(parsed: dict, dry_time: int) -> AMSDryingStage:
-        if dry_time < 1:
-            return AMSDryingStage.IDLE
-        if parsed.get("hardware_fault", False):
-            return AMSDryingStage.FAULT
-        if parsed.get("venting_active", False):
-            if parsed.get("heater_on", False):
-                return AMSDryingStage.PURGING
-            return AMSDryingStage.CONDITIONING
-        if parsed.get("heater_on", False):
-            return AMSDryingStage.HEATING
-        if parsed.get("exhaust_fan_on", False) or parsed.get("circ_fan_on", False):
-            return AMSDryingStage.MAINTENANCE
-        return AMSDryingStage.IDLE
+    climate: BambuClimate = field(default_factory=BambuClimate)
+    """Contains all climate related attributes"""
 
     @classmethod
     def fromJson(
@@ -275,6 +316,9 @@ class BambuState:
         caps["has_camera"] = True
         updates["capabilities"] = PrinterCapabilities(**caps)
 
+        climate = asdict(base.climate)
+        updates["climate"] = BambuClimate(**climate)
+
         # STATUS & PROGRESS
         updates["gcode_state"] = p.get("gcode_state", base.gcode_state)
         updates["current_stage_id"] = int(p.get("stg_cur", base.current_stage_id))
@@ -287,38 +331,56 @@ class BambuState:
         updates["total_layers"] = int(p.get("total_layer_num", base.total_layers))
 
         # THERMALS & CTC DECODING
-        updates["bed_temp"] = float(p.get("bed_temper", base.bed_temp))
-        updates["bed_temp_target"] = int(p.get("bed_target_temper", base.bed_temp_target))
+        updates["climate"].bed_temp = float(p.get("bed_temper", base.climate.bed_temp))
+        updates["climate"].bed_temp_target = int(
+            p.get("bed_target_temper", base.climate.bed_temp_target)
+        )
 
         if ctc_root:
             ctc_temp_raw = unpackTemperature(ctc_root.get("info", {}).get("temp", 0.0))
             ctc_temp = ctc_temp_raw[0]
             ctc_temp_target = ctc_temp_raw[1]
-            updates["chamber_temp"] = ctc_temp
-            updates["chamber_temp_target"] = int(ctc_temp_target)
+            updates["climate"].chamber_temp = ctc_temp
+            updates["climate"].chamber_temp_target = int(ctc_temp_target)
         else:
-            updates["chamber_temp"] = base.chamber_temp
-            updates["chamber_temp_target"] = base.chamber_temp_target
+            updates["climate"].chamber_temp = base.climate.chamber_temp
+            updates["climate"].chamber_temp_target = base.climate.chamber_temp_target
 
         # AIRDUCT
         if airduct_root:
-            updates["airduct_mode"] = int(airduct_root.get("modeCur", base.airduct_mode))
-            updates["airduct_sub_mode"] = int(
-                airduct_root.get("subMode", base.airduct_sub_mode)
+            updates["climate"].airduct_mode = int(
+                airduct_root.get("modeCur", base.climate.airduct_mode)
+            )
+            updates["climate"].airduct_sub_mode = int(
+                airduct_root.get("subMode", base.climate.airduct_sub_mode)
             )
 
-            updates["is_chamber_heating"] = updates["airduct_mode"] == 1
-            updates["is_chamber_cooling"] = updates["airduct_mode"] == 2
-            updates["has_active_filtration"] = updates["airduct_mode"] in [0, 2]
+            updates["climate"].is_chamber_heating = updates["climate"].airduct_mode == 1
+            updates["climate"].is_chamber_cooling = updates["climate"].airduct_mode == 2
+            updates["climate"].has_active_filtration = updates[
+                "climate"
+            ].airduct_mode in [0, 2]
 
-            updates["is_dryer_engaged"] = bool(updates["airduct_sub_mode"] & 0x01)
-            updates["top_vent_open"] = bool(updates["airduct_sub_mode"] & 0x01)
+            updates["climate"].is_dryer_engaged = bool(
+                updates["climate"].airduct_sub_mode & 0x01
+            )
+            updates["climate"].top_vent_open = bool(
+                updates["climate"].airduct_sub_mode & 0x01
+            )
 
             parts = {part["id"]: part["state"] for part in airduct_root.get("parts", [])}
-            updates["zone_internal_percent"] = parts.get(16, base.zone_internal_percent)
-            updates["zone_intake_percent"] = parts.get(32, base.zone_intake_percent)
-            updates["zone_exhaust_percent"] = parts.get(48, base.zone_exhaust_percent)
-            updates["ac_unit_power_percent"] = parts.get(96, base.ac_unit_power_percent)
+            updates["climate"].zone_internal_percent = parts.get(
+                16, base.climate.zone_internal_percent
+            )
+            updates["climate"].zone_intake_percent = parts.get(
+                32, base.climate.zone_intake_percent
+            )
+            updates["climate"].zone_exhaust_percent = parts.get(
+                48, base.climate.zone_exhaust_percent
+            )
+            updates["climate"].ac_unit_power_percent = parts.get(
+                96, base.climate.ac_unit_power_percent
+            )
 
         # EXTRUDERS
         new_extruders = []
@@ -418,6 +480,10 @@ class BambuState:
             u.humidity_raw = int(float(ams_u.get("humidity_raw", u.humidity_raw)))
             u.dry_time = int(float(ams_u.get("dry_time", u.dry_time)))
 
+            # ugly hack for capturing target temp
+            if u.dry_time > 0 and u.temp_target < int(u.temp_actual) - 1:
+                u.temp_target = int(u.temp_actual)
+
             if "info" in ams_u:
                 p_ams = parseAMSInfo(int(ams_u["info"]))
                 u.is_online = p_ams["is_online"]
@@ -432,7 +498,7 @@ class BambuState:
                 u.venting_active = p_ams.get("venting_active", False)
                 u.high_power_mode = p_ams.get("high_power_mode", False)
                 u.hardware_fault = p_ams["hardware_fault"]
-                u.drying_stage = cls._resolve_drying_stage(p_ams, u.dry_time)
+                u.drying_stage = resolveAMSDryingStage(p_ams, u.dry_time)
 
                 if updates["capabilities"].has_dual_extruder:
                     u.assigned_to_extruder = ActiveTool(
@@ -501,18 +567,23 @@ class BambuState:
         updates["ams_status_raw"] = int(p.get("ams_status", base.ams_status_raw))
         updates["ams_status_text"] = parseAMSStatus(updates["ams_status_raw"])
 
-        updates["part_cooling_fan_speed_percent"] = scaleFanSpeed(
+        updates["climate"].part_cooling_fan_speed_percent = scaleFanSpeed(
             p.get("cooling_fan_speed", 0)
         )
-        updates["part_cooling_fan_speed_target_percent"] = scaleFanSpeed(
-            p.get("cooling_fan_target_speed", base.part_cooling_fan_speed_target_percent)
+        updates["climate"].part_cooling_fan_speed_target_percent = scaleFanSpeed(
+            p.get(
+                "cooling_fan_target_speed",
+                base.climate.part_cooling_fan_speed_target_percent,
+            )
         )
-        updates["heatbreak_fan_speed_percent"] = scaleFanSpeed(
-            p.get("heatbreak_fan_speed", base.heatbreak_fan_speed_percent)
+        updates["climate"].heatbreak_fan_speed_percent = scaleFanSpeed(
+            p.get("heatbreak_fan_speed", base.climate.heatbreak_fan_speed_percent)
         )
-        updates["exhaust_fan_speed_percent"] = scaleFanSpeed(p.get("big_fan2_speed", 0))
-        updates["chamber_fan_speed_percent"] = scaleFanSpeed(
-            p.get("big_fan1_speed", base.chamber_fan_speed_percent)
+        updates["climate"].exhaust_fan_speed_percent = scaleFanSpeed(
+            p.get("big_fan2_speed", 0)
+        )
+        updates["climate"].chamber_fan_speed_percent = scaleFanSpeed(
+            p.get("big_fan1_speed", base.climate.chamber_fan_speed_percent)
         )
 
         # ERROR HANDLING

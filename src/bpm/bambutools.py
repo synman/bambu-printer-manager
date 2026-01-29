@@ -11,244 +11,30 @@ by `bambu-printer-manager`.
 """
 
 
-@staticmethod
-def parseStage(stage_int: int) -> str:
+class ActiveTool(IntEnum):
     """
-    Maps stg_cur numeric codes to human-readable print stages.
-    Definitive mapping reconciled against Bambu Studio's internal string tables.
-    """
-    stage_map = {
-        -1: "",
-        0: "",  # BBL_STG_IDLE
-        1: "Auto bed leveling",  # print.hpp:102
-        2: "Heatbed preheating",  # print.hpp:103
-        3: "Sweeping XY mech mode",  # print.hpp:104
-        4: "Changing filament",  # print.hpp:105
-        5: "M400 pause",  # print.hpp:106
-        6: "Filament runout pause",  # print.hpp:107
-        7: "Heating hotend",  # print.hpp:108
-        8: "Calibrating extrusion",  # print.hpp:109
-        9: "Scanning bed surface",  # print.hpp:110
-        10: "Inspecting first layer",  # print.hpp:111
-        11: "Identifying build plate",  # print.hpp:112
-        12: "Calibrating Micro Lidar",  # print.hpp:113
-        13: "Homing toolhead",  # print.hpp:114
-        14: "Cleaning nozzle tip",  # print.hpp:115
-        15: "Temp check",  # print.hpp:116
-        16: "Paused by user",  # print.hpp:117
-        17: "Front cover falling",  # print.hpp:118
-        18: "Lidar calibration (alt)",  # print.hpp:119
-        19: "Calibrating flow",  # print.hpp:120
-        20: "Nozzle temp malfunction",  # print.hpp:121
-        21: "Bed temp malfunction",  # print.hpp:122
-        22: "Filament unloading",  # print.hpp:123
-        23: "Skip step pause",  # print.hpp:124
-        24: "Filament loading",  # print.hpp:125
-        25: "Motor noise calibration",  # print.hpp:126
-        26: "AMS lost pause",  # print.hpp:127
-        27: "Fan speed pause",  # print.hpp:128
-        28: "Chamber control error",  # print.hpp:129
-        29: "Cooling chamber",  # print.hpp:130
-        30: "Custom Gcode pause",  # print.hpp:131
-        31: "Motor noise showoff",  # print.hpp:132
-        32: "Nozzle cover pause",  # print.hpp:133
-        33: "Cutter error pause",  # print.hpp:134
-        34: "First layer error pause",  # print.hpp:135
-        35: "Nozzle clog pause",  # print.hpp:136
-        37: "Chamber control",  # BambuPublishStat:442
-        38: "Chamber pre-heat (Legacy)",  # BambuPublishStat:443
-        39: "Nozzle Offset Calibration",  # H2D/X1E Override
-        49: "Heating chamber",  # VERIFIED H2D/X1E Override
-        70: "Leading filament",  # print.hpp:170
-        71: "Reached toolhead",  # print.hpp:171
-        72: "Grabbing filament",  # print.hpp:172
-        73: "Purging",  # print.hpp:173
-        74: "Unloading",  # print.hpp:174 (Verified cur_stg 74)
-        75: "Returning to AMS",  # print.hpp:175
-        76: "Cutting",  # print.hpp:176
-        77: "Tool switching",  # print.hpp:177
-        100: "Printing",  # print.hpp:200
-        255: "Completed",  # print.hpp:355
-    }
-    return stage_map.get(stage_int, f"Stage [{stage_int}]")
+    The currently active extruder index.
 
-
-@staticmethod
-@deprecated("This property is deprecated (v1.0.0). Use `scaleFanSpeed`.")
-def parseFan(fan: int) -> int:
-    """
-    Mainly an internal method used for parsing Fan data
-    !!! danger "Deprecated"
-    This property is deprecated (v1.0.0). Use `scaleFanSpeed`.
-    """
-    fan = int(fan)
-    if fan == 1:
-        return 10
-    elif fan == 2:
-        return 20
-    elif fan in (3, 4):
-        return 30
-    elif fan in (5, 6):
-        return 40
-    elif fan in (7, 8):
-        return 50
-    elif fan == 9:
-        return 60
-    elif fan in (10, 11):
-        return 70
-    elif fan == 12:
-        return 80
-    elif fan in (13, 14):
-        return 90
-    elif fan == 15:
-        return 100
-    return 0
-
-
-@staticmethod
-def parseAMSInfo(info_int: int) -> dict:
-    """
-    Parses decimal bit-packed AMS info for status and feature reconciliation.
-    Reconciled against Bambu Studio source logic for H2D/X1/P1 hardware.
-    """
-    return {
-        "is_powered": bool(info_int & 1),
-        "is_online": bool(info_int & 2),
-        "rfid_ready": bool(info_int & 4),
-        "hub_sensor_triggered": bool(info_int & 8),
-        "circ_fan_on": bool(info_int & 16),
-        "h2d_toolhead_index": (info_int >> 5) & 0x1,
-        "exhaust_fan_on": bool(info_int & 64),
-        "humidity_sensor_ok": bool((info_int & 128) or (info_int & 131072)),
-        "heater_on": bool(info_int & 256),
-        "motor_running": bool(info_int & 512),
-        "is_rotating": bool(info_int & 1024),  # Specific to AMS Drying Rotation
-        "venting_active": bool(info_int & 2048),
-        "high_power_mode": bool(info_int & 8192),
-        "hardware_fault": bool((info_int & 4096) or (info_int & 16384)),
-    }
-
-
-@staticmethod
-def parseAMSStatus(status_int: int) -> str:
-    """
-    Maps the ams_status code to human-readable descriptions.
-    Definitive mapping reconciled against Bambu Studio source code.
-    """
-    # The high byte represents the primary operational state
-    main_status = (status_int >> 8) & 0xFF
-
-    status_map = {
-        0x00: "Idle",  # BBL_AMS_STATUS_IDLE
-        0x01: "Filament Changing",  # BBL_AMS_STATUS_FILAMENT_CHANGE
-        0x02: "RFID Identifying",  # BBL_AMS_STATUS_RFID_READING
-        0x03: "Assist/Engaged",  # BBL_AMS_STATUS_ASSIST (Feed Assist)
-        0x04: "Calibration",  # BBL_AMS_STATUS_CALIBRATION
-        0x10: "Self Check",  # BBL_AMS_STATUS_SELF_CHECK
-        0x20: "Debug",  # BBL_AMS_STATUS_DEBUG
-        0xFF: "Unknown",  # BBL_AMS_STATUS_UNKNOWN
-    }
-
-    # Audit Note: In H2D telemetry (e.g., 768 / 0x0300),
-    # the 0x03 high byte correctly resolves to "Assist/Engaged".
-    return status_map.get(main_status, "Idle")
-
-
-@staticmethod
-def parseRFIDStatus(status):
-    """
-    Can be used to parse `ams_rfid_status`
-    """
-    if status == 0:
-        return "RFID Idle"
-    elif status == 1:
-        return "RFID Reading"
-    elif status == 2:
-        return "GCode Translating"
-    elif status == 3:
-        return "GCode Running"
-    elif status == 4:
-        return "RFID Assistant"
-    elif status == 5:
-        return "Switch Filament"
-    elif status == 6:
-        return "Has Filament"
-    else:
-        return "Unknown"
-
-
-class ExtruderInfoState(IntEnum):
-    """
-    Consolidated logical states for extruder sensor status.
-    Values represent unique state IDs to prevent bitmask collisions.
+    * `SINGLE_EXTRUDER (-1)`: Standard single-toolhead architecture (X1/P1/A1).
+    * `RIGHT_EXTRUDER (0)`: The primary/right toolhead in H2D (Dual Extruder) systems.
+    * `LEFT_EXTRUDER (1)`: The secondary/left toolhead in H2D (Dual Extruder) systems.
+    * `NOT_ACTIVE (15)`: The multi-extruder system is in a transitional state.
     """
 
-    NO_NOZZLE = 0
-    EMPTY = 1
-    BUFFER_LOADED = 2
-    LOADED = 3
+    SINGLE_EXTRUDER = -1
+    RIGHT_EXTRUDER = 0
+    LEFT_EXTRUDER = 1
+    NOT_ACTIVE = 15
 
 
-@staticmethod
-def parseExtruderInfo(info_int: int) -> ExtruderInfoState:
+class AMSControlCommand(Enum):
     """
-    Decodes the extruder 'info' bit-packed status using unique ExtruderInfoState names.
-    Bitmask logic (0x02, 0x04, 0x08) is reconciled against Bambu Studio source.
-    """
-    # 1. Hardware Interlock: Bit 3 (0x08) presence is mandatory for nozzle detection.
-    if not (info_int & 0x08):
-        return ExtruderInfoState.NO_NOZZLE
-
-    # 2. Downstream Precedence: Bit 1 (0x02) indicates filament at the toolhead gears.
-    if info_int & 0x02:
-        return ExtruderInfoState.LOADED
-
-    # 3. Upstream State: Bit 2 (0x04) indicates filament is only at the buffer/hub.
-    if info_int & 0x04:
-        return ExtruderInfoState.BUFFER_LOADED
-
-    # 4. Default: Nozzle detected (Bit 3 is high), but no filament in the path.
-    return ExtruderInfoState.EMPTY
-
-
-class ExtruderStatus(IntEnum):
-    """
-    Operational states for physical extruders.
-    Values are mapped directly from the Bambu Studio source code (BBL_EXTRUDER_STATE).
+    AMS Control Commands enum
     """
 
-    IDLE = 0
-    HEATING = 1
-    ACTIVE = 2
-    SUCCESS = 3
-
-
-@staticmethod
-def parseExtruderStatus(stat_int: int) -> ExtruderStatus:
-    """
-    Decodes the operational extruder state using the exhaustive Enum map.
-    Definitive mapping reconciled against Bambu Studio source.
-    """
-    # 1. Operational Precedence:
-    # The 'working bits' at 8-9 (0x0300) are the primary indicators of
-    # the extruder's mechanical state machine.
-    working_bits = (stat_int >> 8) & 0x03
-
-    # Check for the rare SUCCESS state (3)
-    if working_bits == 0x03:
-        return ExtruderStatus.ACTIVE
-    elif working_bits == 0x02:
-        # In the source, 0x02 is sometimes used for specific transitions,
-        # but 0x03 is the official 'Working' flag.
-        return ExtruderStatus.ACTIVE
-
-    # 2. Thermal State:
-    # Bit 0 (0x01) is the official 'Heater Active' flag in the stat register.
-    if stat_int & 0x01:
-        return ExtruderStatus.HEATING
-
-    # 3. Default: The toolhead is in a standby or idle state.
-    return ExtruderStatus.IDLE
+    PAUSE = 0
+    RESUME = 1
+    RESET = 2
 
 
 class AMSDryingStage(IntEnum):
@@ -265,24 +51,84 @@ class AMSDryingStage(IntEnum):
     FAULT = 5  # Error detected during cycle
 
 
-class ServiceState(Enum):
+class AMSModel(Enum):
     """
-    This enum is used by `bambu-printer-manager` to track the underlying state
-    of the `mqtt` connection to the printer.
-
-    States
-    ------
-    * `NO_STATE` - Startup / initial state indicates no active session.
-    * `CONNECTED` - Primary state expected when polling `BambuPrinter`.
-    * `PAUSED` - `bambu-printer`'s session state is paused.
-    * `QUIT` - When this state is triggered, all session based resources and threads are released.
+    AMS model enum
     """
 
-    NO_STATE = 0
-    CONNECTED = 1
-    DISCONNECTED = 2
-    PAUSED = 3
-    QUIT = 4
+    UNKNOWN = 0
+    AMS_1 = 1
+    AMS_LITE = 2
+    AMS_HT = 3
+    AMS_2_PRO = 4
+
+
+class AMSSeries(Enum):
+    """
+    AMS Series enum
+    """
+
+    UNKNOWN = 0
+    GEN_1 = 1
+    GEN_2 = 2
+
+
+class AMSUserSetting(Enum):
+    """
+    AMS User Settings enum
+    """
+
+    CALIBRATE_REMAIN_FLAG = 0
+    STARTUP_READ_OPTION = 1
+    TRAY_READ_OPTION = 2
+
+
+class ExtruderInfoState(IntEnum):
+    """
+    Consolidated logical states for extruder sensor status.
+    Values represent unique state IDs to prevent bitmask collisions.
+    """
+
+    NO_NOZZLE = 0
+    EMPTY = 1
+    BUFFER_LOADED = 2
+    LOADED = 3
+
+
+class ExtruderStatus(IntEnum):
+    """
+    Operational states for physical extruders.
+    Values are mapped directly from the Bambu Studio source code (BBL_EXTRUDER_STATE).
+    """
+
+    IDLE = 0
+    HEATING = 1
+    ACTIVE = 2
+    SUCCESS = 3
+
+
+class NozzleDiameter(Enum):
+    """
+    Nozzle Diameter enum
+    """
+
+    UNKNOWN = 0.0
+    POINT_TWO_MM = 0.2
+    POINT_FOUR_MM = 0.4
+    POINT_SIX_MM = 0.6
+    POINT_EIGHT_MM = 0.8
+
+
+class NozzleType(Enum):
+    """
+    Nozzle Type enum
+    """
+
+    UNKNOWN = 0
+    STAINLESS_STEEL = 1
+    HARDENED_STEEL = 2
+    HS01 = 3
+    HH01 = 4
 
 
 class PlateType(Enum):
@@ -297,116 +143,6 @@ class PlateType(Enum):
     HOT_PLATE = 3
     TEXTURED_PLATE = 4
     NONE = 999
-
-
-class ActiveTool(IntEnum):
-    """
-    The currently active extruder index.
-
-    * `SINGLE_EXTRUDER (-1)`: Standard single-toolhead architecture (X1/P1/A1).
-    * `RIGHT_EXTRUDER (0)`: The primary/right toolhead in H2D (Dual Extruder) systems.
-    * `LEFT_EXTRUDER (1)`: The secondary/left toolhead in H2D (Dual Extruder) systems.
-    * `NOT_ACTIVE (15)`: The multi-extruder system is in a transitonal state.
-    """
-
-    SINGLE_EXTRUDER = -1
-    RIGHT_EXTRUDER = 0
-    LEFT_EXTRUDER = 1
-    NOT_ACTIVE = 15
-
-
-class TrayState(IntEnum):
-    """
-    Operational status of the filament tray.
-
-    * `UNLOADED (0)`: No filament detected in the toolhead path.
-    * `LOADED (1)`: Filament is fully loaded into the toolhead.
-    * `LOADING (2)`: Filament is currently being fed to the toolhead.
-    * `UNLOADING (3)`: Filament is currently being retracted from the toolhead.
-    """
-
-    UNLOADED = 0
-    LOADED = 1
-    LOADING = 2
-    UNLOADING = 3
-
-
-class PrintOption(Enum):
-    """
-    Print Option enum
-    """
-
-    AUTO_RECOVERY = 0
-    FILAMENT_TANGLE_DETECT = 1
-    SOUND_ENABLE = 2
-    AUTO_SWITCH_FILAMENT = 3
-
-
-class AMSUserSetting(Enum):
-    """
-    AMS User Settings enum
-    """
-
-    CALIBRATE_REMAIN_FLAG = 0
-    STARTUP_READ_OPTION = 1
-    TRAY_READ_OPTION = 2
-
-
-class AMSControlCommand(Enum):
-    """
-    AMS Control Commands enum
-    """
-
-    PAUSE = 0
-    RESUME = 1
-    RESET = 2
-
-
-class NozzleDiameter(Enum):
-    """
-    Nozzle Diameter enum
-    """
-
-    POINT_TWO_MM = 0.2
-    POINT_FOUR_MM = 0.4
-    POINT_SIX_MM = 0.6
-    POINT_EIGHT_MM = 0.8
-    UNKNOWN = 0.0
-
-
-class NozzleType(Enum):
-    """
-    Nozzle Type enum
-    """
-
-    STAINLESS_STEEL = 1
-    HARDENED_STEEL = 2
-    HS01 = 3
-    HH01 = 4
-    UNKNOWN = 0
-
-
-class PrinterSeries(Enum):
-    """
-    Printer Series enum
-    """
-
-    UNKNOWN = 0
-    X1 = 1
-    P1 = 2
-    A1 = 3
-    P2 = 4
-    H2 = 5
-
-
-class AMSSeries(Enum):
-    """
-    AMS Series enum
-    """
-
-    UNKNOWN = 0
-    GEN_1 = 1
-    GEN_2 = 2
 
 
 class PrinterModel(Enum):
@@ -427,22 +163,229 @@ class PrinterModel(Enum):
     H2D = 10
 
 
-class AMSModel(Enum):
+class PrinterSeries(Enum):
     """
-    AMS model enum
+    Printer Series enum
     """
 
     UNKNOWN = 0
-    AMS_1 = 1
-    AMS_LITE = 2
-    AMS_HT = 3
-    AMS_2_PRO = 4
+    X1 = 1
+    P1 = 2
+    A1 = 3
+    P2 = 4
+    H2 = 5
+
+
+class PrintOption(Enum):
+    """
+    Print Option enum
+    """
+
+    AUTO_RECOVERY = 0
+    FILAMENT_TANGLE_DETECT = 1
+    SOUND_ENABLE = 2
+    AUTO_SWITCH_FILAMENT = 3
+
+
+class ServiceState(Enum):
+    """
+    This enum is used by `bambu-printer-manager` to track the underlying state
+    of the `mqtt` connection to the printer.
+    """
+
+    NO_STATE = 0
+    CONNECTED = 1
+    DISCONNECTED = 2
+    PAUSED = 3
+    QUIT = 4
+
+
+class TrayState(IntEnum):
+    """
+    Operational status of the filament tray.
+    """
+
+    UNLOADED = 0
+    LOADED = 1
+    LOADING = 2
+    UNLOADING = 3
 
 
 @staticmethod
-@deprecated("This method is deprecated (v1.0.0). Use `getPrinterSeriesByModel`.")
-def getSeriesByModel(model: PrinterModel) -> PrinterSeries:
-    return getPrinterSeriesByModel(model)
+def decodeError(error: int) -> dict:
+    """
+    Decodes a raw print_error integer into a full HMS dictionary.
+    """
+    if error == 0:
+        return {}
+
+    raw_hex = f"{error:08X}".upper()
+    wiki_slug = "-".join(raw_hex[i : i + 4] for i in range(0, 8, 4))
+    res = {
+        "code": f"HMS_{wiki_slug}",
+        "msg": "Unknown HMS Error",
+        "module": "System",
+        "severity": "Error",
+        "is_critical": False,
+        "type": "device_error",
+        "url": f"https://e.bambulab.com/?e={raw_hex}",
+    }
+
+    real_module = (error >> 24) & 0xFF
+    module_map = {
+        0x03: "Mainboard",
+        0x05: "AMS",
+        0x12: "AMS",
+        0x07: "Toolhead",
+        0x0B: "Webcam",
+        0x10: "HMS",
+    }
+    res["module"] = module_map.get(real_module, "System")
+
+    msg_list = HMS_STATUS.get("data", {}).get("device_error", {}).get("en", [])
+    modules = ["03", "05", "07", "0B", "0C", "10", "12"]
+    if raw_hex[:2] in modules:
+        modules.remove(raw_hex[:2])
+    modules.insert(0, raw_hex[:2])
+
+    for module in modules:
+        current_hex = f"{module}{raw_hex[2:]}"
+        for entry in msg_list:
+            if entry.get("ecode", "").upper() == current_hex.upper():
+                res["msg"] = entry.get("intro", res["msg"])
+                break
+        if res["msg"] != "Unknown HMS Error":
+            break
+
+    mask = (error >> 16) & 0xFF
+    if mask in (0x00, 0x01):
+        res["severity"] = "Fatal" if mask == 0x00 else "Error"
+        res["is_critical"] = True
+    elif mask == 0x02:
+        res["severity"] = "Warning"
+        res["is_critical"] = False
+    else:
+        res["severity"] = "Info"
+        res["is_critical"] = False
+
+    return res
+
+
+@staticmethod
+def decodeHMS(hms_list: list) -> list[dict]:
+    """
+    Decodes the raw HMS list from telemetry into a structured list of dictionaries.
+    """
+    decoded_errors = []
+    for item in hms_list:
+        if isinstance(item, dict) and isinstance(item.get("code"), str):
+            decoded_errors.append(item)
+            continue
+        try:
+            attr = int(item.get("attr", 0))
+            code = int(item.get("code", 0))
+        except (AttributeError, ValueError, TypeError):
+            continue
+        if attr == 0:
+            continue
+
+        ecode = f"{attr:08X}{code:08X}"
+        wiki_slug = "-".join(ecode[i : i + 4] for i in range(0, 16, 4))
+        res = {
+            "code": f"HMS_{wiki_slug}",
+            "msg": "Unknown HMS Error",
+            "module": "System",
+            "severity": "Error",
+            "is_critical": False,
+            "type": "device_hms",
+            "url": f"https://e.bambulab.com/?e={ecode}",
+        }
+
+        mid = (attr >> 24) & 0xFF
+        mask = (attr >> 16) & 0xFF
+        module_map = {
+            0x03: "Mainboard",
+            0x05: "AMS",
+            0x12: "AMS",
+            0x07: "Toolhead",
+            0x0B: "Webcam",
+            0x10: "HMS",
+        }
+        res["module"] = module_map.get(mid, "System")
+
+        msg_list = HMS_STATUS.get("data", {}).get("device_hms", {}).get("en", [])
+        for entry in msg_list:
+            if entry.get("ecode", "").upper() == ecode:
+                res["msg"] = entry.get("intro", res["msg"])
+                break
+
+        if mask in (0x00, 0x01):
+            res["severity"], res["is_critical"] = (
+                ("Fatal" if mask == 0x00 else "Error"),
+                True,
+            )
+        elif mask == 0x02:
+            res["severity"] = "Warning"
+        else:
+            res["severity"] = "Info"
+        decoded_errors.append(res)
+    return decoded_errors
+
+
+@staticmethod
+def getAMSModelBySerial(serial: str) -> AMSModel:
+    """
+    Returns the hardware model based on the serial number prefix.
+    """
+    prefix = serial[:3].upper()
+    if prefix == "19C":
+        return AMSModel.AMS_2_PRO
+    if prefix == "19F":
+        return AMSModel.AMS_HT
+    if prefix == "006":
+        return AMSModel.AMS_1
+    if prefix == "03C":
+        return AMSModel.AMS_LITE
+    return AMSModel.UNKNOWN
+
+
+@staticmethod
+def getAMSSeriesByModel(model: AMSModel) -> AMSSeries:
+    """
+    Returns the AMS series enum based on the provided model.
+    """
+    if model in (AMSModel.AMS_1, AMSModel.AMS_LITE):
+        return AMSSeries.GEN_1
+    if model in (AMSModel.AMS_HT, AMSModel.AMS_2_PRO):
+        return AMSSeries.GEN_2
+    return AMSSeries.UNKNOWN
+
+
+@staticmethod
+@deprecated("This method is deprecated (v1.0.0). Use `getPrinterModelBySerial`.")
+def getModelBySerial(serial: str) -> PrinterModel:
+    return getPrinterModelBySerial(serial)
+
+
+@staticmethod
+def getPrinterModelBySerial(serial: str) -> PrinterModel:
+    """
+    Returns the Printer model enum based on the provided serial #.
+    """
+    mapping = {
+        "00M": PrinterModel.X1C,
+        "00W": PrinterModel.X1,
+        "03W": PrinterModel.X1E,
+        "01S": PrinterModel.P1P,
+        "01P": PrinterModel.P1S,
+        "030": PrinterModel.A1_MINI,
+        "039": PrinterModel.A1,
+        "22E": PrinterModel.P2S,
+        "093": PrinterModel.H2S,
+        "094": PrinterModel.H2D,
+    }
+    prefix = serial[:3]
+    return mapping.get(prefix, PrinterModel.UNKNOWN)
 
 
 @staticmethod
@@ -457,212 +400,222 @@ def getPrinterSeriesByModel(model: PrinterModel) -> PrinterSeries:
 
 
 @staticmethod
-def getAMSSeriesByModel(model: AMSModel) -> AMSSeries:
+@deprecated("This method is deprecated (v1.0.0). Use `getPrinterSeriesByModel`.")
+def getSeriesByModel(model: PrinterModel) -> PrinterSeries:
+    return getPrinterSeriesByModel(model)
+
+
+@staticmethod
+def parseAMSInfo(info_int: int) -> dict:
     """
-    Returns the AMS series enum based on the provided model.
+    Parses decimal bit-packed AMS info for status and feature reconciliation.
     """
-
-    if model in (AMSModel.AMS_1, AMSModel.AMS_LITE):
-        return AMSSeries.GEN_1
-    if model in (AMSModel.AMS_HT, AMSModel.AMS_2_PRO):
-        return AMSSeries.GEN_2
-    return AMSSeries.UNKNOWN
-
-
-@deprecated("This method is deprecated (v1.0.0). Use `getPrinterModelBySerial`.")
-def getModelBySerial(serial: str) -> PrinterModel:
-    return getPrinterModelBySerial(serial)
-
-
-def getPrinterModelBySerial(serial: str) -> PrinterModel:
-    """
-    Returns the Printer model enum based on the provided serial #.
-    """
-    if serial.startswith("00M"):
-        return PrinterModel.X1C
-    elif serial.startswith("00W"):
-        return PrinterModel.X1
-    elif serial.startswith("03W"):
-        return PrinterModel.X1E
-    elif serial.startswith("01S"):
-        return PrinterModel.P1P
-    elif serial.startswith("01P"):
-        return PrinterModel.P1S
-    elif serial.startswith("030"):
-        return PrinterModel.A1_MINI
-    elif serial.startswith("039"):
-        return PrinterModel.A1
-    elif serial.startswith("22E"):
-        return PrinterModel.P2S
-    elif serial.startswith("093"):
-        return PrinterModel.H2S
-    elif serial.startswith("094"):
-        return PrinterModel.H2D
-    else:
-        return PrinterModel.UNKNOWN
-
-
-def getAMSModelBySerial(serial: str) -> AMSModel:
-    """
-    Returns the hardware model based on the serial number prefix.
-    """
-    prefix = serial[:3].upper()
-
-    if prefix == "19C":
-        return AMSModel.AMS_2_PRO
-    if prefix == "19F":
-        return AMSModel.AMS_HT
-    if prefix == "006":
-        return AMSModel.AMS_1
-    if prefix == "03C":
-        return AMSModel.AMS_LITE
-    return AMSModel.UNKNOWN
-
-
-def decodeHMS(hms_list: list) -> list[dict]:
-    """
-    Decodes the raw HMS list from telemetry into a structured list of dictionaries.
-    Reverts to the stable baseline prior to print_error integration.
-    """
-    decoded_errors = []
-
-    for item in hms_list:
-        # Persistence check: If already decoded, keep as-is
-        if isinstance(item, dict) and isinstance(item.get("code"), str):
-            decoded_errors.append(item)
-            continue
-
-        try:
-            attr = int(item.get("attr", 0))
-            code = int(item.get("code", 0))
-        except (AttributeError, ValueError, TypeError):
-            continue
-
-        if attr == 0:
-            continue
-
-        # Construct ecode and wiki slug
-        ecode = f"{attr:08X}{code:08X}"
-        wiki_slug = "-".join(ecode[i : i + 4] for i in range(0, 16, 4))
-
-        res = {
-            "code": f"HMS_{wiki_slug}",
-            "msg": "Unknown HMS Error",
-            "module": "System",
-            "severity": "Error",
-            "is_critical": False,
-            "type": "device_hms",
-            "url": f"https://e.bambulab.com/?e={ecode}",
-        }
-
-        # Module and Severity parsing (0xMMSSQECC)
-        mid = (attr >> 24) & 0xFF
-        mask = (attr >> 16) & 0xFF
-        module_map = {
-            0x03: "Mainboard",
-            0x05: "AMS",
-            0x12: "AMS",
-            0x07: "Toolhead",
-            0x0B: "Webcam",
-            0x10: "HMS",
-        }
-        res["module"] = module_map.get(mid, "System")
-
-        # Dictionary Lookup (Search device_hms only)
-        msg_list = HMS_STATUS.get("data", {}).get("device_hms", {}).get("en", [])
-        for entry in msg_list:
-            if entry.get("ecode", "").upper() == ecode:
-                res["msg"] = entry.get("intro", res["msg"])
-                break
-
-        # Severity Mapping
-        if mask in (0x00, 0x01):
-            res["severity"], res["is_critical"] = (
-                ("Fatal" if mask == 0x00 else "Error"),
-                True,
-            )
-        elif mask == 0x02:
-            res["severity"] = "Warning"
-        else:
-            res["severity"] = "Info"
-
-        decoded_errors.append(res)
-
-    return decoded_errors
-
-
-def decodeError(error: int) -> dict:
-    """
-    Decodes a raw print_error integer into a full HMS dictionary.
-    Uses nibble-swapping to find the message but preserves the original
-    module ID and code context in the result.
-    """
-    if error == 0:
-        return {}
-
-    raw_hex = f"{error:08X}".upper()
-
-    # Base Metadata (using the ORIGINAL error code)
-    wiki_slug = "-".join(raw_hex[i : i + 4] for i in range(0, 8, 4))
-    res = {
-        "code": f"HMS_{wiki_slug}",
-        "msg": "Unknown HMS Error",
-        "module": "System",
-        "severity": "Error",
-        "is_critical": False,
-        "type": "device_error",
-        "url": f"https://e.bambulab.com/?e={raw_hex}",
+    return {
+        "is_powered": bool(info_int & 1),
+        "is_online": bool(info_int & 2),
+        "rfid_ready": bool(info_int & 4),
+        "hub_sensor_triggered": bool(info_int & 8),
+        "circ_fan_on": bool(info_int & 16),
+        "h2d_toolhead_index": (info_int >> 5) & 0x1,
+        "exhaust_fan_on": bool(info_int & 64),
+        "humidity_sensor_ok": bool((info_int & 128) or (info_int & 131072)),
+        "heater_on": bool(info_int & 256),
+        "motor_running": bool(info_int & 512),
+        "is_rotating": bool(info_int & 1024),
+        "venting_active": bool(info_int & 2048),
+        "high_power_mode": bool(info_int & 8192),
+        "hardware_fault": bool((info_int & 4096) or (info_int & 16384)),
     }
 
-    # Map Original Module Name (based on original error bits)
-    real_module = (error >> 24) & 0xFF
 
-    modules = ["03", "05", "07", "0B", "0C", "10", "12"]
-    module_map = {
-        0x03: "Mainboard",
-        0x05: "AMS",
-        0x12: "AMS",
-        0x07: "Toolhead",
-        0x0B: "Webcam",
-        0x10: "HMS",
+@staticmethod
+def parseAMSStatus(status_int: int) -> str:
+    """
+    Maps the ams_status code to human-readable descriptions.
+    """
+    main_status = (status_int >> 8) & 0xFF
+    status_map = {
+        0x00: "Idle",
+        0x01: "Filament Changing",
+        0x02: "RFID Identifying",
+        0x03: "Assist/Engaged",
+        0x04: "Calibration",
+        0x10: "Self Check",
+        0x20: "Debug",
+        0xFF: "Unknown",
     }
-    res["module"] = module_map.get(real_module, "System")
-
-    msg_list = HMS_STATUS.get("data", {}).get("device_error", {}).get("en", [])
-
-    # lets put our module at the top
-    if raw_hex[:2] in modules:
-        modules.remove(raw_hex[:2])
-    modules.insert(0, raw_hex[:2])
-
-    for module in modules:
-        # Swap the first nibble to try and find a match in the dictionary
-        current_hex = f"{module}{raw_hex[2:]}"
-
-        for entry in msg_list:
-            if entry.get("ecode", "").upper() == current_hex.upper():
-                res["msg"] = entry.get("intro", res["msg"])
-                break
-
-        if res["msg"] != "Unknown HMS Error":
-            break
-
-    # Severity and Criticality Mapping (0xSS byte)
-    mask = (error >> 16) & 0xFF
-    if mask in (0x00, 0x01):
-        # 00 = Fatal, 01 = Error. Both are critical blockers.
-        res["severity"] = "Fatal" if mask == 0x00 else "Error"
-        res["is_critical"] = True
-    elif mask == 0x02:
-        res["severity"] = "Warning"
-        res["is_critical"] = False
-    else:
-        res["severity"] = "Info"
-        res["is_critical"] = False
-
-    return res
+    return status_map.get(main_status, "Idle")
 
 
+@staticmethod
+def parseExtruderInfo(info_int: int) -> ExtruderInfoState:
+    """
+    Decodes the extruder 'info' bit-packed status using unique ExtruderInfoState names.
+    """
+    if not (info_int & 0x08):
+        return ExtruderInfoState.NO_NOZZLE
+    if info_int & 0x02:
+        return ExtruderInfoState.LOADED
+    if info_int & 0x04:
+        return ExtruderInfoState.BUFFER_LOADED
+    return ExtruderInfoState.EMPTY
+
+
+@staticmethod
+def parseExtruderStatus(stat_int: int) -> ExtruderStatus:
+    """
+    Decodes the operational extruder state using the exhaustive Enum map.
+    """
+    working_bits = (stat_int >> 8) & 0x03
+    if working_bits in (0x02, 0x03):
+        return ExtruderStatus.ACTIVE
+    if stat_int & 0x01:
+        return ExtruderStatus.HEATING
+    return ExtruderStatus.IDLE
+
+
+@staticmethod
+def parseExtruderTrayState(extruder: int, idx, status) -> int:
+    if (
+        idx == 0xFE
+        or (extruder == 0 and status == 0xFF00)
+        or (extruder == 1 and status == 0xFE00)
+    ):
+        return 0xFE
+    if (
+        idx == 0xFF
+        or (extruder == 0 and status & 0xFF == 0xFF)
+        or (extruder == 1 and status & 0xFE == 0xFF)
+    ):
+        return -1
+    return status & 0xFF if extruder == 0 else status & 0xFE
+
+
+@staticmethod
+@deprecated("This property is deprecated (v1.0.0). Use `scaleFanSpeed`.")
+def parseFan(fan: int) -> int:
+    """
+    !!! danger "Deprecated"
+    This property is deprecated (v1.0.0). Use `scaleFanSpeed`.
+    """
+    fan_map = {
+        1: 10,
+        2: 20,
+        3: 30,
+        4: 30,
+        5: 40,
+        6: 40,
+        7: 50,
+        8: 50,
+        9: 60,
+        10: 70,
+        11: 70,
+        12: 80,
+        13: 90,
+        14: 90,
+        15: 100,
+    }
+    return fan_map.get(int(fan), 0)
+
+
+@staticmethod
+def parseRFIDStatus(status):
+    """
+    Can be used to parse `ams_rfid_status`
+    """
+    rfid_map = {
+        0: "RFID Idle",
+        1: "RFID Reading",
+        2: "GCode Translating",
+        3: "GCode Running",
+        4: "RFID Assistant",
+        5: "Switch Filament",
+        6: "Has Filament",
+    }
+    return rfid_map.get(status, "Unknown")
+
+
+@staticmethod
+def parseStage(stage_int: int) -> str:
+    """
+    Maps stg_cur numeric codes to human-readable print stages.
+    """
+    stage_map = {
+        -1: "",
+        0: "Idle",
+        1: "Auto bed leveling",
+        2: "Heatbed preheating",
+        3: "Sweeping XY mech mode",
+        4: "Changing filament",
+        5: "M400 pause",
+        6: "Filament runout pause",
+        7: "Heating hotend",
+        8: "Calibrating extrusion",
+        9: "Scanning bed surface",
+        10: "Inspecting first layer",
+        11: "Identifying build plate",
+        12: "Calibrating Micro Lidar",
+        13: "Homing toolhead",
+        14: "Cleaning nozzle tip",
+        15: "Temp check",
+        16: "Paused by user",
+        17: "Front cover falling",
+        18: "Lidar calibration (alt)",
+        19: "Calibrating flow",
+        20: "Nozzle temp malfunction",
+        21: "Bed temp malfunction",
+        22: "Filament unloading",
+        23: "Skip step pause",
+        24: "Filament loading",
+        25: "Motor noise calibration",
+        26: "AMS lost pause",
+        27: "Fan speed pause",
+        28: "Chamber control error",
+        29: "Cooling chamber",
+        30: "Custom Gcode pause",
+        31: "Motor noise showoff",
+        32: "Nozzle cover pause",
+        33: "Cutter error pause",
+        34: "First layer error pause",
+        35: "Nozzle clog pause",
+        37: "Chamber control",
+        38: "Chamber pre-heat (Legacy)",
+        39: "Nozzle Offset Calibration",
+        49: "Heating chamber",
+        70: "Leading filament",
+        71: "Reached toolhead",
+        72: "Grabbing filament",
+        73: "Purging",
+        74: "Unloading",
+        75: "Returning to AMS",
+        76: "Cutting",
+        77: "Tool switching",
+        100: "Printing",
+        255: "Completed",
+    }
+    return stage_map.get(stage_int, f"Stage [{stage_int}]")
+
+
+@staticmethod
+def resolveAMSDryingStage(parsed: dict, dry_time: int) -> AMSDryingStage:
+    if dry_time < 1:
+        return AMSDryingStage.IDLE
+    if parsed.get("hardware_fault", False):
+        return AMSDryingStage.FAULT
+    if parsed.get("venting_active", False):
+        return (
+            AMSDryingStage.PURGING
+            if parsed.get("heater_on", False)
+            else AMSDryingStage.CONDITIONING
+        )
+    if parsed.get("heater_on", False):
+        return AMSDryingStage.HEATING
+    if parsed.get("exhaust_fan_on", False) or parsed.get("circ_fan_on", False):
+        return AMSDryingStage.MAINTENANCE
+    return AMSDryingStage.IDLE
+
+
+@staticmethod
 def scaleFanSpeed(raw_val: Any) -> int:
     """
     Scales proprietary 0-15 fan speed values to a 0-100 percentage.
@@ -674,51 +627,28 @@ def scaleFanSpeed(raw_val: Any) -> int:
         return 0
 
 
-def parseExtruderTrayState(extruder: int, idx, status) -> int:
-    if (
-        idx == 254
-        or (extruder == 0 and status == 65280)
-        or (extruder == 1 and status == 65024)
-    ):
-        return 254
-    if (
-        idx == 255
-        or (extruder == 0 and status & 0xFF == 255)
-        or (extruder == 1 and status & 0xFE == 255)
-    ):
-        return -1
-    else:
-        return status & 0xFF if extruder == 0 else status & 0xFE
-
-
-def unpackTemperature(raw_temp: int) -> tuple[float, float]:
-    """
-    Unpacks a 32-bit packed temperature integer into a tuple of (Actual, Target).
-    """
-    return float(raw_temp & 0xFFFF), float((raw_temp >> 16) & 0xFFFF)
-
-
+@staticmethod
 def sortFileTreeAlphabetically(source) -> dict:
     """
-    Sorts a dict of file/directory nodes hierarchically in case-insensitive
-    alphabetical order (ascending).
-
-    Args:
-        source (dict): A dict of lists representing files and/or directories.
-
-    Returns:
-        dict: The sorted dict of lists.
+    Sorts a dict of file/directory nodes hierarchically.
     """
 
     def sort_node_list(node_list):
         for item in node_list:
             if item.get("id", "").endswith("/") and "children" in item:
                 item["children"] = sort_node_list(item["children"])
-
-        def sort_key(item):
-            return (not item.get("id", "").endswith("/"), item.get("name", "").lower())
-
-        return sorted(node_list, key=sort_key)
+        return sorted(
+            node_list,
+            key=lambda i: (not i.get("id", "").endswith("/"), i.get("name", "").lower()),
+        )
 
     source["children"] = sort_node_list(source["children"])
     return source
+
+
+@staticmethod
+def unpackTemperature(raw_temp: int) -> tuple[float, float]:
+    """
+    Unpacks a 32-bit packed temperature integer into a tuple of (Actual, Target).
+    """
+    return float(raw_temp & 0xFFFF), float((raw_temp >> 16) & 0xFFFF)
