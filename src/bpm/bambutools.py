@@ -477,18 +477,17 @@ def parseExtruderStatus(stat_int: int) -> ExtruderStatus:
 @staticmethod
 def parseExtruderTrayState(extruder: int, idx, status) -> int:
     if (
-        idx == 0xFE
-        or (extruder == 0 and status == 0xFF00)
-        or (extruder == 1 and status == 0xFE00)
+        idx == 254
+        or (extruder == 0 and status == 65280)
+        or (extruder == 1 and status == 65024)
     ):
-        return 0xFE
-    if (
-        idx == 0xFF
-        or (extruder == 0 and status & 0xFF == 0xFF)
-        or (extruder == 1 and status & 0xFE == 0xFF)
+        return 254
+    if (extruder == 0 and status & 0xFF == 255) or (
+        extruder == 1 and status & 0xFE == 255
     ):
         return -1
-    return status & 0xFF if extruder == 0 else status & 0xFE
+    else:
+        return status & 0xFF
 
 
 @staticmethod
@@ -542,7 +541,7 @@ def parseStage(stage_int: int) -> str:
     """
     stage_map = {
         -1: "",
-        0: "Idle",
+        0: "",
         1: "Auto bed leveling",
         2: "Heatbed preheating",
         3: "Sweeping XY mech mode",

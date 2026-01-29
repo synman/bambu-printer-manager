@@ -749,7 +749,7 @@ class BambuPrinter:
         )
 
     @deprecated(
-        "This property is deprecated. The closest alternative is `select_extrusion_calibration_profile`."
+        "This method is deprecated. The closest alternative is `select_extrusion_calibration_profile`."
     )
     def set_spool_k_factor(
         self,
