@@ -16,8 +16,8 @@ from typing_extensions import deprecated
 from webcolors import hex_to_name, name_to_hex
 
 from bpm.bambucommands import (
+    AMS_CHANGE_FILAMENT,
     AMS_CONTROL,
-    AMS_FILAMENT_CHANGE,
     AMS_FILAMENT_DRYING,
     AMS_FILAMENT_SETTING,
     AMS_USER_SETTING,
@@ -39,7 +39,6 @@ from bpm.bambucommands import (
     SKIP_OBJECTS,
     SPEED_PROFILE_TEMPLATE,
     STOP_PRINT,
-    UNLOAD_FILAMENT,
     XCAM_CONTROL_SET,
 )
 from bpm.bambuconfig import BambuConfig, LoggerName
@@ -91,7 +90,7 @@ class BambuPrinter:
         self._recent_update = False
 
         if config is None:
-            config = BambuConfig()
+            config = BambuConfig("", "", "")
         self._config = config
         self._service_state = ServiceState.NO_STATE
 
@@ -196,7 +195,7 @@ class BambuPrinter:
                 self.service_state = ServiceState.DISCONNECTED
 
         def on_message(client, userdata, msg):
-            logger.debug(f"on_message - topic: [{msg.topic}]")
+            # logger.debug(f"on_message - topic: [{msg.topic}]")
             if self._lastMessageTime and self._recent_update:
                 self._lastMessageTime = time.monotonic()
             self._on_message(msg.payload.decode("utf-8"))
@@ -340,25 +339,28 @@ class BambuPrinter:
                 json.dumps(ANNOUNCE_PUSH),
             )
 
-    def unload_filament(self):
+    def unload_filament(self, ams_id: int = 0):
         """
         Requests the printer to unload whatever filament / spool may be currently loaded.
         """
+        msg = copy.deepcopy(AMS_CHANGE_FILAMENT)
+        msg["print"]["ams_id"] = ams_id
+
         self.client.publish(
             f"device/{self.config.serial_number}/request",
-            json.dumps(UNLOAD_FILAMENT),
+            json.dumps(msg),
         )
         logger.debug(
-            f"unload_filament - published UNLOAD_FILAMENT to [device/{self.config.serial_number}/request]"
+            f"unload_filament - published AMS_CHANGE_FILAMENT to [device/{self.config.serial_number}/request] - bambu_msg: [{msg}]"
         )
 
-    def load_filament(self, slot: int):
+    def load_filament(self, slot_id: int, ams_id: int = 0):
         """
         Requests the printer to load filament into the extruder using the requested spool (slot #)
 
         Parameters
         ----------
-        slot : int
+        slot_id : int
 
         * `0` - AMS Spool #1
         * `1` - AMS Spool #2
@@ -368,13 +370,20 @@ class BambuPrinter:
         """
         # TODO: refactor to support multiple AMSs
 
-        msg = AMS_FILAMENT_CHANGE
-        msg["print"]["target"] = int(slot)
+        msg = copy.deepcopy(AMS_CHANGE_FILAMENT)
+
+        msg["print"]["ams_id"] = ams_id
+        msg["print"]["target"] = slot_id
+        msg["print"]["slot_id"] = slot_id
+        msg["print"]["soft_temp"] = 0
+        msg["print"]["tar_temp"] = -1
+        msg["print"]["curr_temp"] = -1
+
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(msg)
         )
         logger.debug(
-            f"load_filament - published AMS_FILAMENT_CHANGE to [device/{self.config.serial_number}/request] - target: [{slot}], bambu_msg: [{msg}]"
+            f"load_filament - published AMS_CHANGE_FILAMENT to [device/{self.config.serial_number}/request] - target: [{slot_id}], bambu_msg: [{msg}]"
         )
 
     def send_gcode(self, gcode: str):
@@ -1148,10 +1157,12 @@ class BambuPrinter:
         self._watchdog_thread.start()
 
     def _on_message(self, msg: str):
-        logger.debug(f"_on_message - bambu_msg: [{msg}]")
+        # logger.debug(f"_on_message - bambu_msg: [{msg}]")
 
         message = json.loads(msg)
-        self._printer_state = BambuState.fromJson(message, self._printer_state)
+        self._printer_state = BambuState.fromJson(
+            message, self._printer_state, self._config
+        )
 
         if "system" in message:
             # system = message["system"]
@@ -1867,9 +1878,7 @@ class BambuPrinter:
         self._printer_state.climate.part_cooling_fan_speed_target_percent = value
         speed = round(value * 2.55, 0)
         gcode = SEND_GCODE_TEMPLATE
-        gcode["print"]["param"] = (
-            f"M106 P1 S{speed}\nM106 P2 S{speed}\nM106 P3 S{speed}\n"
-        )
+        gcode["print"]["param"] = f"M106 P1 S{speed}\n"
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(gcode)
         )
@@ -1877,6 +1886,50 @@ class BambuPrinter:
             f"set_part_cooling_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
         )
         self._fan_speed_target_time = round(time.time())
+
+    def set_aux_fan_speed_target_percent(self, value: int):
+        """
+        sets the aux (chamber recirculation) fan speed target represented in percent
+
+        Parameters
+        ----------
+        * value : int - The target speed in percent
+        """
+        if value < 0:
+            value = 0
+        self._printer_state.climate.zone_aux_percent = value
+        speed = round(value * 2.55, 0)
+        gcode = SEND_GCODE_TEMPLATE
+        gcode["print"]["param"] = f"M106 P2 S{speed}\n"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(gcode)
+        )
+        logger.debug(
+            f"set_aux_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
+        # self._fan_speed_target_time = round(time.time())
+
+    def set_exhaust_fan_speed_target_percent(self, value: int):
+        """
+        sets the exhaust (chamber) fan speed target represented in percent
+
+        Parameters
+        ----------
+        * value : int - The target speed in percent
+        """
+        if value < 0:
+            value = 0
+        self._printer_state.climate.zone_exhaust_percent = value
+        speed = round(value * 2.55, 0)
+        gcode = SEND_GCODE_TEMPLATE
+        gcode["print"]["param"] = f"M106 P3 S{speed}\n"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(gcode)
+        )
+        logger.debug(
+            f"set_exhaust_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
+        # self._fan_speed_target_time = round(time.time())
 
     @property
     def bed_temp_target_time(self):
@@ -1996,7 +2049,7 @@ class BambuPrinter:
         "This property is deprecated (v1.0.0). Use `BambuState.remaining_minutes`."
     )
     def time_remaining(self) -> int:
-        return self._printer_state.remaining_minutes
+        return int(self._printer_state.remaining_minutes)
 
     @property
     def start_time(self) -> int:

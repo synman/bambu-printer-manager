@@ -5,11 +5,14 @@ operational state, synchronized via MQTT telemetry.
 
 import logging
 import re
+import time
 from dataclasses import asdict, dataclass, field, replace
-from typing import Any, Optional
+from typing import Any
 
+from bpm.bambuconfig import BambuConfig
 from bpm.bambutools import (
     ActiveTool,
+    AirConditioningMode,
     AMSDryingStage,
     ExtruderInfoState,
     ExtruderStatus,
@@ -132,48 +135,38 @@ class BambuClimate:
     """Bed temp. Population: `float(p.get("bed_temper"))`."""
     bed_temp_target: int = 0
     """Bed target. Population: `float(p.get("bed_target_temper"))`."""
-    airduct_mode: int = 0
+    airduct_mode: int = -1
     """Raw current mode. Population: airduct.modeCur."""
-    airduct_sub_mode: int = 0
+    airduct_sub_mode: int = -1
     """Raw sub mode. Population: airduct.subMode."""
     chamber_temp: float = 0.0
     """Chamber temp. Population: `unpackTemperature(ctc_root.info.temp)`."""
     chamber_temp_target: int = 0
     """Chamber target. Population: `unpackTemperature(ctc_root.info.temp)`."""
-    is_chamber_heating: bool = False
-    """True if active heating. Population: Bitwise `airduct.state & 0x10`."""
-    is_chamber_cooling: bool = False
-    """True if active cooling. Population: Bitwise `airduct.state & 0x20`."""
-    is_dryer_engaged: bool = False
-    """True if subMode Bit 0. Population: airduct.subMode & 0x01."""
-    ac_unit_power_percent: int = 0
-    """AC/Compressor power. Population: airduct.parts ID 96."""
+    air_conditioning_mode: AirConditioningMode = AirConditioningMode.NOT_SUPPORTED
+    """The mode the printer's AC is in if equipped with one."""
     part_cooling_fan_speed_percent: int = 0
     """Part fan %. Population: `scaleFanSpeed(p.cooling_fan_speed)`."""
     part_cooling_fan_speed_target_percent: int = 0
     """Part target %. Population: `scaleFanSpeed(p.cooling_fan_target_speed)`."""
-    chamber_fan_speed_percent: int = 0
-    """Chamber fan %. Population: `scaleFanSpeed(p.big_fan1_speed)`."""
+    aux_fan_speed_percent: int = 0
+    """aux fan %. Population: `scaleFanSpeed(p.big_fan1_speed)`."""
     exhaust_fan_speed_percent: int = 0
-    """Exhaust fan %. Population: `scaleFanSpeed(p.big_fan2_speed)`."""
+    """Exhaust (chamber) fan %. Population: `scaleFanSpeed(p.big_fan2_speed)`."""
     heatbreak_fan_speed_percent: int = 0
     """Heatbreak fan %. Population: `scaleFanSpeed(p.heatbreak_fan_speed)`."""
-    has_active_filtration: bool = False
-    """Filter status. Population: Bitwise `airduct.state & 0x08`."""
-    airduct_state_raw: int = 0
-    """Raw airduct status mask. Population: `device.airduct.state`."""
-    zone_internal_percent: int = 0
+    zone_intake_open: bool = False
+    """Heater power. Population: airduct.parts ID 96."""
+    zone_part_fan_percent: int = 0
     """Internal %. Population: `airduct.parts` ID 16."""
-    zone_intake_percent: int = 0
-    """Intake %. Population: `airduct.parts` ID 32."""
+    zone_aux_percent: int = 0
+    """aux %. Population: `airduct.parts` ID 32."""
     zone_exhaust_percent: int = 0
     """Exhaust %. Population: `airduct.parts` ID 48."""
-    top_vent_open: bool = False
-    """Vent status. Population: Bitwise `airduct.state & 0x01`."""
-    filter_obstruction_detected: bool = False
-    """Filter pressure warning. Population: Bitwise `airduct.state & 0x02`."""
-    zone_sync_error: bool = False
-    """Alignment error. Population: Bitwise `airduct.state & 0x04`."""
+    zone_top_vent_open: bool = False
+    """Top vent status - derived from exhaust fan on and cooling ac mode."""
+    is_chamber_door_open: bool = False
+    """ For printers that support it (see `BambuConfig.has_chamber_door_sensor`), reports whether the chamber door is open """
 
 
 @dataclass
@@ -188,8 +181,12 @@ class BambuState:
     """Stage human name. Population: `parseStage`."""
     print_percentage: int = 0
     """Completion %. Population: `int(p.get("mc_percent"))`."""
-    remaining_minutes: int = 0
-    """Time left. Population: `int(p.get("mc_remaining_time"))`."""
+    monotonic_start_time: int = 0
+    """The monotonic time stamp of when this (or the last) job started"""
+    elapsed_minutes: int = 0
+    """The elapsed time in minutes for this (or the last) job"""
+    remaining_minutes: float = 0.0
+    """Time remaining in minutes for the current job. Population: `int(p.get("mc_remaining_time"))`."""
     current_layer: int = 0
     """Layer index. Population: `int(p.get("layer_num"))`."""
     total_layers: int = 0
@@ -210,54 +207,6 @@ class BambuState:
     """Nozzle temp. Population: Handoff from `a_ext` or `p`."""
     active_nozzle_temp_target: int = 0
     """Nozzle target. Population: Handoff from `a_ext` or `p`."""
-
-    # bed_temp: float = 0.0
-    # """Bed temp. Population: `float(p.get("bed_temper"))`."""
-    # bed_temp_target: int = 0
-    # """Bed target. Population: `float(p.get("bed_target_temper"))`."""
-    # airduct_mode: int = 0
-    # """Raw current mode. Population: airduct.modeCur."""
-    # airduct_sub_mode: int = 0
-    # """Raw sub mode. Population: airduct.subMode."""
-    # chamber_temp: float = 0.0
-    # """Chamber temp. Population: `unpackTemperature(ctc_root.info.temp)`."""
-    # chamber_temp_target: int = 0
-    # """Chamber target. Population: `unpackTemperature(ctc_root.info.temp)`."""
-    # is_chamber_heating: bool = False
-    # """True if active heating. Population: Bitwise `airduct.state & 0x10`."""
-    # is_chamber_cooling: bool = False
-    # """True if active cooling. Population: Bitwise `airduct.state & 0x20`."""
-    # is_dryer_engaged: bool = False
-    # """True if subMode Bit 0. Population: airduct.subMode & 0x01."""
-    # ac_unit_power_percent: int = 0
-    # """AC/Compressor power. Population: airduct.parts ID 96."""
-    # part_cooling_fan_speed_percent: int = 0
-    # """Part fan %. Population: `scaleFanSpeed(p.cooling_fan_speed)`."""
-    # part_cooling_fan_speed_target_percent: int = 0
-    # """Part target %. Population: `scaleFanSpeed(p.cooling_fan_target_speed)`."""
-    # chamber_fan_speed_percent: int = 0
-    # """Chamber fan %. Population: `scaleFanSpeed(p.big_fan1_speed)`."""
-    # exhaust_fan_speed_percent: int = 0
-    # """Exhaust fan %. Population: `scaleFanSpeed(p.big_fan2_speed)`."""
-    # heatbreak_fan_speed_percent: int = 0
-    # """Heatbreak fan %. Population: `scaleFanSpeed(p.heatbreak_fan_speed)`."""
-    # has_active_filtration: bool = False
-    # """Filter status. Population: Bitwise `airduct.state & 0x08`."""
-    # airduct_state_raw: int = 0
-    # """Raw airduct status mask. Population: `device.airduct.state`."""
-    # zone_internal_percent: int = 0
-    # """Internal %. Population: `airduct.parts` ID 16."""
-    # zone_intake_percent: int = 0
-    # """Intake %. Population: `airduct.parts` ID 32."""
-    # zone_exhaust_percent: int = 0
-    # """Exhaust %. Population: `airduct.parts` ID 48."""
-    # top_vent_open: bool = False
-    # """Vent status. Population: Bitwise `airduct.state & 0x01`."""
-    # filter_obstruction_detected: bool = False
-    # """Filter pressure warning. Population: Bitwise `airduct.state & 0x02`."""
-    # zone_sync_error: bool = False
-    # """Alignment error. Population: Bitwise `airduct.state & 0x04`."""
-
     ams_status_raw: int = 0
     """Raw AMS status. Population: `int(p.get("ams_status"))`."""
     ams_status_text: str = ""
@@ -280,10 +229,12 @@ class BambuState:
     """Machine flags. Population: `PrinterCapabilities` instantiation."""
     climate: BambuClimate = field(default_factory=BambuClimate)
     """Contains all climate related attributes"""
+    stat: str = "0"
+    fun: str = "0"
 
     @classmethod
     def fromJson(
-        cls, data: dict[str, Any], current_state: Optional["BambuState"] = None
+        cls, data: dict[str, Any], current_state: "BambuState", config: BambuConfig
     ) -> "BambuState":
         """Parses root MQTT payloads into a unified BambuState with 100% attribute traceability."""
 
@@ -323,12 +274,41 @@ class BambuState:
         updates["gcode_state"] = p.get("gcode_state", base.gcode_state)
         updates["current_stage_id"] = int(p.get("stg_cur", base.current_stage_id))
         updates["current_stage_name"] = parseStage(updates["current_stage_id"])
-        updates["print_percentage"] = int(p.get("mc_percent", base.print_percentage))
-        updates["remaining_minutes"] = int(
-            p.get("mc_remaining_time", base.remaining_minutes)
-        )
-        updates["current_layer"] = int(p.get("layer_num", base.current_layer))
-        updates["total_layers"] = int(p.get("total_layer_num", base.total_layers))
+
+        updates["fun"] = p.get("fun", base.fun)
+        fun = int(updates["fun"], 16)
+        config.has_chamber_door_sensor = bool((fun >> 12) & 0x01)
+
+        if config.has_chamber_door_sensor:
+            updates["stat"] = p.get("stat", base.stat)
+            stat = int(updates["stat"], 16)
+            updates["climate"].is_chamber_door_open = bool((stat >> 23) & 0x01)
+
+        if (
+            updates["gcode_state"] in ("FAILED", "COMPLETE")
+            and updates["gcode_state"] != base.gcode_state
+        ):
+            updates["monotonic_start_time"] = -1
+        elif (
+            updates["gcode_state"] in ("PREPARE", "RUNNING")
+            and base.monotonic_start_time == -1
+        ):
+            updates["monotonic_start_time"] = time.monotonic()
+        else:
+            if updates["gcode_state"] in ("PREPARE", "RUNNING"):
+                updates["elapsed_minutes"] = (
+                    time.monotonic()
+                    - updates.get("monotonic_start_time", base.monotonic_start_time)
+                ) / 60.0
+
+                updates["current_layer"] = int(p.get("layer_num", base.current_layer))
+                updates["print_percentage"] = int(
+                    p.get("mc_percent", base.print_percentage)
+                )
+                updates["total_layers"] = int(p.get("total_layer_num", base.total_layers))
+                updates["remaining_minutes"] = float(
+                    p.get("mc_remaining_time", base.remaining_minutes)
+                )
 
         # THERMALS & CTC DECODING
         updates["climate"].bed_temp = float(p.get("bed_temper", base.climate.bed_temp))
@@ -355,31 +335,31 @@ class BambuState:
                 airduct_root.get("subMode", base.climate.airduct_sub_mode)
             )
 
-            updates["climate"].is_chamber_heating = updates["climate"].airduct_mode == 1
-            updates["climate"].is_chamber_cooling = updates["climate"].airduct_mode == 2
-            updates["climate"].has_active_filtration = updates[
-                "climate"
-            ].airduct_mode in [0, 2]
-
-            updates["climate"].is_dryer_engaged = bool(
-                updates["climate"].airduct_sub_mode & 0x01
-            )
-            updates["climate"].top_vent_open = bool(
-                updates["climate"].airduct_sub_mode & 0x01
-            )
+            if updates["climate"].airduct_mode == 1:
+                updates["climate"].air_conditioning_mode = AirConditioningMode.HEAT_MODE
+            elif updates["climate"].airduct_mode == 0:
+                updates["climate"].air_conditioning_mode = AirConditioningMode.COOL_MODE
+            else:
+                updates[
+                    "climate"
+                ].air_conditioning_mode = AirConditioningMode.NOT_SUPPORTED
 
             parts = {part["id"]: part["state"] for part in airduct_root.get("parts", [])}
-            updates["climate"].zone_internal_percent = parts.get(
-                16, base.climate.zone_internal_percent
+            updates["climate"].zone_part_fan_percent = parts.get(
+                16, base.climate.zone_part_fan_percent
             )
-            updates["climate"].zone_intake_percent = parts.get(
-                32, base.climate.zone_intake_percent
+            updates["climate"].zone_aux_percent = parts.get(
+                32, base.climate.zone_aux_percent
             )
             updates["climate"].zone_exhaust_percent = parts.get(
                 48, base.climate.zone_exhaust_percent
             )
-            updates["climate"].ac_unit_power_percent = parts.get(
-                96, base.climate.ac_unit_power_percent
+            zone_intake_open = parts.get(96, -1)
+            updates["climate"].zone_intake_open = zone_intake_open not in (-1, 0)
+
+            updates["climate"].zone_top_vent_open = bool(
+                updates["climate"].zone_exhaust_percent > 0
+                and not updates["climate"].zone_intake_open
             )
 
         # EXTRUDERS
@@ -567,24 +547,33 @@ class BambuState:
         updates["ams_status_raw"] = int(p.get("ams_status", base.ams_status_raw))
         updates["ams_status_text"] = parseAMSStatus(updates["ams_status_raw"])
 
-        updates["climate"].part_cooling_fan_speed_percent = scaleFanSpeed(
-            p.get("cooling_fan_speed", 0)
+        part_cooling_fan_speed_percent = (
+            scaleFanSpeed(p.get("cooling_fan_speed"))
+            if p.get("cooling_fan_speed", -1) != -1
+            else -1
         )
-        updates["climate"].part_cooling_fan_speed_target_percent = scaleFanSpeed(
-            p.get(
-                "cooling_fan_target_speed",
-                base.climate.part_cooling_fan_speed_target_percent,
-            )
-        )
-        updates["climate"].heatbreak_fan_speed_percent = scaleFanSpeed(
-            p.get("heatbreak_fan_speed", base.climate.heatbreak_fan_speed_percent)
-        )
-        updates["climate"].exhaust_fan_speed_percent = scaleFanSpeed(
-            p.get("big_fan2_speed", 0)
-        )
-        updates["climate"].chamber_fan_speed_percent = scaleFanSpeed(
-            p.get("big_fan1_speed", base.climate.chamber_fan_speed_percent)
-        )
+        if part_cooling_fan_speed_percent == -1:
+            part_cooling_fan_speed_percent = base.climate.part_cooling_fan_speed_percent
+
+        updates["climate"].part_cooling_fan_speed_percent = part_cooling_fan_speed_percent
+        updates["climate"].part_cooling_fan_speed_target_percent = updates[
+            "climate"
+        ].part_cooling_fan_speed_percent
+
+        heatbreak_fan_speed_percent = scaleFanSpeed(p.get("heatbreak_fan_speed", -1))
+        if heatbreak_fan_speed_percent == -1:
+            heatbreak_fan_speed_percent = base.climate.heatbreak_fan_speed_percent
+        updates["climate"].heatbreak_fan_speed_percent = heatbreak_fan_speed_percent
+
+        exhaust_fan_speed_percent = scaleFanSpeed(p.get("big_fan2_speed", -1))
+        if exhaust_fan_speed_percent == -1:
+            exhaust_fan_speed_percent = base.climate.exhaust_fan_speed_percent
+        updates["climate"].exhaust_fan_speed_percent = exhaust_fan_speed_percent
+
+        aux_fan_speed_percent = scaleFanSpeed(p.get("big_fan1_speed", -1))
+        if aux_fan_speed_percent == -1:
+            aux_fan_speed_percent = base.climate.aux_fan_speed_percent
+        updates["climate"].aux_fan_speed_percent = aux_fan_speed_percent
 
         # ERROR HANDLING
         updates["print_error"] = int(p.get("print_error", base.print_error))

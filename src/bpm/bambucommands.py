@@ -99,15 +99,15 @@ SEND_GCODE_TEMPLATE = {
     "print": {"sequence_id": "0", "command": "gcode_line", "param": ""}
 }
 
-UNLOAD_FILAMENT = {"print": {"sequence_id": "0", "command": "unload_filament"}}
+# UNLOAD_FILAMENT = {"print": {"sequence_id": "0", "command": "unload_filament"}}
 
-AMS_FILAMENT_CHANGE = {
+AMS_CHANGE_FILAMENT = {
     "print": {
         "sequence_id": "0",
         "command": "ams_change_filament",
-        "target": 0,
-        "curr_temp": 250,
-        "tar_temp": 250,
+        "ams_id": 0,
+        "slot_id": 255,
+        "target": 255,
     }
 }
 

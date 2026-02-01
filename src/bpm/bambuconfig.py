@@ -16,15 +16,15 @@ class BambuConfig:
 
     def __init__(
         self,
-        hostname: str | None = None,
-        access_code: str | None = None,
-        serial_number: str | None = None,
-        mqtt_port: int | None = 8883,
-        mqtt_client_id: str | None = "studio_client_id:0c1f",
-        mqtt_username: str | None = "bblp",
-        watchdog_timeout: int | None = 30,
-        external_chamber: bool | None = False,
-        verbose: bool | None = False,
+        hostname: str,
+        access_code: str,
+        serial_number: str,
+        mqtt_port: int = 8883,
+        mqtt_client_id: str = "studio_client_id:0c1f",
+        mqtt_username: str = "bblp",
+        watchdog_timeout: int = 30,
+        external_chamber: bool = False,
+        verbose: bool = False,
     ):
         """
         Sets up all internal storage attributes for `BambuConfig`.
@@ -64,11 +64,12 @@ class BambuConfig:
         * _tray_read_option : bool - AMS will automatically read RFID on tray/spool change
         * _calibrate_remain_flag : bool - AMS will calculate remaining amount of filament in spool (unverified)
         * _buildplate_marker_detector : bool - printer will attempt to validate build plate
+        * _has_chamber_door_sensor: bool - True if fun reports we have a door check function
         """
 
         self._hostname = hostname
         self._access_code = access_code
-        self.serial_number = serial_number
+        self.serial_number = serial_number if serial_number else ""
         self._mqtt_port = mqtt_port
         self._mqtt_client_id = mqtt_client_id
         self._mqtt_username = mqtt_username
@@ -87,6 +88,8 @@ class BambuConfig:
         self._tray_read_option = True
         self._calibrate_remain_flag = True
         self._buildplate_marker_detector = True
+        self._has_chamber_door_sensor = False
+        """True if fun reports we have a door check function"""
 
     @property
     def hostname(self) -> str:
@@ -236,6 +239,14 @@ class BambuConfig:
     @buildplate_marker_detector.setter
     def buildplate_marker_detector(self, value: bool):
         self._buildplate_marker_detector = bool(value)
+
+    @property
+    def has_chamber_door_sensor(self) -> bool:
+        return self._has_chamber_door_sensor
+
+    @has_chamber_door_sensor.setter
+    def has_chamber_door_sensor(self, value: bool):
+        self._has_chamber_door_sensor = bool(value)
 
     @property
     def verbose(self) -> bool:

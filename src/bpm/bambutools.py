@@ -27,6 +27,20 @@ class ActiveTool(IntEnum):
     NOT_ACTIVE = 15
 
 
+class AirConditioningMode(IntEnum):
+    """
+    The mode the printer's air conditioning sub system is in.
+
+    * `NOT_SUPPORTED (-1)`: This printer is not equipped with this feature.
+    * `COOL_MODE (0)`: The printer is currently not heating. The top vent may be open if the exhaust fan is running.
+    * `HEAT_MODE (1)`: The printer is actively heating the chamber with the recirculation fan active.
+    """
+
+    NOT_SUPPORTED = -1
+    COOL_MODE = 0
+    HEAT_MODE = 1
+
+
 class AMSControlCommand(Enum):
     """
     AMS Control Commands enum
