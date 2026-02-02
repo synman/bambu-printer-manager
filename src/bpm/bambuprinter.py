@@ -869,6 +869,10 @@ class BambuPrinter:
             f"send_ams_control_commandpublished AMS_CONTROL to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
+        # trigger resume print for good measure
+        if ams_control_cmd == AMSControlCommand.RESUME:
+            self.resume_printing()
+
     def skip_objects(self, objects):
         """
         skip a list of objects extracted from the 3mf's plate_x.json file
