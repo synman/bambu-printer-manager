@@ -1157,7 +1157,7 @@ class BambuPrinter:
         self._watchdog_thread.start()
 
     def _on_message(self, msg: str):
-        # logger.debug(f"_on_message - bambu_msg: [{msg}]")
+        logger.debug(f"_on_message - bambu_msg: [{msg}]")
 
         message = json.loads(msg)
         self._printer_state = BambuState.fromJson(
@@ -1183,7 +1183,7 @@ class BambuPrinter:
 
             if (
                 status.get("command", "") == "project_file"
-                and status.get("result", "") == "success"
+                and str(status.get("result", "")).lower() == "success"
             ):
                 self._start_time = 0
 
@@ -1206,6 +1206,9 @@ class BambuPrinter:
                     PlateType[bed_type.upper()]
                     if bed_type and bed_type.upper() in PlateType.__members__
                     else PlateType.NONE
+                )
+                logger.warning(
+                    f"\r\nplate=[{self._plate_num}] md5=[{self._3mf_file_md5}]\r\n"
                 )
 
             # let's sleep for a couple seconds and do a full refresh
@@ -1830,8 +1833,7 @@ class BambuPrinter:
             logger.debug(
                 f"set_chamber_temp_target - published SET_CHAMBER_TEMP_TARGET to [device/{self.config.serial_number}/request] command: [{cmd}]"
             )
-        else:
-            self._printer_state.climate.chamber_temp_target = value
+        self._printer_state.climate.chamber_temp_target = value
         self._chamber_temp_target_time = round(time.time())
 
     @property

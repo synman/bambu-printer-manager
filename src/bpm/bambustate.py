@@ -181,8 +181,8 @@ class BambuState:
     """Stage human name. Population: `parseStage`."""
     print_percentage: int = 0
     """Completion %. Population: `int(p.get("mc_percent"))`."""
-    monotonic_start_time: int = 0
-    """The monotonic time stamp of when this (or the last) job started"""
+    monotonic_start_time: int = -1
+    """The monotonic time stamp of when this job started"""
     elapsed_minutes: int = 0
     """The elapsed time in minutes for this (or the last) job"""
     remaining_minutes: float = 0.0
@@ -285,7 +285,7 @@ class BambuState:
             updates["climate"].is_chamber_door_open = bool((stat >> 23) & 0x01)
 
         if (
-            updates["gcode_state"] in ("FAILED", "COMPLETE")
+            updates["gcode_state"] in ("FAILED", "FINISH")
             and updates["gcode_state"] != base.gcode_state
         ):
             updates["monotonic_start_time"] = -1
@@ -310,22 +310,6 @@ class BambuState:
                     p.get("mc_remaining_time", base.remaining_minutes)
                 )
 
-        # THERMALS & CTC DECODING
-        updates["climate"].bed_temp = float(p.get("bed_temper", base.climate.bed_temp))
-        updates["climate"].bed_temp_target = int(
-            p.get("bed_target_temper", base.climate.bed_temp_target)
-        )
-
-        if ctc_root:
-            ctc_temp_raw = unpackTemperature(ctc_root.get("info", {}).get("temp", 0.0))
-            ctc_temp = ctc_temp_raw[0]
-            ctc_temp_target = ctc_temp_raw[1]
-            updates["climate"].chamber_temp = ctc_temp
-            updates["climate"].chamber_temp_target = int(ctc_temp_target)
-        else:
-            updates["climate"].chamber_temp = base.climate.chamber_temp
-            updates["climate"].chamber_temp_target = base.climate.chamber_temp_target
-
         # AIRDUCT
         if airduct_root:
             updates["climate"].airduct_mode = int(
@@ -339,12 +323,14 @@ class BambuState:
                 updates["climate"].air_conditioning_mode = AirConditioningMode.HEAT_MODE
             elif updates["climate"].airduct_mode == 0:
                 updates["climate"].air_conditioning_mode = AirConditioningMode.COOL_MODE
+                base.climate.chamber_temp_target = 0
             else:
                 updates[
                     "climate"
                 ].air_conditioning_mode = AirConditioningMode.NOT_SUPPORTED
 
             parts = {part["id"]: part["state"] for part in airduct_root.get("parts", [])}
+
             updates["climate"].zone_part_fan_percent = parts.get(
                 16, base.climate.zone_part_fan_percent
             )
@@ -354,6 +340,7 @@ class BambuState:
             updates["climate"].zone_exhaust_percent = parts.get(
                 48, base.climate.zone_exhaust_percent
             )
+
             zone_intake_open = parts.get(96, -1)
             updates["climate"].zone_intake_open = zone_intake_open not in (-1, 0)
 
@@ -361,6 +348,25 @@ class BambuState:
                 updates["climate"].zone_exhaust_percent > 0
                 and not updates["climate"].zone_intake_open
             )
+
+        # THERMALS & CTC DECODING
+        updates["climate"].bed_temp = float(p.get("bed_temper", base.climate.bed_temp))
+        updates["climate"].bed_temp_target = int(
+            p.get("bed_target_temper", base.climate.bed_temp_target)
+        )
+
+        ctc_temp_target = 0.0
+        if ctc_root:
+            ctc_temp_raw = unpackTemperature(ctc_root.get("info", {}).get("temp", 0.0))
+            ctc_temp = ctc_temp_raw[0]
+            ctc_temp_target = ctc_temp_raw[1]
+            updates["climate"].chamber_temp = ctc_temp
+            updates["climate"].chamber_temp_target = int(ctc_temp_target)
+        else:
+            updates["climate"].chamber_temp = base.climate.chamber_temp
+
+        if ctc_temp_target == 0:
+            updates["climate"].chamber_temp_target = base.climate.chamber_temp_target
 
         # EXTRUDERS
         new_extruders = []
