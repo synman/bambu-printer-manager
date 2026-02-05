@@ -9,7 +9,7 @@ class BambuSpool:
         return str(self)
 
     def __str__(self):
-        return f"id=[{self.id}] tray_info_idx=[{self.tray_info_idx}] name=[{self.name}] type=[{self.type}] sub brands=[{self.sub_brands}] color=[{self.color}] k=[{self.k}] bed_temp=[{self.bed_temp}] nozzle_temp_min=[{self.nozzle_temp_min}] nozzle_temp_max=[{self.nozzle_temp_max}]"
+        return f"id=[{self.id}] tray_info_idx=[{self.tray_info_idx}] name=[{self.name}] type=[{self.type}] sub brands=[{self.sub_brands}] color=[{self.color}] k=[{self.k}] bed_temp=[{self.bed_temp}] nozzle_temp_min=[{self.nozzle_temp_min}] nozzle_temp_max=[{self.nozzle_temp_max}] ams_id=[{self.ams_id}]"
 
     def __init__(
         self,
@@ -29,13 +29,15 @@ class BambuSpool:
         state: int = 0,
         total_length: int = 0,
         tray_weight: int = 0,
+        slot_id: int = -1,
+        ams_id: int = -1,
     ):
         """
         Sets up all internal storage attributes for `BambuSpool`.
 
         Parameters
         ----------
-        * id : int - Spool id can be `0-3` for AMS spools or `254` for the External spool.
+        * id : int - Spool id can be `0-23` for AMS spools or `254` for the External spool.
         * name : str - The name of the spool, typically only populated if a Bambu Lab RFID tag is recognized by the AMS.
         * type : str - The type of filament in the spool.  Will either be read by the RFID tag or set on the Printer display.
         * sub_brands : str - For Bambu Lab filaments, specifies the specialization of the filament (Matte, Pro, Tough, etc).
@@ -51,6 +53,8 @@ class BambuSpool:
         * state : int - The current state of the spool.
         * total_length : int - The total length of filament on the spool in millimeters.
         * tray_weight : int - The weight of the filament spool in grams.
+        * slot_id : int - the slot # within the ams for this spool (0 to 3)
+        * ams_id : int - the AMS id associated with this spool
         """
         self.id = id
         self.name = name
@@ -68,6 +72,8 @@ class BambuSpool:
         self.state = state
         self.total_length = total_length
         self.tray_weight = tray_weight
+        self.slot_id = slot_id
+        self.ams_id = ams_id
 
     @property
     def id(self):
@@ -196,3 +202,19 @@ class BambuSpool:
     @tray_weight.setter
     def tray_weight(self, value):
         self._tray_weight = value
+
+    @property
+    def ams_id(self) -> int:
+        return self._ams_id
+
+    @ams_id.setter
+    def ams_id(self, value: int):
+        self._ams_id = value
+
+    @property
+    def slot_id(self) -> int:
+        return self._slot_id
+
+    @slot_id.setter
+    def slot_id(self, value: int):
+        self._slot_id = value

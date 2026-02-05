@@ -248,11 +248,13 @@ SET_CHAMBER_AC_MODE = {
     "print": {"command": "set_airduct", "modeId": 0, "sequence_id": "0"}
 }
 
+AMS_GET_RFID = {
+    "print": {"ams_id": 0, "command": "ams_get_rfid", "sequence_id": "0", "slot_id": 0}
+}
 
 #
 # https://e.bambulab.com/query.php?lang=en
 #
-
 HMS_STATUS = {
     "result": 0,
     "t": 1761224255,

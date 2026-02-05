@@ -20,6 +20,7 @@ from bpm.bambucommands import (
     AMS_CONTROL,
     AMS_FILAMENT_DRYING,
     AMS_FILAMENT_SETTING,
+    AMS_GET_RFID,
     AMS_USER_SETTING,
     ANNOUNCE_PUSH,
     ANNOUNCE_VERSION,
@@ -807,6 +808,7 @@ class BambuPrinter:
         tray_color: str | None = "",
         nozzle_temp_min: int | None = -1,
         nozzle_temp_max: int | None = -1,
+        ams_id: int | None = 0,
     ):
         """
         Sets spool / tray details such as filament type, color, and nozzle min/max temperature.
@@ -1008,6 +1010,21 @@ class BambuPrinter:
         )
         logger.debug(
             f"set_active_tool - published SET_ACTIVE_TOOL to [device/{self.config.serial_number}/request] command: [{cmd}]"
+        )
+
+    def refresh_spool_rfid(self, slot_id: int, ams_id: int = 0):
+        """
+        read the rfid tag for the selected ams and spool (slot) id.
+        """
+        cmd = copy.deepcopy(AMS_GET_RFID)
+        cmd["print"]["ams_id"] = ams_id
+        cmd["print"]["slot_id"] = slot_id
+
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+        logger.debug(
+            f"refresh_spool_rfid - published AMS_GET_RFID to [device/{self.config.serial_number}/request] command: [{cmd}]"
         )
 
     def get_current_bind_list(self, state: "BambuState") -> list[dict[str, Any]]:
@@ -1305,7 +1322,7 @@ class BambuPrinter:
                 and "ams" in status["ams"]
                 and "ams_exist_bits" in status["ams"]
             ):
-                self._ams_exists = int(status["ams"]["ams_exist_bits"]) == 1
+                self._ams_exists = int(status["ams"]["ams_exist_bits"]) & 0x1
                 if self._ams_exists:
                     spools = []
 
@@ -1323,10 +1340,15 @@ class BambuPrinter:
                                     tray_color = "#" + tray["tray_color"]
                                 except Exception:
                                     tray_color = ""
-
-                            if tray.get("id"):
+                            ams_id = int(ams.get("id", -1))
+                            slot_id = int(tray.get("id", -1))
+                            if slot_id != -1 and ams_id != -1:
+                                if ams_id >= 128:
+                                    tray_id = int(ams_id / 128 + 15)
+                                else:
+                                    tray_id = int(ams_id * 4 + slot_id)
                                 spool = BambuSpool(
-                                    int(tray["id"]) + int(ams["id"]) * 4,
+                                    tray_id,
                                     tray.get("tray_id_name", ""),
                                     tray.get("tray_type", ""),
                                     tray.get("tray_sub_brands", ""),
@@ -1342,6 +1364,8 @@ class BambuPrinter:
                                     tray.get("state", -1),
                                     tray.get("total_len", 0),
                                     tray.get("tray_weight", 0),
+                                    slot_id,
+                                    ams_id,
                                 )
                                 spools.append(spool)
 
@@ -1640,7 +1664,8 @@ class BambuPrinter:
         if self._client:
             return self._client
         else:
-            return mqtt.Client()
+            # return mqtt.Client()
+            return mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)  # type: ignore
 
     @client.setter
     def client(self, value: mqtt.Client):
@@ -1981,17 +2006,34 @@ class BambuPrinter:
     def light_state(self, value: bool):
         value = bool(value)
         cmd = copy.deepcopy(CHAMBER_LIGHT_TOGGLE)
+
         if value:
             cmd["system"]["led_mode"] = "on"
         else:
             cmd["system"]["led_mode"] = "off"
+
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
-        # cmd["system"]["led_node"] = "chamber_light2"
-        # self.client.publish(
-        #     f"device/{self.config.serial_number}/request", json.dumps(cmd)
-        # )
+        logger.debug(
+            f"light_state.setter - publishing CHAMBER_LIGHT_TOGGLE to [device/{self.config.serial_number}/request] - chamber_light"
+        )
+
+        cmd["system"]["led_node"] = "chamber_light2"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+        logger.debug(
+            f"light_state.setter - publishing CHAMBER_LIGHT_TOGGLE to [device/{self.config.serial_number}/request] - chamber_light2"
+        )
+
+        cmd["system"]["led_node"] = "column_light"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+        logger.debug(
+            f"light_state.setter - publishing CHAMBER_LIGHT_TOGGLE to [device/{self.config.serial_number}/request] - column_light"
+        )
 
     @property
     def speed_level(self):

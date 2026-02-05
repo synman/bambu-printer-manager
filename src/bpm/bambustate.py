@@ -73,13 +73,15 @@ class ExtruderState:
     """The target tray for this extruder. Population: `int(r.htar >> 8)`."""
     tray_state: TrayState = TrayState.LOADED
     """The tray state of this extruder"""
+    assigned_to_ams_id: int = -1
+    """The id of the ams associated with this extruder"""
 
 
 @dataclass
 class AMSUnitState:
     """State information about an individual AMS unit."""
 
-    ams_id: str
+    ams_id: int
     """Unique ID. Population: `str(ams_idx)`."""
     chip_id: str = ""
     """Hardware serial. Population: `m.get("sn")`."""
@@ -191,6 +193,8 @@ class BambuState:
     """Layer index. Population: `int(p.get("layer_num"))`."""
     total_layers: int = 0
     """Layer total. Population: `int(p.get("total_layer_num"))`."""
+    active_ams_id: int = -1
+    """Current active AMS unit id"""
     active_tray_id: int = 255
     """Current tray. Population: Computed in Tool Handoff."""
     active_tray_state: TrayState = TrayState.UNLOADED
@@ -365,31 +369,34 @@ class BambuState:
         else:
             updates["climate"].chamber_temp = base.climate.chamber_temp
 
-        if ctc_temp_target == 0:
+        if (
+            ctc_temp_target == 0
+            and updates["climate"].air_conditioning_mode != AirConditioningMode.HEAT_MODE
+        ):
             updates["climate"].chamber_temp_target = base.climate.chamber_temp_target
 
         # EXTRUDERS
         new_extruders = []
         if "info" in extruder_root:
-            for ams_ex in extruder_root["info"]:
-                raw_t = int(ams_ex.get("temp", 0))
+            for new_ext in extruder_root["info"]:
+                raw_t = int(new_ext.get("temp", 0))
                 act_t, tar_t = unpackTemperature(raw_t)
 
-                sn = int(ams_ex.get("snow", -1))
-                hn = int(ams_ex.get("hnow", -1))
+                sn = int(new_ext.get("snow", -1))
+                hn = int(new_ext.get("hnow", -1))
 
-                st = int(ams_ex.get("star", -1))
-                ht = int(ams_ex.get("htar", -1))
+                st = int(new_ext.get("star", -1))
+                ht = int(new_ext.get("htar", -1))
 
                 ext = ExtruderState()
-                ext.id = int(ams_ex.get("id", 0))
+                ext.id = int(new_ext.get("id", 0))
 
                 ext.temp = act_t
                 ext.temp_target = int(tar_t)
 
-                ext.info_bits = int(ams_ex.get("info", 0))
+                ext.info_bits = int(new_ext.get("info", 0))
                 ext.state = parseExtruderInfo(ext.info_bits)
-                ext.status = parseExtruderStatus(int(ams_ex.get("stat", 0)))
+                ext.status = parseExtruderStatus(int(new_ext.get("stat", 0)))
 
                 ext.active_tray_id = parseExtruderTrayState(ext.id, hn, sn)
                 ext.target_tray_id = parseExtruderTrayState(ext.id, ht, st)
@@ -450,17 +457,17 @@ class BambuState:
                 except (ValueError, IndexError):
                     pass
 
-                ams_id_str = str(idx)
-                u = cur_ams.get(ams_id_str, AMSUnitState(ams_id=ams_id_str))
+                ams_id = idx
+                u = cur_ams.get(ams_id, AMSUnitState(ams_id=ams_id))
                 u.chip_id = m.get("sn", u.chip_id)
                 u.is_ams_lite = "lite" in m.get("product_name", "").lower()
-                cur_ams[ams_id_str] = u
+                cur_ams[ams_id] = u
 
         updates["ams_handle_map"] = new_handle_map
 
         for ams_u in ams_root.get("ams", []):
-            id_s = str(ams_u.get("id", "0"))
-            u = cur_ams.get(id_s, AMSUnitState(ams_id=id_s))
+            id = int(ams_u.get("id", 0))
+            u = cur_ams.get(id, AMSUnitState(ams_id=id))
             u.temp_actual = float(ams_u.get("temp", u.temp_actual))
             u.humidity_index = int(float(ams_u.get("humidity", u.humidity_index)))
             u.humidity_raw = int(float(ams_u.get("humidity_raw", u.humidity_raw)))
@@ -490,15 +497,16 @@ class BambuState:
                     u.assigned_to_extruder = ActiveTool(
                         p_ams.get("h2d_toolhead_index", 15)
                     )
+                    updates["extruders"][
+                        u.assigned_to_extruder.value
+                    ].assigned_to_ams_id = u.ams_id
 
             rb = ams_u.get("tray_exist_bits", ams_root.get("tray_exist_bits"))
             if rb is not None:
                 eb = int(rb, 16) if isinstance(rb, str) else int(rb)
-                u.tray_exists = [
-                    bool((eb >> (4 * int(id_s))) & (1 << j)) for j in range(4)
-                ]
+                u.tray_exists = [bool((eb >> (4 * id)) & (1 << j)) for j in range(4)]
 
-            cur_ams[id_s] = u
+            cur_ams[id] = u
 
         updates["ams_units"] = list(cur_ams.values())
 
@@ -509,7 +517,7 @@ class BambuState:
             None,
         )
         if a_ext:
-            # if a_ext.status == ExtruderStatus.ACTIVE:
+            updates["active_ams_id"] = a_ext.assigned_to_ams_id
             updates["active_tray_id"] = a_ext.active_tray_id
             updates["target_tray_id"] = a_ext.target_tray_id
 
