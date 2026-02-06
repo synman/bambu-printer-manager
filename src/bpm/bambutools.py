@@ -62,7 +62,6 @@ class AMSDryingStage(IntEnum):
     PURGING = 2  # Vent open, Heater likely active
     CONDITIONING = 3  # Heater off, Vent open, Fan running
     MAINTENANCE = 4  # Post-cycle humidity monitoring
-    FAULT = 5  # Error detected during cycle
 
 
 class AMSModel(Enum):
@@ -419,26 +418,44 @@ def getSeriesByModel(model: PrinterModel) -> PrinterSeries:
     return getPrinterSeriesByModel(model)
 
 
+# @staticmethod
+# def parseAMSInfo(info_int: int) -> dict:
+#     """
+#     Parses decimal bit-packed AMS info for status and feature reconciliation.
+#     """
+#     return {
+#         "is_powered": bool(info_int & 1),
+#         "is_online": bool(info_int & 2),
+#         "rfid_ready": bool(info_int & 4),
+#         "hub_sensor_triggered": bool(info_int & 8),
+#         "circ_fan_on": bool(info_int & 16),
+#         "h2d_toolhead_index": (info_int >> 5) & 0x1,
+#         "exhaust_fan_on": bool(info_int & 64),
+#         "humidity_sensor_ok": bool((info_int & 128) or (info_int & 131072)),
+#         "heater_on": bool(info_int & 256),
+#         "motor_running": bool(info_int & 512),
+#         "is_rotating": bool(info_int & 1024),
+#         "venting_active": bool(info_int & 2048),
+#         "high_power_mode": bool(info_int & 8192),
+#         "hardware_fault": bool((info_int & 4096) or (info_int & 16384)),
+#     }
+
+
 @staticmethod
 def parseAMSInfo(info_int: int) -> dict:
     """
-    Parses decimal bit-packed AMS info for status and feature reconciliation.
+    Parses bit-packed AMS info. Verified against Bambu Studio source
+    and H2D telemetry reconciliation (2103 vs 2004).
     """
     return {
-        "is_powered": bool(info_int & 1),
-        "is_online": bool(info_int & 2),
-        "rfid_ready": bool(info_int & 4),
-        "hub_sensor_triggered": bool(info_int & 8),
-        "circ_fan_on": bool(info_int & 16),
-        "h2d_toolhead_index": (info_int >> 5) & 0x1,
-        "exhaust_fan_on": bool(info_int & 64),
-        "humidity_sensor_ok": bool((info_int & 128) or (info_int & 131072)),
-        "heater_on": bool(info_int & 256),
-        "motor_running": bool(info_int & 512),
-        "is_rotating": bool(info_int & 1024),
-        "venting_active": bool(info_int & 2048),
-        "high_power_mode": bool(info_int & 8192),
-        "hardware_fault": bool((info_int & 4096) or (info_int & 16384)),
+        "is_powered": bool(info_int & 0x04),  # Bit 2
+        "hub_sensor_triggered": bool(info_int & 0x10),  # Bit 4
+        "h2d_toolhead_index": (info_int >> 5) & 0x01,  # Bit 5
+        "circ_fan_on": bool(info_int & 0x40),  # Bit 6
+        "exhaust_fan_on": bool(info_int & 0x80),  # Bit 7
+        "heater_on": bool(info_int & 0x200),  # Bit 9
+        "is_rotating": bool(info_int & 0x400),  # Bit 10
+        "venting_active": bool(info_int & 0x800),  # Bit 11
     }
 
 
@@ -613,8 +630,6 @@ def parseStage(stage_int: int) -> str:
 def resolveAMSDryingStage(parsed: dict, dry_time: int) -> AMSDryingStage:
     if dry_time < 1:
         return AMSDryingStage.IDLE
-    if parsed.get("hardware_fault", False):
-        return AMSDryingStage.FAULT
     if parsed.get("venting_active", False):
         return (
             AMSDryingStage.PURGING

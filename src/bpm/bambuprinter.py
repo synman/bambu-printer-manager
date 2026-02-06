@@ -973,7 +973,10 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
 
-        ams = self.printer_state.ams_units[ams_id]
+        ams = next((u for u in self._printer_state.ams_units if u.ams_id == ams_id), None)
+        if not ams:
+            raise Exception("invalid ams_id provided")
+
         ams.temp_target = target_temp
 
         logger.debug(
@@ -991,7 +994,10 @@ class BambuPrinter:
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
 
-        ams = self.printer_state.ams_units[ams_id]
+        ams = next((u for u in self._printer_state.ams_units if u.ams_id == ams_id), None)
+        if not ams:
+            raise Exception("invalid ams_id provided")
+
         ams.temp_target = 0
 
         logger.debug(
@@ -1398,6 +1404,8 @@ class BambuPrinter:
                     tray.get("state", -1),
                     tray.get("total_len", 0),
                     tray.get("tray_weight", 0),
+                    int(tray.get("id", -1)),
+                    -1,
                 )
                 if not self._ams_exists:
                     spools = (spool,)
@@ -1440,6 +1448,8 @@ class BambuPrinter:
                                 tray.get("state", -1),
                                 tray.get("total_len", 0),
                                 tray.get("tray_weight", 0),
+                                int(tray.get("id", -1)),
+                                -1,
                             )
                             tray_found = True
                             break
@@ -2172,11 +2182,7 @@ class BambuPrinter:
         "This property is deprecated (v1.0.0). Use `BambuState.ams_units[0].rfid_ready`."
     )
     def ams_rfid_status(self):
-        return (
-            self._printer_state.ams_units[0].rfid_ready
-            if self._printer_state.ams_connected_count > 0
-            else ""
-        )
+        return self._ams_rfid_status
 
     @property
     def internalException(self):

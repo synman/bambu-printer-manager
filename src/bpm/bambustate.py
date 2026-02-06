@@ -4,7 +4,6 @@ operational state, synchronized via MQTT telemetry.
 """
 
 import logging
-import re
 import time
 from dataclasses import asdict, dataclass, field, replace
 from typing import Any
@@ -95,16 +94,10 @@ class AMSUnitState:
     """Humidity index. Population: `int(float(r.get("humidity")))`."""
     humidity_raw: int = 0
     """Raw humidity. Population: `int(float(r.get("humidity_raw")))`."""
-    is_online: bool = False
-    """Connectivity. Population: `p_ams["is_online"]`."""
     is_powered: bool = False
     """Power status. Population: `p_ams["is_powered"]`."""
-    rfid_ready: bool = False
-    """RFID status. Population: `p_ams["rfid_ready"]`."""
     hub_sensor_triggered: bool = False
     """Filament at hub. Population: `p_ams["hub_sensor_triggered"]`."""
-    humidity_sensor_ok: bool = False
-    """Sensor health. Population: `p_ams["humidity_sensor_ok"]`."""
     heater_on: bool = False
     """Heater state. Population: `p_ams["heater_on"]`."""
     circ_fan_on: bool = False
@@ -117,10 +110,6 @@ class AMSUnitState:
     """Rollers turning. Population: `p_ams["is_rotating"]`."""
     venting_active: bool = False
     """Venting state. Population: `p_ams.get("venting_active")`."""
-    high_power_mode: bool = False
-    """Power mode. Population: `p_ams.get("high_power_mode")`."""
-    hardware_fault: bool = False
-    """Fault status. Population: `p_ams["hardware_fault"]`."""
     tray_exists: list[bool] = field(default_factory=lambda: [False] * 4)
     """Slot presence. Population: Shifting `tray_exist_bits`."""
     assigned_to_extruder: ActiveTool = ActiveTool.SINGLE_EXTRUDER
@@ -223,8 +212,6 @@ class BambuState:
     """Unit details. Population: Result of unit iteration."""
     extruders: list[ExtruderState] = field(default_factory=list)
     """Extruder details. Population: Result of extruder iteration."""
-    ams_handle_map: dict[int, int] = field(default_factory=dict)
-    """Logical handles. Population: `info.module` parsing."""
     print_error: int = 0
     """Main error. Population: `int(p.get("print_error"))`."""
     hms_errors: list[dict] = field(default_factory=list)
@@ -444,26 +431,18 @@ class BambuState:
         else:
             updates["active_tool"] = base.active_tool
 
-        # AMS UNITS & HANDLE MAPPING
-        new_handle_map = base.ams_handle_map.copy()
+        # AMS UNITS
         cur_ams = {u.ams_id: u for u in base.ams_units}
 
         for m in modules:
-            if m.get("name", "").startswith("n3f/"):
-                try:
-                    idx = int(m["name"].split("/")[-1])
-                    if match := re.search(r"\((\d+)\)", m.get("product_name", "")):
-                        new_handle_map[idx] = int(match.group(1))
-                except (ValueError, IndexError):
-                    pass
-
-                ams_id = idx
+            if m.get("name", "").startswith("n3f/") or m.get("name", "").startswith(
+                "n3s/"
+            ):
+                ams_id = int(m["name"].split("/")[-1])
                 u = cur_ams.get(ams_id, AMSUnitState(ams_id=ams_id))
                 u.chip_id = m.get("sn", u.chip_id)
                 u.is_ams_lite = "lite" in m.get("product_name", "").lower()
                 cur_ams[ams_id] = u
-
-        updates["ams_handle_map"] = new_handle_map
 
         for ams_u in ams_root.get("ams", []):
             id = int(ams_u.get("id", 0))
@@ -479,18 +458,13 @@ class BambuState:
 
             if "info" in ams_u:
                 p_ams = parseAMSInfo(int(ams_u["info"]))
-                u.is_online = p_ams["is_online"]
                 u.is_powered = p_ams["is_powered"]
-                u.rfid_ready = p_ams["rfid_ready"]
                 u.hub_sensor_triggered = p_ams["hub_sensor_triggered"]
-                u.humidity_sensor_ok = p_ams["humidity_sensor_ok"]
                 u.heater_on = p_ams["heater_on"]
                 u.circ_fan_on = p_ams["circ_fan_on"]
                 u.exhaust_fan_on = p_ams["exhaust_fan_on"]
                 u.is_rotating = p_ams["is_rotating"]
                 u.venting_active = p_ams.get("venting_active", False)
-                u.high_power_mode = p_ams.get("high_power_mode", False)
-                u.hardware_fault = p_ams["hardware_fault"]
                 u.drying_stage = resolveAMSDryingStage(p_ams, u.dry_time)
 
                 if updates["capabilities"].has_dual_extruder:
@@ -501,10 +475,21 @@ class BambuState:
                         u.assigned_to_extruder.value
                     ].assigned_to_ams_id = u.ams_id
 
-            rb = ams_u.get("tray_exist_bits", ams_root.get("tray_exist_bits"))
-            if rb is not None:
-                eb = int(rb, 16) if isinstance(rb, str) else int(rb)
-                u.tray_exists = [bool((eb >> (4 * id)) & (1 << j)) for j in range(4)]
+                rb = ams_root.get("tray_exist_bits")
+                if rb is not None:
+                    eb = int(rb, 16) if isinstance(rb, str) else int(rb)
+
+                    # Calculate the bit shift based on the unit ID
+                    # Standard AMS: 0, 1, 2, 3 -> shift 0, 4, 8, 12
+                    # AMS-HT: 128, 129, 130, 131 -> shift 16, 20, 24, 28
+                    if id >= 128:
+                        shift = 16 + (4 * (id - 128))
+                        # AMS-HT is a 1-slot unit, so we check only range(1)
+                        u.tray_exists = [bool((eb >> shift) & (1 << j)) for j in range(1)]
+                    else:
+                        shift = 4 * id
+                        # Standard AMS is a 4-slot unit, so we check range(4)
+                        u.tray_exists = [bool((eb >> shift) & (1 << j)) for j in range(4)]
 
             cur_ams[id] = u
 
@@ -517,7 +502,9 @@ class BambuState:
             None,
         )
         if a_ext:
-            updates["active_ams_id"] = a_ext.assigned_to_ams_id
+            updates["active_ams_id"] = (
+                a_ext.assigned_to_ams_id if a_ext.active_tray_id not in (254, 255) else -1
+            )
             updates["active_tray_id"] = a_ext.active_tray_id
             updates["target_tray_id"] = a_ext.target_tray_id
 
@@ -561,11 +548,17 @@ class BambuState:
         updates["ams_status_raw"] = int(p.get("ams_status", base.ams_status_raw))
         updates["ams_status_text"] = parseAMSStatus(updates["ams_status_raw"])
 
-        part_cooling_fan_speed_percent = (
-            scaleFanSpeed(p.get("cooling_fan_speed"))
-            if p.get("cooling_fan_speed", -1) != -1
-            else -1
-        )
+        part_cooling_fan_speed_percent = -1
+
+        if not base.capabilities.has_chamber_temp:
+            part_cooling_fan_speed_percent = (
+                scaleFanSpeed(p.get("cooling_fan_speed"))
+                if p.get("cooling_fan_speed", -1) != -1
+                else -1
+            )
+        else:
+            part_cooling_fan_speed_percent = updates["climate"].zone_part_fan_percent
+
         if part_cooling_fan_speed_percent == -1:
             part_cooling_fan_speed_percent = base.climate.part_cooling_fan_speed_percent
 
@@ -579,12 +572,22 @@ class BambuState:
             heatbreak_fan_speed_percent = base.climate.heatbreak_fan_speed_percent
         updates["climate"].heatbreak_fan_speed_percent = heatbreak_fan_speed_percent
 
-        exhaust_fan_speed_percent = scaleFanSpeed(p.get("big_fan2_speed", -1))
+        exhaust_fan_speed_percent = -1
+        if not base.capabilities.has_chamber_temp:
+            exhaust_fan_speed_percent = scaleFanSpeed(p.get("big_fan2_speed", -1))
+        else:
+            exhaust_fan_speed_percent = updates["climate"].zone_exhaust_percent
+
         if exhaust_fan_speed_percent == -1:
             exhaust_fan_speed_percent = base.climate.exhaust_fan_speed_percent
         updates["climate"].exhaust_fan_speed_percent = exhaust_fan_speed_percent
 
-        aux_fan_speed_percent = scaleFanSpeed(p.get("big_fan1_speed", -1))
+        aux_fan_speed_percent = -1
+        if not base.capabilities.has_chamber_temp:
+            aux_fan_speed_percent = scaleFanSpeed(p.get("big_fan1_speed", -1))
+        else:
+            aux_fan_speed_percent = updates["climate"].zone_aux_percent
+
         if aux_fan_speed_percent == -1:
             aux_fan_speed_percent = base.climate.aux_fan_speed_percent
         updates["climate"].aux_fan_speed_percent = aux_fan_speed_percent

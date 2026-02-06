@@ -37,7 +37,7 @@ class BambuSpool:
 
         Parameters
         ----------
-        * id : int - Spool id can be `0-23` for AMS spools or `254` for the External spool.
+        * id : int - Spool id can be `0-23` for AMS spools or `254`-`255` for the External spool(s).
         * name : str - The name of the spool, typically only populated if a Bambu Lab RFID tag is recognized by the AMS.
         * type : str - The type of filament in the spool.  Will either be read by the RFID tag or set on the Printer display.
         * sub_brands : str - For Bambu Lab filaments, specifies the specialization of the filament (Matte, Pro, Tough, etc).
@@ -53,8 +53,8 @@ class BambuSpool:
         * state : int - The current state of the spool.
         * total_length : int - The total length of filament on the spool in millimeters.
         * tray_weight : int - The weight of the filament spool in grams.
-        * slot_id : int - the slot # within the ams for this spool (0 to 3)
-        * ams_id : int - the AMS id associated with this spool
+        * slot_id : int - the slot # within the ams or the external tray id for this spool (0 to 23 or 254 to 255)
+        * ams_id : int - the AMS id associated with this spool. -1 represents no AMS associated with it
         """
         self.id = id
         self.name = name
