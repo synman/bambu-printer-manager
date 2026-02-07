@@ -12,19 +12,20 @@ from bpm.bambuconfig import BambuConfig
 from bpm.bambutools import (
     ActiveTool,
     AirConditioningMode,
-    AMSDryingStage,
+    AMSHeatingState,
+    AMSModel,
     ExtruderInfoState,
     ExtruderStatus,
     TrayState,
     decodeError,
     decodeHMS,
+    getAMSModelBySerial,
     parseAMSInfo,
     parseAMSStatus,
     parseExtruderInfo,
     parseExtruderStatus,
     parseExtruderTrayState,
     parseStage,
-    resolveAMSDryingStage,
     scaleFanSpeed,
     unpackTemperature,
 )
@@ -84,8 +85,8 @@ class AMSUnitState:
     """Unique ID. Population: `str(ams_idx)`."""
     chip_id: str = ""
     """Hardware serial. Population: `m.get("sn")`."""
-    is_ams_lite: bool = False
-    """True if AMS Lite. Population: `product_name` check."""
+    model: AMSModel = AMSModel.UNKNOWN
+    """`AMSModel` for this unit"""
     temp_actual: float = 0.0
     """Actual temp. Population: `float(r.get("temp"))`."""
     temp_target: int = 0
@@ -94,28 +95,18 @@ class AMSUnitState:
     """Humidity index. Population: `int(float(r.get("humidity")))`."""
     humidity_raw: int = 0
     """Raw humidity. Population: `int(float(r.get("humidity_raw")))`."""
-    is_powered: bool = False
-    """Power status. Population: `p_ams["is_powered"]`."""
-    hub_sensor_triggered: bool = False
-    """Filament at hub. Population: `p_ams["hub_sensor_triggered"]`."""
-    heater_on: bool = False
-    """Heater state. Population: `p_ams["heater_on"]`."""
-    circ_fan_on: bool = False
-    """Circ fan state. Population: `p_ams["circ_fan_on"]`."""
-    exhaust_fan_on: bool = False
-    """Exhaust fan state. Population: `p_ams["exhaust_fan_on"]`."""
+    ams_info: int = 0
+    """Underlying ams info value"""
+    heater_state: AMSHeatingState = AMSHeatingState.NO_POWER
+    """The computed state of the AMS's heater"""
+    raw_extruder_id: int = -1
+    """Raw extruder ID extracted from ams_info"""
     dry_time: int = 0
     """Minutes left. Population: `int(float(r.get("dry_time")))`."""
-    is_rotating: bool = False
-    """Rollers turning. Population: `p_ams["is_rotating"]`."""
-    venting_active: bool = False
-    """Venting state. Population: `p_ams.get("venting_active")`."""
     tray_exists: list[bool] = field(default_factory=lambda: [False] * 4)
     """Slot presence. Population: Shifting `tray_exist_bits`."""
     assigned_to_extruder: ActiveTool = ActiveTool.SINGLE_EXTRUDER
-    """Target tool. Population: `ActiveTool(h2d_toolhead_index)`."""
-    drying_stage: AMSDryingStage = AMSDryingStage.IDLE
-    """Cycle stage. Population: `_resolve_drying_stage`."""
+    """Target tool computed from raw_extruder_id"""
 
 
 @dataclass
@@ -232,6 +223,16 @@ class BambuState:
         base = current_state if current_state else cls()
         info = data.get("info", {})
         p = data.get("print", {})
+
+        if (
+            p
+            and p.get("command", "") == "ams_filament_drying"
+            and p.get("result", "") == "success"
+        ):
+            ams_id = p.get("ams_id", -1)
+            ams = next((u for u in base.ams_units if u.ams_id == ams_id), None)
+            if ams:
+                ams.temp_target = int(p.get("temp", 0))
 
         ams_root = p.get("ams", {})
         device = p.get("device", {})
@@ -435,13 +436,15 @@ class BambuState:
         cur_ams = {u.ams_id: u for u in base.ams_units}
 
         for m in modules:
-            if m.get("name", "").startswith("n3f/") or m.get("name", "").startswith(
-                "n3s/"
+            if (
+                m.get("name", "").startswith("n3f/")
+                or m.get("name", "").startswith("n3s/")
+                or m.get("name", "").startswith("ams")
             ):
                 ams_id = int(m["name"].split("/")[-1])
                 u = cur_ams.get(ams_id, AMSUnitState(ams_id=ams_id))
                 u.chip_id = m.get("sn", u.chip_id)
-                u.is_ams_lite = "lite" in m.get("product_name", "").lower()
+                u.model = getAMSModelBySerial(u.chip_id)
                 cur_ams[ams_id] = u
 
         for ams_u in ams_root.get("ams", []):
@@ -455,17 +458,15 @@ class BambuState:
             # ugly hack for capturing target temp
             if u.dry_time > 0 and u.temp_target < int(u.temp_actual) - 1:
                 u.temp_target = int(u.temp_actual)
+            elif u.dry_time == 0:
+                u.temp_target = 0
 
             if "info" in ams_u:
-                p_ams = parseAMSInfo(int(ams_u["info"]))
-                u.is_powered = p_ams["is_powered"]
-                u.hub_sensor_triggered = p_ams["hub_sensor_triggered"]
-                u.heater_on = p_ams["heater_on"]
-                u.circ_fan_on = p_ams["circ_fan_on"]
-                u.exhaust_fan_on = p_ams["exhaust_fan_on"]
-                u.is_rotating = p_ams["is_rotating"]
-                u.venting_active = p_ams.get("venting_active", False)
-                u.drying_stage = resolveAMSDryingStage(p_ams, u.dry_time)
+                u.ams_info = int(ams_u["info"])
+                p_ams = parseAMSInfo(u.ams_info)
+
+                u.heater_state = p_ams["heater_state"]
+                u.raw_extruder_id = p_ams["extruder_id"]
 
                 if updates["capabilities"].has_dual_extruder:
                     u.assigned_to_extruder = ActiveTool(

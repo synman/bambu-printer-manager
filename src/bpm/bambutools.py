@@ -51,20 +51,7 @@ class AMSControlCommand(Enum):
     RESET = 2
 
 
-class AMSDryingStage(IntEnum):
-    """
-    Represents the operational stages of the AMS2 drying cycle.
-    Resolved from heater, vent, and fan bitmasks.
-    """
-
-    IDLE = 0
-    HEATING = 1  # Heater active, Vent closed
-    PURGING = 2  # Vent open, Heater likely active
-    CONDITIONING = 3  # Heater off, Vent open, Fan running
-    MAINTENANCE = 4  # Post-cycle humidity monitoring
-
-
-class AMSModel(Enum):
+class AMSModel(IntEnum):
     """
     AMS model enum
     """
@@ -94,6 +81,19 @@ class AMSUserSetting(Enum):
     CALIBRATE_REMAIN_FLAG = 0
     STARTUP_READ_OPTION = 1
     TRAY_READ_OPTION = 2
+
+
+class AMSHeatingState(IntEnum):
+    """
+    Heater-to-Dryer states.
+    Mapped from telemetry values and decimal shifts.
+    """
+
+    HEATING = 3
+    IDLE = 1
+    NO_POWER = 0
+    POSTHEATING = 4
+    PREHEATING = 2
 
 
 class ExtruderInfoState(IntEnum):
@@ -346,6 +346,36 @@ def decodeHMS(hms_list: list) -> list[dict]:
 
 
 @staticmethod
+def getAMSHeatingState(ams_info: int) -> AMSHeatingState:
+    """
+    Decodes the AMS Heater state from the AMS Info attribute
+    """
+    # 1. Primary Power Threshold
+    if ams_info < 2000 and ams_info != 1002:
+        return AMSHeatingState.NO_POWER
+
+    # 2. Extract Universal Remainder (Strips 99-point model offset)
+    status_rem = ams_info % 100
+    is_high_power = ams_info >= 100000
+
+    # 3. High Power Bus Logic
+    if is_high_power:
+        # 142113, 142123, 142024
+        if status_rem in [13, 23, 24]:
+            return AMSHeatingState.HEATING
+        # 142103, 142014
+        return AMSHeatingState.POSTHEATING
+
+    # 4. Local Bus Logic (+10 / +20 transitions)
+    if status_rem in [13, 24]:
+        return AMSHeatingState.PREHEATING
+    if status_rem == 23:
+        return AMSHeatingState.HEATING
+
+    return AMSHeatingState.IDLE
+
+
+@staticmethod
 def getAMSModelBySerial(serial: str) -> AMSModel:
     """
     Returns the hardware model based on the serial number prefix.
@@ -418,45 +448,29 @@ def getSeriesByModel(model: PrinterModel) -> PrinterSeries:
     return getPrinterSeriesByModel(model)
 
 
-# @staticmethod
-# def parseAMSInfo(info_int: int) -> dict:
-#     """
-#     Parses decimal bit-packed AMS info for status and feature reconciliation.
-#     """
-#     return {
-#         "is_powered": bool(info_int & 1),
-#         "is_online": bool(info_int & 2),
-#         "rfid_ready": bool(info_int & 4),
-#         "hub_sensor_triggered": bool(info_int & 8),
-#         "circ_fan_on": bool(info_int & 16),
-#         "h2d_toolhead_index": (info_int >> 5) & 0x1,
-#         "exhaust_fan_on": bool(info_int & 64),
-#         "humidity_sensor_ok": bool((info_int & 128) or (info_int & 131072)),
-#         "heater_on": bool(info_int & 256),
-#         "motor_running": bool(info_int & 512),
-#         "is_rotating": bool(info_int & 1024),
-#         "venting_active": bool(info_int & 2048),
-#         "high_power_mode": bool(info_int & 8192),
-#         "hardware_fault": bool((info_int & 4096) or (info_int & 16384)),
-#     }
-
-
 @staticmethod
-def parseAMSInfo(info_int: int) -> dict:
+def parseAMSInfo(info: int) -> dict:
     """
-    Parses bit-packed AMS info. Verified against Bambu Studio source
-    and H2D telemetry reconciliation (2103 vs 2004).
+    Extracts all established telemetry attributes from the info integer.
+    Verified offsets: 0, 4, 8, 17, 18, 20, 22.
     """
-    return {
-        "is_powered": bool(info_int & 0x04),  # Bit 2
-        "hub_sensor_triggered": bool(info_int & 0x10),  # Bit 4
-        "h2d_toolhead_index": (info_int >> 5) & 0x01,  # Bit 5
-        "circ_fan_on": bool(info_int & 0x40),  # Bit 6
-        "exhaust_fan_on": bool(info_int & 0x80),  # Bit 7
-        "heater_on": bool(info_int & 0x200),  # Bit 9
-        "is_rotating": bool(info_int & 0x400),  # Bit 10
-        "venting_active": bool(info_int & 0x800),  # Bit 11
+
+    extruder_id = (info >> 8) & 0x0F
+    # 11 and 10 == 1 and 0
+    #  8 and  7 == 1 and 0
+    if extruder_id in (8, 11):
+        h2d_toolhead_index = 1
+    else:
+        h2d_toolhead_index = 0
+
+    ret = {
+        "extruder_id": extruder_id,
+        "h2d_toolhead_index": h2d_toolhead_index,
+        "heater_state": getAMSHeatingState(info),
     }
+
+    # print(f"\r\n{ret}\r\n")
+    return ret
 
 
 @staticmethod
@@ -624,23 +638,6 @@ def parseStage(stage_int: int) -> str:
         255: "Completed",
     }
     return stage_map.get(stage_int, f"Stage [{stage_int}]")
-
-
-@staticmethod
-def resolveAMSDryingStage(parsed: dict, dry_time: int) -> AMSDryingStage:
-    if dry_time < 1:
-        return AMSDryingStage.IDLE
-    if parsed.get("venting_active", False):
-        return (
-            AMSDryingStage.PURGING
-            if parsed.get("heater_on", False)
-            else AMSDryingStage.CONDITIONING
-        )
-    if parsed.get("heater_on", False):
-        return AMSDryingStage.HEATING
-    if parsed.get("exhaust_fan_on", False) or parsed.get("circ_fan_on", False):
-        return AMSDryingStage.MAINTENANCE
-    return AMSDryingStage.IDLE
 
 
 @staticmethod

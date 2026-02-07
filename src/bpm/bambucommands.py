@@ -137,6 +137,7 @@ AMS_FILAMENT_DRYING = {
         "duration": 0,
         "humidity": 0,
         "rotate_tray": False,
+        "close_power_conflict": False,
     }
 }
 
