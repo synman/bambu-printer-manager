@@ -225,8 +225,7 @@ class BambuState:
         p = data.get("print", {})
 
         if (
-            p
-            and p.get("command", "") == "ams_filament_drying"
+            p.get("command", "") == "ams_filament_drying"
             and p.get("result", "") == "success"
         ):
             ams_id = p.get("ams_id", -1)
@@ -355,7 +354,9 @@ class BambuState:
             updates["climate"].chamber_temp = ctc_temp
             updates["climate"].chamber_temp_target = ctc_temp_target
         else:
-            updates["climate"].chamber_temp = base.climate.chamber_temp
+            updates["climate"].chamber_temp = p.get(
+                "chamber_temper", base.climate.chamber_temp
+            )
 
         if (
             ctc_temp_target == 0
@@ -363,7 +364,7 @@ class BambuState:
         ):
             updates["climate"].chamber_temp_target = base.climate.chamber_temp_target
 
-        if p and p.get("command", "") == "set_ctt" and p.get("result", "") == "success":
+        if p.get("command", "") == "set_ctt" and p.get("result", "") == "success":
             ctc_temp_target = int(p.get("ctt_val", -1))
             updates["climate"].chamber_temp_target = ctc_temp_target
             if ctc_temp_target < 45:
