@@ -274,6 +274,8 @@ class IoTFTPSClient:
                         hour=int(match.group("hour")),
                         minute=int(match.group("minute")),
                     )
+                    if date > today:
+                        date = (date + datetime.timedelta(days=-365))
 
                 prefix = "" if path == "/" else path
                 name = match.group("name")
