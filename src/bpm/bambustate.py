@@ -347,13 +347,13 @@ class BambuState:
             p.get("bed_target_temper", base.climate.bed_temp_target)
         )
 
-        ctc_temp_target = 0.0
+        ctc_temp_target = 0
         if ctc_root:
             ctc_temp_raw = unpackTemperature(ctc_root.get("info", {}).get("temp", 0.0))
             ctc_temp = ctc_temp_raw[0]
-            ctc_temp_target = ctc_temp_raw[1]
+            ctc_temp_target = int(ctc_temp_raw[1])
             updates["climate"].chamber_temp = ctc_temp
-            updates["climate"].chamber_temp_target = int(ctc_temp_target)
+            updates["climate"].chamber_temp_target = ctc_temp_target
         else:
             updates["climate"].chamber_temp = base.climate.chamber_temp
 
@@ -362,6 +362,12 @@ class BambuState:
             and updates["climate"].air_conditioning_mode != AirConditioningMode.HEAT_MODE
         ):
             updates["climate"].chamber_temp_target = base.climate.chamber_temp_target
+
+        if p and p.get("command", "") == "set_ctt" and p.get("result", "") == "success":
+            ctc_temp_target = int(p.get("ctt_val", -1))
+            updates["climate"].chamber_temp_target = ctc_temp_target
+            if ctc_temp_target < 45:
+                updates["climate"].air_conditioning_mode = AirConditioningMode.COOL_MODE
 
         # EXTRUDERS
         new_extruders = []
