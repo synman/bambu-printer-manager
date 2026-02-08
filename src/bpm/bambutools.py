@@ -630,7 +630,7 @@ def parseStage(stage_int: int) -> str:
         71: "Reached toolhead",
         72: "Grabbing filament",
         73: "Purging",
-        74: "Unloading",
+        74: "Homing toolhead",
         75: "Returning to AMS",
         76: "Cutting",
         77: "Tool switching",
