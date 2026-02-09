@@ -1681,20 +1681,7 @@ class BambuPrinter:
         * value : float - The target chamber temperature.
         * temper_check : OPTIONAL bool - perform a temperature check?
         """
-        cmd = copy.deepcopy(SET_CHAMBER_AC_MODE)
         if self.config.capabilities.has_chamber_temp:
-            if value < 40:
-                cmd["print"]["modeId"] = 0
-                value = 0
-            else:
-                cmd["print"]["modeId"] = 1
-            self.client.publish(
-                f"device/{self.config.serial_number}/request", json.dumps(cmd)
-            )
-            logger.debug(
-                f"set_chamber_temp_target - published SET_CHAMBER_AC_MODE to [device/{self.config.serial_number}/request] command: [{cmd}]"
-            )
-
             cmd = copy.deepcopy(SET_CHAMBER_TEMP_TARGET)
             cmd["print"]["ctt_val"] = value
             cmd["print"]["temper_check"] = temper_check
@@ -1705,6 +1692,20 @@ class BambuPrinter:
             logger.debug(
                 f"set_chamber_temp_target - published SET_CHAMBER_TEMP_TARGET to [device/{self.config.serial_number}/request] command: [{cmd}]"
             )
+
+            cmd = copy.deepcopy(SET_CHAMBER_AC_MODE)
+
+            if value < 40:
+                cmd["print"]["modeId"] = 0
+            else:
+                cmd["print"]["modeId"] = 1
+            self.client.publish(
+                f"device/{self.config.serial_number}/request", json.dumps(cmd)
+            )
+            logger.debug(
+                f"set_chamber_temp_target - published SET_CHAMBER_AC_MODE to [device/{self.config.serial_number}/request] command: [{cmd}]"
+            )
+
         self._printer_state.climate.chamber_temp_target = value
         self._chamber_temp_target_time = round(time.time())
 
