@@ -1,9 +1,30 @@
 import logging
+from dataclasses import dataclass
 
 from bpm.bambutools import PrinterModel, getPrinterModelBySerial
 
 LoggerName = "bambu_printer_manager"
 logger = logging.getLogger(LoggerName)
+
+
+@dataclass
+class PrinterCapabilities:
+    """Discovery features based on hardware block presence in telemetry."""
+
+    has_ams: bool = False
+    """True if an AMS unit is detected. Population: `ams` block presence."""
+    has_lidar: bool = False
+    """True if printer has LiDAR. Population: `xcam` block presence."""
+    has_camera: bool = False
+    """True if printer has camera. Population: Hardcoded True for H2D."""
+    has_dual_extruder: bool = False
+    """True if H2D architecture. Population: `len(extruder_root.info) > 1`."""
+    has_air_filtration: bool = False
+    """True if airduct exists. Population: `airduct` block presence."""
+    has_chamber_temp: bool = False
+    """True if CTC exists. Population: `ctc_root` block presence."""
+    has_chamber_door_sensor: bool = False
+    """True if fun reports we have a door check function"""
 
 
 class BambuConfig:
@@ -25,6 +46,7 @@ class BambuConfig:
         watchdog_timeout: int = 30,
         external_chamber: bool = False,
         verbose: bool = False,
+        capabilities: PrinterCapabilities | None = None,
     ):
         """
         Sets up all internal storage attributes for `BambuConfig`.
@@ -40,6 +62,7 @@ class BambuConfig:
         * watchdog_timeout : Optional[int] = 30
         * external_chamber : Optional[bool] = False
         * verbose : Optional[bool] = False
+        * capabilities : Optional[PrinterCapabilities]
 
         `external_chamber` can be used to tell `BambuPrinter` not to use any of the chamber
         temperature data received from the printer.  This can be useful if you are using an
@@ -64,7 +87,7 @@ class BambuConfig:
         * _tray_read_option : bool - AMS will automatically read RFID on tray/spool change
         * _calibrate_remain_flag : bool - AMS will calculate remaining amount of filament in spool (unverified)
         * _buildplate_marker_detector : bool - printer will attempt to validate build plate
-        * _has_chamber_door_sensor: bool - True if fun reports we have a door check function
+        * _capabilities : PrinterCapabilities - collection of printer capabilities
         """
 
         self._hostname = hostname
@@ -88,8 +111,10 @@ class BambuConfig:
         self._tray_read_option = True
         self._calibrate_remain_flag = True
         self._buildplate_marker_detector = True
-        self._has_chamber_door_sensor = False
-        """True if fun reports we have a door check function"""
+
+        if capabilities is None:
+            capabilities = PrinterCapabilities()
+        self._capabilities = capabilities
 
     @property
     def hostname(self) -> str:
@@ -241,12 +266,12 @@ class BambuConfig:
         self._buildplate_marker_detector = bool(value)
 
     @property
-    def has_chamber_door_sensor(self) -> bool:
-        return self._has_chamber_door_sensor
+    def capabilities(self) -> PrinterCapabilities:
+        return self._capabilities
 
-    @has_chamber_door_sensor.setter
-    def has_chamber_door_sensor(self, value: bool):
-        self._has_chamber_door_sensor = bool(value)
+    @capabilities.setter
+    def capabilities(self, value: PrinterCapabilities):
+        self._capabilities = value
 
     @property
     def verbose(self) -> bool:

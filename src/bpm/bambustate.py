@@ -8,7 +8,8 @@ import time
 from dataclasses import asdict, dataclass, field, replace
 from typing import Any
 
-from bpm.bambuconfig import BambuConfig
+from bpm.bambuconfig import BambuConfig, PrinterCapabilities
+from bpm.bambuspool import BambuSpool
 from bpm.bambutools import (
     ActiveTool,
     AirConditioningMode,
@@ -31,24 +32,6 @@ from bpm.bambutools import (
 )
 
 logger = logging.getLogger("bpm")
-
-
-@dataclass
-class PrinterCapabilities:
-    """Discovery features based on hardware block presence in telemetry."""
-
-    has_ams: bool = False
-    """True if an AMS unit is detected. Population: `ams` block presence."""
-    has_lidar: bool = False
-    """True if printer has LiDAR. Population: `xcam` block presence."""
-    has_camera: bool = False
-    """True if printer has camera. Population: Hardcoded True for H2D."""
-    has_dual_extruder: bool = False
-    """True if H2D architecture. Population: `len(extruder_root.info) > 1`."""
-    has_air_filtration: bool = False
-    """True if airduct exists. Population: `airduct` block presence."""
-    has_chamber_temp: bool = False
-    """True if CTC exists. Population: `ctc_root` block presence."""
 
 
 @dataclass
@@ -148,7 +131,7 @@ class BambuClimate:
     zone_top_vent_open: bool = False
     """Top vent status - derived from exhaust fan on and cooling ac mode."""
     is_chamber_door_open: bool = False
-    """ For printers that support it (see `BambuConfig.has_chamber_door_sensor`), reports whether the chamber door is open """
+    """ For printers that support it (see `PrinterCapabilities.has_chamber_door_sensor`), reports whether the chamber door is open """
 
 
 @dataclass
@@ -203,12 +186,14 @@ class BambuState:
     """Unit details. Population: Result of unit iteration."""
     extruders: list[ExtruderState] = field(default_factory=list)
     """Extruder details. Population: Result of extruder iteration."""
+    spools: list[BambuSpool] = field(default_factory=list)
+    """All spools associated with this printer"""
     print_error: int = 0
     """Main error. Population: `int(p.get("print_error"))`."""
     hms_errors: list[dict] = field(default_factory=list)
     """HMS list. Population: `decodeHMS` + `decodeError` synthesis."""
-    capabilities: PrinterCapabilities = field(default_factory=PrinterCapabilities)
-    """Machine flags. Population: `PrinterCapabilities` instantiation."""
+    wifi_signal_strength: str = ""
+    """Wi-Fi signal strength in dBm"""
     climate: BambuClimate = field(default_factory=BambuClimate)
     """Contains all climate related attributes"""
     stat: str = "0"
@@ -218,7 +203,7 @@ class BambuState:
     def fromJson(
         cls, data: dict[str, Any], current_state: "BambuState", config: BambuConfig
     ) -> "BambuState":
-        """Parses root MQTT payloads into a unified BambuState with 100% attribute traceability."""
+        """Parses root MQTT payloads into a hierachical BambuState object."""
 
         base = current_state if current_state else cls()
         info = data.get("info", {})
@@ -244,7 +229,7 @@ class BambuState:
         updates = {}
 
         # CAPABILITIES
-        caps = asdict(base.capabilities)
+        caps = asdict(config.capabilities)
         if ctc_root:
             caps["has_chamber_temp"] = True
         if "ams" in ams_root or "ams" in p:
@@ -256,7 +241,7 @@ class BambuState:
 
         caps["has_lidar"] = "xcam" in p or "xcam" in info
         caps["has_camera"] = True
-        updates["capabilities"] = PrinterCapabilities(**caps)
+        new_caps = PrinterCapabilities(**caps)
 
         climate = asdict(base.climate)
         updates["climate"] = BambuClimate(**climate)
@@ -268,9 +253,9 @@ class BambuState:
 
         updates["fun"] = p.get("fun", base.fun)
         fun = int(updates["fun"], 16)
-        config.has_chamber_door_sensor = bool((fun >> 12) & 0x01)
+        new_caps.has_chamber_door_sensor = bool((fun >> 12) & 0x01)
 
-        if config.has_chamber_door_sensor:
+        if new_caps.has_chamber_door_sensor:
             updates["stat"] = p.get("stat", base.stat)
             stat = int(updates["stat"], 16)
             updates["climate"].is_chamber_door_open = bool((stat >> 23) & 0x01)
@@ -432,7 +417,7 @@ class BambuState:
         # TOOL SELECTION
         if "state" in extruder_root:
             raw_t_idx = (int(extruder_root["state"]) >> 4) & 0xF
-            if updates["capabilities"].has_dual_extruder:
+            if new_caps.has_dual_extruder:
                 updates["active_tool"] = ActiveTool(raw_t_idx)
             else:
                 updates["active_tool"] = ActiveTool.SINGLE_EXTRUDER
@@ -475,7 +460,7 @@ class BambuState:
                 u.heater_state = p_ams["heater_state"]
                 u.raw_extruder_id = p_ams["extruder_id"]
 
-                if updates["capabilities"].has_dual_extruder:
+                if new_caps.has_dual_extruder:
                     u.assigned_to_extruder = ActiveTool(
                         p_ams.get("h2d_toolhead_index", 15)
                     )
@@ -558,7 +543,7 @@ class BambuState:
 
         part_cooling_fan_speed_percent = -1
 
-        if not base.capabilities.has_chamber_temp:
+        if not config.capabilities.has_chamber_temp:
             part_cooling_fan_speed_percent = (
                 scaleFanSpeed(p.get("cooling_fan_speed"))
                 if p.get("cooling_fan_speed", -1) != -1
@@ -581,7 +566,7 @@ class BambuState:
         updates["climate"].heatbreak_fan_speed_percent = heatbreak_fan_speed_percent
 
         exhaust_fan_speed_percent = -1
-        if not base.capabilities.has_chamber_temp:
+        if not config.capabilities.has_chamber_temp:
             exhaust_fan_speed_percent = scaleFanSpeed(p.get("big_fan2_speed", -1))
         else:
             exhaust_fan_speed_percent = updates["climate"].zone_exhaust_percent
@@ -591,7 +576,7 @@ class BambuState:
         updates["climate"].exhaust_fan_speed_percent = exhaust_fan_speed_percent
 
         aux_fan_speed_percent = -1
-        if not base.capabilities.has_chamber_temp:
+        if not config.capabilities.has_chamber_temp:
             aux_fan_speed_percent = scaleFanSpeed(p.get("big_fan1_speed", -1))
         else:
             aux_fan_speed_percent = updates["climate"].zone_aux_percent
@@ -599,6 +584,8 @@ class BambuState:
         if aux_fan_speed_percent == -1:
             aux_fan_speed_percent = base.climate.aux_fan_speed_percent
         updates["climate"].aux_fan_speed_percent = aux_fan_speed_percent
+
+        updates["wifi_signal_strength"] = p.get("wifi_signal", base.wifi_signal_strength)
 
         # ERROR HANDLING
         updates["print_error"] = int(p.get("print_error", base.print_error))
@@ -612,5 +599,8 @@ class BambuState:
         updates["hms_errors"] = decodeHMS(p.get("hms", base.hms_errors))
         if decoded_error and decoded_error not in updates["hms_errors"]:
             updates["hms_errors"].insert(0, decoded_error)
+
+        # capabilities mapped to BambuConfig
+        config.capabilities = new_caps
 
         return replace(base, **updates)

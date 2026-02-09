@@ -27,7 +27,6 @@ from bpm.bambucommands import (
     CHAMBER_LIGHT_TOGGLE,
     EXTRUSION_CALI_SEL,
     EXTRUSION_CALI_SET,
-    HMS_STATUS,
     PAUSE_PRINT,
     PRINT_3MF_FILE,
     PRINT_OPTION_COMMAND,
@@ -54,8 +53,6 @@ from bpm.bambutools import (
     PlateType,
     PrintOption,
     ServiceState,
-    parseStage,
-    scaleFanSpeed,
     sortFileTreeAlphabetically,
 )
 from bpm.ftpsclient.ftpsclient import IoTFTPSClient
@@ -98,29 +95,14 @@ class BambuPrinter:
         self._client = None
         self._on_update = None
 
-        self._bed_temp = 0.0
-        self._bed_temp_target = 0
-        self._bed_temp_target_time = 0
-
-        self._tool_temp = 0.0
-        self._tool_temp_target = 0
         self._tool_temp_target_time = 0
-
-        self._chamber_temp = 0.0
-        self._chamber_temp_target = 0
+        self._bed_temp_target_time = 0
         self._chamber_temp_target_time = 0
-
-        self._fan_gear = 0
-        self._heatbreak_fan_speed = 0
-        self._fan_speed = 0
-        self._fan_speed_target = 0
         self._fan_speed_target_time = 0
 
         self._light_state = ""
-        self._wifi_signal = ""
         self._speed_level = 0
 
-        self._gcode_state = ""
         self._gcode_file = ""
         self._3mf_file = ""
         self._3mf_file_md5 = ""
@@ -128,31 +110,11 @@ class BambuPrinter:
         self._plate_type = PlateType.NONE
         self._subtask_name = ""
         self._print_type = ""
-        self._percent_complete = 0
-        self._time_remaining = 0
-        self._start_time = 0
-        self._elapsed_time = 0
-        self._layer_count = 0
-        self._current_layer = 0
 
-        self._current_stage = 0
-        self._current_stage_text = ""
-
-        self._spools = []
         self._printer_state = BambuState()
-        self._target_spool = 255
-        self._active_spool = 255
-        self._spool_state = ""
-        self._ams_status = None
-        self._ams_exists = False
-        self._ams_rfid_status = None
 
         self._sdcard_contents = None
         self._sdcard_3mf_files = None
-
-        self._hms_data = None
-        self._hms_message = ""
-        self._last_hms_message = ""
 
         self._print_type = ""
         self._skipped_objects = []
@@ -1212,8 +1174,6 @@ class BambuPrinter:
                 status.get("command", "") == "project_file"
                 and str(status.get("result", "")).lower() == "success"
             ):
-                self._start_time = 0
-
                 url = status.get("url", "")
                 parts = url.split("://", 1)
                 if len(parts) == 2:
@@ -1234,7 +1194,7 @@ class BambuPrinter:
                     if bed_type and bed_type.upper() in PlateType.__members__
                     else PlateType.NONE
                 )
-                logger.warning(
+                logger.info(
                     f"\r\nplate=[{self._plate_num}] md5=[{self._3mf_file_md5}]\r\n"
                 )
 
@@ -1257,42 +1217,24 @@ class BambuPrinter:
                     json.dumps(ANNOUNCE_PUSH),
                 )
 
-            if "bed_temper" in status:
-                self._bed_temp = float(status["bed_temper"])
             if "bed_target_temper" in status:
                 bed_temp_target = int(status["bed_target_temper"])
-                if bed_temp_target != self._bed_temp_target:
-                    self._bed_temp_target = bed_temp_target
+                if bed_temp_target != self._printer_state.climate.bed_temp_target:
                     self._bed_temp_target_time = round(time.time())
 
-            if "nozzle_temper" in status:
-                self._tool_temp = float(status["nozzle_temper"])
             if "nozzle_target_temper" in status:
                 tool_temp_target = int(status["nozzle_target_temper"])
-                if tool_temp_target != self._tool_temp_target:
-                    self._tool_temp_target = tool_temp_target
+                if tool_temp_target != self._printer_state.active_nozzle_temp_target:
                     self._tool_temp_target_time = round(time.time())
 
-            if not self._config.external_chamber and "chamber_temper" in status:
-                self._chamber_temp = float(status["chamber_temper"])
-
-            if "fan_gear" in status:
-                self._fan_gear = int(status["fan_gear"])
-            if "heatbreak_fan_speed" in status:
-                self._heatbreak_fan_speed = int(status["heatbreak_fan_speed"])
-            if "cooling_fan_speed" in status:
-                self._fan_speed = scaleFanSpeed(int(status["cooling_fan_speed"]))
-
-            if "wifi_signal" in status:
-                self._wifi_signal = status["wifi_signal"]
             if "lights_report" in status:
                 self._light_state = (status["lights_report"])[0]["mode"]
             if "spd_lvl" in status:
                 self._speed_level = status["spd_lvl"]
 
             if "gcode_state" in status:
-                self._gcode_state = status["gcode_state"]
-                if self._gcode_state in ("FINISH", "FAILED") and self._3mf_file:
+                gcode_state = status["gcode_state"]
+                if gcode_state in ("FINISH", "FAILED") and self._3mf_file:
                     self._3mf_file = ""
                     self._3mf_file_md5 = ""
                     self._plate_num = None
@@ -1305,32 +1247,14 @@ class BambuPrinter:
                 self._gcode_file = status["gcode_file"]
             if "print_type" in status:
                 self._print_type = status["print_type"]
-            if "mc_percent" in status:
-                self._percent_complete = status["mc_percent"]
-            if "mc_remaining_time" in status:
-                self._time_remaining = int(status["mc_remaining_time"])
-            if "total_layer_num" in status:
-                self._layer_count = status["total_layer_num"]
-            if "layer_num" in status:
-                self._current_layer = status["layer_num"]
-
-            if "stg_cur" in status:
-                self._current_stage = int(status["stg_cur"])
-                self._current_stage_text = parseStage(self._current_stage)
-
-            if "ams_status" in status:
-                self._ams_status = status["ams_status"]
-            if "ams_rfid_status" in status:
-                self._ams_rfid_status = status["ams_rfid_status"]
 
             if (
                 "ams" in status
                 and "ams" in status["ams"]
                 and "ams_exist_bits" in status["ams"]
             ):
-                self._ams_exists = int(status["ams"]["ams_exist_bits"]) & 0x1
-                if self._ams_exists:
-                    spools = []
+                if int(status["ams"]["ams_exist_bits"]) & 0x1:
+                    spools: list[BambuSpool] = []
 
                     self.config.startup_read_option = status["ams"].get(
                         "power_on_flag", False
@@ -1375,7 +1299,7 @@ class BambuPrinter:
                                 )
                                 spools.append(spool)
 
-                    self._spools = tuple(spools)
+                    self._printer_state.spools = spools
 
             if "vt_tray" in status:
                 tray = status.get("vt_tray", {})
@@ -1407,18 +1331,20 @@ class BambuPrinter:
                     int(tray.get("id", -1)),
                     -1,
                 )
-                if not self._ams_exists:
-                    spools = (spool,)
+                if self._printer_state.ams_connected_count == 0:
+                    spools = [
+                        spool,
+                    ]
                 else:
-                    spools = list(self.spools)
+                    spools = self._printer_state.spools
                     spools.append(spool)
-                self._spools = tuple(spools)
+                self._printer_state.spools = spools
 
             if "vir_slot" in status:
-                spools = list(self.spools)
+                spools = self._printer_state.spools
 
                 virt_spools = status.get("vir_slot", [])
-                spool = None
+                spool: BambuSpool
 
                 for ext_spool_id in (254, 255):
                     tray_found = False
@@ -1454,97 +1380,9 @@ class BambuPrinter:
                             tray_found = True
                             break
                     if not tray_found:
-                        spool = BambuSpool
-                        spool.id = ext_spool_id
+                        spool = BambuSpool(ext_spool_id)
                     spools.append(spool)
-                self._spools = tuple(spools)
-
-            tray_tar = None
-            tray_now = None
-            tray_pre = None
-
-            if "ams" in status and status["ams"]:
-                if "tray_tar" in status["ams"]:
-                    tray_tar = int(status["ams"]["tray_tar"])
-                    self._target_spool = tray_tar
-
-                if "tray_now" in status["ams"]:
-                    tray_now = int(status["ams"]["tray_now"])
-                    self._active_spool = tray_now
-
-                if "tray_pre" in status["ams"]:
-                    tray_pre = int(status["ams"]["tray_pre"])
-
-                # logger.warning(f"\rtray tar: {tray_pre} {tray_tar} {tray_now}")
-
-            if tray_tar is not None or tray_now is not None or tray_pre is not None:
-                if self._target_spool == 255 and self._active_spool == 255:
-                    self._spool_state = "Unloaded"
-                elif self._target_spool == 255 and self._active_spool != 255:
-                    self._spool_state = "Unloading"
-                elif (
-                    self._active_spool != 255
-                    and self._target_spool != 255
-                    and self._target_spool != self._active_spool
-                ):
-                    self._spool_state = "Unloading"
-                elif self._target_spool != 255 and self._active_spool == 255:
-                    self._spool_state = "Loading"
-                else:
-                    self._spool_state = "Loaded"
-
-            if "print_error" in status:
-                err = status["print_error"]
-                if err == 0 and self._hms_data or self._hms_message:
-                    logger.debug("_on_message - clearing hms data and message")
-                    self._hms_data = []
-                    self._last_hms_message = self._hms_message
-                    self._hms_message = ""
-                else:
-                    if err != 0 and self._last_hms_message:
-                        logger.debug("_on_message - restoring last hms message")
-                        self._hms_message = self._last_hms_message
-
-            if "hms" in status and status["hms"]:
-                logger.debug(f"_on_message - parsing hms data: [{status['hms']}]")
-
-                self._hms_data = status.get("hms", [])
-                self._hms_message = ""
-                wiki_code = ""
-
-                for hms in self._hms_data:
-                    attr_raw = hms.get("attr", 0)
-                    code_raw = hms.get("code", 0)
-
-                    attr_masked = attr_raw & 0xFF00FFFF
-
-                    h_attr = f"{attr_masked:08X}"
-                    h_code = f"{code_raw:08X}"
-
-                    wiki_code = f"{h_attr[:4]}_{h_attr[4:]}_{h_code[:4]}_{h_code[4:]}"
-                    wiki_url = f"https://wiki.bambulab.com/en/h2/troubleshooting/hmscode/{wiki_code}"
-                    logger.debug(
-                        f"_on_message - hms ecode: [{h_attr}{h_code}] wiki: [{wiki_code}]"
-                    )
-
-                    for entry in HMS_STATUS["data"]["device_hms"]["en"]:
-                        if (
-                            entry["ecode"]
-                            == f"{h_attr[:4]}{h_attr[4:]}{h_code[:4]}{h_code[4:]}"
-                        ):
-                            self._hms_message = (
-                                f"{self._hms_message}{entry['intro']} ({wiki_url}) "
-                            )
-                            logger.debug(
-                                f"_on_message - found hms message: [{entry['intro']}]"
-                            )
-                            break
-                if self._hms_message == "":
-                    self._hms_message = (
-                        f"HMS Error [{wiki_code.replace('_', '-')}] - message NOT found"
-                    )
-
-                self._hms_message = self._hms_message.rstrip()
+                self._printer_state.spools = spools
 
             if "home_flag" in status:
                 flag = int(status["home_flag"])
@@ -1591,11 +1429,6 @@ class BambuPrinter:
             logger.warning(
                 f"\r_on_message - unknown message type received - bambu_msg: [{message}]"
             )
-
-        if self._gcode_state in ("PREPARE", "RUNNING", "PAUSE"):
-            if self._start_time == 0:
-                self._start_time = int(round(time.time() / 60, 0))
-            self._elapsed_time = int(round(time.time() / 60, 0)) - self._start_time
 
         self._notify_update()
 
@@ -1849,7 +1682,7 @@ class BambuPrinter:
         * temper_check : OPTIONAL bool - perform a temperature check?
         """
         cmd = copy.deepcopy(SET_CHAMBER_AC_MODE)
-        if self.printer_state.capabilities.has_chamber_temp:
+        if self.config.capabilities.has_chamber_temp:
             if value < 40:
                 cmd["print"]["modeId"] = 0
                 value = 0
@@ -1989,8 +1822,9 @@ class BambuPrinter:
         return self._fan_speed_target_time
 
     @property
+    @deprecated("This property is deprecated (v1.0.0). There is no replacement.")
     def fan_gear(self):
-        return self._fan_gear
+        return None
 
     @property
     @deprecated(
@@ -2005,8 +1839,16 @@ class BambuPrinter:
         return self._printer_state.climate.heatbreak_fan_speed_percent
 
     @property
+    @deprecated(
+        "This property is deprecated (v1.0.0). Use BambuState.wifi_signal_strength`."
+    )
     def wifi_signal(self):
-        return self._wifi_signal
+        """
+        returns the wifi signal strength in dBm
+        !!! danger "Deprecated"
+        This property is deprecated (v1.0.0). Use `BambuState.wifi_signal_strength`.
+        """
+        return self._printer_state.wifi_signal_strength
 
     @property
     def light_state(self):
@@ -2110,12 +1952,16 @@ class BambuPrinter:
         return int(self._printer_state.remaining_minutes)
 
     @property
+    @deprecated(
+        "This property is deprecated (v1.0.0). Use `BambuState.monotonic_start_time`."
+    )
     def start_time(self) -> int:
-        return self._start_time
+        return self._printer_state.monotonic_start_time
 
     @property
+    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.elapsed_minutes`.")
     def elapsed_time(self) -> int:
-        return self._elapsed_time
+        return self._printer_state.elapsed_minutes
 
     @property
     @deprecated("This property is deprecated (v1.0.0). Use `BambuState.total_layers`.")
@@ -2142,8 +1988,9 @@ class BambuPrinter:
         return self.printer_state.current_stage_name
 
     @property
-    def spools(self):
-        return self._spools
+    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.spools`.")
+    def spools(self) -> tuple[BambuSpool, ...]:
+        return tuple(self._printer_state.spools)
 
     @property
     def printer_state(self) -> BambuState:
@@ -2178,11 +2025,9 @@ class BambuPrinter:
         return self._printer_state.ams_connected_count > 0
 
     @property
-    @deprecated(
-        "This property is deprecated (v1.0.0). Use `BambuState.ams_units[0].rfid_ready`."
-    )
+    @deprecated("This property is deprecated (v1.0.0). No replacement exists.")
     def ams_rfid_status(self):
-        return self._ams_rfid_status
+        return None
 
     @property
     def internalException(self):
@@ -2197,8 +2042,9 @@ class BambuPrinter:
         return self._sdcard_3mf_files
 
     @property
+    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.hms_errors`.")
     def hms_data(self):
-        return self._hms_data
+        return self._printer_state.hms_errors
 
     @property
     def skipped_objects(self):
