@@ -132,6 +132,8 @@ class BambuClimate:
     """Top vent status - derived from exhaust fan on and cooling ac mode."""
     is_chamber_door_open: bool = False
     """ For printers that support it (see `PrinterCapabilities.has_chamber_door_sensor`), reports whether the chamber door is open """
+    is_chamber_lid_open: bool = False
+    """ For printers that support it (see `PrinterCapabilities.has_chamber_door_sensor`), reports whether the chamber lid is open """
 
 
 @dataclass
@@ -239,8 +241,14 @@ class BambuState:
         if len(extruder_root.get("info", [])) > 1:
             caps["has_dual_extruder"] = True
 
-        caps["has_lidar"] = "xcam" in p or "xcam" in info
         caps["has_camera"] = True
+
+        xcam_data = p.get("xcam", None)
+        if xcam_data:
+            caps["has_lidar"] = xcam_data.get("first_layer_inspector", False)
+        else:
+            caps["has_lidar"] = config.capabilities.has_lidar
+
         new_caps = PrinterCapabilities(**caps)
 
         climate = asdict(base.climate)
@@ -259,6 +267,7 @@ class BambuState:
             updates["stat"] = p.get("stat", base.stat)
             stat = int(updates["stat"], 16)
             updates["climate"].is_chamber_door_open = bool((stat >> 23) & 0x01)
+            updates["climate"].is_chamber_lid_open = bool((stat >> 24) & 0x01)
 
         if (
             updates["gcode_state"] in ("FAILED", "FINISH")
@@ -324,6 +333,11 @@ class BambuState:
                 updates["climate"].zone_exhaust_percent > 0
                 and not updates["climate"].zone_intake_open
             )
+            # bit 58 apparently has the top vent value
+            # is_top_vent_closed_bit = (fun >> 58) & 1
+            # print(f"\r\ntop bit=[{is_top_vent_closed_bit != 1}] update=[{updates['climate'].zone_top_vent_open}]\r\n")
+            # if (not is_top_vent_closed_bit) != updates["climate"].zone_top_vent_open:
+            #     updates["climate"].zone_top_vent_open = not is_top_vent_closed_bit
 
         # THERMALS & CTC DECODING
         updates["climate"].bed_temp = float(p.get("bed_temper", base.climate.bed_temp))

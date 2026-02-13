@@ -1146,7 +1146,8 @@ class BambuPrinter:
         self._watchdog_thread.start()
 
     def _on_message(self, msg: str):
-        logger.debug(f"_on_message - bambu_msg: [{msg}]")
+        log_msg = msg.replace("\n", "\r\n")
+        logger.debug(f"_on_message - bambu_msg: [{log_msg}]")
 
         message = json.loads(msg)
         self._printer_state = BambuState.fromJson(
@@ -1155,7 +1156,7 @@ class BambuPrinter:
 
         if "system" in message:
             # system = message["system"]
-            logger.warning(
+            logger.info(
                 f"\r_on_message - system message type received - bambu_msg: [{message}]"
             )
 
@@ -1164,7 +1165,7 @@ class BambuPrinter:
                 "command" in message["print"]
                 and not message["print"]["command"] == "push_status"
             ):
-                logger.warning(
+                logger.info(
                     f"\r_on_message - command message type received - bambu_msg: [{message}]"
                 )
 
