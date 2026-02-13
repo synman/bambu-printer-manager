@@ -12,7 +12,7 @@ exclude = ["bpm/ftpsclient"]
 
 [project]
 name = "bambu-printer-manager"
-version = "0.5.5"
+version = "1.0.0dev1"
 authors = [
   { name="Shell M. Shrader", email="shell@shellware.com" },
 ]
