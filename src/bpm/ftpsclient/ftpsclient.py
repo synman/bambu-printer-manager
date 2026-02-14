@@ -266,7 +266,7 @@ class IoTFTPSClient:
                         int(match.group("year")), month, int(match.group("day"))
                     )
                 else:  # "Nov 11 18:19"
-                    today = datetime.datetime.today()
+                    today = datetime.datetime.today().astimezone(datetime.timezone.utc)
                     date = datetime.datetime(
                         today.year,
                         month,
