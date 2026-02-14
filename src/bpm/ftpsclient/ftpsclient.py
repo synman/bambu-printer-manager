@@ -266,13 +266,14 @@ class IoTFTPSClient:
                         int(match.group("year")), month, int(match.group("day"))
                     )
                 else:  # "Nov 11 18:19"
-                    today = datetime.datetime.today()
+                    today = datetime.datetime.today().astimezone(datetime.timezone.utc)
                     date = datetime.datetime(
                         today.year,
                         month,
                         int(match.group("day")),
                         hour=int(match.group("hour")),
                         minute=int(match.group("minute")),
+                        tzinfo=datetime.timezone.utc,
                     )
                     if date > today:
                         date = (date + datetime.timedelta(days=-365))
