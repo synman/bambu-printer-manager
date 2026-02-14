@@ -1,8 +1,6 @@
 from enum import Enum, IntEnum
 from typing import Any
 
-from typing_extensions import deprecated
-
 from bpm.bambucommands import HMS_STATUS
 
 """
@@ -405,12 +403,6 @@ def getAMSSeriesByModel(model: AMSModel) -> AMSSeries:
 
 
 @staticmethod
-@deprecated("This method is deprecated (v1.0.0). Use `getPrinterModelBySerial`.")
-def getModelBySerial(serial: str) -> PrinterModel:
-    return getPrinterModelBySerial(serial)
-
-
-@staticmethod
 def getPrinterModelBySerial(serial: str) -> PrinterModel:
     """
     Returns the Printer model enum based on the provided serial #.
@@ -440,12 +432,6 @@ def getPrinterSeriesByModel(model: PrinterModel) -> PrinterSeries:
         return PrinterSeries[model.name[:2]]
     except (KeyError, AttributeError):
         return PrinterSeries.UNKNOWN
-
-
-@staticmethod
-@deprecated("This method is deprecated (v1.0.0). Use `getPrinterSeriesByModel`.")
-def getSeriesByModel(model: PrinterModel) -> PrinterSeries:
-    return getPrinterSeriesByModel(model)
 
 
 @staticmethod
@@ -533,33 +519,6 @@ def parseExtruderTrayState(extruder: int, idx, status) -> int:
         return -1
     else:
         return status & 0xFF
-
-
-@staticmethod
-@deprecated("This property is deprecated (v1.0.0). Use `scaleFanSpeed`.")
-def parseFan(fan: int) -> int:
-    """
-    !!! danger "Deprecated"
-    This property is deprecated (v1.0.0). Use `scaleFanSpeed`.
-    """
-    fan_map = {
-        1: 10,
-        2: 20,
-        3: 30,
-        4: 30,
-        5: 40,
-        6: 40,
-        7: 50,
-        8: 50,
-        9: 60,
-        10: 70,
-        11: 70,
-        12: 80,
-        13: 90,
-        14: 90,
-        15: 100,
-    }
-    return fan_map.get(int(fan), 0)
 
 
 @staticmethod

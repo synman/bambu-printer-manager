@@ -122,6 +122,8 @@ class BambuPrinter:
         self._nozzle_type = ""
         self._nozzle_diameter = 0.0
 
+    # region public methods
+
     def start_session(self):
         """
         Initiates a connection to the Bambu Lab printer and provides a stateful
@@ -266,6 +268,8 @@ class BambuPrinter:
         Acts as a context manager, so can be used with the with statement. In that case,
         the connection will be closed automatically, otherwise the calling code has to make
         sure to close it again.
+
+        This is an internal method.
         """
         ftps = None
         try:
@@ -489,6 +493,7 @@ class BambuPrinter:
         The return value of this method is very useful for binding to things like a clientside `TreeView`
         """
         logger.debug("get_sdcard_3mf_files - returning sdcard_3mf_files")
+        self.get_sdcard_contents()
         return self._sdcard_3mf_files
 
     def get_sdcard_contents(self):
@@ -688,7 +693,7 @@ class BambuPrinter:
         )
 
     def set_ams_user_setting(
-        self, setting: AMSUserSetting, enabled: bool, ams_id: int | None = 0
+        self, setting: AMSUserSetting, enabled: bool, ams_id: int = 0
     ):
         """
         Enable or disable one of the `AMSUserSetting` options
@@ -1112,6 +1117,426 @@ class BambuPrinter:
             )
             return "not available"
 
+    # endregion
+
+    # region properties
+
+    @property
+    def config(self) -> BambuConfig:
+        """The settings used to connect to and configure the printer's behavior."""
+        return self._config
+
+    @config.setter
+    def config(self, value: BambuConfig):
+        self._config = value
+
+    @property
+    def service_state(self):
+        """The current service connection state."""
+        return self._service_state
+
+    @service_state.setter
+    def service_state(self, value: ServiceState):
+        self._service_state = value
+        self._notify_update()  # make sure we notify about EVERY state change!
+
+    @property
+    def client(self) -> mqtt.Client:
+        """The networking client used to communicate with the printer.
+
+        This is a private property
+        """
+        if self._client:
+            return self._client
+        else:
+            # return mqtt.Client()
+            return mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)  # type: ignore
+
+    @client.setter
+    def client(self, value: mqtt.Client):
+        self._client = value
+
+    @property
+    def on_update(self):
+        """The callback function executed whenever the printer's state is updated."""
+        return self._on_update
+
+    @on_update.setter
+    def on_update(self, value):
+        self._on_update = value
+
+    @property
+    def recent_update(self):
+        """Indicates if the printer's state has been updated recently."""
+        return self._recent_update
+
+    def set_bed_temp_target(self, value: int):
+        """
+        Sets the bed temperature target.
+
+        Parameters
+        ----------
+        * value : float - The target bed temperature.
+        """
+        if value < 0:
+            value = 0
+        gcode = SEND_GCODE_TEMPLATE
+        gcode["print"]["param"] = f"M140 S{value}\n"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(gcode)
+        )
+        logger.debug(
+            f"set_bed_temp_target - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
+        self._bed_temp_target_time = round(time.time())
+
+    def set_nozzle_temp_target(self, value: int, tool_num: int = -1):
+        """
+        Sets the nozzle temperature target.
+
+        Parameters
+        ----------
+        * value : float - The target nozzle temperature.
+        * tool_num : int - The tool number (default is 0).
+        """
+        if value < 0:
+            value = 0
+        gcode = SEND_GCODE_TEMPLATE
+        gcode["print"]["param"] = (
+            f"M104 S{value}{'' if tool_num == -1 else ' T' + str(tool_num)}\n"
+        )
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(gcode)
+        )
+        logger.debug(
+            f"set_nozzle_temp_target - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
+        self._tool_temp_target_time = round(time.time())
+
+    def set_chamber_temp(self, value: float):
+        """
+        for printers that do not have managed chambers, this enables you to inject
+        a chamber temperature value from an external source
+
+        Parameters
+        ----------
+        * value : float - The chamber temperature.
+        """
+        self._printer_state.climate.chamber_temp = value
+
+    def set_chamber_temp_target(self, value: int, temper_check: bool = True):
+        """
+        set chamber temperature target if printer supports it, otherwise just
+        store the value
+
+        Parameters
+        ----------
+        * value : float - The target chamber temperature.
+        * temper_check : OPTIONAL bool - perform a temperature check?
+        """
+        if self.config.capabilities.has_chamber_temp:
+            cmd = copy.deepcopy(SET_CHAMBER_TEMP_TARGET)
+            cmd["print"]["ctt_val"] = value
+            cmd["print"]["temper_check"] = temper_check
+
+            self.client.publish(
+                f"device/{self.config.serial_number}/request", json.dumps(cmd)
+            )
+            logger.debug(
+                f"set_chamber_temp_target - published SET_CHAMBER_TEMP_TARGET to [device/{self.config.serial_number}/request] command: [{cmd}]"
+            )
+
+            cmd = copy.deepcopy(SET_CHAMBER_AC_MODE)
+
+            if value < 40:
+                cmd["print"]["modeId"] = 0
+            else:
+                cmd["print"]["modeId"] = 1
+            self.client.publish(
+                f"device/{self.config.serial_number}/request", json.dumps(cmd)
+            )
+            logger.debug(
+                f"set_chamber_temp_target - published SET_CHAMBER_AC_MODE to [device/{self.config.serial_number}/request] command: [{cmd}]"
+            )
+
+        self._printer_state.climate.chamber_temp_target = value
+        self._chamber_temp_target_time = round(time.time())
+
+    def set_part_cooling_fan_speed_target_percent(self, value: int):
+        """
+        sets the part cooling fan speed target represented in percent
+
+        Parameters
+        ----------
+        * value : int - The target speed in percent
+        """
+        if value < 0:
+            value = 0
+        self._printer_state.climate.part_cooling_fan_speed_target_percent = value
+        speed = round(value * 2.55, 0)
+        gcode = SEND_GCODE_TEMPLATE
+        gcode["print"]["param"] = f"M106 P1 S{speed}\n"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(gcode)
+        )
+        logger.debug(
+            f"set_part_cooling_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
+        self._fan_speed_target_time = round(time.time())
+
+    def set_aux_fan_speed_target_percent(self, value: int):
+        """
+        sets the aux (chamber recirculation) fan speed target represented in percent
+
+        Parameters
+        ----------
+        * value : int - The target speed in percent
+        """
+        if value < 0:
+            value = 0
+        self._printer_state.climate.zone_aux_percent = value
+        speed = round(value * 2.55, 0)
+        gcode = SEND_GCODE_TEMPLATE
+        gcode["print"]["param"] = f"M106 P2 S{speed}\n"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(gcode)
+        )
+        logger.debug(
+            f"set_aux_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
+        # self._fan_speed_target_time = round(time.time())
+
+    def set_exhaust_fan_speed_target_percent(self, value: int):
+        """
+        sets the exhaust (chamber) fan speed target represented in percent
+
+        Parameters
+        ----------
+        * value : int - The target speed in percent
+        """
+        if value < 0:
+            value = 0
+        self._printer_state.climate.zone_exhaust_percent = value
+        speed = round(value * 2.55, 0)
+        gcode = SEND_GCODE_TEMPLATE
+        gcode["print"]["param"] = f"M106 P3 S{speed}\n"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(gcode)
+        )
+        logger.debug(
+            f"set_exhaust_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
+        # self._fan_speed_target_time = round(time.time())
+
+    @property
+    def bed_temp_target_time(self):
+        """Timestamp of the last change to the heatbed target temperature."""
+        return self._bed_temp_target_time
+
+    @property
+    def tool_temp_target_time(self):
+        """Timestamp of the last change to the nozzle target temperature."""
+        return self._tool_temp_target_time
+
+    @property
+    def chamber_temp_target_time(self):
+        """Timestamp of the last change to the chamber target temperature."""
+        return self._chamber_temp_target_time
+
+    @property
+    def fan_speed_target_time(self):
+        """Timestamp of the last change to the part fan target speed."""
+        return self._fan_speed_target_time
+
+    @property
+    def light_state(self):
+        """The status of the printer lights. Toggling this will update all lights on the machine."""
+        return self._light_state == "on"
+
+    @light_state.setter
+    def light_state(self, value: bool):
+        value = bool(value)
+        cmd = copy.deepcopy(CHAMBER_LIGHT_TOGGLE)
+
+        if value:
+            cmd["system"]["led_mode"] = "on"
+        else:
+            cmd["system"]["led_mode"] = "off"
+
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+        logger.debug(
+            f"light_state.setter - publishing CHAMBER_LIGHT_TOGGLE to [device/{self.config.serial_number}/request] - chamber_light"
+        )
+
+        cmd["system"]["led_node"] = "chamber_light2"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+        logger.debug(
+            f"light_state.setter - publishing CHAMBER_LIGHT_TOGGLE to [device/{self.config.serial_number}/request] - chamber_light2"
+        )
+
+        cmd["system"]["led_node"] = "column_light"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+        logger.debug(
+            f"light_state.setter - publishing CHAMBER_LIGHT_TOGGLE to [device/{self.config.serial_number}/request] - column_light"
+        )
+
+    @property
+    def speed_level(self):
+        """The active print speed mode. Updating this will change the printer's execution speed."""
+        return self._speed_level
+
+    @speed_level.setter
+    def speed_level(self, value: str):
+        value = str(value)
+        cmd = SPEED_PROFILE_TEMPLATE
+        cmd["print"]["param"] = value
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+
+    @property
+    @deprecated("This property is deprecated (v1.0.0). No replacement yet.")
+    def subtask_name(self):
+        """
+        The name of the current printing task.
+        !!! danger "Deprecated"
+        This property is deprecated  No replacement yet.
+        """
+        return self._subtask_name
+
+    @property
+    @deprecated("This property is deprecated (v1.0.0). No replacement yet.")
+    def current_3mf_file(self):
+        """The path to the 3mf file currently being printed.
+
+        !!! danger "Deprecated"
+            This property is deprecated (v1.0.0). No replacement yet.
+        """
+        return self._3mf_file
+
+    @property
+    @deprecated("This property is deprecated (v1.0.0). No replacement yet.")
+    def current_3mf_file_md5(self):
+        """The checksum used to verify the current project file.
+
+        !!! danger "Deprecated"
+            This property is deprecated (v1.0.0). No replacement yet.
+        """
+        return self._3mf_file_md5
+
+    @property
+    @deprecated("This property is deprecated (v1.0.0). No replacement yet.")
+    def current_plate_num(self):
+        """The plate number selected for the current job.
+
+        !!! danger "Deprecated"
+            This property is deprecated (v1.0.0). No replacement yet.
+        """
+        return self._plate_num
+
+    @property
+    @deprecated("This property is deprecated (v1.0.0). No replacement yet.")
+    def current_plate_type(self):
+        """The type of build plate required for the current print.
+
+        !!! danger "Deprecated"
+            This property is deprecated (v1.0.0). No replacement yet.
+        """
+        return self._plate_type
+
+    @property
+    @deprecated("This property is deprecated (v1.0.0). No replacement yet.")
+    def gcode_file(self):
+        """The name of the G-code file currently in use.
+
+        !!! danger "Deprecated"
+            This property is deprecated (v1.0.0). No replacement yet.
+        """
+        return self._gcode_file
+
+    @gcode_file.setter
+    def gcode_file(self, value):
+        self._gcode_file = value
+
+    @property
+    @deprecated("This property is deprecated (v1.0.0). No replacement yet.")
+    def print_type(self):
+        """Indicates how the current print job was initiated.
+
+        !!! danger "Deprecated"
+            This property is deprecated (v1.0.0). No replacement yet.
+        """
+        return self._print_type
+
+    @property
+    def printer_state(self) -> BambuState:
+        """The current status and sensor data for the printer."""
+        return self._printer_state if self._printer_state else BambuState()
+
+    @property
+    def internalException(self):
+        """The last error captured during printer communication."""
+        return self._internalException
+
+    @property
+    def cached_sd_card_contents(self):
+        """A list of all files and folders found on the printer's SD card."""
+        return self._sdcard_contents
+
+    @property
+    def cached_sd_card_3mf_files(self):
+        """A list of only the 3mf files found on the SD card."""
+        return self._sdcard_3mf_files
+
+    @property
+    def skipped_objects(self):
+        """A list of objects that have been excluded from the current print."""
+        return self._skipped_objects
+
+    @property
+    @deprecated("This property is deprecated (v1.0.0). No replacement yet.")
+    def nozzle_diameter(self) -> NozzleDiameter:
+        """The diameter of the nozzle currently installed on the printer.
+
+        !!! danger "Deprecated"
+            This property is deprecated (v1.0.0). No replacement yet.
+        """
+        try:
+            return NozzleDiameter(float(self._nozzle_diameter))
+        except (ValueError, TypeError, KeyError) as e:
+            logger.warning(f"nozzle_diameter - exception: [{e}]")
+            return NozzleDiameter.UNKNOWN
+
+    @property
+    @deprecated("This property is deprecated (v1.0.0). No replacement yet.")
+    def nozzle_type(self) -> NozzleType:
+        """The type of nozzle currently installed on the printer.
+
+        !!! danger "Deprecated"
+            This property is deprecated (v1.0.0). No replacement yet.
+        """
+        if not self._nozzle_type:
+            return NozzleType.UNKNOWN
+        try:
+            return NozzleType[self._nozzle_type.upper()]
+        except (ValueError, TypeError, KeyError) as e:
+            logger.warning(f"nozzle_type - exception: [{e}]")
+            return NozzleType.UNKNOWN
+
+    # endregion
+
+    # region private methods
+
+    def _notify_update(self):
+        if self.on_update:
+            self.on_update(self)
+
     def _start_watchdog(self):
         def watchdog_thread(printer):
             try:
@@ -1157,7 +1582,7 @@ class BambuPrinter:
         if "system" in message:
             # system = message["system"]
             logger.info(
-                f"\r_on_message - system message type received - bambu_msg: [{message}]"
+                f"_on_message - system message type received - bambu_msg: [{message}]"
             )
 
         elif "print" in message:
@@ -1166,7 +1591,7 @@ class BambuPrinter:
                 and not message["print"]["command"] == "push_status"
             ):
                 logger.info(
-                    f"\r_on_message - command message type received - bambu_msg: [{message}]"
+                    f"_on_message - command message type received - bambu_msg: [{message}]"
                 )
 
             status = message["print"]
@@ -1194,9 +1619,6 @@ class BambuPrinter:
                     PlateType[bed_type.upper()]
                     if bed_type and bed_type.upper() in PlateType.__members__
                     else PlateType.NONE
-                )
-                logger.info(
-                    f"\r\nplate=[{self._plate_num}] md5=[{self._3mf_file_md5}]\r\n"
                 )
 
             # let's sleep for a couple seconds and do a full refresh
@@ -1481,595 +1903,5 @@ class BambuPrinter:
         dir["children"] = items
         return dir
 
-    @property
-    def config(self) -> BambuConfig:
-        return self._config
 
-    @config.setter
-    def config(self, value: BambuConfig):
-        self._config = value
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). Use `service_state`.")
-    def state(self):
-        return self._service_state.value
-
-    @property
-    def service_state(self):
-        return self._service_state
-
-    @service_state.setter
-    def service_state(self, value: ServiceState):
-        self._service_state = value
-        self._notify_update()  # make sure we notify about EVERY state change!
-
-    @property
-    def client(self) -> mqtt.Client:
-        if self._client:
-            return self._client
-        else:
-            # return mqtt.Client()
-            return mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)  # type: ignore
-
-    @client.setter
-    def client(self, value: mqtt.Client):
-        self._client = value
-
-    @property
-    def on_update(self):
-        """
-        sets or returns the callback function that is called when the printer state is updated
-
-        Parameters
-        ----------
-        * value : method - (setter) The method to call.
-        """
-        return self._on_update
-
-    @on_update.setter
-    def on_update(self, value):
-        self._on_update = value
-
-    @property
-    def recent_update(self):
-        return self._recent_update
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.bed_temp`.")
-    def bed_temp(self):
-        """
-        returns the current bed temperature
-        !!! danger "Deprecated"
-        This property is deprecated (v1.0.0). Use `BambuState.bed_temp` instead.
-        """
-        return self._printer_state.climate.bed_temp
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.bed_temp_target`.")
-    def bed_temp_target(self):
-        """
-        returns or sets the bed temperature target
-        !!! danger "Deprecated"
-        This property is deprecated (v1.0.0). Use `BambuState.bed_temp_target` and `set_bed_temp_target`.
-        """
-        return self._printer_state.climate.bed_temp_target
-
-    @bed_temp_target.setter
-    @deprecated("This property is deprecated (v1.0.0). Use `set_bed_temp_target`.")
-    def bed_temp_target(self, value: int):
-        self.set_bed_temp_target(value)
-
-    def set_bed_temp_target(self, value: int):
-        """
-        Sets the bed temperature target.
-
-        Parameters
-        ----------
-        * value : float - The target bed temperature.
-        """
-        if value < 0:
-            value = 0
-        gcode = SEND_GCODE_TEMPLATE
-        gcode["print"]["param"] = f"M140 S{value}\n"
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(gcode)
-        )
-        logger.debug(
-            f"set_bed_temp_target - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
-        )
-        self._bed_temp_target_time = round(time.time())
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.nozzle_temp`.")
-    def tool_temp(self):
-        """
-        returns or sets the tool temperature
-        !!! danger "Deprecated"
-        This property is deprecated (v1.0.0). Use `BambuState.nozzle_temp`.
-        """
-        return self._printer_state.active_nozzle_temp
-
-    @property
-    @deprecated(
-        "This property is deprecated (v1.0.0). Use `BambuState.nozzle_temp_target`."
-    )
-    def tool_temp_target(self):
-        """
-        returns or sets the nozzle temperature target
-        !!! danger "Deprecated"
-        This property is deprecated (v1.0.0). Use `BambuState.nozzle_temp`.
-        """
-        return self._printer_state.active_nozzle_temp_target
-
-    @tool_temp_target.setter
-    @deprecated("This property is deprecated (v1.0.0). Use `set_nozzle_temp_target`.")
-    def tool_temp_target(self, value: int):
-        self.set_nozzle_temp_target(value)
-
-    def set_nozzle_temp_target(self, value: int, tool_num: int = -1):
-        """
-        Sets the nozzle temperature target.
-
-        Parameters
-        ----------
-        * value : float - The target nozzle temperature.
-        * tool_num : int - The tool number (default is 0).
-        """
-        if value < 0:
-            value = 0
-        gcode = SEND_GCODE_TEMPLATE
-        gcode["print"]["param"] = (
-            f"M104 S{value}{'' if tool_num == -1 else ' T' + str(tool_num)}\n"
-        )
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(gcode)
-        )
-        logger.debug(
-            f"set_nozzle_temp_target - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
-        )
-        self._tool_temp_target_time = round(time.time())
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.chamber_temp`.")
-    def chamber_temp(self):
-        """
-        returns or sets the nozzle temperature target
-        !!! danger "Deprecated"
-        This property is deprecated (v1.0.0). Use `BambuState.chamber_temp` and `set_chamber_temp`.
-        """
-        return self._printer_state.climate.chamber_temp
-
-    @chamber_temp.setter
-    @deprecated("This property is deprecated (v1.0.0). Use `set_chamber_temp`.")
-    def chamber_temp(self, value: float):
-        self.set_chamber_temp(value)
-
-    def set_chamber_temp(self, value: float):
-        """
-        for printers that do not have managed chambers, this enables you to inject
-        a chamber temperature value from an external source
-
-        Parameters
-        ----------
-        * value : float - The chamber temperature.
-        """
-        self._printer_state.climate.chamber_temp = value
-
-    @property
-    @deprecated(
-        "This property is deprecated (v1.0.0). Use `BambuState.chamber_temp_target`."
-    )
-    def chamber_temp_target(self):
-        """
-        returns or sets the chamber temperature target
-        !!! danger "Deprecated"
-        This property is deprecated (v1.0.0). Use `BambuState.chamber_temp_target` and `set_chamber_temp_target`.
-        """
-        return self._printer_state.climate.chamber_temp_target
-
-    @chamber_temp_target.setter
-    @deprecated("This property is deprecated (v1.0.0). Use `set_chamber_temp_target`.")
-    def chamber_temp_target(self, value: int):
-        self.set_chamber_temp_target(value)
-
-    def set_chamber_temp_target(self, value: int, temper_check: bool = True):
-        """
-        set chamber temperature target if printer supports it, otherwise just
-        store the value
-
-        Parameters
-        ----------
-        * value : float - The target chamber temperature.
-        * temper_check : OPTIONAL bool - perform a temperature check?
-        """
-        if self.config.capabilities.has_chamber_temp:
-            cmd = copy.deepcopy(SET_CHAMBER_TEMP_TARGET)
-            cmd["print"]["ctt_val"] = value
-            cmd["print"]["temper_check"] = temper_check
-
-            self.client.publish(
-                f"device/{self.config.serial_number}/request", json.dumps(cmd)
-            )
-            logger.debug(
-                f"set_chamber_temp_target - published SET_CHAMBER_TEMP_TARGET to [device/{self.config.serial_number}/request] command: [{cmd}]"
-            )
-
-            cmd = copy.deepcopy(SET_CHAMBER_AC_MODE)
-
-            if value < 40:
-                cmd["print"]["modeId"] = 0
-            else:
-                cmd["print"]["modeId"] = 1
-            self.client.publish(
-                f"device/{self.config.serial_number}/request", json.dumps(cmd)
-            )
-            logger.debug(
-                f"set_chamber_temp_target - published SET_CHAMBER_AC_MODE to [device/{self.config.serial_number}/request] command: [{cmd}]"
-            )
-
-        self._printer_state.climate.chamber_temp_target = value
-        self._chamber_temp_target_time = round(time.time())
-
-    @property
-    @deprecated(
-        "This property is deprecated (v1.0.0). Use `BambuState.part_cooling_fan_speed_percent`."
-    )
-    def fan_speed(self):
-        """
-        returns the part fan speed in percent
-        !!! danger "Deprecated"
-        This property is deprecated (v1.0.0). Use `BambuState.part_cooling_fan_speed_percent`.
-        """
-        return self._printer_state.climate.part_cooling_fan_speed_percent
-
-    @property
-    @deprecated(
-        "This property is deprecated (v1.0.0). Use `BambuState.part_cooling_fan_speed_target_percent`."
-    )
-    def fan_speed_target(self):
-        """
-        returns or sets the part cooling fan target speed in percent
-        !!! danger "Deprecated"
-        This property is deprecated (v1.0.0). Use `BambuState.part_cooling_fan_speed_target_percent` and `set_part_cooling_fan_speed_target_percent`.
-        """
-        return self._printer_state.climate.part_cooling_fan_speed_target_percent
-
-    @fan_speed_target.setter
-    @deprecated(
-        "This property is deprecated (v1.0.0). Use `set_part_cooling_fan_speed_target_percent`."
-    )
-    def fan_speed_target(self, value: int):
-        self.set_part_cooling_fan_speed_target_percent(value)
-
-    def set_part_cooling_fan_speed_target_percent(self, value: int):
-        """
-        sets the part cooling fan speed target represented in percent
-
-        Parameters
-        ----------
-        * value : int - The target speed in percent
-        """
-        if value < 0:
-            value = 0
-        self._printer_state.climate.part_cooling_fan_speed_target_percent = value
-        speed = round(value * 2.55, 0)
-        gcode = SEND_GCODE_TEMPLATE
-        gcode["print"]["param"] = f"M106 P1 S{speed}\n"
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(gcode)
-        )
-        logger.debug(
-            f"set_part_cooling_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
-        )
-        self._fan_speed_target_time = round(time.time())
-
-    def set_aux_fan_speed_target_percent(self, value: int):
-        """
-        sets the aux (chamber recirculation) fan speed target represented in percent
-
-        Parameters
-        ----------
-        * value : int - The target speed in percent
-        """
-        if value < 0:
-            value = 0
-        self._printer_state.climate.zone_aux_percent = value
-        speed = round(value * 2.55, 0)
-        gcode = SEND_GCODE_TEMPLATE
-        gcode["print"]["param"] = f"M106 P2 S{speed}\n"
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(gcode)
-        )
-        logger.debug(
-            f"set_aux_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
-        )
-        # self._fan_speed_target_time = round(time.time())
-
-    def set_exhaust_fan_speed_target_percent(self, value: int):
-        """
-        sets the exhaust (chamber) fan speed target represented in percent
-
-        Parameters
-        ----------
-        * value : int - The target speed in percent
-        """
-        if value < 0:
-            value = 0
-        self._printer_state.climate.zone_exhaust_percent = value
-        speed = round(value * 2.55, 0)
-        gcode = SEND_GCODE_TEMPLATE
-        gcode["print"]["param"] = f"M106 P3 S{speed}\n"
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(gcode)
-        )
-        logger.debug(
-            f"set_exhaust_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
-        )
-        # self._fan_speed_target_time = round(time.time())
-
-    @property
-    def bed_temp_target_time(self):
-        return self._bed_temp_target_time
-
-    @property
-    def tool_temp_target_time(self):
-        return self._tool_temp_target_time
-
-    @property
-    def chamber_temp_target_time(self):
-        return self._chamber_temp_target_time
-
-    @property
-    def fan_speed_target_time(self):
-        return self._fan_speed_target_time
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). There is no replacement.")
-    def fan_gear(self):
-        return None
-
-    @property
-    @deprecated(
-        "This property is deprecated (v1.0.0). Use `BambuState.heatbreak_fan_speed_percent`."
-    )
-    def heatbreak_fan_speed(self):
-        """
-        returns the heatbreak fan's current speed in percent
-        !!! danger "Deprecated"
-        This property is deprecated (v1.0.0). Use `BambuState.heatbreak_fan_speed_percent`.
-        """
-        return self._printer_state.climate.heatbreak_fan_speed_percent
-
-    @property
-    @deprecated(
-        "This property is deprecated (v1.0.0). Use BambuState.wifi_signal_strength`."
-    )
-    def wifi_signal(self):
-        """
-        returns the wifi signal strength in dBm
-        !!! danger "Deprecated"
-        This property is deprecated (v1.0.0). Use `BambuState.wifi_signal_strength`.
-        """
-        return self._printer_state.wifi_signal_strength
-
-    @property
-    def light_state(self):
-        return self._light_state == "on"
-
-    @light_state.setter
-    def light_state(self, value: bool):
-        value = bool(value)
-        cmd = copy.deepcopy(CHAMBER_LIGHT_TOGGLE)
-
-        if value:
-            cmd["system"]["led_mode"] = "on"
-        else:
-            cmd["system"]["led_mode"] = "off"
-
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(cmd)
-        )
-        logger.debug(
-            f"light_state.setter - publishing CHAMBER_LIGHT_TOGGLE to [device/{self.config.serial_number}/request] - chamber_light"
-        )
-
-        cmd["system"]["led_node"] = "chamber_light2"
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(cmd)
-        )
-        logger.debug(
-            f"light_state.setter - publishing CHAMBER_LIGHT_TOGGLE to [device/{self.config.serial_number}/request] - chamber_light2"
-        )
-
-        cmd["system"]["led_node"] = "column_light"
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(cmd)
-        )
-        logger.debug(
-            f"light_state.setter - publishing CHAMBER_LIGHT_TOGGLE to [device/{self.config.serial_number}/request] - column_light"
-        )
-
-    @property
-    def speed_level(self):
-        return self._speed_level
-
-    @speed_level.setter
-    def speed_level(self, value: str):
-        value = str(value)
-        cmd = SPEED_PROFILE_TEMPLATE
-        cmd["print"]["param"] = value
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(cmd)
-        )
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.gcode_state`.")
-    def gcode_state(self):
-        return self._printer_state.gcode_state
-
-    @property
-    def subtask_name(self):
-        return self._subtask_name
-
-    @property
-    def current_3mf_file(self):
-        return self._3mf_file
-
-    @property
-    def current_3mf_file_md5(self):
-        return self._3mf_file_md5
-
-    @property
-    def current_plate_num(self):
-        return self._plate_num
-
-    @property
-    def current_plate_type(self):
-        return self._plate_type
-
-    @property
-    def gcode_file(self):
-        return self._gcode_file
-
-    @gcode_file.setter
-    def gcode_file(self, value):
-        self._gcode_file = value
-
-    @property
-    def print_type(self):
-        return self._print_type
-
-    @property
-    @deprecated(
-        "This property is deprecated (v1.0.0). Use `BambuState.print_percentage`."
-    )
-    def percent_complete(self) -> int:
-        return self.printer_state.print_percentage
-
-    @property
-    @deprecated(
-        "This property is deprecated (v1.0.0). Use `BambuState.remaining_minutes`."
-    )
-    def time_remaining(self) -> int:
-        return int(self._printer_state.remaining_minutes)
-
-    @property
-    @deprecated(
-        "This property is deprecated (v1.0.0). Use `BambuState.monotonic_start_time`."
-    )
-    def start_time(self) -> int:
-        return self._printer_state.monotonic_start_time
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.elapsed_minutes`.")
-    def elapsed_time(self) -> int:
-        return self._printer_state.elapsed_minutes
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.total_layers`.")
-    def layer_count(self):
-        return self._printer_state.total_layers
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.current_layer`.")
-    def current_layer(self):
-        return self._printer_state.current_layer
-
-    @property
-    @deprecated(
-        "This property is deprecated (v1.0.0). Use `BambuState.current_stage_id`."
-    )
-    def current_stage(self):
-        return self._printer_state.current_stage_id
-
-    @property
-    @deprecated(
-        "This property is deprecated (v1.0.0). Use `BambuState.current_stage_name`."
-    )
-    def current_stage_text(self):
-        return self.printer_state.current_stage_name
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.spools`.")
-    def spools(self) -> tuple[BambuSpool, ...]:
-        return tuple(self._printer_state.spools)
-
-    @property
-    def printer_state(self) -> BambuState:
-        return self._printer_state if self._printer_state else BambuState()
-
-    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.target_tray_id`.")
-    def target_spool(self):
-        return self._printer_state.target_tray_id
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.active_tray_id`.")
-    def active_spool(self):
-        return self._printer_state.active_tray_id
-
-    @property
-    @deprecated(
-        "This property is deprecated (v1.0.0). Use `BambuState.active_tray_state`."
-    )
-    def spool_state(self):
-        return self._printer_state.active_tray_state
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.ams_status_text`.")
-    def ams_status(self):
-        return self._printer_state.ams_status_text
-
-    @property
-    @deprecated(
-        "This property is deprecated (v1.0.0). Use `BambuState.ams_connected_count > 0`."
-    )
-    def ams_exists(self):
-        return self._printer_state.ams_connected_count > 0
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). No replacement exists.")
-    def ams_rfid_status(self):
-        return None
-
-    @property
-    def internalException(self):
-        return self._internalException
-
-    @property
-    def cached_sd_card_contents(self):
-        return self._sdcard_contents
-
-    @property
-    def cached_sd_card_3mf_files(self):
-        return self._sdcard_3mf_files
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). Use `BambuState.hms_errors`.")
-    def hms_data(self):
-        return self._printer_state.hms_errors
-
-    @property
-    def skipped_objects(self):
-        return self._skipped_objects
-
-    @property
-    def nozzle_diameter(self) -> NozzleDiameter:
-        try:
-            return NozzleDiameter(float(self._nozzle_diameter))
-        except (ValueError, TypeError, KeyError) as e:
-            logger.warning(f"nozzle_diameter - exception: [{e}]")
-            return NozzleDiameter.UNKNOWN
-
-    @property
-    def nozzle_type(self) -> NozzleType:
-        if not self._nozzle_type:
-            return NozzleType.UNKNOWN
-        try:
-            return NozzleType[self._nozzle_type.upper()]
-        except (ValueError, TypeError, KeyError) as e:
-            logger.warning(f"nozzle_type - exception: [{e}]")
-            return NozzleType.UNKNOWN
-
-    def _notify_update(self):
-        if self.on_update:
-            self.on_update(self)
+# endregion
