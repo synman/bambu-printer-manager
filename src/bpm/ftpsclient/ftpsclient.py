@@ -273,6 +273,7 @@ class IoTFTPSClient:
                         int(match.group("day")),
                         hour=int(match.group("hour")),
                         minute=int(match.group("minute")),
+                        tzinfo=datetime.timezone.utc,
                     )
                     if date > today:
                         date = (date + datetime.timedelta(days=-365))
