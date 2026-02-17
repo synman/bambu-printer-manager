@@ -352,10 +352,10 @@ class BambuState:
             ctc_temp_target = int(ctc_temp_raw[1])
             updates["climate"].chamber_temp = ctc_temp
             updates["climate"].chamber_temp_target = ctc_temp_target
-        else:
-            updates["climate"].chamber_temp = p.get(
-                "chamber_temper", base.climate.chamber_temp
-            )
+        elif not config.external_chamber:
+            chamber_temp = int(p.get("chamber_temper", base.climate.chamber_temp))
+            if chamber_temp != 5:
+                updates["climate"].chamber_temp = chamber_temp
 
         if (
             ctc_temp_target == 0
@@ -537,6 +537,12 @@ class BambuState:
                 updates["active_tray_state"] = TrayState.UNLOADING
             else:
                 updates["active_tray_state"] = TrayState.LOADED
+
+            updates["active_ams_id"] = (
+                updates["active_tray_id"] >> 2
+                if updates["active_tray_id"] not in (254, 255)
+                else base.active_ams_id
+            )
 
         if "active_tray_id" in updates:
             updates["is_external_spool_active"] = updates["active_tray_id"] in [254, 255]
