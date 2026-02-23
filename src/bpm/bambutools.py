@@ -1,4 +1,7 @@
+import hashlib
+import logging
 from enum import Enum, IntEnum
+from pathlib import Path
 from typing import Any
 
 from bpm.bambucommands import HMS_STATUS
@@ -7,6 +10,8 @@ from bpm.bambucommands import HMS_STATUS
 `bambutools' hosts various classes and methods used internally and externally
 by `bambu-printer-manager`.
 """
+LoggerName = "bpm"
+logger = logging.getLogger(LoggerName)
 
 
 class ActiveTool(IntEnum):
@@ -636,3 +641,31 @@ def unpackTemperature(raw_temp: int) -> tuple[float, float]:
     Unpacks a 32-bit packed temperature integer into a tuple of (Actual, Target).
     """
     return float(raw_temp & 0xFFFF), float((raw_temp >> 16) & 0xFFFF)
+
+
+@staticmethod
+def get_file_md5(file_path: str | Path) -> str:
+    """
+    Generates an MD5 hex hash for a given file.
+
+    Args:
+        file_path: The path to the file (string or Path object).
+
+    Returns:
+        The 32-character MD5 hexadecimal string.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+    """
+    path = Path(file_path)
+
+    if not path.is_file():
+        raise FileNotFoundError(f"No file found at: {path}")
+
+    md5_hash = hashlib.md5()
+
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            md5_hash.update(chunk)
+
+    return md5_hash.hexdigest().upper()

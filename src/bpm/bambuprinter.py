@@ -41,18 +41,21 @@ from bpm.bambucommands import (
     STOP_PRINT,
     XCAM_CONTROL_SET,
 )
-from bpm.bambuconfig import BambuConfig, LoggerName
+from bpm.bambuconfig import BambuConfig
+from bpm.bambuproject import ActiveJobInfo, get_3mf_entry_by_name, get_project_info
 from bpm.bambuspool import BambuSpool
 from bpm.bambustate import BambuState
 from bpm.bambutools import (
     ActiveTool,
     AMSControlCommand,
     AMSUserSetting,
+    LoggerName,
     NozzleDiameter,
     NozzleType,
     PlateType,
     PrintOption,
     ServiceState,
+    parseStage,
     sortFileTreeAlphabetically,
 )
 from bpm.ftpsclient.ftpsclient import IoTFTPSClient
@@ -103,15 +106,8 @@ class BambuPrinter:
         self._light_state = ""
         self._speed_level = 0
 
-        self._gcode_file = ""
-        self._3mf_file = ""
-        self._3mf_file_md5 = ""
-        self._plate_num = 0
-        self._plate_type = PlateType.NONE
-        self._subtask_name = ""
-        self._print_type = ""
-
         self._printer_state = BambuState()
+        self._active_job_info = ActiveJobInfo()
 
         self._sdcard_contents = None
         self._sdcard_3mf_files = None
@@ -306,6 +302,164 @@ class BambuPrinter:
                 json.dumps(ANNOUNCE_PUSH),
             )
 
+    def set_bed_temp_target(self, value: int):
+        """
+        Sets the bed temperature target.
+
+        Parameters
+        ----------
+        * value : float - The target bed temperature.
+        """
+        if value < 0:
+            value = 0
+        gcode = SEND_GCODE_TEMPLATE
+        gcode["print"]["param"] = f"M140 S{value}\n"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(gcode)
+        )
+        logger.debug(
+            f"set_bed_temp_target - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
+        self._bed_temp_target_time = round(time.time())
+
+    def set_nozzle_temp_target(self, value: int, tool_num: int = -1):
+        """
+        Sets the nozzle temperature target.
+
+        Parameters
+        ----------
+        * value : float - The target nozzle temperature.
+        * tool_num : int - The tool number (default is 0).
+        """
+        if value < 0:
+            value = 0
+        gcode = SEND_GCODE_TEMPLATE
+        gcode["print"]["param"] = (
+            f"M104 S{value}{'' if tool_num == -1 else ' T' + str(tool_num)}\n"
+        )
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(gcode)
+        )
+        logger.debug(
+            f"set_nozzle_temp_target - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
+        self._tool_temp_target_time = round(time.time())
+
+    def set_chamber_temp(self, value: float):
+        """
+        for printers that do not have managed chambers, this enables you to inject
+        a chamber temperature value from an external source
+
+        Parameters
+        ----------
+        * value : float - The chamber temperature.
+        """
+        self._printer_state.climate.chamber_temp = value
+
+    def set_chamber_temp_target(self, value: int, temper_check: bool = True):
+        """
+        set chamber temperature target if printer supports it, otherwise just
+        store the value
+
+        Parameters
+        ----------
+        * value : float - The target chamber temperature.
+        * temper_check : OPTIONAL bool - perform a temperature check?
+        """
+        if self.config.capabilities and self.config.capabilities.has_chamber_temp:
+            cmd = copy.deepcopy(SET_CHAMBER_TEMP_TARGET)
+            cmd["print"]["ctt_val"] = value
+            cmd["print"]["temper_check"] = temper_check
+
+            self.client.publish(
+                f"device/{self.config.serial_number}/request", json.dumps(cmd)
+            )
+            logger.debug(
+                f"set_chamber_temp_target - published SET_CHAMBER_TEMP_TARGET to [device/{self.config.serial_number}/request] command: [{cmd}]"
+            )
+
+            cmd = copy.deepcopy(SET_CHAMBER_AC_MODE)
+
+            if value < 40:
+                cmd["print"]["modeId"] = 0
+            else:
+                cmd["print"]["modeId"] = 1
+            self.client.publish(
+                f"device/{self.config.serial_number}/request", json.dumps(cmd)
+            )
+            logger.debug(
+                f"set_chamber_temp_target - published SET_CHAMBER_AC_MODE to [device/{self.config.serial_number}/request] command: [{cmd}]"
+            )
+
+        self._printer_state.climate.chamber_temp_target = value
+        self._chamber_temp_target_time = round(time.time())
+
+    def set_part_cooling_fan_speed_target_percent(self, value: int):
+        """
+        sets the part cooling fan speed target represented in percent
+
+        Parameters
+        ----------
+        * value : int - The target speed in percent
+        """
+        if value < 0:
+            value = 0
+        self._printer_state.climate.part_cooling_fan_speed_target_percent = value
+        speed = round(value * 2.55, 0)
+        gcode = SEND_GCODE_TEMPLATE
+        gcode["print"]["param"] = f"M106 P1 S{speed}\n"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(gcode)
+        )
+        logger.debug(
+            f"set_part_cooling_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
+        self._fan_speed_target_time = round(time.time())
+
+    def set_aux_fan_speed_target_percent(self, value: int):
+        """
+        sets the aux (chamber recirculation) fan speed target represented in percent
+
+        Parameters
+        ----------
+        * value : int - The target speed in percent
+        """
+        if value < 0:
+            value = 0
+        self._printer_state.climate.zone_aux_percent = value
+        speed = round(value * 2.55, 0)
+        gcode = SEND_GCODE_TEMPLATE
+        gcode["print"]["param"] = f"M106 P2 S{speed}\n"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(gcode)
+        )
+        logger.debug(
+            f"set_aux_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
+        # self._fan_speed_target_time = round(time.time())
+
+    def set_exhaust_fan_speed_target_percent(self, value: int):
+        """
+        sets the exhaust (chamber) fan speed target represented in percent
+
+        Parameters
+        ----------
+        * value : int - The target speed in percent
+        """
+        if value < 0:
+            value = 0
+        self._printer_state.climate.zone_exhaust_percent = value
+        speed = round(value * 2.55, 0)
+        gcode = SEND_GCODE_TEMPLATE
+        gcode["print"]["param"] = f"M106 P3 S{speed}\n"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(gcode)
+        )
+        logger.debug(
+            f"set_exhaust_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
+        # self._fan_speed_target_time = round(time.time())
+
     def unload_filament(self, ams_id: int = 0):
         """
         Requests the printer to unload whatever filament / spool may be currently loaded.
@@ -412,9 +566,9 @@ class BambuPrinter:
         * `[0,-1,-1,3]`  - use AMS spools #1 and #4
         * `[0,1,2,3]`    - use all 4 AMS spools
         """
-        self._3mf_file = f"{name}"
-        self._plate_num = int(plate)
-        self._plate_type = bed
+        _3mf_file = f"{name}"
+        _plate_num = int(plate)
+        # _plate_type = bed
 
         file = copy.deepcopy(PRINT_3MF_FILE)
 
@@ -430,11 +584,16 @@ class BambuPrinter:
             else subtask
         )
 
-        file["print"]["file"] = self._3mf_file
-        file["print"]["url"] = f"file:///sdcard{self._3mf_file}"
+        # prefix = "/media/usb0"
+        # if getPrinterSeriesByModel(self.config.printer_model) == PrinterSeries.A1:
+        #     prefix = "/sdcard"
+
+        file["print"]["file"] = _3mf_file
+        # file["print"]["url"] = f"file://{prefix}{_3mf_file}"
+        file["print"]["url"] = f"ftp://{_3mf_file}"
         file["print"]["subtask_name"] = subtask
         file["print"]["bed_type"] = bed.name.lower()
-        file["print"]["param"] = file["print"]["param"].replace("#", str(self._plate_num))
+        file["print"]["param"] = file["print"]["param"].replace("#", str(_plate_num))
         file["print"]["use_ams"] = use_ams
         if ams_mapping and len(ams_mapping) > 0:
             file["print"]["ams_mapping"] = json.loads(ams_mapping)
@@ -612,7 +771,12 @@ class BambuPrinter:
         logger.debug(f"upload_sdcard_file - uploading file src: [{src}] dest: [{dest}]")
         with self.ftp_connection() as ftps:
             ftps.upload_file(src, dest)
-        return self.get_sdcard_contents()
+
+        if src.endswith(".3mf"):
+            get_project_info(dest, self, local_file=src)
+
+        remote_files = self.get_sdcard_contents()
+        return remote_files
 
     def download_sdcard_file(self, src: str, dest: str):
         """
@@ -1104,22 +1268,22 @@ class BambuPrinter:
         """
         try:
             if isinstance(obj, mqtt.Client) or isinstance(obj, Thread):
-                return "these are not the droids you are looking for"
+                return ""
             if (
                 str(obj.__class__).replace("<class '", "").replace("'>", "")
                 == "mappingproxy"
             ):
-                return "this space intentionally left blank"
-            return obj.__dict__
-        except Exception:
+                return ""
+            return getattr(obj, "__dict__", str(obj))
+        except Exception as e:
             logger.warning(
-                f"jsonSerializer - unable to serialize object - 'obj': [{obj}]"
+                f"jsonSerializer - unable to serialize object - 'obj': [{obj}] - [{e}]"
             )
-            return "not available"
+            return ""
 
     # endregion
 
-    # region properties
+    # region public properties
 
     @property
     def config(self) -> BambuConfig:
@@ -1169,164 +1333,6 @@ class BambuPrinter:
     def recent_update(self):
         """Indicates if the printer's state has been updated recently."""
         return self._recent_update
-
-    def set_bed_temp_target(self, value: int):
-        """
-        Sets the bed temperature target.
-
-        Parameters
-        ----------
-        * value : float - The target bed temperature.
-        """
-        if value < 0:
-            value = 0
-        gcode = SEND_GCODE_TEMPLATE
-        gcode["print"]["param"] = f"M140 S{value}\n"
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(gcode)
-        )
-        logger.debug(
-            f"set_bed_temp_target - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
-        )
-        self._bed_temp_target_time = round(time.time())
-
-    def set_nozzle_temp_target(self, value: int, tool_num: int = -1):
-        """
-        Sets the nozzle temperature target.
-
-        Parameters
-        ----------
-        * value : float - The target nozzle temperature.
-        * tool_num : int - The tool number (default is 0).
-        """
-        if value < 0:
-            value = 0
-        gcode = SEND_GCODE_TEMPLATE
-        gcode["print"]["param"] = (
-            f"M104 S{value}{'' if tool_num == -1 else ' T' + str(tool_num)}\n"
-        )
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(gcode)
-        )
-        logger.debug(
-            f"set_nozzle_temp_target - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
-        )
-        self._tool_temp_target_time = round(time.time())
-
-    def set_chamber_temp(self, value: float):
-        """
-        for printers that do not have managed chambers, this enables you to inject
-        a chamber temperature value from an external source
-
-        Parameters
-        ----------
-        * value : float - The chamber temperature.
-        """
-        self._printer_state.climate.chamber_temp = value
-
-    def set_chamber_temp_target(self, value: int, temper_check: bool = True):
-        """
-        set chamber temperature target if printer supports it, otherwise just
-        store the value
-
-        Parameters
-        ----------
-        * value : float - The target chamber temperature.
-        * temper_check : OPTIONAL bool - perform a temperature check?
-        """
-        if self.config.capabilities.has_chamber_temp:
-            cmd = copy.deepcopy(SET_CHAMBER_TEMP_TARGET)
-            cmd["print"]["ctt_val"] = value
-            cmd["print"]["temper_check"] = temper_check
-
-            self.client.publish(
-                f"device/{self.config.serial_number}/request", json.dumps(cmd)
-            )
-            logger.debug(
-                f"set_chamber_temp_target - published SET_CHAMBER_TEMP_TARGET to [device/{self.config.serial_number}/request] command: [{cmd}]"
-            )
-
-            cmd = copy.deepcopy(SET_CHAMBER_AC_MODE)
-
-            if value < 40:
-                cmd["print"]["modeId"] = 0
-            else:
-                cmd["print"]["modeId"] = 1
-            self.client.publish(
-                f"device/{self.config.serial_number}/request", json.dumps(cmd)
-            )
-            logger.debug(
-                f"set_chamber_temp_target - published SET_CHAMBER_AC_MODE to [device/{self.config.serial_number}/request] command: [{cmd}]"
-            )
-
-        self._printer_state.climate.chamber_temp_target = value
-        self._chamber_temp_target_time = round(time.time())
-
-    def set_part_cooling_fan_speed_target_percent(self, value: int):
-        """
-        sets the part cooling fan speed target represented in percent
-
-        Parameters
-        ----------
-        * value : int - The target speed in percent
-        """
-        if value < 0:
-            value = 0
-        self._printer_state.climate.part_cooling_fan_speed_target_percent = value
-        speed = round(value * 2.55, 0)
-        gcode = SEND_GCODE_TEMPLATE
-        gcode["print"]["param"] = f"M106 P1 S{speed}\n"
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(gcode)
-        )
-        logger.debug(
-            f"set_part_cooling_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
-        )
-        self._fan_speed_target_time = round(time.time())
-
-    def set_aux_fan_speed_target_percent(self, value: int):
-        """
-        sets the aux (chamber recirculation) fan speed target represented in percent
-
-        Parameters
-        ----------
-        * value : int - The target speed in percent
-        """
-        if value < 0:
-            value = 0
-        self._printer_state.climate.zone_aux_percent = value
-        speed = round(value * 2.55, 0)
-        gcode = SEND_GCODE_TEMPLATE
-        gcode["print"]["param"] = f"M106 P2 S{speed}\n"
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(gcode)
-        )
-        logger.debug(
-            f"set_aux_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
-        )
-        # self._fan_speed_target_time = round(time.time())
-
-    def set_exhaust_fan_speed_target_percent(self, value: int):
-        """
-        sets the exhaust (chamber) fan speed target represented in percent
-
-        Parameters
-        ----------
-        * value : int - The target speed in percent
-        """
-        if value < 0:
-            value = 0
-        self._printer_state.climate.zone_exhaust_percent = value
-        speed = round(value * 2.55, 0)
-        gcode = SEND_GCODE_TEMPLATE
-        gcode["print"]["param"] = f"M106 P3 S{speed}\n"
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(gcode)
-        )
-        logger.debug(
-            f"set_exhaust_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
-        )
-        # self._fan_speed_target_time = round(time.time())
 
     @property
     def bed_temp_target_time(self):
@@ -1401,83 +1407,14 @@ class BambuPrinter:
         )
 
     @property
-    @deprecated("This property is deprecated (v1.0.0). No replacement yet.")
-    def subtask_name(self):
-        """
-        The name of the current printing task.
-        !!! danger "Deprecated"
-        This property is deprecated  No replacement yet.
-        """
-        return self._subtask_name
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). No replacement yet.")
-    def current_3mf_file(self):
-        """The path to the 3mf file currently being printed.
-
-        !!! danger "Deprecated"
-            This property is deprecated (v1.0.0). No replacement yet.
-        """
-        return self._3mf_file
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). No replacement yet.")
-    def current_3mf_file_md5(self):
-        """The checksum used to verify the current project file.
-
-        !!! danger "Deprecated"
-            This property is deprecated (v1.0.0). No replacement yet.
-        """
-        return self._3mf_file_md5
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). No replacement yet.")
-    def current_plate_num(self):
-        """The plate number selected for the current job.
-
-        !!! danger "Deprecated"
-            This property is deprecated (v1.0.0). No replacement yet.
-        """
-        return self._plate_num
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). No replacement yet.")
-    def current_plate_type(self):
-        """The type of build plate required for the current print.
-
-        !!! danger "Deprecated"
-            This property is deprecated (v1.0.0). No replacement yet.
-        """
-        return self._plate_type
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). No replacement yet.")
-    def gcode_file(self):
-        """The name of the G-code file currently in use.
-
-        !!! danger "Deprecated"
-            This property is deprecated (v1.0.0). No replacement yet.
-        """
-        return self._gcode_file
-
-    @gcode_file.setter
-    def gcode_file(self, value):
-        self._gcode_file = value
-
-    @property
-    @deprecated("This property is deprecated (v1.0.0). No replacement yet.")
-    def print_type(self):
-        """Indicates how the current print job was initiated.
-
-        !!! danger "Deprecated"
-            This property is deprecated (v1.0.0). No replacement yet.
-        """
-        return self._print_type
-
-    @property
     def printer_state(self) -> BambuState:
         """The current status and sensor data for the printer."""
-        return self._printer_state if self._printer_state else BambuState()
+        return self._printer_state
+
+    @property
+    def active_job_info(self) -> ActiveJobInfo:
+        """Details related to the current / last active job"""
+        return self._active_job_info
 
     @property
     def internalException(self):
@@ -1495,6 +1432,7 @@ class BambuPrinter:
         return self._sdcard_3mf_files
 
     @property
+    @deprecated("This property is deprecated (v1.0.0). No replacement yet.")
     def skipped_objects(self):
         """A list of objects that have been excluded from the current print."""
         return self._skipped_objects
@@ -1571,13 +1509,10 @@ class BambuPrinter:
         self._watchdog_thread.start()
 
     def _on_message(self, msg: str):
-        log_msg = msg.replace("\n", "\r\n")
-        logger.debug(f"_on_message - bambu_msg: [{log_msg}]")
+        if self.config.verbose:
+            logger.debug(f"_on_message - bambu_msg: [{msg}]")
 
         message = json.loads(msg)
-        self._printer_state = BambuState.fromJson(
-            message, self._printer_state, self._config
-        )
 
         if "system" in message:
             # system = message["system"]
@@ -1600,30 +1535,38 @@ class BambuPrinter:
                 status.get("command", "") == "project_file"
                 and str(status.get("result", "")).lower() == "success"
             ):
-                url = status.get("url", "")
-                parts = url.split("://", 1)
-                if len(parts) == 2:
-                    self._3mf_file = parts[1]
-
-                self._3mf_file_md5 = status.get("md5", "")
-                self._subtask_name = status.get("subtask_name", "")
+                self._active_job_info.project_file_command = message
+                md5 = status.get("md5", None)
+                subtask_name = status.get("subtask_name", "")
+                plate_num = 1
 
                 param = status.get("param", None)
                 if param:
                     match = re.search(r"plate_(\d{1,2})", param)
                     if match:
-                        self._plate_num = int(match.group(1))
+                        plate_num = int(match.group(1))
 
                 bed_type = status.get("bed_type", None)
-                self._plate_type = (
+                plate_type = (
                     PlateType[bed_type.upper()]
                     if bed_type and bed_type.upper() in PlateType.__members__
                     else PlateType.NONE
                 )
 
-            # let's sleep for a couple seconds and do a full refresh
+                # media/usb0
+                url = status.get("url", "")
+                parts = url.replace("/media/usb0", "").split("://", 1)
+                if len(parts) == 2:
+                    self._active_job_info.project_info = get_project_info(
+                        parts[1], self, md5, plate_num
+                    )
+                self._active_job_info.subtask_name = subtask_name
+                self._active_job_info.plate_num = plate_num
+                self._active_job_info.plate_type = plate_type
+
             # if ams filament settings have changed
             if "command" in status and status["command"] == "ams_filament_setting":
+                # let's sleep for a couple seconds and do a full refresh
                 time.sleep(2)
                 logger.debug(
                     f"filament change triggered publishing ANNOUNCE_VERSION to [device/{self.config.serial_number}/request]"
@@ -1654,22 +1597,73 @@ class BambuPrinter:
                 self._light_state = (status["lights_report"])[0]["mode"]
             if "spd_lvl" in status:
                 self._speed_level = status["spd_lvl"]
+            if "stg_cur" in status:
+                self._active_job_info.stage_id = status["stg_cur"]
+                self._active_job_info.stage_name = parseStage(
+                    self._active_job_info.stage_id
+                )
+            if "subtask_name" in status:
+                self._active_job_info.subtask_name = status["subtask_name"]
+            if "gcode_file" in status:
+                self._active_job_info.gcode_file = status["gcode_file"]
+            if "print_type" in status:
+                self._active_job_info.print_type = status["print_type"]
+            if "layer_num" in status:
+                self._active_job_info.current_layer = int(status["layer_num"])
+            if "total_layer_num" in status:
+                self._active_job_info.total_layers = int(status["total_layer_num"])
+            if "mc_percent" in status:
+                self._active_job_info.print_percentage = int(status["mc_percent"])
 
+            gcode_state = self._printer_state.gcode_state
             if "gcode_state" in status:
                 gcode_state = status["gcode_state"]
-                if gcode_state in ("FINISH", "FAILED") and self._3mf_file:
-                    self._3mf_file = ""
-                    self._3mf_file_md5 = ""
-                    self._plate_num = None
-                    self._plate_type = PlateType.NONE
-                    self._subtask_name = ""
+                if gcode_state != self._printer_state.gcode_state:
+                    if gcode_state in ("FAILED", "FINISH"):
+                        self._active_job_info.monotonic_start_time = -1.0
+                    elif gcode_state in ("PREPARE", "RUNNING"):
+                        if self._active_job_info.monotonic_start_time == -1.0:
+                            self._active_job_info.monotonic_start_time = time.monotonic()
+                        if (
+                            (
+                                not self._active_job_info.project_info
+                                or not self._active_job_info.project_info.id
+                            )
+                            and self._active_job_info.gcode_file
+                            and self._active_job_info.subtask_name
+                        ):
+                            match = re.search(
+                                r"plate_(\d{1,2})", self._active_job_info.gcode_file
+                            )
+                            if match:
+                                plate_num = int(match.group(1))
+                                remote_files = self.get_sdcard_3mf_files()
+                                file_entry = get_3mf_entry_by_name(
+                                    remote_files,
+                                    f"{self._active_job_info.subtask_name}.gcode.3mf",
+                                )
+                                if not file_entry:
+                                    file_entry = get_3mf_entry_by_name(
+                                        remote_files,
+                                        f"{self._active_job_info.subtask_name}.3mf",
+                                    )
+                                if file_entry:
+                                    self._active_job_info.project_info = get_project_info(
+                                        file_entry["id"], self, plate_num=plate_num
+                                    )
 
-            if "subtask_name" in status:
-                self._subtask_name = status["subtask_name"]
-            if "gcode_file" in status:
-                self._gcode_file = status["gcode_file"]
-            if "print_type" in status:
-                self._print_type = status["print_type"]
+            if "mc_remaining_time" in status:
+                remaining_minutes = int(status["mc_remaining_time"])
+                if remaining_minutes != self._active_job_info.remaining_minutes:
+                    self._active_job_info.remaining_minutes = remaining_minutes
+                    if gcode_state == "RUNNING":
+                        self._active_job_info.elapsed_minutes = int(
+                            (
+                                time.monotonic()
+                                - self._active_job_info.monotonic_start_time
+                            )
+                            / 60.0
+                        )
 
             if (
                 "ams" in status
@@ -1815,9 +1809,6 @@ class BambuPrinter:
                 self.config.filament_tangle_detect = (flag >> 20) & 0x1 != 0
                 self.config.calibrate_remain_flag = (flag >> 7) & 0x1 != 0
 
-            if "print_type" in status:
-                self._print_type = status["print_type"]
-
             if "s_obj" in status:
                 self._skipped_objects = status["s_obj"]
 
@@ -1853,6 +1844,7 @@ class BambuPrinter:
                 f"\r_on_message - unknown message type received - bambu_msg: [{message}]"
             )
 
+        self._printer_state = BambuState.fromJson(message, self)
         self._notify_update()
 
     def _get_sftp_files(

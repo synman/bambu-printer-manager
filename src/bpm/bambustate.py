@@ -3,12 +3,12 @@
 operational state, synchronized via MQTT telemetry.
 """
 
+# region imports
 import logging
-import time
 from dataclasses import asdict, dataclass, field, replace
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from bpm.bambuconfig import BambuConfig, PrinterCapabilities
+from bpm.bambuconfig import PrinterCapabilities
 from bpm.bambuspool import BambuSpool
 from bpm.bambutools import (
     ActiveTool,
@@ -17,6 +17,7 @@ from bpm.bambutools import (
     AMSModel,
     ExtruderInfoState,
     ExtruderStatus,
+    LoggerName,
     TrayState,
     decodeError,
     decodeHMS,
@@ -26,12 +27,16 @@ from bpm.bambutools import (
     parseExtruderInfo,
     parseExtruderStatus,
     parseExtruderTrayState,
-    parseStage,
     scaleFanSpeed,
     unpackTemperature,
 )
 
-logger = logging.getLogger("bpm")
+if TYPE_CHECKING:
+    from bpm.bambuprinter import BambuPrinter
+
+# endregion
+
+logger = logging.getLogger(LoggerName)
 
 
 @dataclass
@@ -39,21 +44,21 @@ class ExtruderState:
     """State for an individual physical extruder toolhead."""
 
     id: int = 0
-    """Physical ID. Population: `int(r.get("id"))`."""
+    """Physical ID."""
     temp: float = 0.0
-    """Current Temp. Population: `unpackTemperature(r.temp)`."""
+    """Current Temp."""
     temp_target: int = 0
-    """Target Temp. Population: `unpackTemperature(r.temp)`."""
+    """Target Temp."""
     info_bits: int = 0
-    """Raw bitmask. Population: `int(r.get("info"))`."""
+    """Raw bitmask."""
     state: ExtruderInfoState = ExtruderInfoState.NO_NOZZLE
-    """Filament status. Population: `parseExtruderInfo`."""
+    """Filament status."""
     status: ExtruderStatus = ExtruderStatus.IDLE
-    """Op state. Population: `parseExtruderStatus`."""
+    """Op state."""
     active_tray_id: int = -1
-    """The active tray for this extruder. Population: `int(r.hnow)`"""
+    """The active tray for this extruder."""
     target_tray_id: int = -1
-    """The target tray for this extruder. Population: `int(r.htar >> 8)`."""
+    """The target tray for this extruder."""
     tray_state: TrayState = TrayState.LOADED
     """The tray state of this extruder"""
     assigned_to_ams_id: int = -1
@@ -65,19 +70,19 @@ class AMSUnitState:
     """State information about an individual AMS unit."""
 
     ams_id: int
-    """Unique ID. Population: `str(ams_idx)`."""
+    """Unique ID."""
     chip_id: str = ""
-    """Hardware serial. Population: `m.get("sn")`."""
+    """Hardware serial."""
     model: AMSModel = AMSModel.UNKNOWN
     """`AMSModel` for this unit"""
     temp_actual: float = 0.0
-    """Actual temp. Population: `float(r.get("temp"))`."""
+    """Actual temp."""
     temp_target: int = 0
-    """Target drying temp. Population: `trays[0].drying_temp`."""
+    """Target drying temp."""
     humidity_index: int = 0
-    """Humidity index. Population: `int(float(r.get("humidity")))`."""
+    """Humidity index."""
     humidity_raw: int = 0
-    """Raw humidity. Population: `int(float(r.get("humidity_raw")))`."""
+    """Raw humidity."""
     ams_info: int = 0
     """Underlying ams info value"""
     heater_state: AMSHeatingState = AMSHeatingState.NO_POWER
@@ -85,9 +90,9 @@ class AMSUnitState:
     raw_extruder_id: int = -1
     """Raw extruder ID extracted from ams_info"""
     dry_time: int = 0
-    """Minutes left. Population: `int(float(r.get("dry_time")))`."""
+    """Minutes left."""
     tray_exists: list[bool] = field(default_factory=lambda: [False] * 4)
-    """Slot presence. Population: Shifting `tray_exist_bits`."""
+    """Slot presence."""
     assigned_to_extruder: ActiveTool = ActiveTool.SINGLE_EXTRUDER
     """Target tool computed from raw_extruder_id"""
 
@@ -97,37 +102,37 @@ class BambuClimate:
     """Contains all climate related attributes"""
 
     bed_temp: float = 0.0
-    """Bed temp. Population: `float(p.get("bed_temper"))`."""
+    """Bed temp."""
     bed_temp_target: int = 0
-    """Bed target. Population: `float(p.get("bed_target_temper"))`."""
+    """Bed target."""
     airduct_mode: int = -1
-    """Raw current mode. Population: airduct.modeCur."""
+    """Raw current mode."""
     airduct_sub_mode: int = -1
-    """Raw sub mode. Population: airduct.subMode."""
+    """Raw sub mode."""
     chamber_temp: float = 0.0
-    """Chamber temp. Population: `unpackTemperature(ctc_root.info.temp)`."""
+    """Chamber temp."""
     chamber_temp_target: int = 0
-    """Chamber target. Population: `unpackTemperature(ctc_root.info.temp)`."""
+    """Chamber target."""
     air_conditioning_mode: AirConditioningMode = AirConditioningMode.NOT_SUPPORTED
     """The mode the printer's AC is in if equipped with one."""
     part_cooling_fan_speed_percent: int = 0
-    """Part fan %. Population: `scaleFanSpeed(p.cooling_fan_speed)`."""
+    """Part fan %."""
     part_cooling_fan_speed_target_percent: int = 0
-    """Part target %. Population: `scaleFanSpeed(p.cooling_fan_target_speed)`."""
+    """Part target %."""
     aux_fan_speed_percent: int = 0
-    """aux fan %. Population: `scaleFanSpeed(p.big_fan1_speed)`."""
+    """aux fan %."""
     exhaust_fan_speed_percent: int = 0
-    """Exhaust (chamber) fan %. Population: `scaleFanSpeed(p.big_fan2_speed)`."""
+    """Exhaust (chamber) fan %."""
     heatbreak_fan_speed_percent: int = 0
-    """Heatbreak fan %. Population: `scaleFanSpeed(p.heatbreak_fan_speed)`."""
+    """Heatbreak fan %."""
     zone_intake_open: bool = False
-    """Heater power. Population: airduct.parts ID 96."""
+    """Heater power."""
     zone_part_fan_percent: int = 0
-    """Internal %. Population: `airduct.parts` ID 16."""
+    """Internal %."""
     zone_aux_percent: int = 0
-    """aux %. Population: `airduct.parts` ID 32."""
+    """aux %."""
     zone_exhaust_percent: int = 0
-    """Exhaust %. Population: `airduct.parts` ID 48."""
+    """Exhaust %."""
     zone_top_vent_open: bool = False
     """Top vent status - derived from exhaust fan on and cooling ac mode."""
     is_chamber_door_open: bool = False
@@ -141,59 +146,43 @@ class BambuState:
     """Representation of the Bambu printer state synchronized via MQTT."""
 
     gcode_state: str = "IDLE"
-    """Execution state. Population: `p.get("gcode_state")`."""
-    current_stage_id: int = 0
-    """Stage numeric ID. Population: `int(p.get("stg_cur"))`."""
-    current_stage_name: str = ""
-    """Stage human name. Population: `parseStage`."""
-    print_percentage: int = 0
-    """Completion %. Population: `int(p.get("mc_percent"))`."""
-    monotonic_start_time: int = -1
-    """The monotonic time stamp of when this job started"""
-    elapsed_minutes: int = 0
-    """The elapsed time in minutes for this (or the last) job"""
-    remaining_minutes: float = 0.0
-    """Time remaining in minutes for the current job. Population: `int(p.get("mc_remaining_time"))`."""
-    current_layer: int = 0
-    """Layer index. Population: `int(p.get("layer_num"))`."""
-    total_layers: int = 0
-    """Layer total. Population: `int(p.get("total_layer_num"))`."""
+    """Execution state."""
     active_ams_id: int = -1
     """Current active AMS unit id"""
     active_tray_id: int = 255
-    """Current tray. Population: Computed in Tool Handoff."""
+    """Current tray."""
     active_tray_state: TrayState = TrayState.UNLOADED
-    """Loading enum. Population: `ExtruderInfoState` check."""
+    """Loading enum."""
     active_tray_state_name: str = TrayState.UNLOADED.name
-    """Loading string. Population: `active_tray_state.name`."""
+    """Loading string."""
     target_tray_id: int = -1
-    """Next tray. Population: Stage-specific targeting logic."""
+    """Next tray."""
     active_tool: ActiveTool = ActiveTool.SINGLE_EXTRUDER
-    """Active toolhead. Population: `extruder_root.state` shift."""
+    """Active toolhead."""
     is_external_spool_active: bool = False
-    """Ext spool flag. Population: `active_tray_id in [254, 255]`."""
+    """Ext spool flag."""
     active_nozzle_temp: float = 0.0
-    """Nozzle temp. Population: Handoff from `a_ext` or `p`."""
+    """Nozzle temp."""
     active_nozzle_temp_target: int = 0
-    """Nozzle target. Population: Handoff from `a_ext` or `p`."""
+    """Nozzle target."""
     ams_status_raw: int = 0
-    """Raw AMS status. Population: `int(p.get("ams_status"))`."""
+    """Raw AMS status."""
     ams_status_text: str = ""
-    """Human AMS status. Population: `parseAMSStatus`."""
+    """Human AMS status."""
     ams_exist_bits: int = 0
-    """AMS mask. Population: `int(ams_root.ams_exist_bits, 16)`."""
+    """AMS mask."""
     ams_connected_count: int = 0
-    """AMS count. Population: `bin(ams_exist_bits).count("1")`."""
+    """AMS count."""
     ams_units: list[AMSUnitState] = field(default_factory=list)
-    """Unit details. Population: Result of unit iteration."""
+    """Unit details."""
     extruders: list[ExtruderState] = field(default_factory=list)
-    """Extruder details. Population: Result of extruder iteration."""
+    """Extruder details."""
     spools: list[BambuSpool] = field(default_factory=list)
     """All spools associated with this printer"""
     print_error: int = 0
-    """Main error. Population: `int(p.get("print_error"))`."""
+    """Main error."""
     hms_errors: list[dict] = field(default_factory=list)
-    """HMS list. Population: `decodeHMS` + `decodeError` synthesis."""
+    """HMS list."""
     wifi_signal_strength: str = ""
     """Wi-Fi signal strength in dBm"""
     climate: BambuClimate = field(default_factory=BambuClimate)
@@ -202,10 +191,12 @@ class BambuState:
     fun: str = "0"
 
     @classmethod
-    def fromJson(
-        cls, data: dict[str, Any], current_state: "BambuState", config: BambuConfig
-    ) -> "BambuState":
+    def fromJson(cls, data: dict[str, Any], printer: "BambuPrinter") -> "BambuState":
         """Parses root MQTT payloads into a hierachical BambuState object."""
+
+        current_state = printer.printer_state
+        config = printer.config
+        aji = printer.active_job_info
 
         base = current_state if current_state else cls()
         info = data.get("info", {})
@@ -231,7 +222,9 @@ class BambuState:
         updates = {}
 
         # CAPABILITIES
-        caps = asdict(config.capabilities)
+        caps = asdict(
+            config.capabilities if config.capabilities else PrinterCapabilities()
+        )
         if ctc_root:
             caps["has_chamber_temp"] = True
         if "ams" in ams_root or "ams" in p:
@@ -247,7 +240,7 @@ class BambuState:
         if xcam_data:
             caps["has_lidar"] = xcam_data.get("first_layer_inspector", False)
         else:
-            caps["has_lidar"] = config.capabilities.has_lidar
+            caps["has_lidar"] = config.capabilities and config.capabilities.has_lidar
 
         new_caps = PrinterCapabilities(**caps)
 
@@ -256,8 +249,6 @@ class BambuState:
 
         # STATUS & PROGRESS
         updates["gcode_state"] = p.get("gcode_state", base.gcode_state)
-        updates["current_stage_id"] = int(p.get("stg_cur", base.current_stage_id))
-        updates["current_stage_name"] = parseStage(updates["current_stage_id"])
 
         updates["fun"] = p.get("fun", base.fun)
         fun = int(updates["fun"], 16)
@@ -268,32 +259,6 @@ class BambuState:
             stat = int(updates["stat"], 16)
             updates["climate"].is_chamber_door_open = bool((stat >> 23) & 0x01)
             updates["climate"].is_chamber_lid_open = bool((stat >> 24) & 0x01)
-
-        if (
-            updates["gcode_state"] in ("FAILED", "FINISH")
-            and updates["gcode_state"] != base.gcode_state
-        ):
-            updates["monotonic_start_time"] = -1
-        elif (
-            updates["gcode_state"] in ("PREPARE", "RUNNING")
-            and base.monotonic_start_time == -1
-        ):
-            updates["monotonic_start_time"] = time.monotonic()
-        else:
-            if updates["gcode_state"] in ("PREPARE", "RUNNING"):
-                updates["elapsed_minutes"] = (
-                    time.monotonic()
-                    - updates.get("monotonic_start_time", base.monotonic_start_time)
-                ) / 60.0
-
-                updates["current_layer"] = int(p.get("layer_num", base.current_layer))
-                updates["print_percentage"] = int(
-                    p.get("mc_percent", base.print_percentage)
-                )
-                updates["total_layers"] = int(p.get("total_layer_num", base.total_layers))
-                updates["remaining_minutes"] = float(
-                    p.get("mc_remaining_time", base.remaining_minutes)
-                )
 
         # AIRDUCT
         if airduct_root:
@@ -333,11 +298,6 @@ class BambuState:
                 updates["climate"].zone_exhaust_percent > 0
                 and not updates["climate"].zone_intake_open
             )
-            # bit 58 apparently has the top vent value
-            # is_top_vent_closed_bit = (fun >> 58) & 1
-            # print(f"\r\ntop bit=[{is_top_vent_closed_bit != 1}] update=[{updates['climate'].zone_top_vent_open}]\r\n")
-            # if (not is_top_vent_closed_bit) != updates["climate"].zone_top_vent_open:
-            #     updates["climate"].zone_top_vent_open = not is_top_vent_closed_bit
 
         # THERMALS & CTC DECODING
         updates["climate"].bed_temp = float(p.get("bed_temper", base.climate.bed_temp))
@@ -531,9 +491,9 @@ class BambuState:
             if updates["active_tray_id"] == 255:
                 updates["active_tray_id"] = -1
                 updates["active_tray_state"] = TrayState.UNLOADED
-            elif updates["current_stage_id"] == 24:
+            elif aji.stage_id == 24:
                 updates["active_tray_state"] = TrayState.LOADING
-            elif updates["current_stage_id"] == 22:
+            elif aji.stage_id == 22:
                 updates["active_tray_state"] = TrayState.UNLOADING
             else:
                 updates["active_tray_state"] = TrayState.LOADED
@@ -563,7 +523,7 @@ class BambuState:
 
         part_cooling_fan_speed_percent = -1
 
-        if not config.capabilities.has_chamber_temp:
+        if config.capabilities and not config.capabilities.has_chamber_temp:
             part_cooling_fan_speed_percent = (
                 scaleFanSpeed(p.get("cooling_fan_speed"))
                 if p.get("cooling_fan_speed", -1) != -1
@@ -586,7 +546,7 @@ class BambuState:
         updates["climate"].heatbreak_fan_speed_percent = heatbreak_fan_speed_percent
 
         exhaust_fan_speed_percent = -1
-        if not config.capabilities.has_chamber_temp:
+        if config.capabilities and not config.capabilities.has_chamber_temp:
             exhaust_fan_speed_percent = scaleFanSpeed(p.get("big_fan2_speed", -1))
         else:
             exhaust_fan_speed_percent = updates["climate"].zone_exhaust_percent
@@ -596,7 +556,7 @@ class BambuState:
         updates["climate"].exhaust_fan_speed_percent = exhaust_fan_speed_percent
 
         aux_fan_speed_percent = -1
-        if not config.capabilities.has_chamber_temp:
+        if config.capabilities and not config.capabilities.has_chamber_temp:
             aux_fan_speed_percent = scaleFanSpeed(p.get("big_fan1_speed", -1))
         else:
             aux_fan_speed_percent = updates["climate"].zone_aux_percent
