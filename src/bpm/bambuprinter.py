@@ -1,3 +1,7 @@
+"""
+The main `bambu-printer-manager` class `BambuPrinter` lives here.
+"""
+
 import contextlib
 import copy
 import json

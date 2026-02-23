@@ -1,3 +1,7 @@
+"""
+`bambuconfig` contains the `BambuConfig` class used for managing configuration data
+"""
+
 import logging
 from dataclasses import dataclass
 from pathlib import Path

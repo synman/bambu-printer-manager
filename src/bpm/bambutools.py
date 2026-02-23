@@ -1,3 +1,7 @@
+"""
+`bambutools` contains a collection of methods used as tools (mostly internal).
+"""
+
 import hashlib
 import logging
 from enum import Enum, IntEnum

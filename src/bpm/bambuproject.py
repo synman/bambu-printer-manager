@@ -1,7 +1,7 @@
 """
-`bambuproject` provides a means of accessing the current active print job's
-attributes as well as the metadata associated with the underlying `3mf` file
-being used to drive the job.
+`bambuproject` provides a means of accessing the current active print job's attributes
+as well as the metadata associated with the underlying `3mf` file being used to drive
+the job.
 """
 
 import base64
