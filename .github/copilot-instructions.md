@@ -13,21 +13,21 @@
 - Ignored: E501 (line length is disabled), C901 (complexity), E701
 - **Import organization**: Alphabetically sorted, first-party imports under `bpm` namespace
 
-**Docstrings**: Google-style docstrings with triple quotes. See examples in [bambutools.py](src/bpm/bambutools.py) and [bambuprinter.py](src/bpm/bambuprinter.py).
+**Docstrings**: Google-style docstrings with triple quotes. See examples in `src/bpm/bambutools.py` and `src/bpm/bambuprinter.py`.
 
 **Private Attributes**: Use underscore prefix (`_hostname`, `_mqtt_port`). Dataclasses use field names with underscores to maintain backing store for properties.
 
 ## Architecture
 
-**Central Class**: `BambuPrinter` ([bambuprinter.py](src/bpm/bambuprinter.py)) is the main abstraction layer. All printer interaction flows through this class.
+**Central Class**: `BambuPrinter` (see `src/bpm/bambuprinter.py`) is the main abstraction layer. All printer interaction flows through this class.
 
-**Configuration System**: `BambuConfig` ([bambuconfig.py](src/bpm/bambuconfig.py)) now uses Python dataclasses (@dataclass). Fields are private (_field_name) with inline docstrings.
+**Configuration System**: `BambuConfig` (see `src/bpm/bambuconfig.py`) now uses Python dataclasses (@dataclass). Fields are private (_field_name) with inline docstrings.
 
-**State Management**: `BambuState` ([bambustate.py](src/bpm/bambustate.py)) holds telemetry state. Updated via MQTT telemetry parsing.
+**State Management**: `BambuState` (see `src/bpm/bambustate.py`) holds telemetry state. Updated via MQTT telemetry parsing.
 
 **Communication Layers**:
 - **MQTT**: Primary for telemetry subscriptions and command transmission (Paho MQTT client)
-- **FTPS**: File operations via [ftpsclient](src/bpm/ftpsclient/_client.py)
+- **FTPS**: File operations via `src/bpm/ftpsclient/ftpsclient.py`
 
 **Enums & Constants**:
 - `bambutools.py` contains all IntEnum/Enum definitions (PrinterModel, Stage, etc.)
@@ -45,7 +45,7 @@
 ```
 
 **Test Execution**:
-- Test files in `tests/` directory (e.g., [h2d-unit-test.py](tests/h2d-unit-test.py))
+- Test files in `tests/` directory (e.g., `tests/h2d-unit-test.py`)
 - Test JSON fixtures for printer telemetry states provided (h2d-*.json, a1-*.json)
 - Run with: `python tests/<test-file>.py`
 
@@ -78,7 +78,7 @@ _auto_recovery: bool = field(default=True, init=False, repr=False)
 
 **MQTT Topics**: Commands sent to device/request/** namespace. Telemetry subscribed via device/report/** and devcie/push/**.
 
-**FTPS Operations**: IoTFTPSClient handles FTPS file transfers. Used for 3MF uploads via [bambuprinter.py upload methods](src/bpm/bambuprinter.py).
+**FTPS Operations**: IoTFTPSClient handles FTPS file transfers. Used for 3MF uploads via `src/bpm/bambuprinter.py`.
 
 **External Dependencies**:
 - `paho-mqtt`: MQTT client library
