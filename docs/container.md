@@ -1,5 +1,5 @@
 # bambu-printer-manager Client Container
-This container is a Material UI / React application for monitoring and administering Bambu Lab printers.  It runs on an `Alpine Linux` image with `HAPROXY` working as a reverse proxy for the frontend, backend, and webcam services.
+This container is a Material UI / React application for monitoring and administering Bambu Lab printers.  It runs on an `Alpine Linux` image with `NGINX` working as a reverse proxy for the frontend, backend, and webcam services.
 
 The frontend is written in `nodejs` and uses the `React Material UI` library for producing a content rich user experience.  The backend is written in `Python` and uses a `Flask Waitress` server for responding to frontend api calls and a [custom python library](https://github.com/synman/bambu-printer-manager) developed specifically for interacting with `Bambu Lab` printers.
 
@@ -9,7 +9,8 @@ The video stream for P2/H2/X1 series printers is produced using `go2rtc` and `ff
 
 ## Become a Sponsor
 While caffiene and sleepness nights drive the delivery of this project, they unfortunately do not cover the financial expense necessary to further its development.  Please consider becoming a `bambu-printer-manager` sponsor today!
-<iframe src="https://github.com/sponsors/synman/button" title="Sponsor synman" height="32" width="114" style="border: 0; border-radius: 6px;"></iframe>
+
+[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-red?style=for-the-badge&logo=github)](https://github.com/sponsors/synman)
 
 ## Installation
 ```
@@ -25,7 +26,7 @@ docker run \
        --name bambu-printer-manager synman/bambu-printer-manager
 ```
 ## Usage
-To use `bambu-printer-manager` you only need to pull the image, configure a couple environment variables, and map the `nginx` listener (port 8080) to a usable port on the host machine.  You then access it like you would any other web based application.
+To use `bambu-printer-manager` you only need to pull the image, configure a couple environment variables, and map the `NGINX` listener (port 8080) to a usable port on the host machine.  You then access it like you would any other web based application.
 
 ![Cards](https://github.com/synman/bambu-printer-manager/assets/1299716/5015c3ff-dbde-4427-8e6c-ba0ec9a18588)
 ![Charts](https://github.com/synman/bambu-printer-manager/assets/1299716/9e1aae05-9fca-4e42-a8d4-8d53c5db53de)
@@ -38,6 +39,346 @@ To use `bambu-printer-manager` you only need to pull the image, configure a coup
   <img src="https://github.com/synman/bambu-printer-manager/assets/1299716/1bdfec3a-4379-4c8f-b93b-3bfdb06de3a6" width="300px" />
   <img src="https://github.com/synman/bambu-printer-manager/assets/1299716/b7f5af63-2340-4e56-9d65-4821b5911782" width="300px" />
 </p>
+
+## Custom NGINX Configuration
+
+The container provides a flexible NGINX configuration system that allows you to override the default reverse proxy settings. This is particularly useful for implementing security features like HTTP Basic Authentication.
+
+### Using BAMBU_CUSTOM_NGINX_CONF
+
+Set the `BAMBU_CUSTOM_NGINX_CONF` environment variable to specify a custom NGINX configuration file:
+
+```dockerfile
+ENV BAMBU_CUSTOM_NGINX_CONF="/nginx/custom-nginx.conf"
+```
+
+Mount your custom configuration directory when starting the container:
+
+```bash
+docker run -d \
+    -e BAMBU_HOSTNAME="192.168.1.100" \
+    -e BAMBU_ACCESS_CODE="12345678" \
+    -e BAMBU_SERIAL_NUMBER="01S00A123456789" \
+    -e BAMBU_VIDEO_STREAM_TYPE="MJPEG" \
+    -e BAMBU_CUSTOM_NGINX_CONF="/nginx/nginx-webcamd-auth.conf" \
+    -v /path/to/your/nginx-configs:/nginx:ro \
+    -p 80:8080 \
+    --name bambu-printer-manager synman/bambu-printer-manager
+```
+
+### Authentication Examples
+
+Below are two complete authentication-enabled NGINX configurations implementing HTTP Basic Authentication across all endpoints (frontend, API, and video streams).
+
+#### nginx-webcamd-auth.conf (MJPEG - A1/P1 series)
+
+```nginx
+worker_processes 2;
+
+events {
+    worker_connections 256;
+}
+
+http {
+    set_real_ip_from  172.17.0.0/16;
+    set_real_ip_from  10.151.51.1;
+    set_real_ip_from  10.151.51.24;
+    set_real_ip_from  127.0.0.1;
+
+    real_ip_header    X-Forwarded-For;
+    real_ip_recursive on;
+
+    limit_req_zone $binary_remote_addr zone=auth_limit:10m rate=3r/m;
+
+    log_format combined_realip '$remote_addr - $remote_user [$time_local] '
+                               '"$request" $status $body_bytes_sent '
+                               '"$http_referer" "$http_user_agent"';
+
+    access_log /var/log/nginx/access.log combined_realip;
+
+    server {
+        listen 8080;
+
+        # Root-level Basic Auth
+        auth_basic "Private System";
+        auth_basic_user_file /nginx/.htpasswd;
+
+        include /etc/nginx/mime.types;
+
+        # --- Location block for the Vite frontend ---
+        location / {
+            root /bambu-printer-app/dist;
+            index index.html;
+            try_files $uri $uri/ /index.html;
+            add_header Cache-Control "no-cache";
+            add_header X-Powered-By "shellware-vite";
+            add_header X-Forward-To-Url "file:///bambu-printer-app/dist$uri";
+
+            error_page 401 = @limit_failed_auth;
+        }
+
+        # --- Location block for the API service ---
+        location /api/ {
+            # Enable NGINX to intercept 503 errors from the backend
+            proxy_intercept_errors on;
+            error_page 503 @custom_503_python;
+
+            # Need a big max body size to support http uploads
+            client_max_body_size 150M;
+            proxy_pass http://127.0.0.1:5000;
+
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+
+            add_header Cache-Control "no-cache";
+            add_header X-Powered-By "shellware-api";
+            add_header X-Forward-To-Url "http://$proxy_host$uri$is_args$args";
+
+            error_page 401 = @limit_failed_auth;
+        }
+
+        # --- Location block for the MJPEG stream ---
+        location /webcam/ {
+            # Enable NGINX to intercept 503 errors from the backend
+            proxy_intercept_errors on;
+            error_page 503 @custom_503_webcam;
+
+            # This rewrite rule removes the "/webcam/" prefix before forwarding
+            # the request to the backend server.
+            rewrite ^/webcam/(.*)$ /$1 break;
+            proxy_pass http://localhost:8090;
+
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+            add_header Cache-Control "no-cache";
+            add_header X-Powered-By "shellware-webcamd";
+            add_header X-Forward-To-Url "http://$proxy_host$uri$is_args$args";
+
+            # Disable buffering for a near real-time stream.
+            proxy_buffering off;
+
+            # Increase the timeout to prevent NGINX from closing the
+            # long-lived connection. A high value like 86400 (24 hours) is recommended.
+            proxy_read_timeout 86400;
+
+            # Disable caching.
+            proxy_cache off;
+
+            # If your stream has a `Content-Type: multipart/x-mixed-replace` header,
+            # include the following line for compatibility.
+            proxy_set_header Connection "";
+
+            error_page 401 = @limit_failed_auth;
+        }
+
+        # --- Specific named location for the API 503 error page ---
+        location @custom_503_python {
+            root /etc/nginx/errors;
+            internal;
+            error_page 401 = @limit_failed_auth;
+            try_files /503-no-python.http =503;
+        }
+
+        # --- Specific named location for the Webcam 503 error page ---
+        location @custom_503_webcam {
+            root /etc/nginx/errors;
+            internal;
+            error_page 401 = @limit_failed_auth;
+            try_files /503-no-webcam.http =503;
+        }
+
+        # The throttling "jail" for failed attempts
+        location @limit_failed_auth {
+            limit_req zone=auth_limit burst=1 nodelay;
+            limit_req_status 429;
+            return 401;
+        }
+    }
+}
+```
+
+#### nginx-rtsps-auth.conf (RTSPS - P2/H2/X1 series)
+
+```nginx
+worker_processes 2;
+
+events {
+    worker_connections 256;
+}
+
+http {
+    set_real_ip_from  172.17.0.0/16;
+    set_real_ip_from  10.151.51.1;
+    set_real_ip_from  10.151.51.24;
+    set_real_ip_from  127.0.0.1;
+
+    real_ip_header    X-Forwarded-For;
+    real_ip_recursive on;
+
+    limit_req_zone $binary_remote_addr zone=auth_limit:10m rate=3r/m;
+
+    log_format combined_realip '$remote_addr - $remote_user [$time_local] '
+                               '"$request" $status $body_bytes_sent '
+                               '"$http_referer" "$http_user_agent"';
+
+    access_log /var/log/nginx/access.log combined_realip;
+
+    server {
+        listen 8080;
+
+        # Root-level Basic Auth
+        auth_basic "Private System";
+        auth_basic_user_file /nginx/.htpasswd;
+
+        include /etc/nginx/mime.types;
+
+        # --- Location block for the Vite frontend ---
+        location / {
+            root /bambu-printer-app/dist;
+            index index.html;
+            try_files $uri $uri/ /index.html;
+            add_header Cache-Control "no-cache";
+            add_header X-Powered-By "shellware-vite";
+            add_header X-Forward-To-Url "file:///bambu-printer-app/dist$uri";
+
+            error_page 401 = @limit_failed_auth;
+        }
+
+        # --- Location block for the API service ---
+        location /api/ {
+            # Enable NGINX to intercept 503 errors from the backend
+            proxy_intercept_errors on;
+            error_page 503 @custom_503_python;
+
+            # Need a big max body size to support http uploads
+            client_max_body_size 150M;
+            proxy_pass http://127.0.0.1:5000;
+
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+
+            add_header Cache-Control "no-cache";
+            add_header X-Powered-By "shellware-api";
+            add_header X-Forward-To-Url "http://$proxy_host$uri$is_args$args";
+
+            error_page 401 = @limit_failed_auth;
+        }
+
+        # --- Location block for the MJPEG stream ---
+        location /webcam/ {
+            # Enable NGINX to intercept 503 errors from the backend
+            proxy_intercept_errors on;
+            error_page 503 @custom_503_webcam;
+
+            proxy_pass http://localhost:1984/api/stream.mjpeg?src=bambu_mjpeg&;
+
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+            add_header Cache-Control "no-cache";
+            add_header X-Powered-By "shellware-webcamd";
+            add_header X-Forward-To-Url "http://$proxy_host$uri$is_args$args";
+
+            # Disable buffering for a near real-time stream.
+            proxy_buffering off;
+
+            # Increase the timeout to prevent NGINX from closing the
+            # long-lived connection. A high value like 86400 (24 hours) is recommended.
+            proxy_read_timeout 86400;
+
+            # Disable caching.
+            proxy_cache off;
+
+            # If your stream has a `Content-Type: multipart/x-mixed-replace` header,
+            # include the following line for compatibility.
+            proxy_set_header Connection "";
+
+            error_page 401 = @limit_failed_auth;
+        }
+
+        # --- Specific named location for the API 503 error page ---
+        location @custom_503_python {
+            root /etc/nginx/errors;
+            internal;
+            error_page 401 = @limit_failed_auth;
+            try_files /503-no-python.http =503;
+        }
+
+        # --- Specific named location for the Webcam 503 error page ---
+        location @custom_503_webcam {
+            root /etc/nginx/errors;
+            internal;
+            error_page 401 = @limit_failed_auth;
+            try_files /503-no-webcam.http =503;
+        }
+
+        # The throttling "jail" for failed attempts
+        location @limit_failed_auth {
+            limit_req zone=auth_limit burst=1 nodelay;
+            limit_req_status 429;
+            return 401;
+        }
+    }
+}
+```
+
+**Key Differences:**
+- **MJPEG config**: Proxies to `http://localhost:8090` (webcamd daemon)
+- **RTSPS config**: Proxies to `http://localhost:1984/api/stream.mjpeg?src=bambu_mjpeg&` (go2rtc)
+
+### Managing Password Files
+
+To use Basic Authentication, create a `.htpasswd` file with bcrypt-hashed passwords:
+
+**Using htpasswd (most Linux distributions, macOS Homebrew):**
+```bash
+# Create new password file with first user
+htpasswd -Bc /path/to/your/nginx-configs/.htpasswd username
+
+# Add additional users
+htpasswd -B /path/to/your/nginx-configs/.htpasswd another_user
+```
+
+**Using openssl (alternative method):**
+```bash
+# Generate password hash
+echo "username:$(openssl passwd -apr1 your_password)" > /path/to/your/nginx-configs/.htpasswd
+
+# Add additional users
+echo "another_user:$(openssl passwd -apr1 another_password)" >> /path/to/your/nginx-configs/.htpasswd
+```
+
+**Using Python (cross-platform):**
+```python
+import bcrypt
+
+username = "admin"
+password = "your_password"
+hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+with open('.htpasswd', 'w') as f:
+    f.write(f"{username}:{hashed}\n")
+```
+
+The mounted directory should contain both your custom NGINX config and the `.htpasswd` file:
+```
+/path/to/your/nginx-configs/
+├── nginx-webcamd-auth.conf
+└── .htpasswd
+```
+
+**Security Notes:**
+- Mount the directory as read-only (`:ro`) to prevent container modifications
+- Use bcrypt (`-B` flag) for password hashing - it's more secure than MD5/SHA
+- Never commit `.htpasswd` files to version control
+- Consider using strong, randomly generated passwords for production deployments
 
 ## Video Stream
 ```dockerfile
@@ -80,7 +421,7 @@ way you monitor temperature and set target values for the tool (extruder), the b
 ## Troubleshooting
 If you are geting a `port is already in use` type error, it is likely because you are trying to run the container using the host's
 network.  It is recommended that you run the `bambu-printer-manager` container on a bridged network.  Behind the "public" port exposed by
-HAPROXY (`8080`), it also requires exclusive access to ports `3000` (nodejs react frontend), `5000` (flask waitress backend), and
+NGINX (`8080`), it also requires exclusive access to ports `3000` (nodejs react frontend), `5000` (flask waitress backend), and
 `8090` (webcamd).  Some hosts, such as Synology DSM use ports like `5000` and this will cause problems.
 
 Verify your printer's information.  You must know its routable IP Address, access code, and serial #. You can find each of these on
@@ -107,5 +448,18 @@ required for logging to resume.
 
 * `http://{container_host_ip}:{container_host_port}/api/toggle_session` - This service route pauses or resumes the `BambuPrinter` session.  This may be
 helpful on machines such as the `A1` where only one client can be connected at a time.
+
+## API Documentation
+
+For complete REST API documentation including all endpoints, parameters, response formats, and usage examples, see the [API Reference](api-reference.md).
+
+The API provides full programmatic control over:
+
+- Printer status and telemetry
+- Temperature and fan control
+- Print job management
+- Filament and AMS operations
+- File management (SD card)
+- Advanced settings and diagnostics
 
 If you encounter an issue you need help with, feel free to open a ticket at [GitHub](https://github.com/synman/bambu-printer-manager/issues).

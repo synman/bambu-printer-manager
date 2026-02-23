@@ -5,10 +5,12 @@
 
 ## Documentation
 All documentation for `bambu-printer-manager` can be found [here](https://synman.github.io/bambu-printer-manager/).
+[DeepWiki](https://deepwiki.com/synman/bambu-printer-manager) is another good source.
 
 ## Become a Sponsor
 While caffiene and sleepness nights drive the delivery of this project, they unfortunately do not cover the financial expense necessary to further its development.  Please consider becoming a `bambu-printer-manager` sponsor today!
-<iframe src="https://github.com/sponsors/synman/button" title="Sponsor synman" height="32" width="114" style="border: 0; border-radius: 6px;"></iframe>
+
+[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-red?style=for-the-badge&logo=github)](https://github.com/sponsors/synman)
 
 ## Project Composition
 

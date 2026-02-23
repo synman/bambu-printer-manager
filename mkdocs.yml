@@ -5,8 +5,11 @@ watch:
   - src
 nav:
   - Home: index.md
+  - Data Dictionary: data-dictionary.md
   - Code Reference: reference/
-  - Client Container: container.md
+  - Client Container:
+    - Overview: container.md
+    - API Reference: api-reference.md
   - License: license.md
 
 markdown_extensions:

@@ -13,6 +13,8 @@ from bpm.bambuspool import BambuSpool
 from bpm.bambutools import (
     ActiveTool,
     AirConditioningMode,
+    AMSDryFanStatus,
+    AMSDrySubStatus,
     AMSHeatingState,
     AMSModel,
     ExtruderInfoState,
@@ -85,10 +87,14 @@ class AMSUnitState:
     """Raw humidity."""
     ams_info: int = 0
     """Underlying ams info value"""
-    heater_state: AMSHeatingState = AMSHeatingState.NO_POWER
+    heater_state: AMSHeatingState = AMSHeatingState.OFF
     """The computed state of the AMS's heater"""
-    raw_extruder_id: int = -1
-    """Raw extruder ID extracted from ams_info"""
+    dry_fan1_status: AMSDryFanStatus = AMSDryFanStatus.OFF
+    """Drying fan 1 status (bits 18-19 of ams_info)"""
+    dry_fan2_status: AMSDryFanStatus = AMSDryFanStatus.OFF
+    """Drying fan 2 status (bits 20-21 of ams_info)"""
+    dry_sub_status: AMSDrySubStatus = AMSDrySubStatus.OFF
+    """Drying sub-status phase (bits 22-25 of ams_info)"""
     dry_time: int = 0
     """Minutes left."""
     tray_exists: list[bool] = field(default_factory=lambda: [False] * 4)
@@ -428,16 +434,20 @@ class BambuState:
                 u.temp_target = 0
 
             if "info" in ams_u:
-                u.ams_info = int(ams_u["info"])
-                p_ams = parseAMSInfo(u.ams_info)
+                u.ams_info = int(ams_u["info"], 16)
+                p_ams = parseAMSInfo(ams_u["info"])
 
                 u.heater_state = p_ams["heater_state"]
-                u.raw_extruder_id = p_ams["extruder_id"]
+                u.dry_fan1_status = p_ams["dry_fan1_status"]
+                u.dry_fan2_status = p_ams["dry_fan2_status"]
+                u.dry_sub_status = p_ams["dry_sub_status"]
+
+                # Update AMS model from parsed info if not already set
+                if u.model == AMSModel.UNKNOWN:
+                    u.model = p_ams["ams_type"]
 
                 if new_caps.has_dual_extruder:
-                    u.assigned_to_extruder = ActiveTool(
-                        p_ams.get("h2d_toolhead_index", 15)
-                    )
+                    u.assigned_to_extruder = ActiveTool(p_ams.get("extruder_id", 15))
                     updates["extruders"][
                         u.assigned_to_extruder.value
                     ].assigned_to_ams_id = u.ams_id

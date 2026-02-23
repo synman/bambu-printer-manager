@@ -66,8 +66,8 @@ class AMSModel(IntEnum):
     UNKNOWN = 0
     AMS_1 = 1
     AMS_LITE = 2
-    AMS_HT = 3
-    AMS_2_PRO = 4
+    AMS_2_PRO = 3  # N3F in BambuStudio
+    AMS_HT = 4  # N3S in BambuStudio
 
 
 class AMSSeries(Enum):
@@ -92,15 +92,42 @@ class AMSUserSetting(Enum):
 
 class AMSHeatingState(IntEnum):
     """
-    Heater-to-Dryer states.
-    Mapped from telemetry values and decimal shifts.
+    AMS Drying/Heater states extracted from bits 4-7 of ams_info.
+    Mapped directly from BambuStudio's DryStatus enum.
+    Only supported on AMS 2 Pro (N3F) and AMS HT (N3S) models.
     """
 
-    HEATING = 3
-    IDLE = 1
-    NO_POWER = 0
-    POSTHEATING = 4
-    PREHEATING = 2
+    OFF = 0  # No drying active
+    CHECKING = 1  # Checking drying status
+    DRYING = 2  # Active drying phase
+    COOLING = 3  # Cooling after drying
+    STOPPING = 4  # Stopping drying process
+    ERROR = 5  # Error state
+    CANNOT_STOP_HEAT_OOC = 6  # Heat control out of control
+    PRODUCT_TEST = 7  # Product testing mode
+
+
+class AMSDrySubStatus(IntEnum):
+    """
+    AMS drying sub-status extracted from bits 22-25 of ams_info.
+    Indicates the specific phase of the drying cycle.
+    Mapped from BambuStudio's DrySubStatus enum.
+    """
+
+    OFF = 0  # No active drying phase
+    HEATING = 1  # Heating phase of drying
+    DEHUMIDIFY = 2  # Dehumidification phase of drying
+
+
+class AMSDryFanStatus(IntEnum):
+    """
+    AMS drying fan status extracted from bits 18-21 of ams_info.
+    Two independent fans (fan1: bits 18-19, fan2: bits 20-21).
+    Mapped from BambuStudio's DryFanStatus enum.
+    """
+
+    OFF = 0  # Fan is off
+    ON = 1  # Fan is running
 
 
 class ExtruderInfoState(IntEnum):
@@ -355,31 +382,22 @@ def decodeHMS(hms_list: list) -> list[dict]:
 @staticmethod
 def getAMSHeatingState(ams_info: int) -> AMSHeatingState:
     """
-    Decodes the AMS Heater state from the AMS Info attribute
+    Decodes the AMS drying/heater state from bits 4-7 of the ams_info value.
+
+    This implementation follows BambuStudio's DevFilaSystem parsing logic,
+    extracting DryStatus from the info field.
+
+    Args:
+        ams_info: Numeric AMS info value containing drying status in bits 4-7.
+
+    Returns:
+        AMSHeatingState enum representing the current drying/heater state.
+        Only AMS 2 Pro (N3F) and AMS HT (N3S) support active drying states.
     """
-    # 1. Primary Power Threshold
-    if ams_info < 2000 and ams_info != 1002:
-        return AMSHeatingState.NO_POWER
+    # Extract DryStatus from bits 4-7 (right-shift by 4, mask 0x0F)
+    dry_status = (ams_info >> 4) & 0x0F
 
-    # 2. Extract Universal Remainder (Strips 99-point model offset)
-    status_rem = ams_info % 100
-    is_high_power = ams_info >= 100000
-
-    # 3. High Power Bus Logic
-    if is_high_power:
-        # 142113, 142123, 142024
-        if status_rem in [13, 23, 24]:
-            return AMSHeatingState.HEATING
-        # 142103, 142014
-        return AMSHeatingState.POSTHEATING
-
-    # 4. Local Bus Logic (+10 / +20 transitions)
-    if status_rem in [13, 24]:
-        return AMSHeatingState.PREHEATING
-    if status_rem == 23:
-        return AMSHeatingState.HEATING
-
-    return AMSHeatingState.IDLE
+    return AMSHeatingState(dry_status)
 
 
 @staticmethod
@@ -444,24 +462,41 @@ def getPrinterSeriesByModel(model: PrinterModel) -> PrinterSeries:
 
 
 @staticmethod
-def parseAMSInfo(info: int) -> dict:
+def parseAMSInfo(info_hex: str) -> dict:
     """
-    Extracts all established telemetry attributes from the info integer.
-    Verified offsets: 0, 4, 8, 17, 18, 20, 22.
-    """
+    Extracts all documented telemetry attributes from the AMS info hex string.
 
-    extruder_id = (info >> 8) & 0x0F
-    # 11 and 10 == 1 and 0
-    #  8 and  7 == 1 and 0
-    if extruder_id in (8, 11):
-        h2d_toolhead_index = 1
-    else:
-        h2d_toolhead_index = 0
+    Based on BambuStudio's DevFilaSystemParser::ParseAmsInfo implementation.
+    Complete bit field mapping (32-bit integer):
+    - Bits 0-3: AMS type (1=AMS, 2=AMS_LITE, 3=AMS_2_PRO/N3F, 4=AMS_HT/N3S)
+    - Bits 4-7: Dry status (OFF/CHECKING/DRYING/COOLING/STOPPING/ERROR/etc)
+    - Bits 8-11: Extruder ID (for H2D toolhead assignment)
+    - Bits 18-19: Dry fan 1 status (OFF=0, ON=1)
+    - Bits 20-21: Dry fan 2 status (OFF=0, ON=1)
+    - Bits 22-25: Dry sub-status (OFF/HEATING/DEHUMIDIFY)
+
+    Args:
+        info_hex: Hexadecimal string representation of AMS info value
+
+    Returns:
+        Dictionary with all extracted telemetry fields
+    """
+    info = int(info_hex, 16)
+
+    ams_type = info & 0x0F  # Bits 0-3
+    dry_status = (info >> 4) & 0x0F  # Bits 4-7
+    extruder_id = (info >> 8) & 0x0F  # Bits 8-11
+    dry_fan1_status = (info >> 18) & 0x03  # Bits 18-19
+    dry_fan2_status = (info >> 20) & 0x03  # Bits 20-21
+    dry_sub_status = (info >> 22) & 0x0F  # Bits 22-25
 
     ret = {
+        "ams_type": AMSModel(ams_type) if ams_type in range(5) else AMSModel.UNKNOWN,
+        "heater_state": AMSHeatingState(dry_status),
         "extruder_id": extruder_id,
-        "h2d_toolhead_index": h2d_toolhead_index,
-        "heater_state": getAMSHeatingState(info),
+        "dry_fan1_status": AMSDryFanStatus(dry_fan1_status),
+        "dry_fan2_status": AMSDryFanStatus(dry_fan2_status),
+        "dry_sub_status": AMSDrySubStatus(dry_sub_status),
     }
 
     # print(f"\r\n{ret}\r\n")
