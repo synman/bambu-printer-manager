@@ -1,0 +1,4270 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/data-dictionary/">
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../reference/bpm/__init__/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Data Dictionary - bambu-printer-manager</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#bambu-printer-manager-data-dictionary" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="bambu-printer-manager" class="md-header__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            bambu-printer-manager
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Data Dictionary
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Data Dictionary
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../reference/bpm/__init__/" class="md-tabs__link">
+          
+  
+  
+  Code Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../container/" class="md-tabs__link">
+          
+  
+  
+  Client Container
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../license/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  License
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="bambu-printer-manager" class="md-nav__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    bambu-printer-manager
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Dictionary
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Dictionary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reference-implementations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference Implementations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataclass-hierarchy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dataclass Hierarchy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bambustate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BambuState
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BambuState">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-state-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core State Attributes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Core State Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gcode_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        gcode_state
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#active_tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        active_tool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#active_ams_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        active_ams_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#active_tray_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        active_tray_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#active_tray_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        active_tray_state
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#active_tray_state_name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        active_tray_state_name
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#target_tray_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        target_tray_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is_external_spool_active" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        is_external_spool_active
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#active_nozzle_temp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        active_nozzle_temp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#active_nozzle_temp_target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        active_nozzle_temp_target
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ams-status-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AMS Status Attributes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="AMS Status Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ams_status_raw" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ams_status_raw
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ams_status_text" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ams_status_text
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ams_exist_bits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ams_exist_bits
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ams_connected_count" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ams_connected_count
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-handling-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Handling Attributes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Error Handling Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#print_error" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        print_error
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hms_errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hms_errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#network-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Network Attributes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Network Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#wifi_signal_strength" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        wifi_signal_strength
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#collections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Collections
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Collections">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ams_units" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ams_units
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extruders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        extruders
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        spools
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#climate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        climate
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#internaldebug-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Internal/Debug Attributes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Internal/Debug Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        stat
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fun" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        fun
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extruderstate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExtruderState
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ExtruderState">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#identification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Identification
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Identification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        id
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#temperature-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Temperature Attributes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Temperature Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#temp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        temp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#temp_target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        temp_target
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State Attributes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="State Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#info_bits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        info_bits
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        state
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        status
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tray-assignment-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tray Assignment Attributes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tray Assignment Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#active_tray_id_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        active_tray_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#target_tray_id_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        target_tray_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tray_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tray_state
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#assigned_to_ams_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        assigned_to_ams_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#amsunitstate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AMSUnitState
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="AMSUnitState">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#identification_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Identification
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Identification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ams_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ams_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chip_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        chip_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        model
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#temperature-attributes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Temperature Attributes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Temperature Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#temp_actual" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        temp_actual
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#temp_target_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        temp_target
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#humidity-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Humidity Attributes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Humidity Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#humidity_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        humidity_index
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#humidity_raw" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        humidity_raw
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ams-info-bit-field-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AMS Info Bit Field Attributes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="AMS Info Bit Field Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ams_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ams_info
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#heater_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        heater_state
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dry_fan1_status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dry_fan1_status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dry_fan2_status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dry_fan2_status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dry_sub_status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dry_sub_status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dry_time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dry_time
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tray-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tray Management
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tray Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tray_exists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tray_exists
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#assigned_to_extruder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        assigned_to_extruder
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bambuclimate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BambuClimate
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BambuClimate">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bed-temperature" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bed Temperature
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Bed Temperature">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bed_temp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        bed_temp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bed_temp_target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        bed_temp_target
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chamber-temperature" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chamber Temperature
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Chamber Temperature">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#chamber_temp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        chamber_temp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chamber_temp_target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        chamber_temp_target
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#air-conditioning-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Air Conditioning Control
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Air Conditioning Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#air_conditioning_mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        air_conditioning_mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#airduct_mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        airduct_mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#airduct_sub_mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        airduct_sub_mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fan-speed-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fan Speed Attributes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fan Speed Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#part_cooling_fan_speed_percent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        part_cooling_fan_speed_percent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#part_cooling_fan_speed_target_percent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        part_cooling_fan_speed_target_percent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aux_fan_speed_percent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        aux_fan_speed_percent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exhaust_fan_speed_percent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        exhaust_fan_speed_percent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#heatbreak_fan_speed_percent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        heatbreak_fan_speed_percent
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zone-control-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zone Control Attributes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Zone Control Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#zone_intake_open" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        zone_intake_open
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zone_part_fan_percent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        zone_part_fan_percent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zone_aux_percent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        zone_aux_percent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zone_exhaust_percent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        zone_exhaust_percent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zone_top_vent_open" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        zone_top_vent_open
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#doorlid-sensors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Door/Lid Sensors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Door/Lid Sensors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#is_chamber_door_open" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        is_chamber_door_open
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is_chamber_lid_open" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        is_chamber_lid_open
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bambuspool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BambuSpool
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BambuSpool">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#identification_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Identification
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Identification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#id_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#slot_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        slot_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ams_id_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ams_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filament-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filament Properties
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Filament Properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        name
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sub_brands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sub_brands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#color" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        color
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tray_info_idx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tray_info_idx
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#temperature-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Temperature Settings
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Temperature Settings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bed_temp_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        bed_temp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nozzle_temp_min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        nozzle_temp_min
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nozzle_temp_max" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        nozzle_temp_max
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#drying_temp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        drying_temp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#drying_time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        drying_time
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#print-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Print Settings
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Print Settings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#k" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        k
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spool-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spool Status
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Spool Status">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#remaining_percent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        remaining_percent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        state
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#total_length" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        total_length
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tray_weight" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tray_weight
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enumerations-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enumerations Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Enumerations Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#activetool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ActiveTool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#airconditioningmode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AirConditioningMode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#amsmodel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AMSModel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#amsheatingstate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AMSHeatingState
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#amsdrysubstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AMSDrySubStatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#amsdryfanstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AMSDryFanStatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extruderinfostate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExtruderInfoState
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extruderstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExtruderStatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#traystate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TrayState
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parsing-functions-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parsing Functions Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parsing Functions Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#temperature-unpacking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Temperature Unpacking
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Temperature Unpacking">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unpacktemperatureraw_temp-int-tuplefloat-float" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        unpackTemperature(raw_temp: int) -&gt; tuple[float, float]
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ams-info-parsing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AMS Info Parsing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="AMS Info Parsing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parseamsinfoinfo_hex-str-dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parseAMSInfo(info_hex: str) -&gt; dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extruder-parsing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extruder Parsing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extruder Parsing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parseextruderinfoinfo_int-int-extruderinfostate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parseExtruderInfo(info_int: int) -&gt; ExtruderInfoState
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parseextruderstatusstat_int-int-extruderstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parseExtruderStatus(stat_int: int) -&gt; ExtruderStatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fan-speed-scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fan Speed Scaling
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fan Speed Scaling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scalefanspeedraw_val-any-int" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scaleFanSpeed(raw_val: Any) -&gt; int
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-decoding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Decoding
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Error Decoding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#decodeerrorerror-int-dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        decodeError(error: int) -&gt; dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decodehmshms_list-list-listdict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        decodeHMS(hms_list: list) -&gt; list[dict]
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#telemetry-message-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Telemetry Message Structure
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Telemetry Message Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#standard-telemetry-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Standard Telemetry Update
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ams-drying-status-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AMS Drying Status Update
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hms-error-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HMS Error Update
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version History
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Code Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bpm
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    bpm
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambucommands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambucommands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambuconfig/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuconfig
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambuprinter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuprinter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambuproject/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuproject
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambuspool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuspool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambustate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambustate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambutools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambutools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_8" id="__nav_3_1_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ftpsclient
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ftpsclient
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/ftpsclient/ftpsclient/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ftpsclient
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Client Container
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Client Container
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../container/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="bambu-printer-manager-data-dictionary">Bambu Printer Manager - Data Dictionary</h1>
+<h2 id="overview">Overview</h2>
+<p>This comprehensive data dictionary documents all attributes manifested in the bambu-printer-manager library. Each attribute includes its ancestry (parent class), telemetry source (MQTT JSON path), type information, valid ranges, and purpose.</p>
+<h2 id="reference-implementations">Reference Implementations</h2>
+<p>Attributes are validated against these implementations:</p>
+<ul>
+<li><strong><a href="https://github.com/bambulab/BambuStudio">BambuStudio</a></strong> - Bambu Lab's slicer/client (C++)</li>
+<li><strong><a href="https://github.com/OrcaSlicer/OrcaSlicer">OrcaSlicer</a></strong> - Community fork with enhanced features (C++)</li>
+<li><strong><a href="https://github.com/greghesp/ha-bambulab">ha-bambulab</a></strong> - Home Assistant integration (Python)</li>
+</ul>
+<h2 id="dataclass-hierarchy">Dataclass Hierarchy</h2>
+<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><a href="#__codelineno-0-1"><span class="linenos" data-linenos=" 1 "></span></a>BambuState (root)
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a><a href="#__codelineno-0-2"><span class="linenos" data-linenos=" 2 "></span></a>├── gcode_state, active_tool, etc.
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3"></a><a href="#__codelineno-0-3"><span class="linenos" data-linenos=" 3 "></span></a>├── ams_units: list[AMSUnitState]
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4"></a><a href="#__codelineno-0-4"><span class="linenos" data-linenos=" 4 "></span></a>│   ├── ams_id, model, temps, humidity
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5"></a><a href="#__codelineno-0-5"><span class="linenos" data-linenos=" 5 "></span></a>│   └── heater_state, dry_fan1/2_status, dry_sub_status
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6"></a><a href="#__codelineno-0-6"><span class="linenos" data-linenos=" 6 "></span></a>├── extruders: list[ExtruderState]
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7"></a><a href="#__codelineno-0-7"><span class="linenos" data-linenos=" 7 "></span></a>│   ├── id, temps, state, status
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8"></a><a href="#__codelineno-0-8"><span class="linenos" data-linenos=" 8 "></span></a>│   └── active_tray_id, target_tray_id, tray_state
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9"></a><a href="#__codelineno-0-9"><span class="linenos" data-linenos=" 9 "></span></a>├── spools: list[BambuSpool]
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10"></a><a href="#__codelineno-0-10"><span class="linenos" data-linenos="10 "></span></a>│   └── Filament properties, color, temps, remaining
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11"></a><a href="#__codelineno-0-11"><span class="linenos" data-linenos="11 "></span></a>└── climate: BambuClimate
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12"></a><a href="#__codelineno-0-12"><span class="linenos" data-linenos="12 "></span></a>    ├── bed_temp, chamber_temp, nozzle_temp
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13"></a><a href="#__codelineno-0-13"><span class="linenos" data-linenos="13 "></span></a>    ├── fans: part_cooling, aux, exhaust, heatbreak
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14"></a><a href="#__codelineno-0-14"><span class="linenos" data-linenos="14 "></span></a>    └── doors: chamber_door, lid, top_vent
+</span></code></pre></div>
+<hr />
+<h2 id="bambustate">BambuState</h2>
+<p>Root state object representing complete printer telemetry.</p>
+<p><strong>Source</strong>: <code>src/bpm/bambustate.py</code><br />
+<strong>Telemetry Root</strong>: <code>data.get("print", {})</code></p>
+<h3 id="core-state-attributes">Core State Attributes</h3>
+<h4 id="gcode_state">gcode_state</h4>
+<ul>
+<li><strong>Type</strong>: <code>str</code></li>
+<li><strong>Telemetry</strong>: <code>print.gcode_state</code></li>
+<li><strong>Valid Values</strong>: <code>IDLE</code>, <code>PREPARE</code>, <code>RUNNING</code>, <code>PAUSE</code>, <code>FINISH</code>, <code>FAILED</code>, <code>UNKNOWN</code></li>
+<li><strong>Purpose</strong>: Current G-code execution state</li>
+<li><strong>Reference</strong>: BambuStudio <code>GCodeState</code> enum</li>
+</ul>
+<h4 id="active_tool">active_tool</h4>
+<ul>
+<li><strong>Type</strong>: <code>ActiveTool</code> (IntEnum)</li>
+<li><strong>Telemetry</strong>: <code>print.device.extruder.state</code> (bits 4-7)</li>
+<li><strong>Valid Values</strong>: </li>
+<li><code>SINGLE_EXTRUDER (-1)</code>: X1/P1/A1 single toolhead</li>
+<li><code>RIGHT_EXTRUDER (0)</code>: H2D primary toolhead</li>
+<li><code>LEFT_EXTRUDER (1)</code>: H2D secondary toolhead</li>
+<li><code>NOT_ACTIVE (15)</code>: Transitional state</li>
+<li><strong>Purpose</strong>: Currently active extruder in dual-extruder systems</li>
+<li><strong>Reference</strong>: BambuStudio <code>ActiveTool</code> mapping</li>
+</ul>
+<h4 id="active_ams_id">active_ams_id</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: Computed from <code>active_tray_id &gt;&gt; 2</code></li>
+<li><strong>Valid Range</strong>: <code>-1</code> (no AMS), <code>0-3</code> (standard AMS), <code>128-131</code> (AMS HT)</li>
+<li><strong>Purpose</strong>: Currently active AMS unit ID</li>
+<li><strong>Reference</strong>: AMS slot addressing scheme</li>
+</ul>
+<h4 id="active_tray_id">active_tray_id</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>print.ams.tray_now</code> or computed from extruder</li>
+<li><strong>Valid Range</strong>: </li>
+<li><code>0-15</code>: Standard AMS slots (4 trays × 4 units)</li>
+<li><code>254-255</code>: External spool</li>
+<li><code>-1</code>: No tray</li>
+<li><strong>Purpose</strong>: Current filament tray identifier</li>
+<li><strong>Reference</strong>: BambuStudio tray indexing</li>
+</ul>
+<h4 id="active_tray_state">active_tray_state</h4>
+<ul>
+<li><strong>Type</strong>: <code>TrayState</code> (IntEnum)</li>
+<li><strong>Telemetry</strong>: Computed from extruder info/status</li>
+<li><strong>Valid Values</strong>: </li>
+<li><code>UNLOADED (0)</code></li>
+<li><code>LOADED (1)</code></li>
+<li><code>LOADING (2)</code></li>
+<li><code>UNLOADING (3)</code></li>
+<li><strong>Purpose</strong>: Filament loading operational state</li>
+<li><strong>Reference</strong>: BambuStudio <code>TrayState</code></li>
+</ul>
+<h4 id="active_tray_state_name">active_tray_state_name</h4>
+<ul>
+<li><strong>Type</strong>: <code>str</code></li>
+<li><strong>Telemetry</strong>: Derived from <code>active_tray_state.name</code></li>
+<li><strong>Purpose</strong>: Human-readable tray state</li>
+<li><strong>Reference</strong>: N/A (convenience attribute)</li>
+</ul>
+<h4 id="target_tray_id">target_tray_id</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: Computed from extruder target tray</li>
+<li><strong>Valid Range</strong>: Same as <code>active_tray_id</code></li>
+<li><strong>Purpose</strong>: Next tray to be loaded</li>
+<li><strong>Reference</strong>: BambuStudio tray targeting</li>
+</ul>
+<h4 id="is_external_spool_active">is_external_spool_active</h4>
+<ul>
+<li><strong>Type</strong>: <code>bool</code></li>
+<li><strong>Telemetry</strong>: Computed from <code>active_tray_id in [254, 255]</code></li>
+<li><strong>Purpose</strong>: Indicates external spool usage</li>
+<li><strong>Reference</strong>: N/A (derived)</li>
+</ul>
+<h4 id="active_nozzle_temp">active_nozzle_temp</h4>
+<ul>
+<li><strong>Type</strong>: <code>float</code></li>
+<li><strong>Telemetry</strong>: <code>print.nozzle_temper</code> or active extruder temp</li>
+<li><strong>Unit</strong>: °C</li>
+<li><strong>Purpose</strong>: Current nozzle temperature</li>
+<li><strong>Reference</strong>: BambuStudio thermal monitoring</li>
+</ul>
+<h4 id="active_nozzle_temp_target">active_nozzle_temp_target</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>print.nozzle_target_temper</code> or extruder target</li>
+<li><strong>Unit</strong>: °C</li>
+<li><strong>Purpose</strong>: Target nozzle temperature</li>
+<li><strong>Reference</strong>: BambuStudio thermal control</li>
+</ul>
+<h3 id="ams-status-attributes">AMS Status Attributes</h3>
+<h4 id="ams_status_raw">ams_status_raw</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>print.ams_status</code></li>
+<li><strong>Purpose</strong>: Raw AMS status bitmask</li>
+<li><strong>Reference</strong>: BambuStudio AMS status codes</li>
+</ul>
+<h4 id="ams_status_text">ams_status_text</h4>
+<ul>
+<li><strong>Type</strong>: <code>str</code></li>
+<li><strong>Telemetry</strong>: Parsed from <code>ams_status_raw</code></li>
+<li><strong>Valid Values</strong>: <code>Idle</code>, <code>Filament Changing</code>, <code>RFID Identifying</code>, <code>Assist/Engaged</code>, <code>Calibration</code>, <code>Self Check</code>, <code>Debug</code>, <code>Unknown</code></li>
+<li><strong>Purpose</strong>: Human-readable AMS status</li>
+<li><strong>Reference</strong>: BambuStudio AMS state machine</li>
+</ul>
+<h4 id="ams_exist_bits">ams_exist_bits</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>print.ams.ams_exist_bits</code></li>
+<li><strong>Purpose</strong>: Bitmask of connected AMS units</li>
+<li><strong>Reference</strong>: BambuStudio AMS detection</li>
+</ul>
+<h4 id="ams_connected_count">ams_connected_count</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: Computed from <code>bin(ams_exist_bits).count("1")</code></li>
+<li><strong>Valid Range</strong>: <code>0-4</code> standard, <code>0-8</code> with AMS HT</li>
+<li><strong>Purpose</strong>: Number of connected AMS units</li>
+<li><strong>Reference</strong>: N/A (derived)</li>
+</ul>
+<h3 id="error-handling-attributes">Error Handling Attributes</h3>
+<h4 id="print_error">print_error</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>print.print_error</code></li>
+<li><strong>Purpose</strong>: Main error code (32-bit HMS error)</li>
+<li><strong>Decoding</strong>: <code>decodeError(print_error)</code> extracts module, severity, message</li>
+<li><strong>Reference</strong>: BambuStudio HMS error handling</li>
+</ul>
+<h4 id="hms_errors">hms_errors</h4>
+<ul>
+<li><strong>Type</strong>: <code>list[dict]</code></li>
+<li><strong>Telemetry</strong>: <code>print.hms</code> + decoded <code>print_error</code></li>
+<li><strong>Structure</strong>: Each error contains <code>code</code>, <code>msg</code>, <code>module</code>, <code>severity</code>, <code>is_critical</code>, <code>type</code>, <code>url</code></li>
+<li><strong>Purpose</strong>: List of active HMS errors</li>
+<li><strong>Reference</strong>: BambuStudio HMS system, ha-bambulab error decoding</li>
+</ul>
+<h3 id="network-attributes">Network Attributes</h3>
+<h4 id="wifi_signal_strength">wifi_signal_strength</h4>
+<ul>
+<li><strong>Type</strong>: <code>str</code></li>
+<li><strong>Telemetry</strong>: <code>print.wifi_signal</code></li>
+<li><strong>Unit</strong>: dBm</li>
+<li><strong>Purpose</strong>: Wi-Fi signal strength indicator</li>
+<li><strong>Reference</strong>: BambuStudio network monitoring</li>
+</ul>
+<h3 id="collections">Collections</h3>
+<h4 id="ams_units">ams_units</h4>
+<ul>
+<li><strong>Type</strong>: <code>list[AMSUnitState]</code></li>
+<li><strong>Telemetry</strong>: <code>print.ams.ams[]</code> + <code>info.module[]</code></li>
+<li><strong>Purpose</strong>: Complete state of all connected AMS units</li>
+<li><strong>Reference</strong>: See <a href="#amsunitstate">AMSUnitState</a> section</li>
+</ul>
+<h4 id="extruders">extruders</h4>
+<ul>
+<li><strong>Type</strong>: <code>list[ExtruderState]</code></li>
+<li><strong>Telemetry</strong>: <code>print.device.extruder.info[]</code></li>
+<li><strong>Purpose</strong>: State of all physical extruders</li>
+<li><strong>Reference</strong>: See <a href="#extruderstate">ExtruderState</a> section</li>
+</ul>
+<h4 id="spools">spools</h4>
+<ul>
+<li><strong>Type</strong>: <code>list[BambuSpool]</code></li>
+<li><strong>Telemetry</strong>: Aggregated from AMS trays and external spools</li>
+<li><strong>Purpose</strong>: All filament spools with properties</li>
+<li><strong>Reference</strong>: See <a href="#bambuspool">BambuSpool</a> section</li>
+</ul>
+<h4 id="climate">climate</h4>
+<ul>
+<li><strong>Type</strong>: <code>BambuClimate</code></li>
+<li><strong>Telemetry</strong>: Multiple sources (see BambuClimate section)</li>
+<li><strong>Purpose</strong>: All temperature, fan, and environmental data</li>
+<li><strong>Reference</strong>: See <a href="#bambuclimate">BambuClimate</a> section</li>
+</ul>
+<h3 id="internaldebug-attributes">Internal/Debug Attributes</h3>
+<h4 id="stat">stat</h4>
+<ul>
+<li><strong>Type</strong>: <code>str</code></li>
+<li><strong>Telemetry</strong>: <code>print.stat</code></li>
+<li><strong>Purpose</strong>: Raw status bitmask (hex string) - contains chamber door/lid sensor bits</li>
+<li><strong>Reference</strong>: BambuStudio status flags</li>
+</ul>
+<h4 id="fun">fun</h4>
+<ul>
+<li><strong>Type</strong>: <code>str</code></li>
+<li><strong>Telemetry</strong>: <code>print.fun</code></li>
+<li><strong>Purpose</strong>: Raw function bitmask (hex string) - contains capability flags</li>
+<li><strong>Reference</strong>: BambuStudio feature detection</li>
+</ul>
+<hr />
+<h2 id="extruderstate">ExtruderState</h2>
+<p>Physical extruder/toolhead state.</p>
+<p><strong>Source</strong>: <code>src/bpm/bambustate.py</code><br />
+<strong>Telemetry Root</strong>: <code>print.device.extruder.info[id]</code></p>
+<h3 id="identification">Identification</h3>
+<h4 id="id">id</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>extruder.info[].id</code></li>
+<li><strong>Valid Values</strong>: <code>0</code> (right/primary), <code>1</code> (left/secondary)</li>
+<li><strong>Purpose</strong>: Physical extruder identifier</li>
+<li><strong>Reference</strong>: BambuStudio extruder indexing</li>
+</ul>
+<h3 id="temperature-attributes">Temperature Attributes</h3>
+<h4 id="temp">temp</h4>
+<ul>
+<li><strong>Type</strong>: <code>float</code></li>
+<li><strong>Telemetry</strong>: <code>extruder.info[].temp</code> (unpacked via <code>unpackTemperature()</code>)</li>
+<li><strong>Unit</strong>: °C</li>
+<li><strong>Purpose</strong>: Current extruder temperature</li>
+<li><strong>Reference</strong>: BambuStudio thermal monitoring</li>
+</ul>
+<h4 id="temp_target">temp_target</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>extruder.info[].temp</code> (high 16 bits)</li>
+<li><strong>Unit</strong>: °C</li>
+<li><strong>Purpose</strong>: Target extruder temperature</li>
+<li><strong>Reference</strong>: BambuStudio thermal control</li>
+</ul>
+<h3 id="state-attributes">State Attributes</h3>
+<h4 id="info_bits">info_bits</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>extruder.info[].info</code></li>
+<li><strong>Purpose</strong>: Raw bitmask containing filament sensor states</li>
+<li><strong>Bit Structure</strong>:</li>
+<li>Bit 3: Nozzle present</li>
+<li>Bit 2: Buffer loaded</li>
+<li>Bit 1: Filament loaded</li>
+<li><strong>Reference</strong>: BambuStudio <code>ExtruderInfo</code> parsing</li>
+</ul>
+<h4 id="state">state</h4>
+<ul>
+<li><strong>Type</strong>: <code>ExtruderInfoState</code> (IntEnum)</li>
+<li><strong>Telemetry</strong>: Parsed from <code>info_bits</code></li>
+<li><strong>Valid Values</strong>:</li>
+<li><code>NO_NOZZLE (0)</code>: No nozzle detected</li>
+<li><code>EMPTY (1)</code>: Nozzle present, no filament</li>
+<li><code>BUFFER_LOADED (2)</code>: Filament in buffer</li>
+<li><code>LOADED (3)</code>: Filament fully loaded</li>
+<li><strong>Purpose</strong>: Filament presence state</li>
+<li><strong>Reference</strong>: BambuStudio <code>parseExtruderInfo()</code></li>
+</ul>
+<h4 id="status">status</h4>
+<ul>
+<li><strong>Type</strong>: <code>ExtruderStatus</code> (IntEnum)</li>
+<li><strong>Telemetry</strong>: <code>extruder.info[].stat</code> (parsed)</li>
+<li><strong>Valid Values</strong>:</li>
+<li><code>IDLE (0)</code>: Not active</li>
+<li><code>HEATING (1)</code>: Heating in progress</li>
+<li><code>ACTIVE (2)</code>: Actively extruding</li>
+<li><code>SUCCESS (3)</code>: Operation completed</li>
+<li><strong>Purpose</strong>: Operational extruder state</li>
+<li><strong>Reference</strong>: BambuStudio <code>BBL_EXTRUDER_STATE</code> enum</li>
+</ul>
+<h3 id="tray-assignment-attributes">Tray Assignment Attributes</h3>
+<h4 id="active_tray_id_1">active_tray_id</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: Computed from <code>extruder.info[].hnow</code>, <code>extruder.info[].snow</code></li>
+<li><strong>Valid Range</strong>: <code>-1</code>, <code>0-15</code>, <code>254-255</code></li>
+<li><strong>Purpose</strong>: Currently active tray for this extruder</li>
+<li><strong>Reference</strong>: BambuStudio tray tracking algorithm</li>
+</ul>
+<h4 id="target_tray_id_1">target_tray_id</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: Computed from <code>extruder.info[].htar</code>, <code>extruder.info[].star</code></li>
+<li><strong>Valid Range</strong>: Same as <code>active_tray_id</code></li>
+<li><strong>Purpose</strong>: Target tray for this extruder</li>
+<li><strong>Reference</strong>: BambuStudio tray targeting</li>
+</ul>
+<h4 id="tray_state">tray_state</h4>
+<ul>
+<li><strong>Type</strong>: <code>TrayState</code> (IntEnum)</li>
+<li><strong>Telemetry</strong>: Computed from <code>state</code> + <code>status</code> combination</li>
+<li><strong>Purpose</strong>: Loading state for this extruder's tray</li>
+<li><strong>Reference</strong>: State machine derived from BambuStudio</li>
+</ul>
+<h4 id="assigned_to_ams_id">assigned_to_ams_id</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: Set when AMS unit reports H2D extruder assignment</li>
+<li><strong>Valid Range</strong>: <code>-1</code>, <code>0-3</code>, <code>128-131</code></li>
+<li><strong>Purpose</strong>: AMS unit assigned to this extruder (H2D dual-extruder)</li>
+<li><strong>Reference</strong>: BambuStudio dual-extruder AMS routing</li>
+</ul>
+<hr />
+<h2 id="amsunitstate">AMSUnitState</h2>
+<p>Individual AMS unit state and drying control.</p>
+<p><strong>Source</strong>: <code>src/bpm/bambustate.py</code><br />
+<strong>Telemetry Root</strong>: <code>print.ams.ams[id]</code></p>
+<h3 id="identification_1">Identification</h3>
+<h4 id="ams_id">ams_id</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>ams[].id</code></li>
+<li><strong>Valid Range</strong>: </li>
+<li><code>0-3</code>: Standard AMS units</li>
+<li><code>128-131</code>: AMS HT units</li>
+<li><strong>Purpose</strong>: Unique AMS unit identifier</li>
+<li><strong>Reference</strong>: BambuStudio AMS addressing</li>
+</ul>
+<h4 id="chip_id">chip_id</h4>
+<ul>
+<li><strong>Type</strong>: <code>str</code></li>
+<li><strong>Telemetry</strong>: <code>info.module[].sn</code> where module name starts with <code>n3f/</code>, <code>n3s/</code>, or <code>ams</code></li>
+<li><strong>Purpose</strong>: Hardware serial number</li>
+<li><strong>Reference</strong>: BambuStudio module enumeration</li>
+</ul>
+<h4 id="model">model</h4>
+<ul>
+<li><strong>Type</strong>: <code>AMSModel</code> (IntEnum)</li>
+<li><strong>Telemetry</strong>: Parsed from <code>ams[].info</code> bits 0-3, or derived from <code>chip_id</code> prefix</li>
+<li><strong>Valid Values</strong>:</li>
+<li><code>UNKNOWN (0)</code></li>
+<li><code>AMS_1 (1)</code>: First generation (SN: 006xxx)</li>
+<li><code>AMS_LITE (2)</code>: Lite variant (SN: 03Cxxx)</li>
+<li><code>AMS_2_PRO (3)</code>: Second gen Pro / N3F (SN: 19Cxxx)</li>
+<li><code>AMS_HT (4)</code>: High-Temp / N3S (SN: 19Fxxx)</li>
+<li><strong>Purpose</strong>: AMS hardware model type</li>
+<li><strong>Reference</strong>: BambuStudio <code>AMSModel</code> enum, serial prefix mapping</li>
+</ul>
+<h3 id="temperature-attributes_1">Temperature Attributes</h3>
+<h4 id="temp_actual">temp_actual</h4>
+<ul>
+<li><strong>Type</strong>: <code>float</code></li>
+<li><strong>Telemetry</strong>: <code>ams[].temp</code></li>
+<li><strong>Unit</strong>: °C</li>
+<li><strong>Purpose</strong>: Current AMS internal temperature</li>
+<li><strong>Reference</strong>: BambuStudio thermal monitoring</li>
+</ul>
+<h4 id="temp_target_1">temp_target</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>ams[].target_temp</code> or captured during drying command</li>
+<li><strong>Unit</strong>: °C</li>
+<li><strong>Purpose</strong>: Target drying temperature</li>
+<li><strong>Reference</strong>: BambuStudio drying control</li>
+</ul>
+<h3 id="humidity-attributes">Humidity Attributes</h3>
+<h4 id="humidity_index">humidity_index</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>ams[].humidity</code></li>
+<li><strong>Valid Range</strong>: <code>1-5</code> (levels)</li>
+<li><strong>Purpose</strong>: Humidity level index</li>
+<li><strong>Reference</strong>: BambuStudio humidity display</li>
+</ul>
+<h4 id="humidity_raw">humidity_raw</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>ams[].humidity_raw</code></li>
+<li><strong>Valid Range</strong>: <code>0-100</code> (%)</li>
+<li><strong>Purpose</strong>: Raw humidity percentage</li>
+<li><strong>Reference</strong>: BambuStudio sensor data</li>
+</ul>
+<h3 id="ams-info-bit-field-attributes">AMS Info Bit Field Attributes</h3>
+<p>All attributes below are extracted from the 32-bit <code>ams[].info</code> hex value.</p>
+<p><strong>Reference</strong>: BambuStudio <code>DevFilaSystem.cpp</code> <code>ParseAmsInfo()</code> function</p>
+<h4 id="ams_info">ams_info</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>ams[].info</code> (hex string converted to int)</li>
+<li><strong>Purpose</strong>: Raw AMS info bitmask containing all drying/assignment data</li>
+<li><strong>Reference</strong>: BambuStudio AMS telemetry</li>
+</ul>
+<h4 id="heater_state">heater_state</h4>
+<ul>
+<li><strong>Type</strong>: <code>AMSHeatingState</code> (IntEnum)</li>
+<li><strong>Telemetry</strong>: <code>ams[].info</code> bits 4-7</li>
+<li><strong>Valid Values</strong>:</li>
+<li><code>OFF (0)</code>: No drying active</li>
+<li><code>CHECKING (1)</code>: Checking drying status</li>
+<li><code>DRYING (2)</code>: Active drying phase</li>
+<li><code>COOLING (3)</code>: Cooling after drying</li>
+<li><code>STOPPING (4)</code>: Stopping drying process</li>
+<li><code>ERROR (5)</code>: Error state</li>
+<li><code>CANNOT_STOP_HEAT_OOC (6)</code>: Heat control out of control</li>
+<li><code>PRODUCT_TEST (7)</code>: Product testing mode</li>
+<li><strong>Purpose</strong>: AMS drying/heater operational state</li>
+<li><strong>Reference</strong>: BambuStudio <code>DryStatus</code> enum (AMS 2 Pro and AMS HT only)</li>
+</ul>
+<h4 id="dry_fan1_status">dry_fan1_status</h4>
+<ul>
+<li><strong>Type</strong>: <code>AMSDryFanStatus</code> (IntEnum)</li>
+<li><strong>Telemetry</strong>: <code>ams[].info</code> bits 18-19</li>
+<li><strong>Valid Values</strong>:</li>
+<li><code>OFF (0)</code>: Fan off</li>
+<li><code>ON (1)</code>: Fan running</li>
+<li><strong>Purpose</strong>: Primary drying fan state</li>
+<li><strong>Reference</strong>: BambuStudio <code>DryFanStatus</code> enum</li>
+</ul>
+<h4 id="dry_fan2_status">dry_fan2_status</h4>
+<ul>
+<li><strong>Type</strong>: <code>AMSDryFanStatus</code> (IntEnum)</li>
+<li><strong>Telemetry</strong>: <code>ams[].info</code> bits 20-21</li>
+<li><strong>Valid Values</strong>: Same as <code>dry_fan1_status</code></li>
+<li><strong>Purpose</strong>: Secondary drying fan state</li>
+<li><strong>Reference</strong>: BambuStudio <code>DryFanStatus</code> enum</li>
+</ul>
+<h4 id="dry_sub_status">dry_sub_status</h4>
+<ul>
+<li><strong>Type</strong>: <code>AMSDrySubStatus</code> (IntEnum)</li>
+<li><strong>Telemetry</strong>: <code>ams[].info</code> bits 22-25</li>
+<li><strong>Valid Values</strong>:</li>
+<li><code>OFF (0)</code>: No active drying phase</li>
+<li><code>HEATING (1)</code>: Heating phase</li>
+<li><code>DEHUMIDIFY (2)</code>: Dehumidification phase</li>
+<li><strong>Purpose</strong>: Specific drying cycle phase</li>
+<li><strong>Reference</strong>: BambuStudio <code>DrySubStatus</code> enum</li>
+</ul>
+<h4 id="dry_time">dry_time</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>ams[].dry_time</code></li>
+<li><strong>Unit</strong>: Minutes</li>
+<li><strong>Purpose</strong>: Remaining drying time</li>
+<li><strong>Reference</strong>: BambuStudio drying timer</li>
+</ul>
+<h3 id="tray-management">Tray Management</h3>
+<h4 id="tray_exists">tray_exists</h4>
+<ul>
+<li><strong>Type</strong>: <code>list[bool]</code></li>
+<li><strong>Telemetry</strong>: <code>print.ams.tray_exist_bits</code> (parsed per-AMS)</li>
+<li><strong>Size</strong>: <code>4</code> for standard AMS, <code>1</code> for AMS HT</li>
+<li><strong>Bit Mapping</strong>:</li>
+<li>Standard AMS (id 0-3): shift = <code>4 * id</code>, check 4 bits</li>
+<li>AMS HT (id 128-131): shift = <code>16 + (4 * (id - 128))</code>, check 1 bit</li>
+<li><strong>Purpose</strong>: Which tray slots have filament present</li>
+<li><strong>Reference</strong>: BambuStudio tray existence detection</li>
+</ul>
+<h4 id="assigned_to_extruder">assigned_to_extruder</h4>
+<ul>
+<li><strong>Type</strong>: <code>ActiveTool</code> (IntEnum)</li>
+<li><strong>Telemetry</strong>: <code>ams[].info</code> bits 8-11 (extruder_id)</li>
+<li><strong>Purpose</strong>: Target extruder for H2D dual-extruder systems</li>
+<li><strong>Reference</strong>: BambuStudio H2D AMS routing</li>
+</ul>
+<hr />
+<h2 id="bambuclimate">BambuClimate</h2>
+<p>All environmental, thermal, and fan control data.</p>
+<p><strong>Source</strong>: <code>src/bpm/bambustate.py</code><br />
+<strong>Telemetry Root</strong>: Multiple sources</p>
+<h3 id="bed-temperature">Bed Temperature</h3>
+<h4 id="bed_temp">bed_temp</h4>
+<ul>
+<li><strong>Type</strong>: <code>float</code></li>
+<li><strong>Telemetry</strong>: <code>print.bed_temper</code></li>
+<li><strong>Unit</strong>: °C</li>
+<li><strong>Purpose</strong>: Current bed temperature</li>
+<li><strong>Reference</strong>: BambuStudio thermal monitoring</li>
+</ul>
+<h4 id="bed_temp_target">bed_temp_target</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>print.bed_target_temper</code></li>
+<li><strong>Unit</strong>: °C</li>
+<li><strong>Purpose</strong>: Target bed temperature</li>
+<li><strong>Reference</strong>: BambuStudio thermal control</li>
+</ul>
+<h3 id="chamber-temperature">Chamber Temperature</h3>
+<h4 id="chamber_temp">chamber_temp</h4>
+<ul>
+<li><strong>Type</strong>: <code>float</code></li>
+<li><strong>Telemetry</strong>: <code>print.device.ctc.info.temp</code> (unpacked) or <code>print.chamber_temper</code></li>
+<li><strong>Unit</strong>: °C</li>
+<li><strong>Purpose</strong>: Current chamber temperature</li>
+<li><strong>Reference</strong>: BambuStudio CTC decoding</li>
+</ul>
+<h4 id="chamber_temp_target">chamber_temp_target</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>print.device.ctc.info.temp</code> (high 16 bits) or set via <code>set_ctt</code> command</li>
+<li><strong>Unit</strong>: °C</li>
+<li><strong>Purpose</strong>: Target chamber temperature</li>
+<li><strong>Reference</strong>: BambuStudio chamber control</li>
+</ul>
+<h3 id="air-conditioning-control">Air Conditioning Control</h3>
+<h4 id="air_conditioning_mode">air_conditioning_mode</h4>
+<ul>
+<li><strong>Type</strong>: <code>AirConditioningMode</code> (IntEnum)</li>
+<li><strong>Telemetry</strong>: Derived from <code>print.device.airduct.modeCur</code></li>
+<li><strong>Valid Values</strong>:</li>
+<li><code>NOT_SUPPORTED (-1)</code>: No AC system</li>
+<li><code>COOL_MODE (0)</code>: Cooling/vent mode</li>
+<li><code>HEAT_MODE (1)</code>: Heating/recirculation mode</li>
+<li><strong>Purpose</strong>: Chamber climate control mode</li>
+<li><strong>Reference</strong>: BambuStudio airduct mode mapping</li>
+</ul>
+<h4 id="airduct_mode">airduct_mode</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>print.device.airduct.modeCur</code></li>
+<li><strong>Purpose</strong>: Raw airduct mode value</li>
+<li><strong>Reference</strong>: BambuStudio airduct control</li>
+</ul>
+<h4 id="airduct_sub_mode">airduct_sub_mode</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>print.device.airduct.subMode</code></li>
+<li><strong>Purpose</strong>: Raw airduct sub-mode value</li>
+<li><strong>Reference</strong>: BambuStudio airduct control</li>
+</ul>
+<h3 id="fan-speed-attributes">Fan Speed Attributes</h3>
+<p>All fan speeds are scaled 0-100%.</p>
+<h4 id="part_cooling_fan_speed_percent">part_cooling_fan_speed_percent</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>print.cooling_fan_speed</code> (scaled) or <code>airduct.parts[16].state</code></li>
+<li><strong>Valid Range</strong>: <code>0-100</code></li>
+<li><strong>Unit</strong>: %</li>
+<li><strong>Purpose</strong>: Part cooling fan speed</li>
+<li><strong>Reference</strong>: BambuStudio fan control, scaled via <code>scaleFanSpeed()</code> (0-15 → 0-100)</li>
+</ul>
+<h4 id="part_cooling_fan_speed_target_percent">part_cooling_fan_speed_target_percent</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: Currently mirrors <code>part_cooling_fan_speed_percent</code></li>
+<li><strong>Valid Range</strong>: <code>0-100</code></li>
+<li><strong>Unit</strong>: %</li>
+<li><strong>Purpose</strong>: Target part cooling fan speed</li>
+<li><strong>Reference</strong>: BambuStudio fan targets</li>
+</ul>
+<h4 id="aux_fan_speed_percent">aux_fan_speed_percent</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>print.big_fan1_speed</code> (scaled) or <code>airduct.parts[32].state</code></li>
+<li><strong>Valid Range</strong>: <code>0-100</code></li>
+<li><strong>Unit</strong>: %</li>
+<li><strong>Purpose</strong>: Auxiliary fan speed</li>
+<li><strong>Reference</strong>: BambuStudio fan control</li>
+</ul>
+<h4 id="exhaust_fan_speed_percent">exhaust_fan_speed_percent</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>print.big_fan2_speed</code> (scaled) or <code>airduct.parts[48].state</code></li>
+<li><strong>Valid Range</strong>: <code>0-100</code></li>
+<li><strong>Unit</strong>: %</li>
+<li><strong>Purpose</strong>: Exhaust/chamber fan speed</li>
+<li><strong>Reference</strong>: BambuStudio fan control</li>
+</ul>
+<h4 id="heatbreak_fan_speed_percent">heatbreak_fan_speed_percent</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>print.heatbreak_fan_speed</code> (scaled)</li>
+<li><strong>Valid Range</strong>: <code>0-100</code></li>
+<li><strong>Unit</strong>: %</li>
+<li><strong>Purpose</strong>: Heatbreak cooling fan speed</li>
+<li><strong>Reference</strong>: BambuStudio fan control</li>
+</ul>
+<h3 id="zone-control-attributes">Zone Control Attributes</h3>
+<h4 id="zone_intake_open">zone_intake_open</h4>
+<ul>
+<li><strong>Type</strong>: <code>bool</code></li>
+<li><strong>Telemetry</strong>: <code>print.device.airduct.parts[96].state</code> (non-zero = open)</li>
+<li><strong>Purpose</strong>: Heater intake damper state</li>
+<li><strong>Reference</strong>: BambuStudio zone control</li>
+</ul>
+<h4 id="zone_part_fan_percent">zone_part_fan_percent</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>print.device.airduct.parts[16].state</code></li>
+<li><strong>Valid Range</strong>: <code>0-100</code></li>
+<li><strong>Unit</strong>: %</li>
+<li><strong>Purpose</strong>: Internal part fan zone control</li>
+<li><strong>Reference</strong>: BambuStudio zone mapping</li>
+</ul>
+<h4 id="zone_aux_percent">zone_aux_percent</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>print.device.airduct.parts[32].state</code></li>
+<li><strong>Valid Range</strong>: <code>0-100</code></li>
+<li><strong>Unit</strong>: %</li>
+<li><strong>Purpose</strong>: Auxiliary fan zone control</li>
+<li><strong>Reference</strong>: BambuStudio zone mapping</li>
+</ul>
+<h4 id="zone_exhaust_percent">zone_exhaust_percent</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>print.device.airduct.parts[48].state</code></li>
+<li><strong>Valid Range</strong>: <code>0-100</code></li>
+<li><strong>Unit</strong>: %</li>
+<li><strong>Purpose</strong>: Exhaust fan zone control</li>
+<li><strong>Reference</strong>: BambuStudio zone mapping</li>
+</ul>
+<h4 id="zone_top_vent_open">zone_top_vent_open</h4>
+<ul>
+<li><strong>Type</strong>: <code>bool</code></li>
+<li><strong>Telemetry</strong>: Computed from <code>zone_exhaust_percent &gt; 0 and not zone_intake_open</code></li>
+<li><strong>Purpose</strong>: Top vent open state (derived)</li>
+<li><strong>Reference</strong>: Logic derived from BambuStudio behavior</li>
+</ul>
+<h3 id="doorlid-sensors">Door/Lid Sensors</h3>
+<h4 id="is_chamber_door_open">is_chamber_door_open</h4>
+<ul>
+<li><strong>Type</strong>: <code>bool</code></li>
+<li><strong>Telemetry</strong>: <code>print.stat</code> bit 23</li>
+<li><strong>Purpose</strong>: Chamber door open sensor (H2 series)</li>
+<li><strong>Capability</strong>: Requires <code>PrinterCapabilities.has_chamber_door_sensor</code></li>
+<li><strong>Reference</strong>: BambuStudio <code>fun</code> bit 12 detection, <code>stat</code> bit 23 state</li>
+</ul>
+<h4 id="is_chamber_lid_open">is_chamber_lid_open</h4>
+<ul>
+<li><strong>Type</strong>: <code>bool</code></li>
+<li><strong>Telemetry</strong>: <code>print.stat</code> bit 24</li>
+<li><strong>Purpose</strong>: Chamber lid open sensor (H2 series)</li>
+<li><strong>Capability</strong>: Requires <code>PrinterCapabilities.has_chamber_door_sensor</code></li>
+<li><strong>Reference</strong>: BambuStudio <code>stat</code> bit 24 state</li>
+</ul>
+<hr />
+<h2 id="bambuspool">BambuSpool</h2>
+<p>Filament spool properties and state.</p>
+<p><strong>Source</strong>: <code>src/bpm/bambuspool.py</code><br />
+<strong>Telemetry Root</strong>: <code>print.ams.ams[].tray[]</code> or virtual spool</p>
+<h3 id="identification_2">Identification</h3>
+<h4 id="id_1">id</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: Computed from AMS/tray combination</li>
+<li><strong>Valid Range</strong>: <code>0-23</code> (AMS slots), <code>254-255</code> (external)</li>
+<li><strong>Purpose</strong>: Global spool identifier</li>
+<li><strong>Reference</strong>: BambuStudio spool indexing</li>
+</ul>
+<h4 id="slot_id">slot_id</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: Tray index within AMS</li>
+<li><strong>Valid Range</strong>: <code>0-3</code> (standard AMS), <code>0</code> (AMS HT), <code>254-255</code> (external)</li>
+<li><strong>Purpose</strong>: Physical slot number</li>
+<li><strong>Reference</strong>: BambuStudio tray addressing</li>
+</ul>
+<h4 id="ams_id_1">ams_id</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: Parent AMS unit ID</li>
+<li><strong>Valid Range</strong>: <code>-1</code> (external), <code>0-3</code>, <code>128-131</code></li>
+<li><strong>Purpose</strong>: Associated AMS unit</li>
+<li><strong>Reference</strong>: BambuStudio AMS association</li>
+</ul>
+<h3 id="filament-properties">Filament Properties</h3>
+<h4 id="name">name</h4>
+<ul>
+<li><strong>Type</strong>: <code>str</code></li>
+<li><strong>Telemetry</strong>: <code>tray[].tray_info_idx</code> (mapped) or RFID tag data</li>
+<li><strong>Purpose</strong>: Filament product name</li>
+<li><strong>Reference</strong>: BambuStudio filament database</li>
+</ul>
+<h4 id="type">type</h4>
+<ul>
+<li><strong>Type</strong>: <code>str</code></li>
+<li><strong>Telemetry</strong>: <code>tray[].tray_type</code></li>
+<li><strong>Examples</strong>: <code>PLA</code>, <code>PETG</code>, <code>ABS</code>, <code>TPU</code>, <code>ASA</code>, <code>PA</code>, <code>PET</code>, etc.</li>
+<li><strong>Purpose</strong>: Filament material type</li>
+<li><strong>Reference</strong>: BambuStudio material types</li>
+</ul>
+<h4 id="sub_brands">sub_brands</h4>
+<ul>
+<li><strong>Type</strong>: <code>str</code></li>
+<li><strong>Telemetry</strong>: <code>tray[].tray_sub_brands</code></li>
+<li><strong>Examples</strong>: <code>Matte</code>, <code>Pro</code>, <code>Tough</code>, <code>Support</code>, etc.</li>
+<li><strong>Purpose</strong>: Filament variant/specialization</li>
+<li><strong>Reference</strong>: Bambu Lab product variants</li>
+</ul>
+<h4 id="color">color</h4>
+<ul>
+<li><strong>Type</strong>: <code>str</code></li>
+<li><strong>Telemetry</strong>: <code>tray[].tray_color</code> (hex code converted via <code>webcolors</code>)</li>
+<li><strong>Format</strong>: Hex <code>#RRGGBB</code> or color name</li>
+<li><strong>Purpose</strong>: Filament color</li>
+<li><strong>Reference</strong>: BambuStudio color handling</li>
+</ul>
+<h4 id="tray_info_idx">tray_info_idx</h4>
+<ul>
+<li><strong>Type</strong>: <code>str</code></li>
+<li><strong>Telemetry</strong>: <code>tray[].tray_info_idx</code></li>
+<li><strong>Purpose</strong>: Filament preset index in Bambu Studio</li>
+<li><strong>Reference</strong>: BambuStudio filament database indexing</li>
+</ul>
+<h3 id="temperature-settings">Temperature Settings</h3>
+<h4 id="bed_temp_1">bed_temp</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>tray[].bed_temp</code> or <code>tray[].bed_temp_type</code></li>
+<li><strong>Unit</strong>: °C</li>
+<li><strong>Purpose</strong>: Recommended bed temperature</li>
+<li><strong>Reference</strong>: BambuStudio filament profiles</li>
+</ul>
+<h4 id="nozzle_temp_min">nozzle_temp_min</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>tray[].nozzle_temp_min</code></li>
+<li><strong>Unit</strong>: °C</li>
+<li><strong>Purpose</strong>: Minimum safe nozzle temperature</li>
+<li><strong>Reference</strong>: BambuStudio filament profiles</li>
+</ul>
+<h4 id="nozzle_temp_max">nozzle_temp_max</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>tray[].nozzle_temp_max</code></li>
+<li><strong>Unit</strong>: °C</li>
+<li><strong>Purpose</strong>: Maximum safe nozzle temperature</li>
+<li><strong>Reference</strong>: BambuStudio filament profiles</li>
+</ul>
+<h4 id="drying_temp">drying_temp</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>tray[].drying_temp</code></li>
+<li><strong>Unit</strong>: °C</li>
+<li><strong>Purpose</strong>: Recommended drying temperature</li>
+<li><strong>Reference</strong>: BambuStudio filament drying settings</li>
+</ul>
+<h4 id="drying_time">drying_time</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>tray[].drying_time</code></li>
+<li><strong>Unit</strong>: Hours</li>
+<li><strong>Purpose</strong>: Recommended drying duration</li>
+<li><strong>Reference</strong>: BambuStudio filament drying settings</li>
+</ul>
+<h3 id="print-settings">Print Settings</h3>
+<h4 id="k">k</h4>
+<ul>
+<li><strong>Type</strong>: <code>float</code></li>
+<li><strong>Telemetry</strong>: <code>tray[].k</code></li>
+<li><strong>Purpose</strong>: K-Factor for linear advance (flow rate)</li>
+<li><strong>Reference</strong>: BambuStudio pressure advance tuning</li>
+</ul>
+<h3 id="spool-status">Spool Status</h3>
+<h4 id="remaining_percent">remaining_percent</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>tray[].remain</code></li>
+<li><strong>Valid Range</strong>: <code>0-100</code></li>
+<li><strong>Unit</strong>: %</li>
+<li><strong>Purpose</strong>: Estimated remaining filament</li>
+<li><strong>Reference</strong>: BambuStudio filament tracking</li>
+</ul>
+<h4 id="state_1">state</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>tray[].state</code></li>
+<li><strong>Purpose</strong>: Spool operational state</li>
+<li><strong>Reference</strong>: BambuStudio tray state</li>
+</ul>
+<h4 id="total_length">total_length</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: Computed from spool capacity</li>
+<li><strong>Unit</strong>: mm</li>
+<li><strong>Purpose</strong>: Total filament length on spool</li>
+<li><strong>Reference</strong>: BambuStudio filament tracking</li>
+</ul>
+<h4 id="tray_weight">tray_weight</h4>
+<ul>
+<li><strong>Type</strong>: <code>int</code></li>
+<li><strong>Telemetry</strong>: <code>tray[].tray_weight</code></li>
+<li><strong>Unit</strong>: grams</li>
+<li><strong>Purpose</strong>: Current spool weight</li>
+<li><strong>Reference</strong>: BambuStudio weighing system</li>
+</ul>
+<hr />
+<h2 id="enumerations-reference">Enumerations Reference</h2>
+<h3 id="activetool">ActiveTool</h3>
+<p><strong>Source</strong>: <code>src/bpm/bambutools.py</code></p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-1</td>
+<td>SINGLE_EXTRUDER</td>
+<td>Standard single toolhead (X1/P1/A1)</td>
+</tr>
+<tr>
+<td>0</td>
+<td>RIGHT_EXTRUDER</td>
+<td>Primary toolhead in H2D systems</td>
+</tr>
+<tr>
+<td>1</td>
+<td>LEFT_EXTRUDER</td>
+<td>Secondary toolhead in H2D systems</td>
+</tr>
+<tr>
+<td>15</td>
+<td>NOT_ACTIVE</td>
+<td>Transitional state</td>
+</tr>
+</tbody>
+</table>
+<h3 id="airconditioningmode">AirConditioningMode</h3>
+<p><strong>Source</strong>: <code>src/bpm/bambutools.py</code></p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-1</td>
+<td>NOT_SUPPORTED</td>
+<td>No AC system</td>
+</tr>
+<tr>
+<td>0</td>
+<td>COOL_MODE</td>
+<td>Cooling/vent mode, top vent may open</td>
+</tr>
+<tr>
+<td>1</td>
+<td>HEAT_MODE</td>
+<td>Heating mode, recirculation active</td>
+</tr>
+</tbody>
+</table>
+<h3 id="amsmodel">AMSModel</h3>
+<p><strong>Source</strong>: <code>src/bpm/bambutools.py</code></p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Name</th>
+<th>Serial Prefix</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>UNKNOWN</td>
+<td>N/A</td>
+<td>Unknown model</td>
+</tr>
+<tr>
+<td>1</td>
+<td>AMS_1</td>
+<td>006</td>
+<td>First generation AMS</td>
+</tr>
+<tr>
+<td>2</td>
+<td>AMS_LITE</td>
+<td>03C</td>
+<td>Lite variant</td>
+</tr>
+<tr>
+<td>3</td>
+<td>AMS_2_PRO</td>
+<td>19C</td>
+<td>Second gen Pro (N3F)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>AMS_HT</td>
+<td>19F</td>
+<td>High-Temp variant (N3S)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="amsheatingstate">AMSHeatingState</h3>
+<p><strong>Source</strong>: <code>src/bpm/bambutools.py</code><br />
+<strong>Reference</strong>: BambuStudio <code>DryStatus</code> enum</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>OFF</td>
+<td>No drying active</td>
+</tr>
+<tr>
+<td>1</td>
+<td>CHECKING</td>
+<td>Checking drying status</td>
+</tr>
+<tr>
+<td>2</td>
+<td>DRYING</td>
+<td>Active drying phase</td>
+</tr>
+<tr>
+<td>3</td>
+<td>COOLING</td>
+<td>Cooling after drying</td>
+</tr>
+<tr>
+<td>4</td>
+<td>STOPPING</td>
+<td>Stopping drying process</td>
+</tr>
+<tr>
+<td>5</td>
+<td>ERROR</td>
+<td>Error state</td>
+</tr>
+<tr>
+<td>6</td>
+<td>CANNOT_STOP_HEAT_OOC</td>
+<td>Heat control out of control</td>
+</tr>
+<tr>
+<td>7</td>
+<td>PRODUCT_TEST</td>
+<td>Product testing mode</td>
+</tr>
+</tbody>
+</table>
+<h3 id="amsdrysubstatus">AMSDrySubStatus</h3>
+<p><strong>Source</strong>: <code>src/bpm/bambutools.py</code><br />
+<strong>Reference</strong>: BambuStudio <code>DrySubStatus</code> enum</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>OFF</td>
+<td>No active drying phase</td>
+</tr>
+<tr>
+<td>1</td>
+<td>HEATING</td>
+<td>Heating phase of drying</td>
+</tr>
+<tr>
+<td>2</td>
+<td>DEHUMIDIFY</td>
+<td>Dehumidification phase</td>
+</tr>
+</tbody>
+</table>
+<h3 id="amsdryfanstatus">AMSDryFanStatus</h3>
+<p><strong>Source</strong>: <code>src/bpm/bambutools.py</code><br />
+<strong>Reference</strong>: BambuStudio <code>DryFanStatus</code> enum</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>OFF</td>
+<td>Fan is off</td>
+</tr>
+<tr>
+<td>1</td>
+<td>ON</td>
+<td>Fan is running</td>
+</tr>
+</tbody>
+</table>
+<h3 id="extruderinfostate">ExtruderInfoState</h3>
+<p><strong>Source</strong>: <code>src/bpm/bambutools.py</code></p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>NO_NOZZLE</td>
+<td>No nozzle detected</td>
+</tr>
+<tr>
+<td>1</td>
+<td>EMPTY</td>
+<td>Nozzle present, no filament</td>
+</tr>
+<tr>
+<td>2</td>
+<td>BUFFER_LOADED</td>
+<td>Filament in buffer</td>
+</tr>
+<tr>
+<td>3</td>
+<td>LOADED</td>
+<td>Filament fully loaded</td>
+</tr>
+</tbody>
+</table>
+<h3 id="extruderstatus">ExtruderStatus</h3>
+<p><strong>Source</strong>: <code>src/bpm/bambutools.py</code><br />
+<strong>Reference</strong>: BambuStudio <code>BBL_EXTRUDER_STATE</code> enum</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>IDLE</td>
+<td>Not active</td>
+</tr>
+<tr>
+<td>1</td>
+<td>HEATING</td>
+<td>Heating in progress</td>
+</tr>
+<tr>
+<td>2</td>
+<td>ACTIVE</td>
+<td>Actively extruding</td>
+</tr>
+<tr>
+<td>3</td>
+<td>SUCCESS</td>
+<td>Operation completed</td>
+</tr>
+</tbody>
+</table>
+<h3 id="traystate">TrayState</h3>
+<p><strong>Source</strong>: <code>src/bpm/bambutools.py</code></p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>UNLOADED</td>
+<td>Tray unloaded</td>
+</tr>
+<tr>
+<td>1</td>
+<td>LOADED</td>
+<td>Tray loaded</td>
+</tr>
+<tr>
+<td>2</td>
+<td>LOADING</td>
+<td>Loading in progress</td>
+</tr>
+<tr>
+<td>3</td>
+<td>UNLOADING</td>
+<td>Unloading in progress</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="parsing-functions-reference">Parsing Functions Reference</h2>
+<h3 id="temperature-unpacking">Temperature Unpacking</h3>
+<h4 id="unpacktemperatureraw_temp-int-tuplefloat-float">unpackTemperature(raw_temp: int) -&gt; tuple[float, float]</h4>
+<p><strong>Source</strong>: <code>src/bpm/bambutools.py</code></p>
+<ul>
+<li><strong>Input</strong>: 32-bit packed temperature integer</li>
+<li><strong>Output</strong>: <code>(current_temp, target_temp)</code> tuple</li>
+<li><strong>Algorithm</strong>: </li>
+<li>Current = low 16 bits (<code>raw_temp &amp; 0xFFFF</code>)</li>
+<li>Target = high 16 bits (<code>(raw_temp &gt;&gt; 16) &amp; 0xFFFF</code>)</li>
+<li><strong>Reference</strong>: BambuStudio temperature encoding</li>
+</ul>
+<h3 id="ams-info-parsing">AMS Info Parsing</h3>
+<h4 id="parseamsinfoinfo_hex-str-dict">parseAMSInfo(info_hex: str) -&gt; dict</h4>
+<p><strong>Source</strong>: <code>src/bpm/bambutools.py</code><br />
+<strong>Reference</strong>: BambuStudio <code>DevFilaSystem::ParseAmsInfo()</code></p>
+<p>Extracts 6 bit fields from 32-bit AMS info value:</p>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0-3</td>
+<td>ams_type</td>
+<td>AMSModel</td>
+<td>Hardware model</td>
+</tr>
+<tr>
+<td>4-7</td>
+<td>heater_state</td>
+<td>AMSHeatingState</td>
+<td>Drying state</td>
+</tr>
+<tr>
+<td>8-11</td>
+<td>extruder_id</td>
+<td>int</td>
+<td>H2D toolhead assignment</td>
+</tr>
+<tr>
+<td>18-19</td>
+<td>dry_fan1_status</td>
+<td>AMSDryFanStatus</td>
+<td>Fan 1 state</td>
+</tr>
+<tr>
+<td>20-21</td>
+<td>dry_fan2_status</td>
+<td>AMSDryFanStatus</td>
+<td>Fan 2 state</td>
+</tr>
+<tr>
+<td>22-25</td>
+<td>dry_sub_status</td>
+<td>AMSDrySubStatus</td>
+<td>Drying phase</td>
+</tr>
+</tbody>
+</table>
+<h3 id="extruder-parsing">Extruder Parsing</h3>
+<h4 id="parseextruderinfoinfo_int-int-extruderinfostate">parseExtruderInfo(info_int: int) -&gt; ExtruderInfoState</h4>
+<p><strong>Source</strong>: <code>src/bpm/bambutools.py</code></p>
+<ul>
+<li><strong>Bit 3</strong>: Nozzle present flag</li>
+<li><strong>Bit 2</strong>: Buffer loaded flag</li>
+<li><strong>Bit 1</strong>: Filament loaded flag</li>
+<li><strong>Reference</strong>: BambuStudio extruder sensor logic</li>
+</ul>
+<h4 id="parseextruderstatusstat_int-int-extruderstatus">parseExtruderStatus(stat_int: int) -&gt; ExtruderStatus</h4>
+<p><strong>Source</strong>: <code>src/bpm/bambutools.py</code></p>
+<ul>
+<li><strong>Bits 8-9</strong>: Working state (<code>0x02</code>/<code>0x03</code> = ACTIVE)</li>
+<li><strong>Bit 0</strong>: Heating flag</li>
+<li><strong>Reference</strong>: BambuStudio <code>BBL_EXTRUDER_STATE</code></li>
+</ul>
+<h3 id="fan-speed-scaling">Fan Speed Scaling</h3>
+<h4 id="scalefanspeedraw_val-any-int">scaleFanSpeed(raw_val: Any) -&gt; int</h4>
+<p><strong>Source</strong>: <code>src/bpm/bambutools.py</code></p>
+<ul>
+<li><strong>Input</strong>: 0-15 proprietary fan speed</li>
+<li><strong>Output</strong>: 0-100 percentage</li>
+<li><strong>Formula</strong>: <code>round((val / 15.0) * 100)</code></li>
+<li><strong>Reference</strong>: BambuStudio fan speed mapping</li>
+</ul>
+<h3 id="error-decoding">Error Decoding</h3>
+<h4 id="decodeerrorerror-int-dict">decodeError(error: int) -&gt; dict</h4>
+<p><strong>Source</strong>: <code>src/bpm/bambutools.py</code></p>
+<p>Decodes 32-bit HMS error into structured dictionary:</p>
+<ul>
+<li><strong>Bits 24-31</strong>: Module ID</li>
+<li><strong>Bits 16-23</strong>: Severity mask</li>
+<li><strong>Bits 0-15</strong>: Error code</li>
+<li><strong>Output</strong>: <code>{code, msg, module, severity, is_critical, type, url}</code></li>
+<li><strong>Reference</strong>: BambuStudio HMS error database</li>
+</ul>
+<h4 id="decodehmshms_list-list-listdict">decodeHMS(hms_list: list) -&gt; list[dict]</h4>
+<p><strong>Source</strong>: <code>src/bpm/bambutools.py</code></p>
+<p>Processes HMS error list from telemetry:</p>
+<ul>
+<li><strong>Input</strong>: <code>[{attr: int, code: int}, ...]</code></li>
+<li><strong>Output</strong>: List of decoded error dictionaries</li>
+<li><strong>Reference</strong>: BambuStudio HMS processing</li>
+</ul>
+<hr />
+<h2 id="telemetry-message-structure">Telemetry Message Structure</h2>
+<h3 id="standard-telemetry-update">Standard Telemetry Update</h3>
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1"></a><a href="#__codelineno-1-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="p">{</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2"></a><a href="#__codelineno-1-2"><span class="linenos" data-linenos=" 2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3"></a><a href="#__codelineno-1-3"><span class="linenos" data-linenos=" 3 "></span></a><span class="w">    </span><span class="nt">&quot;gcode_state&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;RUNNING&quot;</span><span class="p">,</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4"></a><a href="#__codelineno-1-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="w">    </span><span class="nt">&quot;mc_percent&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">45</span><span class="p">,</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5"></a><a href="#__codelineno-1-5"><span class="linenos" data-linenos=" 5 "></span></a><span class="w">    </span><span class="nt">&quot;nozzle_temper&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">220.5</span><span class="p">,</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6"></a><a href="#__codelineno-1-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="w">    </span><span class="nt">&quot;bed_temper&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">60.0</span><span class="p">,</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7"></a><a href="#__codelineno-1-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="w">    </span><span class="nt">&quot;ams&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8"></a><a href="#__codelineno-1-8"><span class="linenos" data-linenos=" 8 "></span></a><span class="w">      </span><span class="nt">&quot;tray_now&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;3&quot;</span><span class="p">,</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9"></a><a href="#__codelineno-1-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="w">      </span><span class="nt">&quot;ams_exist_bits&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;F&quot;</span><span class="p">,</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10"></a><a href="#__codelineno-1-10"><span class="linenos" data-linenos="10 "></span></a><span class="w">      </span><span class="nt">&quot;ams&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11"></a><a href="#__codelineno-1-11"><span class="linenos" data-linenos="11 "></span></a><span class="w">        </span><span class="p">{</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12"></a><a href="#__codelineno-1-12"><span class="linenos" data-linenos="12 "></span></a><span class="w">          </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13"></a><a href="#__codelineno-1-13"><span class="linenos" data-linenos="13 "></span></a><span class="w">          </span><span class="nt">&quot;temp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">25.5</span><span class="p">,</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14"></a><a href="#__codelineno-1-14"><span class="linenos" data-linenos="14 "></span></a><span class="w">          </span><span class="nt">&quot;humidity&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15"></a><a href="#__codelineno-1-15"><span class="linenos" data-linenos="15 "></span></a><span class="w">          </span><span class="nt">&quot;info&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2003&quot;</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16"></a><a href="#__codelineno-1-16"><span class="linenos" data-linenos="16 "></span></a><span class="w">        </span><span class="p">}</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17"></a><a href="#__codelineno-1-17"><span class="linenos" data-linenos="17 "></span></a><span class="w">      </span><span class="p">]</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18"></a><a href="#__codelineno-1-18"><span class="linenos" data-linenos="18 "></span></a><span class="w">    </span><span class="p">},</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19"></a><a href="#__codelineno-1-19"><span class="linenos" data-linenos="19 "></span></a><span class="w">    </span><span class="nt">&quot;device&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20"></a><a href="#__codelineno-1-20"><span class="linenos" data-linenos="20 "></span></a><span class="w">      </span><span class="nt">&quot;extruder&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21"></a><a href="#__codelineno-1-21"><span class="linenos" data-linenos="21 "></span></a><span class="w">        </span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22"></a><a href="#__codelineno-1-22"><span class="linenos" data-linenos="22 "></span></a><span class="w">        </span><span class="nt">&quot;info&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23"></a><a href="#__codelineno-1-23"><span class="linenos" data-linenos="23 "></span></a><span class="w">          </span><span class="p">{</span>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24"></a><a href="#__codelineno-1-24"><span class="linenos" data-linenos="24 "></span></a><span class="w">            </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25"></a><a href="#__codelineno-1-25"><span class="linenos" data-linenos="25 "></span></a><span class="w">            </span><span class="nt">&quot;temp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">14418176</span><span class="p">,</span>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26"></a><a href="#__codelineno-1-26"><span class="linenos" data-linenos="26 "></span></a><span class="w">            </span><span class="nt">&quot;info&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">11</span><span class="p">,</span>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27"></a><a href="#__codelineno-1-27"><span class="linenos" data-linenos="27 "></span></a><span class="w">            </span><span class="nt">&quot;stat&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span>
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28"></a><a href="#__codelineno-1-28"><span class="linenos" data-linenos="28 "></span></a><span class="w">          </span><span class="p">}</span>
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29"></a><a href="#__codelineno-1-29"><span class="linenos" data-linenos="29 "></span></a><span class="w">        </span><span class="p">]</span>
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30"></a><a href="#__codelineno-1-30"><span class="linenos" data-linenos="30 "></span></a><span class="w">      </span><span class="p">}</span>
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31"></a><a href="#__codelineno-1-31"><span class="linenos" data-linenos="31 "></span></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32"></a><a href="#__codelineno-1-32"><span class="linenos" data-linenos="32 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33"></a><a href="#__codelineno-1-33"><span class="linenos" data-linenos="33 "></span></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="ams-drying-status-update">AMS Drying Status Update</h3>
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1"></a><a href="#__codelineno-2-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="p">{</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2"></a><a href="#__codelineno-2-2"><span class="linenos" data-linenos=" 2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3"></a><a href="#__codelineno-2-3"><span class="linenos" data-linenos=" 3 "></span></a><span class="w">    </span><span class="nt">&quot;ams&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4"></a><a href="#__codelineno-2-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="w">      </span><span class="nt">&quot;ams&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5"></a><a href="#__codelineno-2-5"><span class="linenos" data-linenos=" 5 "></span></a><span class="w">        </span><span class="p">{</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6"></a><a href="#__codelineno-2-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="w">          </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7"></a><a href="#__codelineno-2-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="w">          </span><span class="nt">&quot;temp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">65.2</span><span class="p">,</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8"></a><a href="#__codelineno-2-8"><span class="linenos" data-linenos=" 8 "></span></a><span class="w">          </span><span class="nt">&quot;dry_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">180</span><span class="p">,</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9"></a><a href="#__codelineno-2-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="w">          </span><span class="nt">&quot;info&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;142024&quot;</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10"></a><a href="#__codelineno-2-10"><span class="linenos" data-linenos="10 "></span></a><span class="w">        </span><span class="p">}</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11"></a><a href="#__codelineno-2-11"><span class="linenos" data-linenos="11 "></span></a><span class="w">      </span><span class="p">]</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12"></a><a href="#__codelineno-2-12"><span class="linenos" data-linenos="12 "></span></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13"></a><a href="#__codelineno-2-13"><span class="linenos" data-linenos="13 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14"></a><a href="#__codelineno-2-14"><span class="linenos" data-linenos="14 "></span></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="hms-error-update">HMS Error Update</h3>
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1"></a><a href="#__codelineno-3-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="p">{</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2"></a><a href="#__codelineno-3-2"><span class="linenos" data-linenos=" 2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3"></a><a href="#__codelineno-3-3"><span class="linenos" data-linenos=" 3 "></span></a><span class="w">    </span><span class="nt">&quot;print_error&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">50397185</span><span class="p">,</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4"></a><a href="#__codelineno-3-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="w">    </span><span class="nt">&quot;hms&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5"></a><a href="#__codelineno-3-5"><span class="linenos" data-linenos=" 5 "></span></a><span class="w">      </span><span class="p">{</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6"></a><a href="#__codelineno-3-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="w">        </span><span class="nt">&quot;attr&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">50397185</span><span class="p">,</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7"></a><a href="#__codelineno-3-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="w">        </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8"></a><a href="#__codelineno-3-8"><span class="linenos" data-linenos=" 8 "></span></a><span class="w">      </span><span class="p">}</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9"></a><a href="#__codelineno-3-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="w">    </span><span class="p">]</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10"></a><a href="#__codelineno-3-10"><span class="linenos" data-linenos="10 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11"></a><a href="#__codelineno-3-11"><span class="linenos" data-linenos="11 "></span></a><span class="p">}</span>
+</span></code></pre></div>
+<hr />
+<h2 id="version-history">Version History</h2>
+<table>
+<thead>
+<tr>
+<th>Version</th>
+<th>Date</th>
+<th>Changes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.0</td>
+<td>2026-02-23</td>
+<td>Initial comprehensive data dictionary</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="see-also">See Also</h2>
+<ul>
+<li><a href="https://github.com/bambulab/BambuStudio">BambuStudio Source</a></li>
+<li><a href="https://github.com/OrcaSlicer/OrcaSlicer">OrcaSlicer Source</a></li>
+<li><a href="https://github.com/greghesp/ha-bambulab">ha-bambulab Integration</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

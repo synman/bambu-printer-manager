@@ -1,0 +1,2647 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/api-reference/">
+      
+      
+        <link rel="prev" href="../container/">
+      
+      
+        <link rel="next" href="../license/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>API Reference - bambu-printer-manager</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#bambu-printer-app-api-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="bambu-printer-manager" class="md-header__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            bambu-printer-manager
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              API Reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../data-dictionary/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Data Dictionary
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../reference/bpm/__init__/" class="md-tabs__link">
+          
+  
+  
+  Code Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../container/" class="md-tabs__link">
+          
+  
+  
+  Client Container
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../license/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  License
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="bambu-printer-manager" class="md-nav__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    bambu-printer-manager
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-dictionary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Dictionary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Code Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bpm
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    bpm
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambucommands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambucommands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambuconfig/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuconfig
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambuprinter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuprinter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambuproject/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuproject
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambuspool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuspool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambustate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambustate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambutools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambutools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_8" id="__nav_3_1_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ftpsclient
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ftpsclient
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/ftpsclient/ftpsclient/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ftpsclient
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Client Container
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Client Container
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../container/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#printer-status-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Printer Status &amp; Information
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Printer Status &amp; Information">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-apiprinter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/printer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apihealth_check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/health_check
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#temperature-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Temperature Control
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Temperature Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-apiset_tool_target_temp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/set_tool_target_temp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apiset_bed_target_temp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/set_bed_target_temp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apiset_chamber_target_temp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/set_chamber_target_temp
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fan-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fan Control
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fan Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-apiset_fan_speed_target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/set_fan_speed_target
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apiset_aux_fan_speed_target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/set_aux_fan_speed_target
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apiset_exhaust_fan_speed_target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/set_exhaust_fan_speed_target
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#print-job-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Print Job Control
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Print Job Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-apiprint_3mf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/print_3mf
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apipause_printing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/pause_printing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apiresume_printing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/resume_printing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apistop_printing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/stop_printing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apiskip_objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/skip_objects
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filament-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filament Management
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Filament Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-apiload_filament" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/load_filament
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apiunload_filament" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/unload_filament
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apirefresh_spool_rfid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/refresh_spool_rfid
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apiset_spool_details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/set_spool_details
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apiset_spool_k_factor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/set_spool_k_factor
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Management
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="File Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-apiget_sdcard_contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/get_sdcard_contents
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apirefresh_sdcard_contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/refresh_sdcard_contents
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apiget_sdcard_3mf_files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/get_sdcard_3mf_files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apirefresh_sdcard_3mf_files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/refresh_sdcard_3mf_files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apidelete_sdcard_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/delete_sdcard_file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apimake_sdcard_directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/make_sdcard_directory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apirename_sdcard_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/rename_sdcard_file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apiupload_file_to_host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/upload_file_to_host
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apiupload_file_to_printer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/upload_file_to_printer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apidownload_file_from_printer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/download_file_from_printer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apiget_3mf_props_for_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/get_3mf_props_for_file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apiget_current_3mf_props" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/get_current_3mf_props
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-control-dual-extruder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Control (Dual Extruder)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Control (Dual Extruder)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-apitoggle_active_tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/toggle_active_tool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apiset_nozzle_details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/set_nozzle_details
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ams-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AMS Control
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="AMS Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-apisend_ams_control_command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/send_ams_control_command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apiset_ams_user_setting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/set_ams_user_setting
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Settings
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Settings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-apisend_gcode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/send_gcode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apiset_print_option" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/set_print_option
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apiset_light_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/set_light_state
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apiset_speed_level" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/set_speed_level
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#telemetry-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Telemetry &amp; Data
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Telemetry &amp; Data">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-apiget_all_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/get_all_data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apizoom_in" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/zoom_in
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apizoom_out" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/zoom_out
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apidump_data_collections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/dump_data_collections
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#system-diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System &amp; Diagnostics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="System &amp; Diagnostics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-apitoggle_session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/toggle_session
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apitrigger_printer_refresh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/trigger_printer_refresh
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apitoggle_verbosity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/toggle_verbosity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apidump_log" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/dump_log
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apitruncate_log" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/truncate_log
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apifake_error" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/fake_error
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Handling
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Error Handling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#304-not-modified" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        304 Not Modified
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#404-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        404 Not Found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#500-internal-server-error" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        500 Internal Server Error
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rate-limiting-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rate Limiting &amp; Performance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment Variables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#javascript-axios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JavaScript (axios)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#curl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cURL
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#websocket-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WebSocket Support
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Models
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related Resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Support
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="bambu-printer-app-api-reference">Bambu Printer App - API Reference</h1>
+<h2 id="overview">Overview</h2>
+<p>This REST API provides complete control over Bambu Lab printers via HTTP requests. Built with Flask and powered by <a href="https://github.com/synman/bambu-printer-manager">bambu-printer-manager</a>, it exposes printer status, control commands, file management, and telemetry data.</p>
+<p><strong>Base URL</strong>: <code>http://localhost:5000/api</code></p>
+<p><strong>Response Format</strong>: All endpoints return JSON</p>
+<p><strong>Standard Success Response</strong>: <code>{"status": "success"}</code></p>
+<p><strong>Standard Error Response</strong>: <code>{"status": "error", "reason": "description"}</code></p>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#printer-status-information">Printer Status &amp; Information</a></li>
+<li><a href="#temperature-control">Temperature Control</a></li>
+<li><a href="#fan-control">Fan Control</a></li>
+<li><a href="#print-job-control">Print Job Control</a></li>
+<li><a href="#filament-management">Filament Management</a></li>
+<li><a href="#file-management">File Management</a></li>
+<li><a href="#tool-control-dual-extruder">Tool Control (Dual Extruder)</a></li>
+<li><a href="#ams-control">AMS Control</a></li>
+<li><a href="#advanced-settings">Advanced Settings</a></li>
+<li><a href="#telemetry-data">Telemetry &amp; Data</a></li>
+<li><a href="#system-diagnostics">System &amp; Diagnostics</a></li>
+</ul>
+<hr />
+<h2 id="printer-status-information">Printer Status &amp; Information</h2>
+<h3 id="get-apiprinter">GET /api/printer</h3>
+<p>Get complete printer state and configuration.</p>
+<p><strong>Response</strong>: Complete JSON object containing:
+- Printer state (<code>BambuState</code>)
+- Active job information
+- AMS units status
+- Extruder states
+- Climate data
+- Spool information
+- Capabilities</p>
+<p><strong>Example Response</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><a href="#__codelineno-0-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="p">{</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a><a href="#__codelineno-0-2"><span class="linenos" data-linenos=" 2 "></span></a><span class="w">  </span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3"></a><a href="#__codelineno-0-3"><span class="linenos" data-linenos=" 3 "></span></a><span class="w">    </span><span class="nt">&quot;gcode_state&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;RUNNING&quot;</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4"></a><a href="#__codelineno-0-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="w">    </span><span class="nt">&quot;active_tool&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5"></a><a href="#__codelineno-0-5"><span class="linenos" data-linenos=" 5 "></span></a><span class="w">    </span><span class="nt">&quot;active_nozzle_temp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">220.5</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6"></a><a href="#__codelineno-0-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="w">    </span><span class="nt">&quot;active_nozzle_temp_target&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">220</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7"></a><a href="#__codelineno-0-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="w">    </span><span class="nt">&quot;ams_units&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="err">...</span><span class="p">],</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8"></a><a href="#__codelineno-0-8"><span class="linenos" data-linenos=" 8 "></span></a><span class="w">    </span><span class="nt">&quot;extruders&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="err">...</span><span class="p">],</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9"></a><a href="#__codelineno-0-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="w">    </span><span class="nt">&quot;spools&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="err">...</span><span class="p">],</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10"></a><a href="#__codelineno-0-10"><span class="linenos" data-linenos="10 "></span></a><span class="w">    </span><span class="nt">&quot;climate&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">}</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11"></a><a href="#__codelineno-0-11"><span class="linenos" data-linenos="11 "></span></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12"></a><a href="#__codelineno-0-12"><span class="linenos" data-linenos="12 "></span></a><span class="w">  </span><span class="nt">&quot;config&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">},</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13"></a><a href="#__codelineno-0-13"><span class="linenos" data-linenos="13 "></span></a><span class="w">  </span><span class="nt">&quot;capabilities&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">},</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14"></a><a href="#__codelineno-0-14"><span class="linenos" data-linenos="14 "></span></a><span class="w">  </span><span class="nt">&quot;active_job_info&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">}</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15"></a><a href="#__codelineno-0-15"><span class="linenos" data-linenos="15 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Error Response</strong>: <code>304 Not Modified</code> if no telemetry data available</p>
+<hr />
+<h3 id="get-apihealth_check">GET /api/health_check</h3>
+<p>Health check endpoint returning printer status and connection state.</p>
+<p><strong>Response</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1"></a><a href="#__codelineno-1-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2"></a><a href="#__codelineno-1-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;success&quot;</span><span class="p">,</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3"></a><a href="#__codelineno-1-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">  </span><span class="nt">&quot;printer&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4"></a><a href="#__codelineno-1-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">    </span><span class="c1">// Full printer JSON</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5"></a><a href="#__codelineno-1-5"><span class="linenos" data-linenos="5 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6"></a><a href="#__codelineno-1-6"><span class="linenos" data-linenos="6 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Error Response</strong>: <code>500 Internal Server Error</code> if printer disconnected</p>
+<hr />
+<h2 id="temperature-control">Temperature Control</h2>
+<h3 id="get-apiset_tool_target_temp">GET /api/set_tool_target_temp</h3>
+<p>Set target temperature for active extruder/toolhead.</p>
+<p><strong>Parameters</strong>:
+- <code>temp</code> (int, required): Target temperature in °C (0-300)</p>
+<p><strong>Example</strong>: <code>/api/set_tool_target_temp?temp=220</code></p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<hr />
+<h3 id="get-apiset_bed_target_temp">GET /api/set_bed_target_temp</h3>
+<p>Set target bed temperature.</p>
+<p><strong>Parameters</strong>:
+- <code>temp</code> (int, required): Target temperature in °C (0-120)</p>
+<p><strong>Example</strong>: <code>/api/set_bed_target_temp?temp=60</code></p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<hr />
+<h3 id="get-apiset_chamber_target_temp">GET /api/set_chamber_target_temp</h3>
+<p>Set target chamber temperature (printers with heated chamber only).</p>
+<p><strong>Parameters</strong>:
+- <code>temp</code> (int, required): Target temperature in °C (0-65)</p>
+<p><strong>Example</strong>: <code>/api/set_chamber_target_temp?temp=45</code></p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<p><strong>Note</strong>: Requires printer with chamber heater capability (X1E, H2 series)</p>
+<hr />
+<h2 id="fan-control">Fan Control</h2>
+<h3 id="get-apiset_fan_speed_target">GET /api/set_fan_speed_target</h3>
+<p>Set part cooling fan speed.</p>
+<p><strong>Parameters</strong>:
+- <code>percent</code> (int, required): Fan speed percentage (0-100)</p>
+<p><strong>Example</strong>: <code>/api/set_fan_speed_target?percent=75</code></p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<hr />
+<h3 id="get-apiset_aux_fan_speed_target">GET /api/set_aux_fan_speed_target</h3>
+<p>Set auxiliary fan speed.</p>
+<p><strong>Parameters</strong>:
+- <code>percent</code> (int, required): Fan speed percentage (0-100)</p>
+<p><strong>Example</strong>: <code>/api/set_aux_fan_speed_target?percent=50</code></p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<hr />
+<h3 id="get-apiset_exhaust_fan_speed_target">GET /api/set_exhaust_fan_speed_target</h3>
+<p>Set exhaust/chamber fan speed.</p>
+<p><strong>Parameters</strong>:
+- <code>percent</code> (int, required): Fan speed percentage (0-100)</p>
+<p><strong>Example</strong>: <code>/api/set_exhaust_fan_speed_target?percent=100</code></p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<hr />
+<h2 id="print-job-control">Print Job Control</h2>
+<h3 id="get-apiprint_3mf">GET /api/print_3mf</h3>
+<p>Start a 3MF print job.</p>
+<p><strong>Parameters</strong>:
+- <code>filename</code> (string, required): Path to 3MF file on SD card
+- <code>platenum</code> (int, optional, default=0): Plate number to print
+- <code>plate</code> (string, optional, default="AUTO"): Plate type
+  - Options: <code>AUTO</code>, <code>COOL_PLATE</code>, <code>ENG_PLATE</code>, <code>HOT_PLATE</code>, <code>TEXTURED_PLATE</code>
+- <code>use_ams</code> (bool, optional, default=false): Use AMS for filament
+- <code>ams_mapping</code> (string, optional): AMS slot mapping (e.g., "0,1,2,3")
+- <code>bl</code> (bool, optional, default=false): Enable bed leveling
+- <code>flow</code> (bool, optional, default=false): Enable flow calibration
+- <code>tl</code> (bool, optional, default=false): Enable timelapse</p>
+<p><strong>Example</strong>:
+<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1"></a><a href="#__codelineno-2-1"><span class="linenos" data-linenos="1 "></span></a>/api/print_3mf?filename=/test.3mf&amp;platenum=1&amp;plate=COOL_PLATE&amp;use_ams=true&amp;ams_mapping=0,1,2,3&amp;bl=true&amp;flow=true&amp;tl=true
+</span></code></pre></div></p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<hr />
+<h3 id="get-apipause_printing">GET /api/pause_printing</h3>
+<p>Pause the current print job.</p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<hr />
+<h3 id="get-apiresume_printing">GET /api/resume_printing</h3>
+<p>Resume a paused print job.</p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<hr />
+<h3 id="get-apistop_printing">GET /api/stop_printing</h3>
+<p>Stop/cancel the current print job.</p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<hr />
+<h3 id="get-apiskip_objects">GET /api/skip_objects</h3>
+<p>Skip specific objects during printing (Paint-on supports, exclude objects).</p>
+<p><strong>Parameters</strong>:
+- <code>objects</code> (string, required): Comma-separated list of object names/IDs</p>
+<p><strong>Example</strong>: <code>/api/skip_objects?objects=support_1,support_2,brim</code></p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<hr />
+<h2 id="filament-management">Filament Management</h2>
+<h3 id="get-apiload_filament">GET /api/load_filament</h3>
+<p>Load filament from specified AMS slot or external spool.</p>
+<p><strong>Parameters</strong>:
+- <code>slot</code> (int, required): Tray slot ID
+  - <code>0-15</code>: AMS slots (4 slots × 4 units)
+  - <code>254-255</code>: External spool</p>
+<p><strong>Example</strong>: <code>/api/load_filament?slot=2</code></p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<hr />
+<h3 id="get-apiunload_filament">GET /api/unload_filament</h3>
+<p>Unload current filament.</p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<hr />
+<h3 id="get-apirefresh_spool_rfid">GET /api/refresh_spool_rfid</h3>
+<p>Refresh RFID tag data for a specific spool.</p>
+<p><strong>Parameters</strong>:
+- <code>slot_id</code> (int, required): Slot ID within AMS (0-3)
+- <code>ams_id</code> (int, required): AMS unit ID (0-3 or 128-131)</p>
+<p><strong>Example</strong>: <code>/api/refresh_spool_rfid?slot_id=0&amp;ams_id=0</code></p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<hr />
+<h3 id="get-apiset_spool_details">GET /api/set_spool_details</h3>
+<p>Set custom spool details (type, color, temperatures).</p>
+<p><strong>Parameters</strong>:
+- <code>tray_id</code> (int, required): Global tray ID (0-15 or 254-255)
+- <code>tray_info_idx</code> (string, required): Filament preset index
+- <code>tray_id_name</code> (string, optional): Custom spool name
+- <code>tray_type</code> (string, optional): Filament type (PLA, PETG, ABS, etc.)
+- <code>tray_color</code> (string, optional): Hex color code (#RRGGBB)
+- <code>nozzle_temp_min</code> (int, optional): Minimum nozzle temp (°C)
+- <code>nozzle_temp_max</code> (int, optional): Maximum nozzle temp (°C)</p>
+<p><strong>Example</strong>:
+<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1"></a><a href="#__codelineno-3-1"><span class="linenos" data-linenos="1 "></span></a>/api/set_spool_details?tray_id=0&amp;tray_info_idx=GFL99&amp;tray_id_name=My%20PLA&amp;tray_type=PLA&amp;tray_color=%23FF5733&amp;nozzle_temp_min=200&amp;nozzle_temp_max=230
+</span></code></pre></div></p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<p><strong>Note</strong>: Returns after 2 second delay to allow printer to process</p>
+<hr />
+<h3 id="get-apiset_spool_k_factor">GET /api/set_spool_k_factor</h3>
+<p>Select extrusion calibration profile for a spool.</p>
+<p><strong>Parameters</strong>:
+- <code>tray_id</code> (int, required): Global tray ID (0-15 or 254-255)</p>
+<p><strong>Example</strong>: <code>/api/set_spool_k_factor?tray_id=0</code></p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<p><strong>Note</strong>: Applies K-factor (linear advance) calibration</p>
+<hr />
+<h2 id="file-management">File Management</h2>
+<h3 id="get-apiget_sdcard_contents">GET /api/get_sdcard_contents</h3>
+<p>Retrieve complete SD card file tree.</p>
+<p><strong>Response</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1"></a><a href="#__codelineno-4-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="p">{</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2"></a><a href="#__codelineno-4-2"><span class="linenos" data-linenos=" 2 "></span></a><span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/&quot;</span><span class="p">,</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3"></a><a href="#__codelineno-4-3"><span class="linenos" data-linenos=" 3 "></span></a><span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/&quot;</span><span class="p">,</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4"></a><a href="#__codelineno-4-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="w">  </span><span class="nt">&quot;children&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5"></a><a href="#__codelineno-4-5"><span class="linenos" data-linenos=" 5 "></span></a><span class="w">    </span><span class="p">{</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6"></a><a href="#__codelineno-4-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;folder1&quot;</span><span class="p">,</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7"></a><a href="#__codelineno-4-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="w">      </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/folder1/&quot;</span><span class="p">,</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8"></a><a href="#__codelineno-4-8"><span class="linenos" data-linenos=" 8 "></span></a><span class="w">      </span><span class="nt">&quot;children&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="err">...</span><span class="p">]</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9"></a><a href="#__codelineno-4-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="w">    </span><span class="p">},</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10"></a><a href="#__codelineno-4-10"><span class="linenos" data-linenos="10 "></span></a><span class="w">    </span><span class="p">{</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11"></a><a href="#__codelineno-4-11"><span class="linenos" data-linenos="11 "></span></a><span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;test.3mf&quot;</span><span class="p">,</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12"></a><a href="#__codelineno-4-12"><span class="linenos" data-linenos="12 "></span></a><span class="w">      </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/test.3mf&quot;</span><span class="p">,</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13"></a><a href="#__codelineno-4-13"><span class="linenos" data-linenos="13 "></span></a><span class="w">      </span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">12345</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14"></a><a href="#__codelineno-4-14"><span class="linenos" data-linenos="14 "></span></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15"></a><a href="#__codelineno-4-15"><span class="linenos" data-linenos="15 "></span></a><span class="w">  </span><span class="p">]</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16"></a><a href="#__codelineno-4-16"><span class="linenos" data-linenos="16 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<hr />
+<h3 id="get-apirefresh_sdcard_contents">GET /api/refresh_sdcard_contents</h3>
+<p>Trigger refresh of SD card contents from printer.</p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<p><strong>Note</strong>: Refreshed data available via <code>/api/get_sdcard_contents</code></p>
+<hr />
+<h3 id="get-apiget_sdcard_3mf_files">GET /api/get_sdcard_3mf_files</h3>
+<p>Get list of only 3MF files on SD card.</p>
+<p><strong>Response</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1"></a><a href="#__codelineno-5-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">[</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2"></a><a href="#__codelineno-5-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="s2">&quot;/test.3mf&quot;</span><span class="p">,</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3"></a><a href="#__codelineno-5-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">  </span><span class="s2">&quot;/folder/model.3mf&quot;</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4"></a><a href="#__codelineno-5-4"><span class="linenos" data-linenos="4 "></span></a><span class="p">]</span>
+</span></code></pre></div></p>
+<hr />
+<h3 id="get-apirefresh_sdcard_3mf_files">GET /api/refresh_sdcard_3mf_files</h3>
+<p>Trigger refresh of 3MF file list from printer.</p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<hr />
+<h3 id="get-apidelete_sdcard_file">GET /api/delete_sdcard_file</h3>
+<p>Delete a file or folder from SD card.</p>
+<p><strong>Parameters</strong>:
+- <code>file</code> (string, required): Path to file/folder
+  - Files: <code>/path/to/file.3mf</code>
+  - Folders: <code>/path/to/folder/</code> (trailing slash)</p>
+<p><strong>Example</strong>: <code>/api/delete_sdcard_file?file=/old_print.3mf</code></p>
+<p><strong>Response</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1"></a><a href="#__codelineno-6-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2"></a><a href="#__codelineno-6-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;success&quot;</span><span class="p">,</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3"></a><a href="#__codelineno-6-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">  </span><span class="nt">&quot;deleted&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/old_print.3mf&quot;</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4"></a><a href="#__codelineno-6-4"><span class="linenos" data-linenos="4 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<hr />
+<h3 id="get-apimake_sdcard_directory">GET /api/make_sdcard_directory</h3>
+<p>Create a new directory on SD card.</p>
+<p><strong>Parameters</strong>:
+- <code>dir</code> (string, required): Path for new directory (with trailing slash)</p>
+<p><strong>Example</strong>: <code>/api/make_sdcard_directory?dir=/projects/new_folder/</code></p>
+<p><strong>Response</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1"></a><a href="#__codelineno-7-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2"></a><a href="#__codelineno-7-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;success&quot;</span><span class="p">,</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3"></a><a href="#__codelineno-7-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">  </span><span class="nt">&quot;created&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/projects/new_folder/&quot;</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4"></a><a href="#__codelineno-7-4"><span class="linenos" data-linenos="4 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<hr />
+<h3 id="get-apirename_sdcard_file">GET /api/rename_sdcard_file</h3>
+<p>Rename or move a file/folder on SD card.</p>
+<p><strong>Parameters</strong>:
+- <code>src</code> (string, required): Source path
+- <code>dest</code> (string, required): Destination path</p>
+<p><strong>Example</strong>: <code>/api/rename_sdcard_file?src=/old.3mf&amp;dest=/new.3mf</code></p>
+<p><strong>Response</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1"></a><a href="#__codelineno-8-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2"></a><a href="#__codelineno-8-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;success&quot;</span><span class="p">,</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3"></a><a href="#__codelineno-8-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">  </span><span class="nt">&quot;renamed&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4"></a><a href="#__codelineno-8-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">    </span><span class="nt">&quot;from&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/old.3mf&quot;</span><span class="p">,</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5"></a><a href="#__codelineno-8-5"><span class="linenos" data-linenos="5 "></span></a><span class="w">    </span><span class="nt">&quot;to&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/new.3mf&quot;</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6"></a><a href="#__codelineno-8-6"><span class="linenos" data-linenos="6 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7"></a><a href="#__codelineno-8-7"><span class="linenos" data-linenos="7 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<hr />
+<h3 id="post-apiupload_file_to_host">POST /api/upload_file_to_host</h3>
+<p>Upload a file to the API server's upload directory.</p>
+<p><strong>Method</strong>: POST (multipart/form-data)</p>
+<p><strong>Form Data</strong>:
+- <code>myFile</code> (file, required): File to upload</p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<p><strong>Note</strong>: Files saved to <code>./uploads/</code> directory</p>
+<hr />
+<h3 id="get-apiupload_file_to_printer">GET /api/upload_file_to_printer</h3>
+<p>Transfer a file from server uploads directory to printer SD card.</p>
+<p><strong>Parameters</strong>:
+- <code>src</code> (string, required): Filename in uploads directory
+- <code>dest</code> (string, required): Destination path on SD card</p>
+<p><strong>Example</strong>: <code>/api/upload_file_to_printer?src=model.3mf&amp;dest=/prints/model.3mf</code></p>
+<p><strong>Response</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1"></a><a href="#__codelineno-9-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2"></a><a href="#__codelineno-9-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;success&quot;</span><span class="p">,</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3"></a><a href="#__codelineno-9-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">  </span><span class="nt">&quot;uploaded&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4"></a><a href="#__codelineno-9-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">    </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;model.3mf&quot;</span><span class="p">,</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5"></a><a href="#__codelineno-9-5"><span class="linenos" data-linenos="5 "></span></a><span class="w">    </span><span class="nt">&quot;destination&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/prints/model.3mf&quot;</span><span class="p">,</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6"></a><a href="#__codelineno-9-6"><span class="linenos" data-linenos="6 "></span></a><span class="w">    </span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">12345</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7"></a><a href="#__codelineno-9-7"><span class="linenos" data-linenos="7 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8"></a><a href="#__codelineno-9-8"><span class="linenos" data-linenos="8 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<hr />
+<h3 id="get-apidownload_file_from_printer">GET /api/download_file_from_printer</h3>
+<p>Download a file from printer SD card to server.</p>
+<p><strong>Parameters</strong>:
+- <code>src</code> (string, required): Path on SD card</p>
+<p><strong>Example</strong>: <code>/api/download_file_from_printer?src=/test.3mf</code></p>
+<p><strong>Response</strong>: Binary file download</p>
+<p><strong>Note</strong>: File saved to <code>./uploads/</code> and sent to client</p>
+<hr />
+<h3 id="get-apiget_3mf_props_for_file">GET /api/get_3mf_props_for_file</h3>
+<p>Get metadata and properties for a specific 3MF file.</p>
+<p><strong>Parameters</strong>:
+- <code>file</code> (string, required): Path to 3MF file
+- <code>plate</code> (int, optional, default=1): Plate number</p>
+<p><strong>Example</strong>: <code>/api/get_3mf_props_for_file?file=/test.3mf&amp;plate=1</code></p>
+<p><strong>Response</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1"></a><a href="#__codelineno-10-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="p">{</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2"></a><a href="#__codelineno-10-2"><span class="linenos" data-linenos=" 2 "></span></a><span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;abc123&quot;</span><span class="p">,</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3"></a><a href="#__codelineno-10-3"><span class="linenos" data-linenos=" 3 "></span></a><span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;test.3mf&quot;</span><span class="p">,</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4"></a><a href="#__codelineno-10-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="w">  </span><span class="nt">&quot;subtask_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;plate_1&quot;</span><span class="p">,</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5"></a><a href="#__codelineno-10-5"><span class="linenos" data-linenos=" 5 "></span></a><span class="w">  </span><span class="nt">&quot;weight&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">15.5</span><span class="p">,</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6"></a><a href="#__codelineno-10-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="w">  </span><span class="nt">&quot;bed_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7"></a><a href="#__codelineno-10-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="w">  </span><span class="nt">&quot;filament_used_g&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">12.5</span><span class="p">,</span><span class="w"> </span><span class="mf">3.0</span><span class="p">],</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8"></a><a href="#__codelineno-10-8"><span class="linenos" data-linenos=" 8 "></span></a><span class="w">  </span><span class="nt">&quot;filament_colors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;#FF0000&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;#0000FF&quot;</span><span class="p">],</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9"></a><a href="#__codelineno-10-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="w">  </span><span class="nt">&quot;prediction&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3600</span><span class="p">,</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10"></a><a href="#__codelineno-10-10"><span class="linenos" data-linenos="10 "></span></a><span class="w">  </span><span class="nt">&quot;objects&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;part1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;part2&quot;</span><span class="p">]</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11"></a><a href="#__codelineno-10-11"><span class="linenos" data-linenos="11 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Error Response</strong>: <code>404 Not Found</code> if file doesn't exist</p>
+<hr />
+<h3 id="get-apiget_current_3mf_props">GET /api/get_current_3mf_props</h3>
+<p>Get metadata for currently printing 3MF file.</p>
+<p><strong>Response</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1"></a><a href="#__codelineno-11-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2"></a><a href="#__codelineno-11-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;success&quot;</span><span class="p">,</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3"></a><a href="#__codelineno-11-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;abc123&quot;</span><span class="p">,</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4"></a><a href="#__codelineno-11-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;current_print.3mf&quot;</span><span class="p">,</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5"></a><a href="#__codelineno-11-5"><span class="linenos" data-linenos="5 "></span></a><span class="w">  </span><span class="c1">// ... additional properties</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6"></a><a href="#__codelineno-11-6"><span class="linenos" data-linenos="6 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Error Response</strong>: <code>404 Not Found</code> if no active job</p>
+<hr />
+<h2 id="tool-control-dual-extruder">Tool Control (Dual Extruder)</h2>
+<h3 id="get-apitoggle_active_tool">GET /api/toggle_active_tool</h3>
+<p>Switch between left and right extruders (H2D dual extruder only).</p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<p><strong>Note</strong>: Toggles between extruder 0 (right) and 1 (left)</p>
+<hr />
+<h3 id="get-apiset_nozzle_details">GET /api/set_nozzle_details</h3>
+<p>Set nozzle type and diameter.</p>
+<p><strong>Parameters</strong>:
+- <code>nozzle_diameter</code> (float, required): Nozzle diameter
+  - Options: <code>0.2</code>, <code>0.4</code>, <code>0.6</code>, <code>0.8</code>
+- <code>nozzle_type</code> (string, required): Nozzle material type
+  - Options: <code>STAINLESS_STEEL</code>, <code>HARDENED_STEEL</code>, <code>HS01</code>, <code>HH01</code></p>
+<p><strong>Example</strong>: <code>/api/set_nozzle_details?nozzle_diameter=0.4&amp;nozzle_type=HARDENED_STEEL</code></p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<p><strong>Note</strong>: Returns after 1 second delay</p>
+<hr />
+<h2 id="ams-control">AMS Control</h2>
+<h3 id="get-apisend_ams_control_command">GET /api/send_ams_control_command</h3>
+<p>Send control command to AMS system.</p>
+<p><strong>Parameters</strong>:
+- <code>cmd</code> (string, required): Command to send
+  - Options: <code>PAUSE</code>, <code>RESUME</code>, <code>RESET</code></p>
+<p><strong>Example</strong>: <code>/api/send_ams_control_command?cmd=RESET</code></p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<hr />
+<h3 id="get-apiset_ams_user_setting">GET /api/set_ams_user_setting</h3>
+<p>Configure AMS user settings.</p>
+<p><strong>Parameters</strong>:
+- <code>setting</code> (string, required): Setting to modify
+  - Options:
+    - <code>CALIBRATE_REMAIN_FLAG</code>: Calibrate remaining filament
+    - <code>STARTUP_READ_OPTION</code>: Read RFID on startup
+    - <code>TRAY_READ_OPTION</code>: Read RFID on tray insert
+- <code>enabled</code> (bool, required): Enable/disable setting</p>
+<p><strong>Example</strong>: <code>/api/set_ams_user_setting?setting=STARTUP_READ_OPTION&amp;enabled=true</code></p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<hr />
+<h2 id="advanced-settings">Advanced Settings</h2>
+<h3 id="get-apisend_gcode">GET /api/send_gcode</h3>
+<p>Send raw G-code commands to printer.</p>
+<p><strong>Parameters</strong>:
+- <code>gcode</code> (string, required): G-code commands (use <code>|</code> for newlines)</p>
+<p><strong>Example</strong>: <code>/api/send_gcode?gcode=G28|G1 Z10 F600|M104 S200</code></p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<p><strong>Note</strong>: Multiple commands separated by <code>|</code> are converted to newlines</p>
+<p><strong>⚠️ Warning</strong>: Direct G-code can damage printer if used incorrectly</p>
+<hr />
+<h3 id="get-apiset_print_option">GET /api/set_print_option</h3>
+<p>Configure print options/features.</p>
+<p><strong>Parameters</strong>:
+- <code>option</code> (string, required): Print option to set
+  - Options:
+    - <code>AUTO_RECOVERY</code>: Auto-recovery from power loss
+    - <code>FILAMENT_TANGLE_DETECT</code>: Filament tangle detection
+    - <code>SOUND_ENABLE</code>: Enable sound/beeps
+    - <code>AUTO_SWITCH_FILAMENT</code>: Auto-switch filament when runout
+- <code>enabled</code> (bool, required): Enable/disable option</p>
+<p><strong>Example</strong>: <code>/api/set_print_option?option=AUTO_RECOVERY&amp;enabled=true</code></p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<hr />
+<h3 id="get-apiset_light_state">GET /api/set_light_state</h3>
+<p>Control chamber LED light.</p>
+<p><strong>Parameters</strong>:
+- <code>state</code> (string, required): Light state (<code>on</code> or <code>off</code>)</p>
+<p><strong>Example</strong>: <code>/api/set_light_state?state=on</code></p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<p><strong>Note</strong>: Automatically controlled by app based on print state and door sensors</p>
+<hr />
+<h3 id="get-apiset_speed_level">GET /api/set_speed_level</h3>
+<p>Set print speed override level.</p>
+<p><strong>Parameters</strong>:
+- <code>level</code> (string, required): Speed level
+  - Options: <code>1</code> (silent), <code>2</code> (standard), <code>3</code> (sport), <code>4</code> (ludicrous)</p>
+<p><strong>Example</strong>: <code>/api/set_speed_level?level=2</code></p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<hr />
+<h2 id="telemetry-data">Telemetry &amp; Data</h2>
+<h3 id="get-apiget_all_data">GET /api/get_all_data</h3>
+<p>Get complete historical telemetry data for charting.</p>
+<p><strong>Response</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1"></a><a href="#__codelineno-12-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="p">{</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2"></a><a href="#__codelineno-12-2"><span class="linenos" data-linenos=" 2 "></span></a><span class="w">  </span><span class="nt">&quot;tool&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3"></a><a href="#__codelineno-12-3"><span class="linenos" data-linenos=" 3 "></span></a><span class="w">    </span><span class="nt">&quot;minVal&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4"></a><a href="#__codelineno-12-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="w">    </span><span class="nt">&quot;maxVal&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">250</span><span class="p">,</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5"></a><a href="#__codelineno-12-5"><span class="linenos" data-linenos=" 5 "></span></a><span class="w">    </span><span class="nt">&quot;zoom&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6"></a><a href="#__codelineno-12-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="w">    </span><span class="nt">&quot;maxAge&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">-3600</span><span class="p">,</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7"></a><a href="#__codelineno-12-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="w">    </span><span class="nt">&quot;xAxis&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8"></a><a href="#__codelineno-12-8"><span class="linenos" data-linenos=" 8 "></span></a><span class="w">      </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">-3600</span><span class="p">,</span><span class="w"> </span><span class="mi">-3599</span><span class="p">,</span><span class="w"> </span><span class="mi">-3598</span><span class="p">,</span><span class="w"> </span><span class="err">...</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">]</span>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9"></a><a href="#__codelineno-12-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="w">    </span><span class="p">},</span>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10"></a><a href="#__codelineno-12-10"><span class="linenos" data-linenos="10 "></span></a><span class="w">    </span><span class="nt">&quot;series&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11"></a><a href="#__codelineno-12-11"><span class="linenos" data-linenos="11 "></span></a><span class="w">      </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">25.5</span><span class="p">,</span><span class="w"> </span><span class="mf">26.0</span><span class="p">,</span><span class="w"> </span><span class="mf">27.5</span><span class="p">,</span><span class="w"> </span><span class="err">...</span><span class="p">,</span><span class="w"> </span><span class="mf">220.0</span><span class="p">]</span>
+</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12"></a><a href="#__codelineno-12-12"><span class="linenos" data-linenos="12 "></span></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13"></a><a href="#__codelineno-12-13"><span class="linenos" data-linenos="13 "></span></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14"></a><a href="#__codelineno-12-14"><span class="linenos" data-linenos="14 "></span></a><span class="w">  </span><span class="nt">&quot;bed&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* same structure */</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-12-15"><a id="__codelineno-12-15" name="__codelineno-12-15"></a><a href="#__codelineno-12-15"><span class="linenos" data-linenos="15 "></span></a><span class="w">  </span><span class="nt">&quot;chamber&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* same structure */</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-12-16"><a id="__codelineno-12-16" name="__codelineno-12-16"></a><a href="#__codelineno-12-16"><span class="linenos" data-linenos="16 "></span></a><span class="w">  </span><span class="nt">&quot;fan&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* same structure */</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-12-17"><a id="__codelineno-12-17" name="__codelineno-12-17"></a><a href="#__codelineno-12-17"><span class="linenos" data-linenos="17 "></span></a><span class="w">  </span><span class="nt">&quot;printer&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* current printer state */</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-12-18"><a id="__codelineno-12-18" name="__codelineno-12-18"></a><a href="#__codelineno-12-18"><span class="linenos" data-linenos="18 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Notes</strong>:
+- X-axis values are seconds in the past (negative values)
+- Series data contains temperature/percentage values
+- <code>zoom</code> indicates current zoom level (0 = all data)
+- <code>maxAge</code> is oldest data point in seconds</p>
+<hr />
+<h3 id="get-apizoom_in">GET /api/zoom_in</h3>
+<p>Zoom in on telemetry chart (show less historical data).</p>
+<p><strong>Parameters</strong>:
+- <code>name</code> (string, required): Chart name
+  - Options: <code>tool</code>, <code>bed</code>, <code>chamber</code>, <code>fan</code></p>
+<p><strong>Example</strong>: <code>/api/zoom_in?name=tool</code></p>
+<p><strong>Response</strong>: <code>{"status": "success", "printer": {}}</code></p>
+<p><strong>Note</strong>: Reduces visible time range by 500 seconds per call</p>
+<hr />
+<h3 id="get-apizoom_out">GET /api/zoom_out</h3>
+<p>Zoom out on telemetry chart (show more historical data).</p>
+<p><strong>Parameters</strong>:
+- <code>name</code> (string, required): Chart name
+  - Options: <code>tool</code>, <code>bed</code>, <code>chamber</code>, <code>fan</code></p>
+<p><strong>Example</strong>: <code>/api/zoom_out?name=tool</code></p>
+<p><strong>Response</strong>: <code>{"status": "success", "printer": {}}</code></p>
+<p><strong>Note</strong>: Increases visible time range by 500 seconds per call</p>
+<hr />
+<h3 id="get-apidump_data_collections">GET /api/dump_data_collections</h3>
+<p>Dump all internal data collections (debugging).</p>
+<p><strong>Response</strong>: JSONL format (newline-delimited JSON objects)</p>
+<hr />
+<h2 id="system-diagnostics">System &amp; Diagnostics</h2>
+<h3 id="get-apitoggle_session">GET /api/toggle_session</h3>
+<p>Pause/resume MQTT connection to printer.</p>
+<p><strong>Response</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1"></a><a href="#__codelineno-13-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2"></a><a href="#__codelineno-13-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;success&quot;</span><span class="p">,</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3"></a><a href="#__codelineno-13-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">  </span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PAUSED&quot;</span><span class="w"> </span><span class="c1">// or &quot;CONNECTED&quot;</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4"></a><a href="#__codelineno-13-4"><span class="linenos" data-linenos="4 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Note</strong>: Useful for debugging or reducing network traffic</p>
+<hr />
+<h3 id="get-apitrigger_printer_refresh">GET /api/trigger_printer_refresh</h3>
+<p>Force reconnection to printer or refresh telemetry.</p>
+<p><strong>Response</strong>: <code>{"status": "success", "printer": {}}</code></p>
+<p><strong>Notes</strong>:
+- If disconnected: Initiates reconnection
+- If connected: Sends refresh command</p>
+<hr />
+<h3 id="get-apitoggle_verbosity">GET /api/toggle_verbosity</h3>
+<p>Toggle debug logging level.</p>
+<p><strong>Parameters</strong>:
+- <code>verbose</code> (bool, required): Enable verbose logging</p>
+<p><strong>Example</strong>: <code>/api/toggle_verbosity?verbose=true</code></p>
+<p><strong>Response</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1"></a><a href="#__codelineno-14-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2"></a><a href="#__codelineno-14-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;success&quot;</span><span class="p">,</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3"></a><a href="#__codelineno-14-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">  </span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span><span class="w"> </span><span class="c1">// or &quot;INFO&quot;</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4"></a><a href="#__codelineno-14-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">  </span><span class="nt">&quot;verbose&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5"></a><a href="#__codelineno-14-5"><span class="linenos" data-linenos="5 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<hr />
+<h3 id="get-apidump_log">GET /api/dump_log</h3>
+<p>Retrieve application log file.</p>
+<p><strong>Response</strong>: Plain text log contents</p>
+<p><strong>Note</strong>: Returns contents of <code>./output.log</code></p>
+<hr />
+<h3 id="get-apitruncate_log">GET /api/truncate_log</h3>
+<p>Clear/truncate application log file.</p>
+<p><strong>Response</strong>: <code>{"status": "success"}</code></p>
+<p><strong>Note</strong>: Deletes contents of <code>./output.log</code></p>
+<hr />
+<h3 id="get-apifake_error">GET /api/fake_error</h3>
+<p>Trigger intentional error for testing error handling.</p>
+<p><strong>Response</strong>: <code>500 Internal Server Error</code></p>
+<p><strong>Response Body</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1"></a><a href="#__codelineno-15-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2"></a><a href="#__codelineno-15-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;error&quot;</span><span class="p">,</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3"></a><a href="#__codelineno-15-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ZeroDivisionError: division by zero&quot;</span><span class="p">,</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4"></a><a href="#__codelineno-15-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">  </span><span class="nt">&quot;stacktrace&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Traceback (most recent call last):\n...&quot;</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5"></a><a href="#__codelineno-15-5"><span class="linenos" data-linenos="5 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Note</strong>: Development/testing endpoint only</p>
+<hr />
+<h2 id="error-handling">Error Handling</h2>
+<p>All endpoints may return error responses:</p>
+<h3 id="304-not-modified">304 Not Modified</h3>
+<p>Returned when printer data is not yet available:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1"></a><a href="#__codelineno-16-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2"></a><a href="#__codelineno-16-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;error&quot;</span><span class="p">,</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3"></a><a href="#__codelineno-16-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">  </span><span class="nt">&quot;reason&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;no data to send&quot;</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4"></a><a href="#__codelineno-16-4"><span class="linenos" data-linenos="4 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<h3 id="404-not-found">404 Not Found</h3>
+<p>Returned when requested resource doesn't exist:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1"></a><a href="#__codelineno-17-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2"></a><a href="#__codelineno-17-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;error&quot;</span><span class="p">,</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3"></a><a href="#__codelineno-17-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;No file found&quot;</span><span class="p">,</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4"></a><a href="#__codelineno-17-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">  </span><span class="nt">&quot;file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/path/to/missing.3mf&quot;</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5"></a><a href="#__codelineno-17-5"><span class="linenos" data-linenos="5 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<h3 id="500-internal-server-error">500 Internal Server Error</h3>
+<p>Returned on exceptions:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1"></a><a href="#__codelineno-18-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2"></a><a href="#__codelineno-18-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;error&quot;</span><span class="p">,</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3"></a><a href="#__codelineno-18-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;TypeError: expected string&quot;</span><span class="p">,</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4"></a><a href="#__codelineno-18-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">  </span><span class="nt">&quot;stacktrace&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Traceback...&quot;</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5"></a><a href="#__codelineno-18-5"><span class="linenos" data-linenos="5 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<hr />
+<h2 id="rate-limiting-performance">Rate Limiting &amp; Performance</h2>
+<ul>
+<li><strong>No enforced rate limits</strong>: Use responsibly</li>
+<li><strong>Concurrent requests</strong>: Server uses 8 worker threads</li>
+<li><strong>Telemetry updates</strong>: Printer state updates via MQTT (real-time)</li>
+<li><strong>File operations</strong>: FTPS-based, can be slow for large files</li>
+</ul>
+<hr />
+<h2 id="environment-variables">Environment Variables</h2>
+<p>Required environment variables:</p>
+<div class="language-bash highlight"><span class="filename">Bash</span><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1"></a><a href="#__codelineno-19-1"><span class="linenos" data-linenos="1 "></span></a><span class="nv">BAMBU_HOSTNAME</span><span class="o">=</span><span class="m">192</span>.168.1.100<span class="w">       </span><span class="c1"># Printer IP address</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2"></a><a href="#__codelineno-19-2"><span class="linenos" data-linenos="2 "></span></a><span class="nv">BAMBU_ACCESS_CODE</span><span class="o">=</span><span class="m">12345678</span><span class="w">         </span><span class="c1"># 8-character access code</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3"></a><a href="#__codelineno-19-3"><span class="linenos" data-linenos="3 "></span></a><span class="nv">BAMBU_SERIAL_NUMBER</span><span class="o">=</span>00M12345678901<span class="w"> </span><span class="c1"># Printer serial number</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4"></a><a href="#__codelineno-19-4"><span class="linenos" data-linenos="4 "></span></a><span class="nv">INTEGRATED_EXTERNAL_HEATER</span><span class="o">=</span>FALSE<span class="w">   </span><span class="c1"># External chamber heater (TRUE/FALSE)</span>
+</span></code></pre></div>
+<hr />
+<h2 id="examples">Examples</h2>
+<h3 id="python">Python</h3>
+<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1"></a><a href="#__codelineno-20-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="kn">import</span> <span class="nn">requests</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2"></a><a href="#__codelineno-20-2"><span class="linenos" data-linenos=" 2 "></span></a>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3"></a><a href="#__codelineno-20-3"><span class="linenos" data-linenos=" 3 "></span></a><span class="c1"># Get printer status</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4"></a><a href="#__codelineno-20-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;http://localhost:5000/api/printer&quot;</span><span class="p">)</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5"></a><a href="#__codelineno-20-5"><span class="linenos" data-linenos=" 5 "></span></a><span class="n">printer</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6"></a><a href="#__codelineno-20-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Nozzle temp: </span><span class="si">{</span><span class="n">printer</span><span class="p">[</span><span class="s1">&#39;state&#39;</span><span class="p">][</span><span class="s1">&#39;active_nozzle_temp&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">°C&quot;</span><span class="p">)</span>
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7"></a><a href="#__codelineno-20-7"><span class="linenos" data-linenos=" 7 "></span></a>
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8"></a><a href="#__codelineno-20-8"><span class="linenos" data-linenos=" 8 "></span></a><span class="c1"># Set bed temperature</span>
+</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9"></a><a href="#__codelineno-20-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;http://localhost:5000/api/set_bed_target_temp?temp=60&quot;</span><span class="p">)</span>
+</span><span id="__span-20-10"><a id="__codelineno-20-10" name="__codelineno-20-10"></a><a href="#__codelineno-20-10"><span class="linenos" data-linenos="10 "></span></a>
+</span><span id="__span-20-11"><a id="__codelineno-20-11" name="__codelineno-20-11"></a><a href="#__codelineno-20-11"><span class="linenos" data-linenos="11 "></span></a><span class="c1"># Start print job</span>
+</span><span id="__span-20-12"><a id="__codelineno-20-12" name="__codelineno-20-12"></a><a href="#__codelineno-20-12"><span class="linenos" data-linenos="12 "></span></a><span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-20-13"><a id="__codelineno-20-13" name="__codelineno-20-13"></a><a href="#__codelineno-20-13"><span class="linenos" data-linenos="13 "></span></a>    <span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="s2">&quot;/test.3mf&quot;</span><span class="p">,</span>
+</span><span id="__span-20-14"><a id="__codelineno-20-14" name="__codelineno-20-14"></a><a href="#__codelineno-20-14"><span class="linenos" data-linenos="14 "></span></a>    <span class="s2">&quot;platenum&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-20-15"><a id="__codelineno-20-15" name="__codelineno-20-15"></a><a href="#__codelineno-20-15"><span class="linenos" data-linenos="15 "></span></a>    <span class="s2">&quot;plate&quot;</span><span class="p">:</span> <span class="s2">&quot;COOL_PLATE&quot;</span><span class="p">,</span>
+</span><span id="__span-20-16"><a id="__codelineno-20-16" name="__codelineno-20-16"></a><a href="#__codelineno-20-16"><span class="linenos" data-linenos="16 "></span></a>    <span class="s2">&quot;use_ams&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+</span><span id="__span-20-17"><a id="__codelineno-20-17" name="__codelineno-20-17"></a><a href="#__codelineno-20-17"><span class="linenos" data-linenos="17 "></span></a>    <span class="s2">&quot;bl&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span>
+</span><span id="__span-20-18"><a id="__codelineno-20-18" name="__codelineno-20-18"></a><a href="#__codelineno-20-18"><span class="linenos" data-linenos="18 "></span></a><span class="p">}</span>
+</span><span id="__span-20-19"><a id="__codelineno-20-19" name="__codelineno-20-19"></a><a href="#__codelineno-20-19"><span class="linenos" data-linenos="19 "></span></a><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;http://localhost:5000/api/print_3mf&quot;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="javascript-axios">JavaScript (axios)</h3>
+<div class="language-javascript highlight"><span class="filename">JavaScript</span><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1"></a><a href="#__codelineno-21-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="c1">// Get printer status</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2"></a><a href="#__codelineno-21-2"><span class="linenos" data-linenos=" 2 "></span></a><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">axios</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;http://localhost:5000/api/printer&#39;</span><span class="p">);</span>
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3"></a><a href="#__codelineno-21-3"><span class="linenos" data-linenos=" 3 "></span></a><span class="kd">const</span><span class="w"> </span><span class="nx">printer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">data</span><span class="p">;</span>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4"></a><a href="#__codelineno-21-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Bed temp: </span><span class="si">${</span><span class="nx">printer</span><span class="p">.</span><span class="nx">state</span><span class="p">.</span><span class="nx">climate</span><span class="p">.</span><span class="nx">bed_temp</span><span class="si">}</span><span class="sb">°C`</span><span class="p">);</span>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5"></a><a href="#__codelineno-21-5"><span class="linenos" data-linenos=" 5 "></span></a>
+</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6"></a><a href="#__codelineno-21-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="c1">// Control light</span>
+</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7"></a><a href="#__codelineno-21-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="k">await</span><span class="w"> </span><span class="nx">axios</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;http://localhost:5000/api/set_light_state&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span>
+</span><span id="__span-21-8"><a id="__codelineno-21-8" name="__codelineno-21-8"></a><a href="#__codelineno-21-8"><span class="linenos" data-linenos=" 8 "></span></a><span class="w">  </span><span class="nx">params</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">state</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;on&#39;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span>
+</span><span id="__span-21-9"><a id="__codelineno-21-9" name="__codelineno-21-9"></a><a href="#__codelineno-21-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="p">});</span>
+</span><span id="__span-21-10"><a id="__codelineno-21-10" name="__codelineno-21-10"></a><a href="#__codelineno-21-10"><span class="linenos" data-linenos="10 "></span></a>
+</span><span id="__span-21-11"><a id="__codelineno-21-11" name="__codelineno-21-11"></a><a href="#__codelineno-21-11"><span class="linenos" data-linenos="11 "></span></a><span class="c1">// Upload and print file</span>
+</span><span id="__span-21-12"><a id="__codelineno-21-12" name="__codelineno-21-12"></a><a href="#__codelineno-21-12"><span class="linenos" data-linenos="12 "></span></a><span class="kd">const</span><span class="w"> </span><span class="nx">formData</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">FormData</span><span class="p">();</span>
+</span><span id="__span-21-13"><a id="__codelineno-21-13" name="__codelineno-21-13"></a><a href="#__codelineno-21-13"><span class="linenos" data-linenos="13 "></span></a><span class="nx">formData</span><span class="p">.</span><span class="nx">append</span><span class="p">(</span><span class="s1">&#39;myFile&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">fileInput</span><span class="p">.</span><span class="nx">files</span><span class="p">[</span><span class="mf">0</span><span class="p">]);</span>
+</span><span id="__span-21-14"><a id="__codelineno-21-14" name="__codelineno-21-14"></a><a href="#__codelineno-21-14"><span class="linenos" data-linenos="14 "></span></a><span class="k">await</span><span class="w"> </span><span class="nx">axios</span><span class="p">.</span><span class="nx">post</span><span class="p">(</span><span class="s1">&#39;http://localhost:5000/api/upload_file_to_host&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">formData</span><span class="p">);</span>
+</span><span id="__span-21-15"><a id="__codelineno-21-15" name="__codelineno-21-15"></a><a href="#__codelineno-21-15"><span class="linenos" data-linenos="15 "></span></a>
+</span><span id="__span-21-16"><a id="__codelineno-21-16" name="__codelineno-21-16"></a><a href="#__codelineno-21-16"><span class="linenos" data-linenos="16 "></span></a><span class="k">await</span><span class="w"> </span><span class="nx">axios</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;http://localhost:5000/api/upload_file_to_printer&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-21-17"><a id="__codelineno-21-17" name="__codelineno-21-17"></a><a href="#__codelineno-21-17"><span class="linenos" data-linenos="17 "></span></a><span class="w">  </span><span class="nx">params</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">src</span><span class="o">:</span><span class="w"> </span><span class="nx">filename</span><span class="p">,</span><span class="w"> </span><span class="nx">dest</span><span class="o">:</span><span class="w"> </span><span class="sb">`/prints/</span><span class="si">${</span><span class="nx">filename</span><span class="si">}</span><span class="sb">`</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-21-18"><a id="__codelineno-21-18" name="__codelineno-21-18"></a><a href="#__codelineno-21-18"><span class="linenos" data-linenos="18 "></span></a><span class="p">});</span>
+</span><span id="__span-21-19"><a id="__codelineno-21-19" name="__codelineno-21-19"></a><a href="#__codelineno-21-19"><span class="linenos" data-linenos="19 "></span></a><span class="k">await</span><span class="w"> </span><span class="nx">axios</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;http://localhost:5000/api/print_3mf&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-21-20"><a id="__codelineno-21-20" name="__codelineno-21-20"></a><a href="#__codelineno-21-20"><span class="linenos" data-linenos="20 "></span></a><span class="w">  </span><span class="nx">params</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">filename</span><span class="o">:</span><span class="w"> </span><span class="sb">`/prints/</span><span class="si">${</span><span class="nx">filename</span><span class="si">}</span><span class="sb">`</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-21-21"><a id="__codelineno-21-21" name="__codelineno-21-21"></a><a href="#__codelineno-21-21"><span class="linenos" data-linenos="21 "></span></a><span class="p">});</span>
+</span></code></pre></div>
+<h3 id="curl">cURL</h3>
+<div class="language-bash highlight"><span class="filename">Bash</span><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1"></a><a href="#__codelineno-22-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="c1"># Get printer info</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2"></a><a href="#__codelineno-22-2"><span class="linenos" data-linenos=" 2 "></span></a>curl<span class="w"> </span>http://localhost:5000/api/printer
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3"></a><a href="#__codelineno-22-3"><span class="linenos" data-linenos=" 3 "></span></a>
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4"></a><a href="#__codelineno-22-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="c1"># Set chamber temperature</span>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5"></a><a href="#__codelineno-22-5"><span class="linenos" data-linenos=" 5 "></span></a>curl<span class="w"> </span><span class="s2">&quot;http://localhost:5000/api/set_chamber_target_temp?temp=45&quot;</span>
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6"></a><a href="#__codelineno-22-6"><span class="linenos" data-linenos=" 6 "></span></a>
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7"></a><a href="#__codelineno-22-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="c1"># Upload file</span>
+</span><span id="__span-22-8"><a id="__codelineno-22-8" name="__codelineno-22-8"></a><a href="#__codelineno-22-8"><span class="linenos" data-linenos=" 8 "></span></a>curl<span class="w"> </span>-F<span class="w"> </span><span class="s2">&quot;myFile=@model.3mf&quot;</span><span class="w"> </span>http://localhost:5000/api/upload_file_to_host
+</span><span id="__span-22-9"><a id="__codelineno-22-9" name="__codelineno-22-9"></a><a href="#__codelineno-22-9"><span class="linenos" data-linenos=" 9 "></span></a>
+</span><span id="__span-22-10"><a id="__codelineno-22-10" name="__codelineno-22-10"></a><a href="#__codelineno-22-10"><span class="linenos" data-linenos="10 "></span></a><span class="c1"># Download SD card file</span>
+</span><span id="__span-22-11"><a id="__codelineno-22-11" name="__codelineno-22-11"></a><a href="#__codelineno-22-11"><span class="linenos" data-linenos="11 "></span></a>curl<span class="w"> </span>-o<span class="w"> </span>downloaded.3mf<span class="w"> </span><span class="s2">&quot;http://localhost:5000/api/download_file_from_printer?src=/test.3mf&quot;</span>
+</span></code></pre></div>
+<hr />
+<h2 id="websocket-support">WebSocket Support</h2>
+<p>Currently not implemented. All updates are polling-based via <code>/api/printer</code> or <code>/api/get_all_data</code>.</p>
+<hr />
+<h2 id="data-models">Data Models</h2>
+<p>For comprehensive documentation of all data structures, attributes, and telemetry fields returned by this API, see the <a href="../data-dictionary/">Data Dictionary</a>.</p>
+<hr />
+<h2 id="related-resources">Related Resources</h2>
+<ul>
+<li><a href="https://github.com/synman/bambu-printer-manager">bambu-printer-manager GitHub</a></li>
+<li><a href="https://synman.github.io/bambu-printer-manager/">bambu-printer-manager Documentation</a></li>
+<li><a href="https://github.com/bambulab/BambuStudio">BambuStudio</a> - Bambu Lab's slicer/client</li>
+<li><a href="https://github.com/OrcaSlicer/OrcaSlicer">OrcaSlicer</a> - Community fork with enhanced features</li>
+</ul>
+<hr />
+<h2 id="support">Support</h2>
+<p>For issues, questions, or contributions:
+- Open an issue: <a href="https://github.com/synman/bambu-printer-app/issues">bambu-printer-app Issues</a>
+- Library issues: <a href="https://github.com/synman/bambu-printer-manager/issues">bambu-printer-manager Issues</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
