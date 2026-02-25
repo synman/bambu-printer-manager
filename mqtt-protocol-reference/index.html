@@ -1,0 +1,2946 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/mqtt-protocol-reference/">
+      
+      
+        <link rel="prev" href="../data-dictionary/">
+      
+      
+        <link rel="next" href="../reference/bpm/__init__/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Protocol Reference - bambu-printer-manager</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#mqtt-protocol-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="bambu-printer-manager" class="md-header__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            bambu-printer-manager
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Protocol Reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../data-dictionary/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Data Dictionary
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  MQTT & Integration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../reference/bpm/__init__/" class="md-tabs__link">
+          
+  
+  
+  Code Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../container/" class="md-tabs__link">
+          
+  
+  
+  Client Container
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../license/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  License
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="bambu-printer-manager" class="md-nav__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    bambu-printer-manager
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-dictionary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Dictionary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MQTT & Integration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MQTT & Integration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protocol Reference
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protocol Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#communication-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Communication Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#temperature-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Temperature Control
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Temperature Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#set-bed-temperature-target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Set Bed Temperature Target
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set-nozzle-temperature-target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Set Nozzle Temperature Target
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set-chamber-temperature-target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Set Chamber Temperature Target
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fan-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fan Control
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fan Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#part-cooling-fan-layer-cooling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Part Cooling Fan (Layer Cooling)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aux-fan-hotend-cooling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Aux Fan (Hotend Cooling)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exhaust-fan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exhaust Fan
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#print-job-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Print Job Control
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Print Job Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pause-print" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pause Print
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resume-print" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resume Print
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop-print" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stop Print
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start-print-3mf-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Start Print (3MF File)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filament-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filament Management
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Filament Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#load-filament-change-filament" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Load Filament / Change Filament
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set-filament-details-spool-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Set Filament Details / Spool Settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ams-filament-drying" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AMS Filament Drying
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accessory-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Accessory Control
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Accessory Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#set-nozzle-type-diameter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Set Nozzle Type &amp; Diameter
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-extruder-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool / Extruder Control
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool / Extruder Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#select-active-extruder-dual-extruder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Select Active Extruder (Dual Extruder)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Settings
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Settings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#send-raw-g-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Send Raw G-Code
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set-print-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Set Print Options
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#skip-objects-during-print" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Skip Objects During Print
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chamber-air-conditioning-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chamber Air Conditioning Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#buildplate-marker-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Buildplate Marker Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ams-user-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AMS User Settings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ams-control-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AMS Control Commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-flow-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Flow Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Handling
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Error Handling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sequence-id-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sequence ID Tracking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#message-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Message Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mqtt-topic-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MQTT Topic Permissions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#internal-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Internal Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#external-reference-implementations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        External Reference Implementations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version History
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Code Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bpm
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    bpm
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambucommands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambucommands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambuconfig/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuconfig
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambuprinter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuprinter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambuproject/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuproject
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambuspool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuspool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambustate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambustate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/bambutools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambutools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_1_8" id="__nav_4_1_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ftpsclient
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_1_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_1_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ftpsclient
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/bpm/ftpsclient/ftpsclient/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ftpsclient
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Client Container
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Client Container
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../container/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="mqtt-protocol-reference">MQTT Protocol Reference</h1>
+<p>This document provides a comprehensive breakdown of MQTT message structures used by bambu-printer-manager to communicate with Bambu Lab printers. Each message correlates directly to attributes in the <a href="../data-dictionary/">Data Dictionary</a>.</p>
+<h3 id="related-documentation">Related Documentation</h3>
+<ul>
+<li><strong><a href="../data-dictionary/">Data Dictionary</a></strong> — Complete reference of all printer state attributes, telemetry paths, and data types</li>
+<li><strong><a href="../api-reference/">API Reference</a></strong> — REST API endpoints mapping to MQTT operations</li>
+<li><strong><a href="../container/">Container Setup</a></strong> — Docker deployment with full MQTT integration examples</li>
+</ul>
+<h2 id="communication-architecture">Communication Architecture</h2>
+<p><strong>MQTT Topics:</strong></p>
+<ul>
+<li><strong>Request</strong>: <code>device/{serial_number}/request</code> - Commands sent TO the printer</li>
+<li><strong>Report</strong>: <code>device/{serial_number}/report</code> - All telemetry received FROM the printer (actively subscribed)</li>
+</ul>
+<p><strong>Message Format</strong>: All messages are JSON objects sent via MQTT with UTF-8 encoding.</p>
+<p><strong>Sequence IDs</strong>: All request commands include a <code>sequence_id</code> field (typically <code>"0"</code>) for tracking.</p>
+<p><strong>Push vs Report</strong>: There is no separate <code>/push</code> topic. "Push" messages are telemetry messages with <code>command="push_status"</code> received on the <code>/report</code> topic. These represent real-time state changes pushed by the printer. The outbound <code>pushing</code> command namespace in requests allows you to control push behavior (start/stop push updates).</p>
+<hr />
+<h2 id="temperature-control">Temperature Control</h2>
+<h3 id="set-bed-temperature-target">Set Bed Temperature Target</h3>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>gcode_line</code> (via SEND_GCODE_TEMPLATE)</p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><a href="#__codelineno-0-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a><a href="#__codelineno-0-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3"></a><a href="#__codelineno-0-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4"></a><a href="#__codelineno-0-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;gcode_line&quot;</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5"></a><a href="#__codelineno-0-5"><span class="linenos" data-linenos="5 "></span></a><span class="w">    </span><span class="nt">&quot;param&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;M140 S60\n&quot;</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6"></a><a href="#__codelineno-0-6"><span class="linenos" data-linenos="6 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7"></a><a href="#__codelineno-0-7"><span class="linenos" data-linenos="7 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Fields:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Example</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>command</code></td>
+<td>string</td>
+<td><code>"gcode_line"</code></td>
+<td>Instructs printer to execute raw G-code</td>
+</tr>
+<tr>
+<td><code>param</code></td>
+<td>string</td>
+<td><code>"M140 S60\n"</code></td>
+<td>M140 G-code command: S = temperature in °C (0-120 typical)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Data Dictionary Correlation</strong>: <a href="../data-dictionary/#bambustate"><code>bed_temp_target</code></a>, <a href="../data-dictionary/#bambustate"><code>bed_temp</code></a></p>
+<p><strong>Data Dictionary Reference</strong>: Related attributes in <a href="../data-dictionary/#bed-temperature">Bed Temperature</a> section</p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.set_bed_temp_target(value: int)</code></p>
+<p><strong>Example Usage</strong>:
+<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1"></a><a href="#__codelineno-1-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">set_bed_temp_target</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>  <span class="c1"># Set bed to 60°C</span>
+</span></code></pre></div></p>
+<hr />
+<h3 id="set-nozzle-temperature-target">Set Nozzle Temperature Target</h3>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>gcode_line</code> (via SEND_GCODE_TEMPLATE)</p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1"></a><a href="#__codelineno-2-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2"></a><a href="#__codelineno-2-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3"></a><a href="#__codelineno-2-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4"></a><a href="#__codelineno-2-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;gcode_line&quot;</span><span class="p">,</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5"></a><a href="#__codelineno-2-5"><span class="linenos" data-linenos="5 "></span></a><span class="w">    </span><span class="nt">&quot;param&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;M104 S220\n&quot;</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6"></a><a href="#__codelineno-2-6"><span class="linenos" data-linenos="6 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7"></a><a href="#__codelineno-2-7"><span class="linenos" data-linenos="7 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Fields:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Example Values</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>param</code></td>
+<td>string</td>
+<td><code>"M104 S220\n"</code></td>
+<td>G-code command: S = temperature in °C (0-280 typical)</td>
+</tr>
+<tr>
+<td><code>param</code> (with tool)</td>
+<td>string</td>
+<td><code>"M104 S220 T1\n"</code></td>
+<td>Same with T parameter specifying tool number (0-indexed)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implementation Notes</strong>:
+- The T parameter is only included when <code>tool_num &gt;= 0</code> is provided to the Python method
+- When <code>tool_num == -1</code> (default), the T parameter is omitted (applies to active tool)</p>
+<p><strong>Data Dictionary Correlation</strong>: <a href="../data-dictionary/#extruderstate"><code>active_nozzle_temp_target</code></a></p>
+<p><strong>Data Dictionary Reference</strong>: Related attributes in <a href="../data-dictionary/#extruderstate">ExtruderState</a> section</p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.set_nozzle_temp_target(value: int, tool_num: int = -1)</code></p>
+<p><strong>Example Usage</strong>:
+<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1"></a><a href="#__codelineno-3-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">set_nozzle_temp_target</span><span class="p">(</span><span class="mi">220</span><span class="p">)</span>           <span class="c1"># Set active nozzle to 220°C</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2"></a><a href="#__codelineno-3-2"><span class="linenos" data-linenos="2 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">set_nozzle_temp_target</span><span class="p">(</span><span class="mi">210</span><span class="p">,</span> <span class="n">tool_num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Set extruder 2 to 210°C</span>
+</span></code></pre></div></p>
+<hr />
+<h3 id="set-chamber-temperature-target">Set Chamber Temperature Target</h3>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>set_ctt</code> (chamber temperature target)</p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1"></a><a href="#__codelineno-4-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2"></a><a href="#__codelineno-4-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3"></a><a href="#__codelineno-4-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;set_ctt&quot;</span><span class="p">,</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4"></a><a href="#__codelineno-4-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">    </span><span class="nt">&quot;ctt_val&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">40</span><span class="p">,</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5"></a><a href="#__codelineno-4-5"><span class="linenos" data-linenos="5 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6"></a><a href="#__codelineno-4-6"><span class="linenos" data-linenos="6 "></span></a><span class="w">    </span><span class="nt">&quot;temper_check&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7"></a><a href="#__codelineno-4-7"><span class="linenos" data-linenos="7 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8"></a><a href="#__codelineno-4-8"><span class="linenos" data-linenos="8 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Fields:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Range</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ctt_val</code></td>
+<td>integer</td>
+<td>20-60°C</td>
+<td>Target chamber temperature</td>
+</tr>
+<tr>
+<td><code>temper_check</code></td>
+<td>boolean</td>
+<td><code>true</code>/<code>false</code></td>
+<td>Enable/disable temperature validation</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Data Dictionary Correlation</strong>: <a href="../data-dictionary/#bambustate"><code>chamber_temp_target</code></a>, <a href="../data-dictionary/#bambustate"><code>chamber_temp</code></a></p>
+<p><strong>Data Dictionary Reference</strong>: Related attributes in <a href="../data-dictionary/#chamber-temperature">Chamber Temperature</a> section</p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.set_chamber_temp_target(value: int, temper_check: bool = True)</code></p>
+<p><strong>Capability Gate</strong>: Only supported on printers with <code>has_chamber_temp</code> capability</p>
+<p><strong>Example Usage</strong>:
+<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1"></a><a href="#__codelineno-5-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">set_chamber_temp_target</span><span class="p">(</span><span class="mi">45</span><span class="p">)</span>  <span class="c1"># Set chamber to 45°C</span>
+</span></code></pre></div></p>
+<hr />
+<h2 id="fan-control">Fan Control</h2>
+<h3 id="part-cooling-fan-layer-cooling">Part Cooling Fan (Layer Cooling)</h3>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>gcode_line</code></p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1"></a><a href="#__codelineno-6-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2"></a><a href="#__codelineno-6-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3"></a><a href="#__codelineno-6-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4"></a><a href="#__codelineno-6-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;gcode_line&quot;</span><span class="p">,</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5"></a><a href="#__codelineno-6-5"><span class="linenos" data-linenos="5 "></span></a><span class="w">    </span><span class="nt">&quot;param&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;M106 P1 S191\n&quot;</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6"></a><a href="#__codelineno-6-6"><span class="linenos" data-linenos="6 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7"></a><a href="#__codelineno-6-7"><span class="linenos" data-linenos="7 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Fields:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Example</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>param</code></td>
+<td>string</td>
+<td><code>"M106 P1 S191\n"</code></td>
+<td>G-code: P1 = part cooling fan, S = speed 0-255 (191 ≈ 75%)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Data Dictionary Correlation</strong>: <a href="../data-dictionary/#bambustate"><code>part_cooling_fan_speed_percent</code></a>, <a href="../data-dictionary/#bambustate"><code>part_cooling_fan_speed_target_percent</code></a></p>
+<p><strong>Data Dictionary Reference</strong>: Related attributes in <a href="../data-dictionary/#fan-speed-attributes">Fan Speed Attributes</a> section</p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.set_part_cooling_fan_speed_target_percent(value: int)</code></p>
+<p><strong>Input Validation</strong>: Accepts 0-100% and automatically converts to 0-255 (multiplies by 2.55)</p>
+<p><strong>Example Usage</strong>:
+<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1"></a><a href="#__codelineno-7-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">set_part_cooling_fan_speed_target_percent</span><span class="p">(</span><span class="mi">75</span><span class="p">)</span>  <span class="c1"># 75% speed</span>
+</span></code></pre></div></p>
+<hr />
+<h3 id="aux-fan-hotend-cooling">Aux Fan (Hotend Cooling)</h3>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>gcode_line</code></p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1"></a><a href="#__codelineno-8-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2"></a><a href="#__codelineno-8-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3"></a><a href="#__codelineno-8-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4"></a><a href="#__codelineno-8-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;gcode_line&quot;</span><span class="p">,</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5"></a><a href="#__codelineno-8-5"><span class="linenos" data-linenos="5 "></span></a><span class="w">    </span><span class="nt">&quot;param&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;M106 P2 S255\n&quot;</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6"></a><a href="#__codelineno-8-6"><span class="linenos" data-linenos="6 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7"></a><a href="#__codelineno-8-7"><span class="linenos" data-linenos="7 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Fields:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Example</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>param</code></td>
+<td>string</td>
+<td><code>"M106 P2 S255\n"</code></td>
+<td>G-code: P2 = auxiliary/chamber fan, S = speed 0-255</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Data Dictionary Correlation</strong>: <a href="../data-dictionary/#bambustate"><code>aux_fan_speed_percent</code></a></p>
+<p><strong>Data Dictionary Reference</strong>: Related attributes in <a href="../data-dictionary/#fan-speed-attributes">Fan Speed Attributes</a> section</p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.set_aux_fan_speed_target_percent(value: int)</code></p>
+<p><strong>Example Usage</strong>:
+<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1"></a><a href="#__codelineno-9-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">set_aux_fan_speed_target_percent</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>  <span class="c1"># Full speed</span>
+</span></code></pre></div></p>
+<hr />
+<h3 id="exhaust-fan">Exhaust Fan</h3>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>gcode_line</code></p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1"></a><a href="#__codelineno-10-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2"></a><a href="#__codelineno-10-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3"></a><a href="#__codelineno-10-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4"></a><a href="#__codelineno-10-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;gcode_line&quot;</span><span class="p">,</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5"></a><a href="#__codelineno-10-5"><span class="linenos" data-linenos="5 "></span></a><span class="w">    </span><span class="nt">&quot;param&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;M106 P3 S255\n&quot;</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6"></a><a href="#__codelineno-10-6"><span class="linenos" data-linenos="6 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7"></a><a href="#__codelineno-10-7"><span class="linenos" data-linenos="7 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Fields:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Example</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>param</code></td>
+<td>string</td>
+<td><code>"M106 P3 S255\n"</code></td>
+<td>G-code: P3 = exhaust/chamber fan, S = speed 0-255</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Data Dictionary Correlation</strong>: <a href="../data-dictionary/#bambustate"><code>exhaust_fan_speed_percent</code></a></p>
+<p><strong>Data Dictionary Reference</strong>: Related attributes in <a href="../data-dictionary/#fan-speed-attributes">Fan Speed Attributes</a> section</p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.set_exhaust_fan_speed_target_percent(value: int)</code></p>
+<p><strong>Example Usage</strong>:
+<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1"></a><a href="#__codelineno-11-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">set_exhaust_fan_speed_target_percent</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>  <span class="c1"># 50% speed</span>
+</span></code></pre></div></p>
+<hr />
+<h2 id="print-job-control">Print Job Control</h2>
+<h3 id="pause-print">Pause Print</h3>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>pause</code></p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1"></a><a href="#__codelineno-12-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2"></a><a href="#__codelineno-12-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3"></a><a href="#__codelineno-12-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4"></a><a href="#__codelineno-12-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pause&quot;</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5"></a><a href="#__codelineno-12-5"><span class="linenos" data-linenos="5 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6"></a><a href="#__codelineno-12-6"><span class="linenos" data-linenos="6 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Data Dictionary Reference</strong>: Related to <a href="../data-dictionary/#core-state-attributes">Core State Attributes</a> in BambuState</p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.pause_printing()</code></p>
+<hr />
+<h3 id="resume-print">Resume Print</h3>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>resume</code></p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1"></a><a href="#__codelineno-13-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2"></a><a href="#__codelineno-13-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3"></a><a href="#__codelineno-13-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4"></a><a href="#__codelineno-13-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;resume&quot;</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5"></a><a href="#__codelineno-13-5"><span class="linenos" data-linenos="5 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6"></a><a href="#__codelineno-13-6"><span class="linenos" data-linenos="6 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Data Dictionary Reference</strong>: Related to <a href="../data-dictionary/#core-state-attributes">Core State Attributes</a> in BambuState</p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.resume_printing()</code></p>
+<hr />
+<h3 id="stop-print">Stop Print</h3>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>stop</code></p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1"></a><a href="#__codelineno-14-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2"></a><a href="#__codelineno-14-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3"></a><a href="#__codelineno-14-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4"></a><a href="#__codelineno-14-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;stop&quot;</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5"></a><a href="#__codelineno-14-5"><span class="linenos" data-linenos="5 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6"></a><a href="#__codelineno-14-6"><span class="linenos" data-linenos="6 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Data Dictionary Reference</strong>: Related to <a href="../data-dictionary/#core-state-attributes">Core State Attributes</a> in BambuState</p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.stop_printing()</code></p>
+<hr />
+<h3 id="start-print-3mf-file">Start Print (3MF File)</h3>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>project_file</code></p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1"></a><a href="#__codelineno-15-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="p">{</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2"></a><a href="#__codelineno-15-2"><span class="linenos" data-linenos=" 2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3"></a><a href="#__codelineno-15-3"><span class="linenos" data-linenos=" 3 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;project_file&quot;</span><span class="p">,</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4"></a><a href="#__codelineno-15-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5"></a><a href="#__codelineno-15-5"><span class="linenos" data-linenos=" 5 "></span></a><span class="w">    </span><span class="nt">&quot;use_ams&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6"></a><a href="#__codelineno-15-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="w">    </span><span class="nt">&quot;ams_mapping&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;[0,-1,-1,-1]&quot;</span><span class="p">,</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7"></a><a href="#__codelineno-15-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="w">    </span><span class="nt">&quot;bed_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8"></a><a href="#__codelineno-15-8"><span class="linenos" data-linenos=" 8 "></span></a><span class="w">    </span><span class="nt">&quot;url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ftp:///jobs/model.gcode.3mf&quot;</span><span class="p">,</span>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9"></a><a href="#__codelineno-15-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="w">    </span><span class="nt">&quot;file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/jobs/model.gcode.3mf&quot;</span><span class="p">,</span>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10"></a><a href="#__codelineno-15-10"><span class="linenos" data-linenos="10 "></span></a><span class="w">    </span><span class="nt">&quot;param&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Metadata/plate_1.gcode&quot;</span><span class="p">,</span>
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11"></a><a href="#__codelineno-15-11"><span class="linenos" data-linenos="11 "></span></a><span class="w">    </span><span class="nt">&quot;md5&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12"></a><a href="#__codelineno-15-12"><span class="linenos" data-linenos="12 "></span></a><span class="w">    </span><span class="nt">&quot;profile_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13"></a><a href="#__codelineno-15-13"><span class="linenos" data-linenos="13 "></span></a><span class="w">    </span><span class="nt">&quot;project_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-15-14"><a id="__codelineno-15-14" name="__codelineno-15-14"></a><a href="#__codelineno-15-14"><span class="linenos" data-linenos="14 "></span></a><span class="w">    </span><span class="nt">&quot;subtask_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-15-15"><a id="__codelineno-15-15" name="__codelineno-15-15"></a><a href="#__codelineno-15-15"><span class="linenos" data-linenos="15 "></span></a><span class="w">    </span><span class="nt">&quot;subtask_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;model&quot;</span><span class="p">,</span>
+</span><span id="__span-15-16"><a id="__codelineno-15-16" name="__codelineno-15-16"></a><a href="#__codelineno-15-16"><span class="linenos" data-linenos="16 "></span></a><span class="w">    </span><span class="nt">&quot;task_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-15-17"><a id="__codelineno-15-17" name="__codelineno-15-17"></a><a href="#__codelineno-15-17"><span class="linenos" data-linenos="17 "></span></a><span class="w">    </span><span class="nt">&quot;timelapse&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+</span><span id="__span-15-18"><a id="__codelineno-15-18" name="__codelineno-15-18"></a><a href="#__codelineno-15-18"><span class="linenos" data-linenos="18 "></span></a><span class="w">    </span><span class="nt">&quot;bed_leveling&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+</span><span id="__span-15-19"><a id="__codelineno-15-19" name="__codelineno-15-19"></a><a href="#__codelineno-15-19"><span class="linenos" data-linenos="19 "></span></a><span class="w">    </span><span class="nt">&quot;flow_cali&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+</span><span id="__span-15-20"><a id="__codelineno-15-20" name="__codelineno-15-20"></a><a href="#__codelineno-15-20"><span class="linenos" data-linenos="20 "></span></a><span class="w">    </span><span class="nt">&quot;layer_inspect&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+</span><span id="__span-15-21"><a id="__codelineno-15-21" name="__codelineno-15-21"></a><a href="#__codelineno-15-21"><span class="linenos" data-linenos="21 "></span></a><span class="w">    </span><span class="nt">&quot;vibration_cali&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+</span><span id="__span-15-22"><a id="__codelineno-15-22" name="__codelineno-15-22"></a><a href="#__codelineno-15-22"><span class="linenos" data-linenos="22 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-15-23"><a id="__codelineno-15-23" name="__codelineno-15-23"></a><a href="#__codelineno-15-23"><span class="linenos" data-linenos="23 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Fields:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Example</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>url</code></td>
+<td>string</td>
+<td><code>"ftp:///path.3mf"</code></td>
+<td>FTP URL to print file on SD card</td>
+</tr>
+<tr>
+<td><code>file</code></td>
+<td>string</td>
+<td><code>"/path.3mf"</code></td>
+<td>Local file path on printer</td>
+</tr>
+<tr>
+<td><code>param</code></td>
+<td>string</td>
+<td><code>"Metadata/plate_1.gcode"</code></td>
+<td>Plate metadata path (# replaced with plate number)</td>
+</tr>
+<tr>
+<td><code>use_ams</code></td>
+<td>boolean</td>
+<td><code>true</code>/<code>false</code></td>
+<td>Use AMS for print</td>
+</tr>
+<tr>
+<td><code>ams_mapping</code></td>
+<td>string</td>
+<td><code>"[0,1,-1,-1]"</code></td>
+<td>JSON array mapping AMS slots to extruders (-1 = skip)</td>
+</tr>
+<tr>
+<td><code>bed_type</code></td>
+<td>string</td>
+<td><code>"auto"</code>, <code>"hot_plate"</code>, <code>"textured_plate"</code></td>
+<td>Bed plate type</td>
+</tr>
+<tr>
+<td><code>bed_leveling</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td>Auto bed leveling before print</td>
+</tr>
+<tr>
+<td><code>flow_cali</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td>Extrusion flow calibration before print</td>
+</tr>
+<tr>
+<td><code>timelapse</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td>Capture timelapse during print</td>
+</tr>
+<tr>
+<td><code>layer_inspect</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td>Enable layer inspection</td>
+</tr>
+<tr>
+<td><code>vibration_cali</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td>Vibration calibration on start</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Data Dictionary Correlation</strong>: <a href="../data-dictionary/#bambustate"><code>active_job_info</code></a>, <a href="../data-dictionary/#bambustate"><code>gcode_state</code></a></p>
+<p><strong>Data Dictionary Reference</strong>: Related attributes in <a href="../data-dictionary/#bambustate">BambuState</a> section</p>
+<p><strong>Data Dictionary Correlation</strong>:
+- <code>active_job_info</code> (all fields updated after start)
+- <code>gcode_state</code> → RUNNING</p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.print_3mf_file(name, plate, bed, use_ams, ams_mapping, bedlevel, flow, timelapse)</code></p>
+<p><strong>AMS Mapping Examples</strong>:
+- <code>[-1,-1,-1,-1]</code> = External spool only (no AMS)
+- <code>[0,-1,-1,-1]</code> = AMS slot 1 only
+- <code>[0,1,2,3]</code> = All 4 AMS slots
+- <code>[-1,-1,-1,3]</code> = AMS slot 4 only</p>
+<hr />
+<h2 id="filament-management">Filament Management</h2>
+<h3 id="load-filament-change-filament">Load Filament / Change Filament</h3>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>ams_change_filament</code></p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1"></a><a href="#__codelineno-16-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="p">{</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2"></a><a href="#__codelineno-16-2"><span class="linenos" data-linenos=" 2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3"></a><a href="#__codelineno-16-3"><span class="linenos" data-linenos=" 3 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4"></a><a href="#__codelineno-16-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ams_change_filament&quot;</span><span class="p">,</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5"></a><a href="#__codelineno-16-5"><span class="linenos" data-linenos=" 5 "></span></a><span class="w">    </span><span class="nt">&quot;ams_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6"></a><a href="#__codelineno-16-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="w">    </span><span class="nt">&quot;slot_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7"></a><a href="#__codelineno-16-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="w">    </span><span class="nt">&quot;target&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8"></a><a href="#__codelineno-16-8"><span class="linenos" data-linenos=" 8 "></span></a><span class="w">    </span><span class="nt">&quot;soft_temp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9"></a><a href="#__codelineno-16-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="w">    </span><span class="nt">&quot;tar_temp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">-1</span><span class="p">,</span>
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10"></a><a href="#__codelineno-16-10"><span class="linenos" data-linenos="10 "></span></a><span class="w">    </span><span class="nt">&quot;curr_temp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">-1</span>
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11"></a><a href="#__codelineno-16-11"><span class="linenos" data-linenos="11 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12"></a><a href="#__codelineno-16-12"><span class="linenos" data-linenos="12 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Fields:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Range</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ams_id</code></td>
+<td>integer</td>
+<td>0-3</td>
+<td>Which AMS unit (4 max per printer)</td>
+</tr>
+<tr>
+<td><code>slot_id</code></td>
+<td>integer</td>
+<td>0-3</td>
+<td>Slot within AMS (4 slots per unit)</td>
+</tr>
+<tr>
+<td><code>target</code></td>
+<td>integer</td>
+<td>0-3 (or 255)</td>
+<td>Which extruder to load into (255 = skip load)</td>
+</tr>
+<tr>
+<td><code>soft_temp</code></td>
+<td>integer</td>
+<td>0</td>
+<td>Softening temperature (currently unused)</td>
+</tr>
+<tr>
+<td><code>tar_temp</code></td>
+<td>integer</td>
+<td>-1</td>
+<td>Target temperature (-1 = auto)</td>
+</tr>
+<tr>
+<td><code>curr_temp</code></td>
+<td>integer</td>
+<td>-1</td>
+<td>Current temperature (-1 = auto)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Data Dictionary Correlation</strong>: <a href="../data-dictionary/#amsunitstate"><code>active_tray_id</code></a>, <a href="../data-dictionary/#amsunitstate"><code>active_tray_state</code></a>, <a href="../data-dictionary/#amsunitstate"><code>ams_units[].trays[].active</code></a></p>
+<p><strong>Data Dictionary Reference</strong>: Related attributes in <a href="../data-dictionary/#amsunitstate">AMSUnitState</a> section</p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.load_filament(slot_id: int, ams_id: int = 0)</code></p>
+<p><strong>Example Usage</strong>:
+<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1"></a><a href="#__codelineno-17-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">load_filament</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># Load slot 2 (0-indexed) from AMS 0</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2"></a><a href="#__codelineno-17-2"><span class="linenos" data-linenos="2 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">load_filament</span><span class="p">(</span><span class="mi">254</span><span class="p">)</span>   <span class="c1"># Load external spool</span>
+</span></code></pre></div></p>
+<hr />
+<h3 id="set-filament-details-spool-settings">Set Filament Details / Spool Settings</h3>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>ams_filament_setting</code></p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1"></a><a href="#__codelineno-18-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="p">{</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2"></a><a href="#__codelineno-18-2"><span class="linenos" data-linenos=" 2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3"></a><a href="#__codelineno-18-3"><span class="linenos" data-linenos=" 3 "></span></a><span class="w">    </span><span class="nt">&quot;ams_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4"></a><a href="#__codelineno-18-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ams_filament_setting&quot;</span><span class="p">,</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5"></a><a href="#__codelineno-18-5"><span class="linenos" data-linenos=" 5 "></span></a><span class="w">    </span><span class="nt">&quot;nozzle_temp_max&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">240</span><span class="p">,</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6"></a><a href="#__codelineno-18-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="w">    </span><span class="nt">&quot;nozzle_temp_min&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">200</span><span class="p">,</span>
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7"></a><a href="#__codelineno-18-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8"></a><a href="#__codelineno-18-8"><span class="linenos" data-linenos=" 8 "></span></a><span class="w">    </span><span class="nt">&quot;slot_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9"></a><a href="#__codelineno-18-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="w">    </span><span class="nt">&quot;tray_color&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FF0000FF&quot;</span><span class="p">,</span>
+</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10"></a><a href="#__codelineno-18-10"><span class="linenos" data-linenos="10 "></span></a><span class="w">    </span><span class="nt">&quot;tray_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-18-11"><a id="__codelineno-18-11" name="__codelineno-18-11"></a><a href="#__codelineno-18-11"><span class="linenos" data-linenos="11 "></span></a><span class="w">    </span><span class="nt">&quot;tray_info_idx&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;GFL99&quot;</span><span class="p">,</span>
+</span><span id="__span-18-12"><a id="__codelineno-18-12" name="__codelineno-18-12"></a><a href="#__codelineno-18-12"><span class="linenos" data-linenos="12 "></span></a><span class="w">    </span><span class="nt">&quot;tray_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;NORMAL&quot;</span>
+</span><span id="__span-18-13"><a id="__codelineno-18-13" name="__codelineno-18-13"></a><a href="#__codelineno-18-13"><span class="linenos" data-linenos="13 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-18-14"><a id="__codelineno-18-14" name="__codelineno-18-14"></a><a href="#__codelineno-18-14"><span class="linenos" data-linenos="14 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Fields:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Example</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ams_id</code></td>
+<td>integer</td>
+<td>0</td>
+<td>AMS unit (0-3)</td>
+</tr>
+<tr>
+<td><code>slot_id</code></td>
+<td>integer</td>
+<td>0-3</td>
+<td>Slot within AMS</td>
+</tr>
+<tr>
+<td><code>tray_id</code></td>
+<td>integer</td>
+<td>0-3 or 254/255</td>
+<td>Global tray ID (254=external, 255=nozzle)</td>
+</tr>
+<tr>
+<td><code>tray_info_idx</code></td>
+<td>string</td>
+<td><code>"GFL99"</code></td>
+<td>Filament type ID from printer database</td>
+</tr>
+<tr>
+<td><code>tray_type</code></td>
+<td>string</td>
+<td><code>"NORMAL"</code></td>
+<td>Filament material type</td>
+</tr>
+<tr>
+<td><code>tray_color</code></td>
+<td>string</td>
+<td><code>"FF0000FF"</code></td>
+<td>RGBA hex color (RedGreenBlueAlpha)</td>
+</tr>
+<tr>
+<td><code>nozzle_temp_min</code></td>
+<td>integer</td>
+<td>200-280</td>
+<td>Minimum nozzle temperature</td>
+</tr>
+<tr>
+<td><code>nozzle_temp_max</code></td>
+<td>integer</td>
+<td>200-280</td>
+<td>Maximum nozzle temperature</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Data Dictionary Correlation</strong>: <a href="../data-dictionary/#bambuspool"><code>nozzle_temp_min</code></a>, <a href="../data-dictionary/#bambuspool"><code>nozzle_temp_max</code></a>, <a href="../data-dictionary/#bambuspool"><code>color</code></a></p>
+<p><strong>Data Dictionary Reference</strong>: Related attributes in <a href="../data-dictionary/#bambuspool">BambuSpool</a> section</p>
+<p><strong>Data Dictionary Correlation</strong>:
+- <code>ams_units[ams_id].trays[slot_id].color</code>
+- <code>ams_units[ams_id].trays[slot_id].nozzle_temp_min</code>
+- <code>ams_units[ams_id].trays[slot_id].nozzle_temp_max</code>
+- <code>ams_units[ams_id].trays[slot_id].filament_type</code></p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.set_spool_details(tray_id, tray_info_idx, tray_id_name, tray_type, tray_color, nozzle_temp_min, nozzle_temp_max, ams_id)</code></p>
+<p><strong>Special Case - Empty External Tray</strong>:
+<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1"></a><a href="#__codelineno-19-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">set_spool_details</span><span class="p">(</span><span class="mi">254</span><span class="p">,</span> <span class="s2">&quot;no_filament&quot;</span><span class="p">)</span>  <span class="c1"># Clear external spool</span>
+</span></code></pre></div></p>
+<hr />
+<h3 id="ams-filament-drying">AMS Filament Drying</h3>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>ams_filament_drying</code></p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1"></a><a href="#__codelineno-20-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="p">{</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2"></a><a href="#__codelineno-20-2"><span class="linenos" data-linenos=" 2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3"></a><a href="#__codelineno-20-3"><span class="linenos" data-linenos=" 3 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4"></a><a href="#__codelineno-20-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ams_filament_drying&quot;</span><span class="p">,</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5"></a><a href="#__codelineno-20-5"><span class="linenos" data-linenos=" 5 "></span></a><span class="w">    </span><span class="nt">&quot;ams_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6"></a><a href="#__codelineno-20-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="w">    </span><span class="nt">&quot;mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7"></a><a href="#__codelineno-20-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="w">    </span><span class="nt">&quot;temp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">55</span><span class="p">,</span>
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8"></a><a href="#__codelineno-20-8"><span class="linenos" data-linenos=" 8 "></span></a><span class="w">    </span><span class="nt">&quot;cooling_temp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">45</span><span class="p">,</span>
+</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9"></a><a href="#__codelineno-20-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="w">    </span><span class="nt">&quot;duration&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">120</span><span class="p">,</span>
+</span><span id="__span-20-10"><a id="__codelineno-20-10" name="__codelineno-20-10"></a><a href="#__codelineno-20-10"><span class="linenos" data-linenos="10 "></span></a><span class="w">    </span><span class="nt">&quot;humidity&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span>
+</span><span id="__span-20-11"><a id="__codelineno-20-11" name="__codelineno-20-11"></a><a href="#__codelineno-20-11"><span class="linenos" data-linenos="11 "></span></a><span class="w">    </span><span class="nt">&quot;rotate_tray&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+</span><span id="__span-20-12"><a id="__codelineno-20-12" name="__codelineno-20-12"></a><a href="#__codelineno-20-12"><span class="linenos" data-linenos="12 "></span></a><span class="w">    </span><span class="nt">&quot;close_power_conflict&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+</span><span id="__span-20-13"><a id="__codelineno-20-13" name="__codelineno-20-13"></a><a href="#__codelineno-20-13"><span class="linenos" data-linenos="13 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-20-14"><a id="__codelineno-20-14" name="__codelineno-20-14"></a><a href="#__codelineno-20-14"><span class="linenos" data-linenos="14 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Fields:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Example</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ams_id</code></td>
+<td>integer</td>
+<td>0</td>
+<td>Target AMS unit</td>
+</tr>
+<tr>
+<td><code>mode</code></td>
+<td>integer</td>
+<td>0-2</td>
+<td>Drying mode (0=off, 1=dry, 2=cool)</td>
+</tr>
+<tr>
+<td><code>temp</code></td>
+<td>integer</td>
+<td>30-70°C</td>
+<td>Drying temperature</td>
+</tr>
+<tr>
+<td><code>cooling_temp</code></td>
+<td>integer</td>
+<td>30-50°C</td>
+<td>Cooling temperature after drying</td>
+</tr>
+<tr>
+<td><code>duration</code></td>
+<td>integer</td>
+<td>minutes</td>
+<td>How long to dry</td>
+</tr>
+<tr>
+<td><code>humidity</code></td>
+<td>integer</td>
+<td>0-100%</td>
+<td>Target humidity (for compatible sensors)</td>
+</tr>
+<tr>
+<td><code>rotate_tray</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td>Rotate tray during drying</td>
+</tr>
+<tr>
+<td><code>close_power_conflict</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td>Handle power conflicts</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Data Dictionary Reference</strong>: Related attributes in <a href="../data-dictionary/#amsunitstate">AMSUnitState</a> section for drying operations</p>
+<p><strong>Data Dictionary Correlation</strong>:
+- <code>ams_units[ams_id].dryer_power_on</code>
+- <code>ams_units[ams_id].dryer_temp</code> (for enabled dryers)</p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.turn_on_ams_dryer(target_temp, duration, target_humidity, cooling_temp, rotate_tray, ams_id)</code></p>
+<p><strong>Example Usage</strong>:
+<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1"></a><a href="#__codelineno-21-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">turn_on_ams_dryer</span><span class="p">(</span><span class="n">target_temp</span><span class="o">=</span><span class="mi">55</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mi">120</span><span class="p">,</span> <span class="n">ams_id</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Dry for 2 hours</span>
+</span></code></pre></div></p>
+<hr />
+<h2 id="accessory-control">Accessory Control</h2>
+<h3 id="set-nozzle-type-diameter">Set Nozzle Type &amp; Diameter</h3>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>set_accessories</code></p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1"></a><a href="#__codelineno-22-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2"></a><a href="#__codelineno-22-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;system&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3"></a><a href="#__codelineno-22-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">    </span><span class="nt">&quot;accessory_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;nozzle&quot;</span><span class="p">,</span>
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4"></a><a href="#__codelineno-22-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;set_accessories&quot;</span><span class="p">,</span>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5"></a><a href="#__codelineno-22-5"><span class="linenos" data-linenos="5 "></span></a><span class="w">    </span><span class="nt">&quot;nozzle_diameter&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.4</span><span class="p">,</span>
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6"></a><a href="#__codelineno-22-6"><span class="linenos" data-linenos="6 "></span></a><span class="w">    </span><span class="nt">&quot;nozzle_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;hardened_steel&quot;</span>
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7"></a><a href="#__codelineno-22-7"><span class="linenos" data-linenos="7 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-22-8"><a id="__codelineno-22-8" name="__codelineno-22-8"></a><a href="#__codelineno-22-8"><span class="linenos" data-linenos="8 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Fields:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Example</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>accessory_type</code></td>
+<td>string</td>
+<td><code>"nozzle"</code></td>
+<td>Type of accessory being configured</td>
+</tr>
+<tr>
+<td><code>nozzle_diameter</code></td>
+<td>float</td>
+<td>0.4, 0.6, 0.8</td>
+<td>Nozzle diameter in mm</td>
+</tr>
+<tr>
+<td><code>nozzle_type</code></td>
+<td>string</td>
+<td><code>"hardened_steel"</code>, <code>"stainless_steel"</code></td>
+<td>Nozzle material type</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Data Dictionary Reference</strong>: Related configuration in <a href="../data-dictionary/#bambustate">BambuState</a> section</p>
+<p><strong>Data Dictionary Correlation</strong>:
+- <code>nozzle_diameter</code>
+- <code>nozzle_type</code></p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.set_nozzle_details(nozzle_diameter, nozzle_type)</code></p>
+<p><strong>Example Usage</strong>:
+<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1"></a><a href="#__codelineno-23-1"><span class="linenos" data-linenos="1 "></span></a><span class="kn">from</span> <span class="nn">bpm.bambutools</span> <span class="kn">import</span> <span class="n">NozzleDiameter</span><span class="p">,</span> <span class="n">NozzleType</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2"></a><a href="#__codelineno-23-2"><span class="linenos" data-linenos="2 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">set_nozzle_details</span><span class="p">(</span><span class="n">NozzleDiameter</span><span class="o">.</span><span class="n">DIAMETER_0_8</span><span class="p">,</span> <span class="n">NozzleType</span><span class="o">.</span><span class="n">HARDENED_STEEL</span><span class="p">)</span>
+</span></code></pre></div></p>
+<hr />
+<h2 id="tool-extruder-control">Tool / Extruder Control</h2>
+<h3 id="select-active-extruder-dual-extruder">Select Active Extruder (Dual Extruder)</h3>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>select_extruder</code></p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1"></a><a href="#__codelineno-24-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2"></a><a href="#__codelineno-24-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3"></a><a href="#__codelineno-24-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;select_extruder&quot;</span><span class="p">,</span>
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4"></a><a href="#__codelineno-24-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">    </span><span class="nt">&quot;extruder_index&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-24-5"><a id="__codelineno-24-5" name="__codelineno-24-5"></a><a href="#__codelineno-24-5"><span class="linenos" data-linenos="5 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span>
+</span><span id="__span-24-6"><a id="__codelineno-24-6" name="__codelineno-24-6"></a><a href="#__codelineno-24-6"><span class="linenos" data-linenos="6 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-24-7"><a id="__codelineno-24-7" name="__codelineno-24-7"></a><a href="#__codelineno-24-7"><span class="linenos" data-linenos="7 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Fields:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Range</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>extruder_index</code></td>
+<td>integer</td>
+<td>0-1</td>
+<td>Which extruder (0=left, 1=right)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Data Dictionary Correlation</strong>: <a href="../data-dictionary/#bambustate"><code>active_tool</code></a></p>
+<p><strong>Data Dictionary Reference</strong>: Related to <a href="../data-dictionary/#bambustate">BambuState</a> active tool selection</p>
+<p><strong>Data Dictionary Correlation</strong>: <code>active_tool</code></p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.set_active_tool(id: int)</code></p>
+<p><strong>Example Usage</strong>:
+<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1"></a><a href="#__codelineno-25-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">set_active_tool</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Switch to extruder 2</span>
+</span></code></pre></div></p>
+<hr />
+<h2 id="advanced-settings">Advanced Settings</h2>
+<h3 id="send-raw-g-code">Send Raw G-Code</h3>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>gcode_line</code></p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1"></a><a href="#__codelineno-26-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2"></a><a href="#__codelineno-26-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3"></a><a href="#__codelineno-26-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-26-4"><a id="__codelineno-26-4" name="__codelineno-26-4"></a><a href="#__codelineno-26-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;gcode_line&quot;</span><span class="p">,</span>
+</span><span id="__span-26-5"><a id="__codelineno-26-5" name="__codelineno-26-5"></a><a href="#__codelineno-26-5"><span class="linenos" data-linenos="5 "></span></a><span class="w">    </span><span class="nt">&quot;param&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;G28\nG29\n&quot;</span>
+</span><span id="__span-26-6"><a id="__codelineno-26-6" name="__codelineno-26-6"></a><a href="#__codelineno-26-6"><span class="linenos" data-linenos="6 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-26-7"><a id="__codelineno-26-7" name="__codelineno-26-7"></a><a href="#__codelineno-26-7"><span class="linenos" data-linenos="7 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Fields:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Example</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>param</code></td>
+<td>string</td>
+<td><code>"G28\n"</code></td>
+<td>Raw G-code commands separated by newlines</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Data Dictionary Reference</strong>: No specific attributes; affects printer motion and internal state directly</p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.send_gcode(gcode: str)</code></p>
+<p><strong>Example Usage</strong>:
+<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1"></a><a href="#__codelineno-27-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">send_gcode</span><span class="p">(</span><span class="s2">&quot;G28&quot;</span><span class="p">)</span>  <span class="c1"># Home all axes</span>
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2"></a><a href="#__codelineno-27-2"><span class="linenos" data-linenos="2 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">send_gcode</span><span class="p">(</span><span class="s2">&quot;G91</span><span class="se">\n</span><span class="s2">G0 X10&quot;</span><span class="p">)</span>  <span class="c1"># Relative move 10mm in X</span>
+</span></code></pre></div></p>
+<hr />
+<h3 id="set-print-options">Set Print Options</h3>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>print_option</code></p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1"></a><a href="#__codelineno-28-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="p">{</span>
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2"></a><a href="#__codelineno-28-2"><span class="linenos" data-linenos=" 2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3"></a><a href="#__codelineno-28-3"><span class="linenos" data-linenos=" 3 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;print_option&quot;</span><span class="p">,</span>
+</span><span id="__span-28-4"><a id="__codelineno-28-4" name="__codelineno-28-4"></a><a href="#__codelineno-28-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-28-5"><a id="__codelineno-28-5" name="__codelineno-28-5"></a><a href="#__codelineno-28-5"><span class="linenos" data-linenos=" 5 "></span></a><span class="w">    </span><span class="nt">&quot;auto_recovery&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;true&quot;</span><span class="p">,</span>
+</span><span id="__span-28-6"><a id="__codelineno-28-6" name="__codelineno-28-6"></a><a href="#__codelineno-28-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="w">    </span><span class="nt">&quot;auto_switch_filament&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;true&quot;</span><span class="p">,</span>
+</span><span id="__span-28-7"><a id="__codelineno-28-7" name="__codelineno-28-7"></a><a href="#__codelineno-28-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="w">    </span><span class="nt">&quot;filament_tangle_detect&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;true&quot;</span><span class="p">,</span>
+</span><span id="__span-28-8"><a id="__codelineno-28-8" name="__codelineno-28-8"></a><a href="#__codelineno-28-8"><span class="linenos" data-linenos=" 8 "></span></a><span class="w">    </span><span class="nt">&quot;sound_enable&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;true&quot;</span><span class="p">,</span>
+</span><span id="__span-28-9"><a id="__codelineno-28-9" name="__codelineno-28-9"></a><a href="#__codelineno-28-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="w">    </span><span class="nt">&quot;option&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span>
+</span><span id="__span-28-10"><a id="__codelineno-28-10" name="__codelineno-28-10"></a><a href="#__codelineno-28-10"><span class="linenos" data-linenos="10 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-28-11"><a id="__codelineno-28-11" name="__codelineno-28-11"></a><a href="#__codelineno-28-11"><span class="linenos" data-linenos="11 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Fields:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Value</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>auto_recovery</code></td>
+<td>string</td>
+<td><code>"true"</code>/<code>"false"</code></td>
+<td>Resume print after power loss</td>
+</tr>
+<tr>
+<td><code>auto_switch_filament</code></td>
+<td>string</td>
+<td><code>"true"</code>/<code>"false"</code></td>
+<td>Auto-switch to backup filament</td>
+</tr>
+<tr>
+<td><code>filament_tangle_detect</code></td>
+<td>string</td>
+<td><code>"true"</code>/<code>"false"</code></td>
+<td>Pause if filament tangles</td>
+</tr>
+<tr>
+<td><code>sound_enable</code></td>
+<td>string</td>
+<td><code>"true"</code>/<code>"false"</code></td>
+<td>Beep for notifications</td>
+</tr>
+<tr>
+<td><code>option</code></td>
+<td>string</td>
+<td><code>"1"</code> / <code>"0"</code></td>
+<td>Meta-control flag</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Data Dictionary Correlation</strong>:
+- <code>auto_recovery</code>
+- <code>auto_switch_filament</code>
+- <code>filament_tangle_detect</code>
+- <code>sound_enable</code></p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.set_print_option(option: PrintOption, enabled: bool)</code></p>
+<p><strong>Example Usage</strong>:
+<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1"></a><a href="#__codelineno-29-1"><span class="linenos" data-linenos="1 "></span></a><span class="kn">from</span> <span class="nn">bpm.bambutools</span> <span class="kn">import</span> <span class="n">PrintOption</span>
+</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2"></a><a href="#__codelineno-29-2"><span class="linenos" data-linenos="2 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">set_print_option</span><span class="p">(</span><span class="n">PrintOption</span><span class="o">.</span><span class="n">AUTO_RECOVERY</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-29-3"><a id="__codelineno-29-3" name="__codelineno-29-3"></a><a href="#__codelineno-29-3"><span class="linenos" data-linenos="3 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">set_print_option</span><span class="p">(</span><span class="n">PrintOption</span><span class="o">.</span><span class="n">SOUND_ENABLE</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+</span></code></pre></div></p>
+<hr />
+<h3 id="skip-objects-during-print">Skip Objects During Print</h3>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>skip_objects</code></p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1"></a><a href="#__codelineno-30-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2"></a><a href="#__codelineno-30-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3"></a><a href="#__codelineno-30-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4"></a><a href="#__codelineno-30-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;skip_objects&quot;</span><span class="p">,</span>
+</span><span id="__span-30-5"><a id="__codelineno-30-5" name="__codelineno-30-5"></a><a href="#__codelineno-30-5"><span class="linenos" data-linenos="5 "></span></a><span class="w">    </span><span class="nt">&quot;obj_list&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">]</span>
+</span><span id="__span-30-6"><a id="__codelineno-30-6" name="__codelineno-30-6"></a><a href="#__codelineno-30-6"><span class="linenos" data-linenos="6 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-30-7"><a id="__codelineno-30-7" name="__codelineno-30-7"></a><a href="#__codelineno-30-7"><span class="linenos" data-linenos="7 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Fields:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Example</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>obj_list</code></td>
+<td>array of int</td>
+<td><code>[0, 2]</code></td>
+<td>List of object indices to skip (0-indexed)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Data Dictionary Correlation</strong>: None (direct execution)</p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.skip_objects(objects: list)</code></p>
+<p><strong>Example Usage</strong>:
+<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1"></a><a href="#__codelineno-31-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">skip_objects</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>  <span class="c1"># Skip objects 1, 3, and 5</span>
+</span></code></pre></div></p>
+<hr />
+<h3 id="chamber-air-conditioning-mode">Chamber Air Conditioning Mode</h3>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>set_airduct</code></p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1"></a><a href="#__codelineno-32-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2"></a><a href="#__codelineno-32-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-32-3"><a id="__codelineno-32-3" name="__codelineno-32-3"></a><a href="#__codelineno-32-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;set_airduct&quot;</span><span class="p">,</span>
+</span><span id="__span-32-4"><a id="__codelineno-32-4" name="__codelineno-32-4"></a><a href="#__codelineno-32-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">    </span><span class="nt">&quot;modeId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-32-5"><a id="__codelineno-32-5" name="__codelineno-32-5"></a><a href="#__codelineno-32-5"><span class="linenos" data-linenos="5 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span>
+</span><span id="__span-32-6"><a id="__codelineno-32-6" name="__codelineno-32-6"></a><a href="#__codelineno-32-6"><span class="linenos" data-linenos="6 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-32-7"><a id="__codelineno-32-7" name="__codelineno-32-7"></a><a href="#__codelineno-32-7"><span class="linenos" data-linenos="7 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Fields:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Range</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>modeId</code></td>
+<td>integer</td>
+<td>0-3</td>
+<td>AC mode: 0=Off, 1=Cool, 2=Dry, 3=Auto</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Data Dictionary Correlation</strong>: <a href="../data-dictionary/#bambuclimate"><code>airduct_mode</code></a></p>
+<p><strong>Data Dictionary Reference</strong>: Related to <a href="../data-dictionary/#bambuclimate">BambuClimate</a> AC control</p>
+<p><strong>Data Dictionary Correlation</strong>: <code>airduct_mode</code></p>
+<p><strong>Note</strong>: This command is automatically sent within <code>set_chamber_temp_target()</code> based on temperature thresholds. No standalone method exists.</p>
+<hr />
+<h3 id="buildplate-marker-detection">Buildplate Marker Detection</h3>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>xcam_control_set</code></p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1"></a><a href="#__codelineno-33-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="p">{</span>
+</span><span id="__span-33-2"><a id="__codelineno-33-2" name="__codelineno-33-2"></a><a href="#__codelineno-33-2"><span class="linenos" data-linenos=" 2 "></span></a><span class="w">  </span><span class="nt">&quot;xcam&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-33-3"><a id="__codelineno-33-3" name="__codelineno-33-3"></a><a href="#__codelineno-33-3"><span class="linenos" data-linenos=" 3 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;xcam_control_set&quot;</span><span class="p">,</span>
+</span><span id="__span-33-4"><a id="__codelineno-33-4" name="__codelineno-33-4"></a><a href="#__codelineno-33-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="w">    </span><span class="nt">&quot;control&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+</span><span id="__span-33-5"><a id="__codelineno-33-5" name="__codelineno-33-5"></a><a href="#__codelineno-33-5"><span class="linenos" data-linenos=" 5 "></span></a><span class="w">    </span><span class="nt">&quot;enable&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+</span><span id="__span-33-6"><a id="__codelineno-33-6" name="__codelineno-33-6"></a><a href="#__codelineno-33-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="w">    </span><span class="nt">&quot;module_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;buildplate_marker_detector&quot;</span><span class="p">,</span>
+</span><span id="__span-33-7"><a id="__codelineno-33-7" name="__codelineno-33-7"></a><a href="#__codelineno-33-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="w">    </span><span class="nt">&quot;print_halt&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+</span><span id="__span-33-8"><a id="__codelineno-33-8" name="__codelineno-33-8"></a><a href="#__codelineno-33-8"><span class="linenos" data-linenos=" 8 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span>
+</span><span id="__span-33-9"><a id="__codelineno-33-9" name="__codelineno-33-9"></a><a href="#__codelineno-33-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-33-10"><a id="__codelineno-33-10" name="__codelineno-33-10"></a><a href="#__codelineno-33-10"><span class="linenos" data-linenos="10 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Fields:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Value</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>module_name</code></td>
+<td>string</td>
+<td><code>"buildplate_marker_detector"</code></td>
+<td>Specifies marker detection module</td>
+</tr>
+<tr>
+<td><code>enable</code></td>
+<td>boolean</td>
+<td><code>true</code>/<code>false</code></td>
+<td>Enable/disable marker detection</td>
+</tr>
+<tr>
+<td><code>control</code></td>
+<td>boolean</td>
+<td><code>true</code>/<code>false</code></td>
+<td>Control flag</td>
+</tr>
+<tr>
+<td><code>print_halt</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td>Halt print on marker detection</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Data Dictionary Reference</strong>: Related to <a href="../data-dictionary/#bambustate">BambuState</a> sensor configuration</p>
+<p><strong>Data Dictionary Correlation</strong>: <code>buildplate_marker_detector</code></p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.set_buildplate_marker_detector(enabled: bool)</code></p>
+<hr />
+<h2 id="ams-user-settings">AMS User Settings</h2>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>ams_user_setting</code></p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1"></a><a href="#__codelineno-34-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="p">{</span>
+</span><span id="__span-34-2"><a id="__codelineno-34-2" name="__codelineno-34-2"></a><a href="#__codelineno-34-2"><span class="linenos" data-linenos=" 2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-34-3"><a id="__codelineno-34-3" name="__codelineno-34-3"></a><a href="#__codelineno-34-3"><span class="linenos" data-linenos=" 3 "></span></a><span class="w">    </span><span class="nt">&quot;ams_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-34-4"><a id="__codelineno-34-4" name="__codelineno-34-4"></a><a href="#__codelineno-34-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ams_user_setting&quot;</span><span class="p">,</span>
+</span><span id="__span-34-5"><a id="__codelineno-34-5" name="__codelineno-34-5"></a><a href="#__codelineno-34-5"><span class="linenos" data-linenos=" 5 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-34-6"><a id="__codelineno-34-6" name="__codelineno-34-6"></a><a href="#__codelineno-34-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="w">    </span><span class="nt">&quot;calibrate_remain_flag&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+</span><span id="__span-34-7"><a id="__codelineno-34-7" name="__codelineno-34-7"></a><a href="#__codelineno-34-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="w">    </span><span class="nt">&quot;startup_read_option&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+</span><span id="__span-34-8"><a id="__codelineno-34-8" name="__codelineno-34-8"></a><a href="#__codelineno-34-8"><span class="linenos" data-linenos=" 8 "></span></a><span class="w">    </span><span class="nt">&quot;tray_read_option&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+</span><span id="__span-34-9"><a id="__codelineno-34-9" name="__codelineno-34-9"></a><a href="#__codelineno-34-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-34-10"><a id="__codelineno-34-10" name="__codelineno-34-10"></a><a href="#__codelineno-34-10"><span class="linenos" data-linenos="10 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Fields:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Value</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>startup_read_option</code></td>
+<td>boolean</td>
+<td><code>true</code>/<code>false</code></td>
+<td>Read AMS on printer startup</td>
+</tr>
+<tr>
+<td><code>tray_read_option</code></td>
+<td>boolean</td>
+<td><code>true</code>/<code>false</code></td>
+<td>Read tray RFID on load</td>
+</tr>
+<tr>
+<td><code>calibrate_remain_flag</code></td>
+<td>boolean</td>
+<td><code>true</code>/<code>false</code></td>
+<td>Track filament calibration history</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Data Dictionary Reference</strong>: Related attributes in <a href="../data-dictionary/#amsunitstate">AMSUnitState</a> user preferences</p>
+<p><strong>Data Dictionary Correlation</strong>:
+- <code>calibrate_remain_flag</code>
+- <code>startup_read_option</code>
+- <code>tray_read_option</code></p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.set_ams_user_setting(setting: AMSUserSetting, enabled: bool, ams_id: int = 0)</code></p>
+<hr />
+<h2 id="ams-control-commands">AMS Control Commands</h2>
+<p><strong>MQTT Topic</strong>: <code>device/{serial}/request</code></p>
+<p><strong>Command Name</strong>: <code>ams_control</code></p>
+<p><strong>Message Structure</strong>:
+<div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-35-1"><a id="__codelineno-35-1" name="__codelineno-35-1"></a><a href="#__codelineno-35-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
+</span><span id="__span-35-2"><a id="__codelineno-35-2" name="__codelineno-35-2"></a><a href="#__codelineno-35-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">  </span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-35-3"><a id="__codelineno-35-3" name="__codelineno-35-3"></a><a href="#__codelineno-35-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">    </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+</span><span id="__span-35-4"><a id="__codelineno-35-4" name="__codelineno-35-4"></a><a href="#__codelineno-35-4"><span class="linenos" data-linenos="4 "></span></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ams_control&quot;</span><span class="p">,</span>
+</span><span id="__span-35-5"><a id="__codelineno-35-5" name="__codelineno-35-5"></a><a href="#__codelineno-35-5"><span class="linenos" data-linenos="5 "></span></a><span class="w">    </span><span class="nt">&quot;param&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;resume&quot;</span>
+</span><span id="__span-35-6"><a id="__codelineno-35-6" name="__codelineno-35-6"></a><a href="#__codelineno-35-6"><span class="linenos" data-linenos="6 "></span></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-35-7"><a id="__codelineno-35-7" name="__codelineno-35-7"></a><a href="#__codelineno-35-7"><span class="linenos" data-linenos="7 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Fields:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Value</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>param</code></td>
+<td>string</td>
+<td><code>"resume"</code>, <code>"pause"</code>, <code>"reset"</code></td>
+<td>AMS control action</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Data Dictionary Correlation</strong>: <a href="../data-dictionary/#amsunitstate"><code>ams_status_raw</code></a>, <a href="../data-dictionary/#amsunitstate"><code>ams_status_text</code></a></p>
+<p><strong>Data Dictionary Reference</strong>: Related to <a href="../data-dictionary/#amsunitstate">AMSUnitState</a> status management</p>
+<p><strong>Data Dictionary Correlation</strong>: <code>ams_units[].ams_status</code></p>
+<p><strong>Python Method</strong>: <code>BambuPrinter.send_ams_control_command(ams_control_cmd: AMSControlCommand)</code></p>
+<p><strong>Example Usage</strong>:
+<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-36-1"><a id="__codelineno-36-1" name="__codelineno-36-1"></a><a href="#__codelineno-36-1"><span class="linenos" data-linenos="1 "></span></a><span class="kn">from</span> <span class="nn">bpm.bambutools</span> <span class="kn">import</span> <span class="n">AMSControlCommand</span>
+</span><span id="__span-36-2"><a id="__codelineno-36-2" name="__codelineno-36-2"></a><a href="#__codelineno-36-2"><span class="linenos" data-linenos="2 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">send_ams_control_command</span><span class="p">(</span><span class="n">AMSControlCommand</span><span class="o">.</span><span class="n">PAUSE</span><span class="p">)</span>
+</span><span id="__span-36-3"><a id="__codelineno-36-3" name="__codelineno-36-3"></a><a href="#__codelineno-36-3"><span class="linenos" data-linenos="3 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">send_ams_control_command</span><span class="p">(</span><span class="n">AMSControlCommand</span><span class="o">.</span><span class="n">RESUME</span><span class="p">)</span>
+</span><span id="__span-36-4"><a id="__codelineno-36-4" name="__codelineno-36-4"></a><a href="#__codelineno-36-4"><span class="linenos" data-linenos="4 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">send_ams_control_command</span><span class="p">(</span><span class="n">AMSControlCommand</span><span class="o">.</span><span class="n">RESET</span><span class="p">)</span>
+</span></code></pre></div></p>
+<hr />
+<h2 id="data-flow-example">Data Flow Example</h2>
+<p><strong>Scenario</strong>: Change active filament, set nozzle temperature, and start a print</p>
+<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-37-1"><a id="__codelineno-37-1" name="__codelineno-37-1"></a><a href="#__codelineno-37-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="kn">from</span> <span class="nn">bpm.bambutools</span> <span class="kn">import</span> <span class="n">PlateType</span><span class="p">,</span> <span class="n">AMSUserSetting</span><span class="p">,</span> <span class="n">PrintOption</span>
+</span><span id="__span-37-2"><a id="__codelineno-37-2" name="__codelineno-37-2"></a><a href="#__codelineno-37-2"><span class="linenos" data-linenos=" 2 "></span></a>
+</span><span id="__span-37-3"><a id="__codelineno-37-3" name="__codelineno-37-3"></a><a href="#__codelineno-37-3"><span class="linenos" data-linenos=" 3 "></span></a><span class="c1"># Enable auto-switch filament</span>
+</span><span id="__span-37-4"><a id="__codelineno-37-4" name="__codelineno-37-4"></a><a href="#__codelineno-37-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">set_print_option</span><span class="p">(</span><span class="n">PrintOption</span><span class="o">.</span><span class="n">AUTO_SWITCH_FILAMENT</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-37-5"><a id="__codelineno-37-5" name="__codelineno-37-5"></a><a href="#__codelineno-37-5"><span class="linenos" data-linenos=" 5 "></span></a>
+</span><span id="__span-37-6"><a id="__codelineno-37-6" name="__codelineno-37-6"></a><a href="#__codelineno-37-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="c1"># Load filament from AMS 0, Slot 1 to Extruder 0</span>
+</span><span id="__span-37-7"><a id="__codelineno-37-7" name="__codelineno-37-7"></a><a href="#__codelineno-37-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">load_filament</span><span class="p">(</span><span class="n">ams_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">slot_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">extruder_id</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</span><span id="__span-37-8"><a id="__codelineno-37-8" name="__codelineno-37-8"></a><a href="#__codelineno-37-8"><span class="linenos" data-linenos=" 8 "></span></a>
+</span><span id="__span-37-9"><a id="__codelineno-37-9" name="__codelineno-37-9"></a><a href="#__codelineno-37-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="c1"># Set nozzle temperature for the loaded filament</span>
+</span><span id="__span-37-10"><a id="__codelineno-37-10" name="__codelineno-37-10"></a><a href="#__codelineno-37-10"><span class="linenos" data-linenos="10 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">set_nozzle_temp_target</span><span class="p">(</span><span class="mi">220</span><span class="p">)</span>
+</span><span id="__span-37-11"><a id="__codelineno-37-11" name="__codelineno-37-11"></a><a href="#__codelineno-37-11"><span class="linenos" data-linenos="11 "></span></a>
+</span><span id="__span-37-12"><a id="__codelineno-37-12" name="__codelineno-37-12"></a><a href="#__codelineno-37-12"><span class="linenos" data-linenos="12 "></span></a><span class="c1"># Set bed temperature</span>
+</span><span id="__span-37-13"><a id="__codelineno-37-13" name="__codelineno-37-13"></a><a href="#__codelineno-37-13"><span class="linenos" data-linenos="13 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">set_bed_temp_target</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+</span><span id="__span-37-14"><a id="__codelineno-37-14" name="__codelineno-37-14"></a><a href="#__codelineno-37-14"><span class="linenos" data-linenos="14 "></span></a>
+</span><span id="__span-37-15"><a id="__codelineno-37-15" name="__codelineno-37-15"></a><a href="#__codelineno-37-15"><span class="linenos" data-linenos="15 "></span></a><span class="c1"># Chamber temperature (if supported)</span>
+</span><span id="__span-37-16"><a id="__codelineno-37-16" name="__codelineno-37-16"></a><a href="#__codelineno-37-16"><span class="linenos" data-linenos="16 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">set_chamber_temp_target</span><span class="p">(</span><span class="mi">35</span><span class="p">)</span>
+</span><span id="__span-37-17"><a id="__codelineno-37-17" name="__codelineno-37-17"></a><a href="#__codelineno-37-17"><span class="linenos" data-linenos="17 "></span></a>
+</span><span id="__span-37-18"><a id="__codelineno-37-18" name="__codelineno-37-18"></a><a href="#__codelineno-37-18"><span class="linenos" data-linenos="18 "></span></a><span class="c1"># Start print with AMS mapping</span>
+</span><span id="__span-37-19"><a id="__codelineno-37-19" name="__codelineno-37-19"></a><a href="#__codelineno-37-19"><span class="linenos" data-linenos="19 "></span></a><span class="n">printer</span><span class="o">.</span><span class="n">print_3mf_file</span><span class="p">(</span>
+</span><span id="__span-37-20"><a id="__codelineno-37-20" name="__codelineno-37-20"></a><a href="#__codelineno-37-20"><span class="linenos" data-linenos="20 "></span></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;/jobs/model.gcode.3mf&quot;</span><span class="p">,</span>
+</span><span id="__span-37-21"><a id="__codelineno-37-21" name="__codelineno-37-21"></a><a href="#__codelineno-37-21"><span class="linenos" data-linenos="21 "></span></a>    <span class="n">plate</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-37-22"><a id="__codelineno-37-22" name="__codelineno-37-22"></a><a href="#__codelineno-37-22"><span class="linenos" data-linenos="22 "></span></a>    <span class="n">bed</span><span class="o">=</span><span class="n">PlateType</span><span class="o">.</span><span class="n">HOT_PLATE</span><span class="p">,</span>
+</span><span id="__span-37-23"><a id="__codelineno-37-23" name="__codelineno-37-23"></a><a href="#__codelineno-37-23"><span class="linenos" data-linenos="23 "></span></a>    <span class="n">use_ams</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-37-24"><a id="__codelineno-37-24" name="__codelineno-37-24"></a><a href="#__codelineno-37-24"><span class="linenos" data-linenos="24 "></span></a>    <span class="n">ams_mapping</span><span class="o">=</span><span class="s2">&quot;[0,-1,-1,-1]&quot;</span><span class="p">,</span>  <span class="c1"># Use AMS 0 only</span>
+</span><span id="__span-37-25"><a id="__codelineno-37-25" name="__codelineno-37-25"></a><a href="#__codelineno-37-25"><span class="linenos" data-linenos="25 "></span></a>    <span class="n">bedlevel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-37-26"><a id="__codelineno-37-26" name="__codelineno-37-26"></a><a href="#__codelineno-37-26"><span class="linenos" data-linenos="26 "></span></a>    <span class="n">flow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-37-27"><a id="__codelineno-37-27" name="__codelineno-37-27"></a><a href="#__codelineno-37-27"><span class="linenos" data-linenos="27 "></span></a>    <span class="n">timelapse</span><span class="o">=</span><span class="kc">False</span>
+</span><span id="__span-37-28"><a id="__codelineno-37-28" name="__codelineno-37-28"></a><a href="#__codelineno-37-28"><span class="linenos" data-linenos="28 "></span></a><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>MQTT Messages Generated</strong> (in order):</p>
+<ol>
+<li>
+<p><strong>Enable auto-switch filament</strong>:
+   <div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-38-1"><a id="__codelineno-38-1" name="__codelineno-38-1"></a><a href="#__codelineno-38-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;print_option&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;auto_switch_filament&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;true&quot;</span><span class="p">}}</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Load filament</strong>:
+   <div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-39-1"><a id="__codelineno-39-1" name="__codelineno-39-1"></a><a href="#__codelineno-39-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ams_change_filament&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;ams_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;slot_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;target&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="err">...</span><span class="p">}}</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Set nozzle temp</strong>:
+   <div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-40-1"><a id="__codelineno-40-1" name="__codelineno-40-1"></a><a href="#__codelineno-40-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;gcode_line&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;param&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;M104 S220\n&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">}}</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Set bed temp</strong>:
+   <div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-41-1"><a id="__codelineno-41-1" name="__codelineno-41-1"></a><a href="#__codelineno-41-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;gcode_line&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;param&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;M140 S60\n&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">}}</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Set chamber temp</strong>:
+   <div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-42-1"><a id="__codelineno-42-1" name="__codelineno-42-1"></a><a href="#__codelineno-42-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;set_ctt&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;ctt_val&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">35</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;sequence_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">}}</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Start print</strong>:
+   <div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-43-1"><a id="__codelineno-43-1" name="__codelineno-43-1"></a><a href="#__codelineno-43-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span><span class="nt">&quot;print&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;project_file&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ftp:///jobs/model.gcode.3mf&quot;</span><span class="p">,</span><span class="w"> </span><span class="err">...</span><span class="p">}}</span>
+</span></code></pre></div></p>
+</li>
+</ol>
+<hr />
+<h2 id="error-handling">Error Handling</h2>
+<h3 id="sequence-id-tracking">Sequence ID Tracking</h3>
+<p>While the library currently uses <code>"0"</code> for all sequence IDs, the printer acknowledges commands and can track them via <code>sequence_id</code>. For production implementations, increment <code>sequence_id</code> for each command to enable request/response correlation.</p>
+<h3 id="message-validation">Message Validation</h3>
+<ul>
+<li>All messages must be valid JSON</li>
+<li>Required fields vary by command type - use provided templates</li>
+<li>Deep copy templates before modification to avoid state contamination</li>
+</ul>
+<h3 id="mqtt-topic-permissions">MQTT Topic Permissions</h3>
+<ul>
+<li><strong>Publish</strong>: <code>device/{serial}/request</code> - Send commands from client</li>
+<li><strong>Subscribe</strong>: <code>device/{serial}/report</code> - Receive all telemetry (including push_status messages)</li>
+</ul>
+<hr />
+<h2 id="reference">Reference</h2>
+<h3 id="internal-documentation">Internal Documentation</h3>
+<ul>
+<li><strong>Source</strong>: <a href="https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambucommands.py">bambucommands.py</a></li>
+<li><strong>Implementation</strong>: <a href="https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py">bambuprinter.py</a></li>
+<li><strong>Data Dictionary</strong>: <a href="../data-dictionary/">data-dictionary.md</a></li>
+<li><strong>API Reference</strong>: <a href="../api-reference/">api-reference.md</a></li>
+</ul>
+<h3 id="external-reference-implementations">External Reference Implementations</h3>
+<ul>
+<li><strong><a href="https://github.com/bambulab/BambuStudio">BambuStudio</a></strong> - Official Bambu Lab client with protocol definitions</li>
+<li><strong><a href="https://github.com/OrcaSlicer/OrcaSlicer">OrcaSlicer</a></strong> - Community fork with enhanced telemetry</li>
+<li><strong><a href="https://github.com/greghesp/ha-bambulab">ha-bambulab</a></strong> - Home Assistant integration</li>
+<li><strong><a href="https://github.com/greghesp/ha-bambulab/tree/main/custom_components/bambu_lab/pybambu">ha-bambulab pybambu</a></strong> - Python MQTT client</li>
+<li><strong><a href="https://github.com/WolfwithSword/Bambu-HomeAssistant-Flows">Bambu-HomeAssistant-Flows</a></strong> - Workflow patterns</li>
+<li><strong><a href="https://github.com/Doridian/OpenBambuAPI">OpenBambuAPI</a></strong> - Alternative API implementation</li>
+<li><strong><a href="https://github.com/X1Plus/X1Plus">X1Plus</a></strong> - Community firmware analysis</li>
+<li><strong><a href="https://github.com/THE-SIMPLE-MARK/bambu-node">bambu-node</a></strong> - Node.js implementation</li>
+</ul>
+<hr />
+<h2 id="version-history">Version History</h2>
+<table>
+<thead>
+<tr>
+<th>Version</th>
+<th>Date</th>
+<th>Changes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.1</td>
+<td>2026-02-25</td>
+<td>Added auto_switch_filament to Set Print Options; updated reference implementations; comprehensive external sources</td>
+</tr>
+<tr>
+<td>1.0</td>
+<td>2026-02-23</td>
+<td>Initial comprehensive MQTT protocol reference</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
