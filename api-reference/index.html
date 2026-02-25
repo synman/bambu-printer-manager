@@ -2204,12 +2204,12 @@
 - <code>plate</code> (string, optional, default="AUTO"): Plate type
   - Options: <code>AUTO</code>, <code>COOL_PLATE</code>, <code>ENG_PLATE</code>, <code>HOT_PLATE</code>, <code>TEXTURED_PLATE</code>
 - <code>use_ams</code> (bool, optional, default=false): Use AMS for filament
-- <code>ams_mapping</code> (string, optional): AMS slot mapping (e.g., "0,1,2,3")
+- <code>ams_mapping</code> (string, optional): JSON array of absolute tray IDs per filament (e.g., "[0,1,2,3]" or "[0,4,128]" for multi-AMS). Values: 0-103 (4-slot units), 128-135 (1-slot units), -1 (unmapped)
 - <code>bl</code> (bool, optional, default=false): Enable bed leveling
 - <code>flow</code> (bool, optional, default=false): Enable flow calibration
 - <code>tl</code> (bool, optional, default=false): Enable timelapse</p>
 <p><strong>Example</strong>:
-<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1"></a><a href="#__codelineno-2-1"><span class="linenos" data-linenos="1 "></span></a>/api/print_3mf?filename=/test.3mf&amp;platenum=1&amp;plate=COOL_PLATE&amp;use_ams=true&amp;ams_mapping=0,1,2,3&amp;bl=true&amp;flow=true&amp;tl=true
+<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1"></a><a href="#__codelineno-2-1"><span class="linenos" data-linenos="1 "></span></a>/api/print_3mf?filename=/test.3mf&amp;platenum=1&amp;plate=COOL_PLATE&amp;use_ams=true&amp;ams_mapping=[0,1,2,3]&amp;bl=true&amp;flow=true&amp;tl=true
 </span></code></pre></div></p>
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
