@@ -403,3 +403,12 @@ Please make sure to install pre-commit and lint and format your contributions th
 pip install .[develop]
 pre-commit install
 ```
+
+---
+
+## Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.1 | 2026-02-25 | Updated documentation with comprehensive examples and reference implementations |
+| 1.0 | 2026-02-23 | Initial project documentation and getting started guide |

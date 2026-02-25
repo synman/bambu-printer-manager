@@ -969,10 +969,32 @@ For comprehensive documentation of all data structures, attributes, and telemetr
 
 ## Related Resources
 
+### Project Documentation
+
 - [bambu-printer-manager GitHub](https://github.com/synman/bambu-printer-manager)
 - [bambu-printer-manager Documentation](https://synman.github.io/bambu-printer-manager/)
-- [BambuStudio](https://github.com/bambulab/BambuStudio) - Bambu Lab's slicer/client
-- [OrcaSlicer](https://github.com/OrcaSlicer/OrcaSlicer) - Community fork with enhanced features
+- [Data Dictionary](data-dictionary.md) - Complete attribute reference
+- [MQTT Protocol Reference](mqtt-protocol-reference.md) - MQTT command reference
+
+### Reference Implementations
+
+- **[BambuStudio](https://github.com/bambulab/BambuStudio)** - Official Bambu Lab client
+- **[OrcaSlicer](https://github.com/OrcaSlicer/OrcaSlicer)** - Community fork with enhanced features
+- **[ha-bambulab](https://github.com/greghesp/ha-bambulab)** - Home Assistant integration
+- **[ha-bambulab pybambu](https://github.com/greghesp/ha-bambulab/tree/main/custom_components/bambu_lab/pybambu)** - Python MQTT client
+- **[Bambu-HomeAssistant-Flows](https://github.com/WolfwithSword/Bambu-HomeAssistant-Flows)** - Workflow patterns
+- **[OpenBambuAPI](https://github.com/Doridian/OpenBambuAPI)** - Alternative API implementation
+- **[X1Plus](https://github.com/X1Plus/X1Plus)** - Community firmware
+- **[bambu-node](https://github.com/THE-SIMPLE-MARK/bambu-node)** - Node.js implementation
+
+---
+
+## Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.1 | 2026-02-25 | Updated reference implementations; added comprehensive external sources |
+| 1.0 | 2026-02-23 | Initial REST API reference documentation |
 
 ---
 

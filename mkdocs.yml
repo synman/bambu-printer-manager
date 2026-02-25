@@ -6,6 +6,8 @@ watch:
 nav:
   - Home: index.md
   - Data Dictionary: data-dictionary.md
+  - MQTT & Integration:
+    - Protocol Reference: mqtt-protocol-reference.md
   - Code Reference: reference/
   - Client Container:
     - Overview: container.md
@@ -173,8 +175,8 @@ plugins:
             show_docstring_description: true
             extra:
               render_deprecated: true
-            extensions:
-              - griffe_warnings_deprecated:
-                  kind: danger
-                  title: Deprecated
-                  label: deprecated  # Add this explicitly
+            # extensions:
+            #   - griffe_warnings_deprecated:
+            #       kind: danger
+            #       title: Deprecated
+            #       label: deprecated

@@ -463,3 +463,12 @@ The API provides full programmatic control over:
 - Advanced settings and diagnostics
 
 If you encounter an issue you need help with, feel free to open a ticket at [GitHub](https://github.com/synman/bambu-printer-manager/issues).
+
+---
+
+## Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.1 | 2026-02-25 | Documentation updates for REST API reference and authentication configuration |
+| 1.0 | 2026-02-23 | Initial container deployment documentation |
