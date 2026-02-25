@@ -355,7 +355,7 @@ while True:
         if len(name) > 0:
             bed = input("\rBed type (1=High Temp Plate, 2=Textured PEI Plate): ")
             if len(bed) > 0 and bed.isnumeric():
-                ams = "[{}]".format(input("\rAMS mapping ([-1/0], [-1/1], [-1/2], [-1/3]): "))
+                ams = input("\rAMS mapping as JSON (e.g., '[0,1,2,3]' or '[0,-1,4]' for unmapped): ")
                 if len(ams) > 0:
                     printer.resume_session()
                     # Note: PlateType enum usage would require import, kept simple with int/string for now

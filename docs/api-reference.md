@@ -182,14 +182,14 @@ Start a 3MF print job.
 - `plate` (string, optional, default="AUTO"): Plate type
   - Options: `AUTO`, `COOL_PLATE`, `ENG_PLATE`, `HOT_PLATE`, `TEXTURED_PLATE`
 - `use_ams` (bool, optional, default=false): Use AMS for filament
-- `ams_mapping` (string, optional): AMS slot mapping (e.g., "0,1,2,3")
+- `ams_mapping` (string, optional): JSON array of absolute tray IDs per filament (e.g., "[0,1,2,3]" or "[0,4,128]" for multi-AMS). Values: 0-103 (4-slot units), 128-135 (1-slot units), -1 (unmapped)
 - `bl` (bool, optional, default=false): Enable bed leveling
 - `flow` (bool, optional, default=false): Enable flow calibration
 - `tl` (bool, optional, default=false): Enable timelapse
 
 **Example**:
 ```
-/api/print_3mf?filename=/test.3mf&platenum=1&plate=COOL_PLATE&use_ams=true&ams_mapping=0,1,2,3&bl=true&flow=true&tl=true
+/api/print_3mf?filename=/test.3mf&platenum=1&plate=COOL_PLATE&use_ams=true&ams_mapping=[0,1,2,3]&bl=true&flow=true&tl=true
 ```
 
 **Response**: `{"status": "success"}`

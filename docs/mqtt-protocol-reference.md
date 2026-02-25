@@ -23,6 +23,39 @@ This document provides a comprehensive breakdown of MQTT message structures used
 
 ---
 
+## Alphabetical Command Index
+
+| Command | Category | Description |
+|---------|----------|-------------|
+| [AMS Control Commands](#ams-control-commands) | AMS | Resume, pause, or reset AMS |
+| [AMS Filament Drying](#ams-filament-drying) | Filament | Configure AMS drying parameters |
+| [AMS Get RFID](#ams-get-rfid) | AMS | Read RFID tag from AMS slot |
+| [AMS User Settings](#ams-user-settings) | AMS | Configure AMS startup and tray read options |
+| [Aux Fan (Hotend Cooling)](#aux-fan-hotend-cooling) | Fan | Set auxiliary fan speed |
+| [Buildplate Marker Detection](#buildplate-marker-detection) | Settings | Enable/disable buildplate marker detection |
+| [Chamber Air Conditioning Mode](#chamber-air-conditioning-mode) | Settings | Control chamber AC/ventilation mode |
+| [Chamber Light Control](#chamber-light-control) | System | Toggle chamber lights on/off |
+| [Exhaust Fan](#exhaust-fan) | Fan | Set exhaust fan speed |
+| [Extrusion Calibration Profile](#extrusion-calibration-profile) | Calibration | Select extrusion calibration profile for tray |
+| [Load Filament / Change Filament](#load-filament-change-filament) | Filament | Load or change filament in AMS slot |
+| [Pause Print](#pause-print) | Print Job | Pause the current print job |
+| [Part Cooling Fan (Layer Cooling)](#part-cooling-fan-layer-cooling) | Fan | Set part cooling fan speed |
+| [Resume Print](#resume-print) | Print Job | Resume a paused print job |
+| [Select Active Extruder (Dual Extruder)](#select-active-extruder-dual-extruder) | Extruder | Switch between extruders |
+| [Send Raw G-Code](#send-raw-g-code) | Advanced | Send raw G-code commands |
+| [Set Bed Temperature Target](#set-bed-temperature-target) | Temperature | Set target bed temperature |
+| [Set Chamber Temperature Target](#set-chamber-temperature-target) | Temperature | Set target chamber temperature |
+| [Set Filament Details / Spool Settings](#set-filament-details-spool-settings) | Filament | Configure filament spool properties |
+| [Set Nozzle Temperature Target](#set-nozzle-temperature-target) | Temperature | Set target nozzle temperature |
+| [Set Nozzle Type & Diameter](#set-nozzle-type-diameter) | Accessory | Configure nozzle size |
+| [Set Print Options](#set-print-options) | Print Job | Configure print behavior options |
+| [Set Print Speed Profile](#set-print-speed-profile) | Advanced | Configure print speed preset |
+| [Skip Objects During Print](#skip-objects-during-print) | Print Job | Skip objects or regions during print |
+| [Start Print (3MF File)](#start-print-3mf-file) | Print Job | Upload and start a 3MF print file |
+| [Stop Print](#stop-print) | Print Job | Stop and abort the current print job |
+
+---
+
 ## Temperature Control
 
 ### Set Bed Temperature Target
@@ -336,9 +369,9 @@ printer.set_exhaust_fan_speed_target_percent(50)  # 50% speed
   "print": {
     "command": "project_file",
     "sequence_id": "0",
-    "use_ams": false,
-    "ams_mapping": "[0,-1,-1,-1]",
-    "bed_type": "auto",
+    "use_ams": true,
+    "ams_mapping": "[0,1,2,3]",
+    "bed_type": "textured_plate",
     "url": "ftp:///jobs/model.gcode.3mf",
     "file": "/jobs/model.gcode.3mf",
     "param": "Metadata/plate_1.gcode",
@@ -365,7 +398,7 @@ printer.set_exhaust_fan_speed_target_percent(50)  # 50% speed
 | `file` | string | `"/path.3mf"` | Local file path on printer |
 | `param` | string | `"Metadata/plate_1.gcode"` | Plate metadata path (# replaced with plate number) |
 | `use_ams` | boolean | `true`/`false` | Use AMS for print |
-| `ams_mapping` | string | `"[0,1,-1,-1]"` | JSON array mapping AMS slots to extruders (-1 = skip) |
+| `ams_mapping` | string | `"[0,1,4,128]"` | JSON array of absolute tray IDs per filament (0-103=4-slot units, 128-135=1-slot units, -1=unmapped) |
 | `bed_type` | string | `"auto"`, `"hot_plate"`, `"textured_plate"` | Bed plate type |
 | `bed_leveling` | boolean | `true` | Auto bed leveling before print |
 | `flow_cali` | boolean | `true` | Extrusion flow calibration before print |
@@ -384,10 +417,13 @@ printer.set_exhaust_fan_speed_target_percent(50)  # 50% speed
 **Python Method**: `BambuPrinter.print_3mf_file(name, plate, bed, use_ams, ams_mapping, bedlevel, flow, timelapse)`
 
 **AMS Mapping Examples**:
-- `[-1,-1,-1,-1]` = External spool only (no AMS)
-- `[0,-1,-1,-1]` = AMS slot 1 only
-- `[0,1,2,3]` = All 4 AMS slots
-- `[-1,-1,-1,3]` = AMS slot 4 only
+
+| ams_mapping | Description |
+|-------------|-------------|
+| `[0,1,2,3]` | 4 filaments, all from AMS 0 slots 0-3 |
+| `[0,4,5,6]` | 4 filaments: AMS 0 slot 0, then AMS 1 slots 0-2 |
+| `[0,-1,2,-1]` | 4 filaments: slot 0, unmapped, slot 2, unmapped (from AMS 0) |
+| `[0,4,128]` | 3 filaments: AMS 0 slot 0, AMS 1 slot 0, AMS HT unit |
 
 ---
 
@@ -717,6 +753,53 @@ printer.set_print_option(PrintOption.SOUND_ENABLE, False)
 
 ---
 
+### Set Print Speed Profile
+
+**MQTT Topic**: `device/{serial}/request`
+
+**Command Name**: `print_speed`
+
+**Message Structure**:
+```json
+{
+  "print": {
+    "sequence_id": "0",
+    "command": "print_speed",
+    "param": "2"
+  }
+}
+```
+
+**Fields:**
+
+| Field | Type | Value | Purpose |
+|-------|------|-------|---------|
+| `param` | string | `"0"`, `"1"`, `"2"`, `"3"` | Speed profile preset (0-3) |
+
+**Speed Profile Values**:
+- `"0"` - Silent mode (slowest, quietest, highest quality)
+- `"1"` - Standard mode (balanced speed and quality)
+- `"2"` - Sport mode (faster speeds)
+- `"3"` - Ludicrous mode (highest speed, lowest quality)
+
+**Data Dictionary Reference**: Does not directly correlate to state attributes (affects print behavior)
+
+**Implementation Notes**:
+- The profile is applied to the next print job
+- Current print continues with existing speed settings
+- Equivalent to selecting speed preset from printer display menu
+
+**Python Method**: Currently imported but not directly exposed; use raw MQTT or G-code commands for speed control
+
+**Example Usage**:
+```python
+# Via direct GCODE instead
+printer.send_gcode("M220 S100")  # Set speed to 100% (default)
+printer.send_gcode("M220 S80")   # Reduce speed to 80%
+```
+
+---
+
 ### Skip Objects During Print
 
 **MQTT Topic**: `device/{serial}/request`
@@ -740,13 +823,162 @@ printer.set_print_option(PrintOption.SOUND_ENABLE, False)
 |-------|------|---------|---------|
 | `obj_list` | array of int | `[0, 2]` | List of object indices to skip (0-indexed) |
 
-**Data Dictionary Correlation**: None (direct execution)
+**Data Dictionary Correlation**: [`ProjectInfo.metadata.map.bbox_objects`](data-dictionary.md#projectinfo)
 
-**Python Method**: `BambuPrinter.skip_objects(objects: list)`
+**Metadata Reference**:
+The `obj_list` values must match the `id` field of objects in `ProjectInfo.metadata.map.bbox_objects`. These object IDs (e.g., 130, 174) are extracted from the 3MF file's `Metadata/slice_info.config` XML during project parsing via the `get_project_info()` method.
+
+**Object ID Source** (3MF Processing):
+- Structural object data (name, area, bbox) comes from `Metadata/plate_*.json`
+- Object identify_id values extracted from `Metadata/slice_info.config` XML
+- `identify_id` is assigned to each bbox_object's `id` field by array index match
+- These resulting `id` values are what you pass to `skip_objects`
+
+---
+
+## AMS Filament/Spool Mapping Reference
+
+This section documents how the `filament` array, `ams_mapping` array, and filament properties correlate to determine which AMS trays/spools are used during printing.
+
+### Data Flow: Filament to AMS Tray Assignment
+
+**Source**: [`ProjectInfo.metadata`](data-dictionary.md#projectinfo) populated via [`get_project_info()`](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuproject.py#L105)
+
+**Components**:
+
+1. **Filament Array** (`metadata.filament`)
+   - Source: `Metadata/slice_info.config` XML, parsed from `<filament>` elements
+   - Fields per filament:
+     - `id` (integer, 1-indexed): Position in slicer filament list (filament 1, 2, 3, etc.)
+     - `type` (string): Material type (e.g., "ABS", "PLA")
+     - `color` (string): Hex color code (e.g., "#87909A")
+   - Order: Filaments listed in the order they appear in the 3MF slicer specification
+
+2. **AMS Mapping Array** (`metadata.ams_mapping`)
+   - Source: `filament_maps` metadata from `Metadata/slice_info.config`, generated by slicer color-distance matching
+   - Format: Array of absolute tray IDs calculated from installed AMS units
+   - Array Index: 0-indexed position (maps to filament id minus 1)
+   - Array Value: Absolute tray ID based on AMS unit type
+     - **Standard 4-slot units** (AMS 2, AMS LITE, N3F): tray_id = ams_id * 4 + slot_id → value range 0-103
+     - **Single-slot units** (N3S/AMS HT): tray_id = ams_id (starting at 128) → value range 128-135
+     - `-1`: Unmapped filament (when use_ams=false or slicer could not auto-map)
+   - Length: Matches number of filaments in the print
+   - Note: External spools are managed via `use_ams` parameter, not through ams_mapping values
+
+### Example Correlation
+
+Given this ProjectInfo metadata:
+```json
+{
+  "filament": [
+    {"id": 1, "type": "ABS", "color": "#87909A"},
+    {"id": 2, "type": "PLA", "color": "#FFFFFF"},
+    {"id": 3, "type": "ABS", "color": "#000000"}
+  ],
+  "ams_mapping": [0, -1, 2]
+}
+```
+
+**Spool Assignment**:
+
+| Filament | Material | Mapping Index | Tray ID | Assignment |
+|----------|----------|---------------|---------|------------|
+| Filament 1 | ABS #87909A | `ams_mapping[0]` | `0` | AMS 0, slot 0 |
+| Filament 2 | PLA #FFFFFF | `ams_mapping[1]` | `-1` | Unmapped (external spool) |
+| Filament 3 | ABS #000000 | `ams_mapping[2]` | `2` | AMS 0, slot 2 |
+
+### Python Usage
+
+When calling `print_3mf_file()`, pass `ams_mapping` as a JSON string:
+```python
+from bpm.bambutools import PlateType
+printer.print_3mf_file(
+    name="/cache/my_project.3mf",
+    plate=1,
+    bed=PlateType.TEXTURED_PLATE,
+    use_ams=True,
+    ams_mapping="[0,-1,2]"  # Matches ProjectInfo.metadata['ams_mapping']
+)
+```
+
+The printer uses this mapping to:
+1. Load the correct AMS trays before printing
+2. Route material to the correct nozzle during multi-material prints
+3. Handle external spool fallback when AMS is offline
+
+### References
+
+**Source Code**:
+- Mapping extraction: [bambuproject.py get_project_info()](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuproject.py#L105) lines 213-221
+- Mapping usage: [bambuprinter.py print_3mf_file()](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L535) lines 602-603
+
+**Authoritative Implementation**: [ha-bambulab PrintJob._update_task_data_from_printer_worker()](https://github.com/greghesp/ha-bambulab/blob/main/custom_components/bambu_lab/pybambu/models.py#L2800) shows how AMS mapping is used to correlate filament usage with AMS trays during printing
+
+---
+
+### Print 3MF File
+
+**MQTT Topic**: `device/{serial}/request`
+
+**Command Name**: `project_file`
+
+**Message Structure** (generated by `print_3mf_file()`):
+```json
+{
+  "print": {
+    "file": "/cache/my_project.3mf",
+    "url": "ftp:///cache/my_project.3mf",
+    "subtask_name": "my_project",
+    "bed_type": "textured_plate",
+    "use_ams": true,
+    "ams_mapping": [0, -1, 2, -1],
+    "bed_leveling": true,
+    "flow_cali": true,
+    "timelapse": false,
+    "param": "/profile_cali/cali_model_params#1.txt"
+  }
+}
+```
+
+**Fields**:
+
+| Field | Type | Range/Example | Purpose |
+|-------|------|-------------|---------|
+| `file` | string | `/cache/my.3mf` | Path to 3MF file on printer SD card |
+| `url` | string | `ftp:///cache/my.3mf` | FTP URL reference to file |
+| `subtask_name` | string | Project filename | Human-readable project name |
+| `bed_type` | string | `textured_plate`, `cool_plate`, `hot_plate` | Print bed surface type |
+| `use_ams` | boolean | `true`, `false` | Whether to use AMS system |
+| `ams_mapping` | array of int | `[0,-1,2,-1]` | Absolute tray ID per filament (0-103=4-slot units, 128-135=1-slot units, -1=unmapped) |
+| `bed_leveling` | boolean | `true`, `false` | Enable auto bed leveling |
+| `flow_cali` | boolean | `true`, `false` | Enable extrusion flow calibration |
+| `timelapse` | boolean | `true`, `false` | Enable timelapse photography |
+| `param` | string | Path template | Calibration parameter file path |
+
+**Data Dictionary Correlation**: [`ProjectInfo.metadata.filament` and `ProjectInfo.metadata.ams_mapping`](data-dictionary.md#projectinfo)
+
+**AMS Mapping Correlation**: The `ams_mapping` array must be sourced from `ProjectInfo.metadata['ams_mapping']`. See [AMS Filament/Spool Mapping Reference](#ams-filamentspool-mapping-reference) above for complete correlation logic.
+
+**Python Method**: `BambuPrinter.print_3mf_file(name, plate, bed, use_ams, ams_mapping, bedlevel, flow, timelapse)`
 
 **Example Usage**:
 ```python
-printer.skip_objects([0, 2, 4])  # Skip objects 1, 3, and 5
+from bpm.bambutools import PlateType
+from bpm.bambuproject import get_project_info
+
+# Get project metadata from 3MF file
+project_info = get_project_info("/cache/my_project.3mf", printer, plate_num=1)
+
+# Start print using metadata
+import json
+ams_mapping_str = json.dumps(project_info.metadata['ams_mapping'])
+printer.print_3mf_file(
+    name=project_info.id,
+    plate=1,
+    bed=PlateType.TEXTURED_PLATE,
+    use_ams=True,
+    ams_mapping=ams_mapping_str  # Passes filament-to-AMS mapping
+)
 ```
 
 ---
@@ -818,6 +1050,57 @@ printer.skip_objects([0, 2, 4])  # Skip objects 1, 3, and 5
 **Data Dictionary Correlation**: `buildplate_marker_detector`
 
 **Python Method**: `BambuPrinter.set_buildplate_marker_detector(enabled: bool)`
+
+---
+
+### Chamber Light Control
+
+**MQTT Topic**: `device/{serial}/request`
+
+**Command Name**: `ledctrl`
+
+**Message Structure**:
+```json
+{
+  "system": {
+    "sequence_id": "0",
+    "command": "ledctrl",
+    "led_node": "chamber_light",
+    "led_mode": "on",
+    "led_on_time": 500,
+    "led_off_time": 500,
+    "loop_times": 0,
+    "interval_time": 0
+  }
+}
+```
+
+**Fields:**
+
+| Field | Type | Value | Purpose |
+|-------|------|-------|---------|
+| `led_node` | string | `"chamber_light"`, `"chamber_light2"` | Which light to control |
+| `led_mode` | string | `"on"`, `"off"` | Light state |
+| `led_on_time` | integer | milliseconds | Duration light stays on (when blinking) |
+| `led_off_time` | integer | milliseconds | Duration light stays off (when blinking) |
+| `loop_times` | integer | 0 = infinite | Number of blink cycles (0 = steady state) |
+| `interval_time` | integer | milliseconds | Interval between blinks |
+
+**Implementation Notes**:
+- The printer sends both `chamber_light` and `chamber_light2` commands to ensure all chamber lights are toggled
+- When `led_mode` is `"on"` or `"off"`, the other timing parameters are typically ignored (steady state)
+- The light state property toggles ALL chamber lights on the machine
+
+**Data Dictionary Reference**: Related to [BambuState.light_state](data-dictionary.md#bambustate)
+
+**Python Method**: `BambuPrinter.light_state` (property getter/setter)
+
+**Example Usage**:
+```python
+printer.light_state = True   # Turn on all chamber lights
+printer.light_state = False  # Turn off all chamber lights
+is_on = printer.light_state  # Check if lights are on
+```
 
 ---
 
@@ -897,6 +1180,92 @@ from bpm.bambutools import AMSControlCommand
 printer.send_ams_control_command(AMSControlCommand.PAUSE)
 printer.send_ams_control_command(AMSControlCommand.RESUME)
 printer.send_ams_control_command(AMSControlCommand.RESET)
+```
+
+---
+
+### AMS Get RFID
+
+**MQTT Topic**: `device/{serial}/request`
+
+**Command Name**: `ams_get_rfid`
+
+**Message Structure**:
+```json
+{
+  "print": {
+    "sequence_id": "0",
+    "command": "ams_get_rfid",
+    "ams_id": 0,
+    "slot_id": 0
+  }
+}
+```
+
+**Fields:**
+
+| Field | Type | Range | Purpose |
+|-------|------|-------|---------|
+| `ams_id` | integer | 0-3 | Target AMS unit (4 max per printer) |
+| `slot_id` | integer | 0-3 | Slot within AMS to read (4 slots per unit) |
+
+**Data Dictionary Correlation**: [`BambuSpool`](data-dictionary.md#bambuspool) attributes populated from RFID read
+
+**Data Dictionary Reference**: Related attributes in [BambuSpool](data-dictionary.md#bambuspool) section (filament_id, color, nozzle temps, etc.)
+
+**Python Method**: `BambuPrinter.refresh_spool_rfid(slot_id: int, ams_id: int = 0)`
+
+**Example Usage**:
+```python
+printer.refresh_spool_rfid(slot_id=2, ams_id=0)  # Read RFID from AMS 0, Slot 2
+```
+
+---
+
+### Extrusion Calibration Profile
+
+**MQTT Topic**: `device/{serial}/request`
+
+**Command Name**: `extrusion_cali_sel`
+
+**Message Structure**:
+```json
+{
+  "print": {
+    "sequence_id": "0",
+    "command": "extrusion_cali_sel",
+    "ams_id": 0,
+    "tray_id": 0,
+    "slot_id": 0,
+    "cali_idx": -1
+  }
+}
+```
+
+**Fields:**
+
+| Field | Type | Value | Purpose |
+|-------|------|-------|---------|
+| `ams_id` | integer | 0-3, 254, 255 | Source AMS unit (254/255 = external spool) |
+| `tray_id` | integer | 0-3, 254, 255 | Tray/spool ID (derived from slot or external index) |
+| `slot_id` | integer | 0-3 | Slot within AMS (slot_id = tray_id % 4) |
+| `cali_idx` | integer | -1 or 0+ | Calibration profile index (-1 = use default) |
+
+**Implementation Notes**:
+- For external spools (254/255), `cali_idx` is set directly
+- For AMS slots, `ams_id` is calculated as `floor(tray_id / 4)`
+- The printer uses the selected calibration profile to adjust extrusion on the next print with that filament
+
+**Data Dictionary Correlation**: Related to [ExtruderState.k_factor_profile](data-dictionary.md#extruderstate) and spool calibration data
+
+**Data Dictionary Reference**: Related attributes in [BambuSpool](data-dictionary.md#bambuspool) extrusion calibration section
+
+**Python Method**: `BambuPrinter.select_extrusion_calibration_profile(tray_id: int, cali_idx: int = -1)`
+
+**Example Usage**:
+```python
+printer.select_extrusion_calibration_profile(tray_id=2)  # Use default profile for slot 2
+printer.select_extrusion_calibration_profile(tray_id=254, cali_idx=5)  # Use profile 5 for external spool
 ```
 
 ---
@@ -1015,5 +1384,6 @@ While the library currently uses `"0"` for all sequence IDs, the printer acknowl
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.2 | 2026-02-25 | Added 4 missing commands: AMS Get RFID, Chamber Light Control, Extrusion Calibration Profile, Set Print Speed Profile |
 | 1.1 | 2026-02-25 | Added auto_switch_filament to Set Print Options; updated reference implementations; comprehensive external sources |
 | 1.0 | 2026-02-23 | Initial comprehensive MQTT protocol reference |
