@@ -21,6 +21,13 @@ While caffiene and sleepness nights drive the delivery of this project, they unf
         ftpsclient/
             _client.py         # internal class used for performing `FTPS` operations
 
+Code Reference links for the classes above:
+- [`BambuConfig`](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig)
+- [`BambuPrinter`](reference/bpm/bambuprinter.md#bpm.bambuprinter.BambuPrinter)
+- [`ActiveJobInfo`](reference/bpm/bambuproject.md#bpm.bambuproject.ActiveJobInfo), [`ProjectInfo`](reference/bpm/bambuproject.md#bpm.bambuproject.ProjectInfo)
+- [`BambuSpool`](reference/bpm/bambuspool.md#bpm.bambuspool.BambuSpool)
+- [`BambuState`](reference/bpm/bambustate.md#bpm.bambustate.BambuState), [`AMSUnitState`](reference/bpm/bambustate.md#bpm.bambustate.AMSUnitState)
+
 ### Dependencies
 ```
 Python 3.11+
@@ -72,7 +79,7 @@ printer = BambuPrinter(config=BambuConfig(hostname="{host name}", access_code="{
 This library is evolving and expect to see shifting variables and classes leading up to v1.0.0. Deprecated methods and attributes will be removed upon its release.
 
 ### Usage Patterns
-You can either poll `BambuPrinter` periodically for data updates or rely on a callback when
+You can either poll [`BambuPrinter`](reference/bpm/bambuprinter.md#bpm.bambuprinter.BambuPrinter) periodically for data updates or rely on a callback when
 new data becomes available.  The preferred pattern should be callback based, however both
 of these approaches will work fine.
 

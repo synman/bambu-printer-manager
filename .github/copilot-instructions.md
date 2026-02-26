@@ -188,6 +188,8 @@ These references are valuable for understanding MQTT message structures, telemet
 
 **Credentials**: Access codes are 8-character strings passed via BambuConfig. Never log or display access_code values.
 
+**Test Fixture Data Privacy**: Treat everything under `tests/` as private/sensitive validation data. Never reference, quote, link, or cite `tests/` files in public-facing documentation, examples, commit messages, PR descriptions, or assistant/user-facing responses. Use source code under `src/` and public upstream repositories for provenance instead.
+
 **SSL/TLS**: MQTT connections use SSL with certificate validation. See ssl.create_default_context() usage in BambuPrinter.__init__.
 
 **Path Traversal**: Validate all user-provided paths, especially in FTPS operations (ftpsclient/_client.py).

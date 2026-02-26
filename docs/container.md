@@ -433,7 +433,7 @@ ENV BAMBU_SERIAL_NUMBER="PRINTER_SERIAL_NUMBER"
 ```
 So long as the backend api (api/api.py) is running, there a number of useful http endpoints you can call to assist with troubleshooting.
 
-* `http://{container_host_ip}:{container_host_port}/api/health_check` - This service route dumps the entire `BambuPrinter` attribute
+* `http://{container_host_ip}:{container_host_port}/api/health_check` - This service route dumps the entire [`BambuPrinter`](reference/bpm/bambuprinter.md#bpm.bambuprinter.BambuPrinter) attribute
 structure as a `json` document and adds a general success / failure node at the bottom.
 
 * `http://{container_host_ip}:{container_host_port}/api/toggle_verbosity` - This service route toggles the underlying log level of all components between `WARNING` and `DEBUG`.
@@ -446,7 +446,7 @@ reports.
 * `http://{container_host_ip}:{container_host_port}/api/truncate_log` - This service route deletes the current application log.  A restart may be
 required for logging to resume.
 
-* `http://{container_host_ip}:{container_host_port}/api/toggle_session` - This service route pauses or resumes the `BambuPrinter` session.  This may be
+* `http://{container_host_ip}:{container_host_port}/api/toggle_session` - This service route pauses or resumes the [`BambuPrinter`](reference/bpm/bambuprinter.md#bpm.bambuprinter.BambuPrinter) session.  This may be
 helpful on machines such as the `A1` where only one client can be connected at a time.
 
 ## API Documentation
