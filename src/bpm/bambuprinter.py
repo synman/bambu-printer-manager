@@ -553,7 +553,8 @@ class BambuPrinter:
         * plate : int                        - the plate # from your slicer to use (usually 1)
         * bed : PlateType                    - the bambutools.PlateType to use
         * use_ams : bool                     - Use the AMS for this print
-        * ams_mapping : Optional[str]        - a variable-length JSON array defining which AMS slot each filament uses (OpenBambuAPI spec)
+        * ams_mapping : Optional[str]        - a variable-length JSON array defining which AMS slot each filament uses (OpenBambuAPI spec).
+                            When provided, `ams_mapping2` is auto-generated from this mapping for firmware compatibility.
         * bedlevel : Optional[bool] = True   - boolean value indicates whether or not the printer should auto-level the bed
         * flow : Optional[bool] = True       - boolean value indicates if the printer should perform an extrusion flow calibration
         * timelapse : Optional[bool] = False - boolean value indicates if printer should take timelapse photos during the job
@@ -627,11 +628,34 @@ class BambuPrinter:
         file["print"]["bed_type"] = bed.name.lower()
         file["print"]["param"] = file["print"]["param"].replace("#", str(_plate_num))
         file["print"]["use_ams"] = use_ams
+
+        def decode_ams_mapping_entry(tray_id: int) -> tuple[int, int]:
+            if tray_id < 0:
+                return 255, 255
+
+            if tray_id in (254, 255):
+                return tray_id, 0
+
+            # Legacy HT shorthand from some clients: 128..253 => ams_id, slot 0
+            if 128 <= tray_id <= 253:
+                return tray_id, 0
+
+            # Standard protocol tray IDs (including normalized HT values like 512)
+            return tray_id // 4, tray_id % 4
+
         # Parse ams_mapping JSON array. Values are absolute tray IDs from BambuStudio/OrcaSlicer:
         # 0-103 for 4-slot units, 128-135 for 1-slot units, -1 for unmapped.
         # See: https://github.com/bambulab/BambuStudio/blob/main/src/slic3r/GUI/DeviceCore/DevMapping.cpp
         if ams_mapping and len(ams_mapping) > 0:
-            file["print"]["ams_mapping"] = json.loads(ams_mapping)
+            parsed_ams_mapping = [int(x) for x in json.loads(ams_mapping)]
+            parsed_ams_mapping2 = []
+            for tray_id in parsed_ams_mapping:
+                ams_id, slot_id = decode_ams_mapping_entry(tray_id)
+                parsed_ams_mapping2.append({"ams_id": ams_id, "slot_id": slot_id})
+
+            file["print"]["ams_mapping"] = parsed_ams_mapping
+            file["print"]["ams_mapping2"] = parsed_ams_mapping2
+
         file["print"]["bed_leveling"] = bedlevel
         file["print"]["flow_cali"] = flow
         file["print"]["timelapse"] = timelapse
@@ -983,13 +1007,14 @@ class BambuPrinter:
         cmd = copy.deepcopy(AMS_FILAMENT_SETTING)
 
         ams_id = math.floor(tray_id / 4)
+        slot_id = tray_id % 4
         if tray_id == 254 or tray_id == 255:
-            ams_id = tray_id
-            tray_id = 0
+            ams_id = 255
+            slot_id = 0
 
         cmd["print"]["ams_id"] = ams_id
         cmd["print"]["tray_id"] = tray_id
-        cmd["print"]["slot_id"] = tray_id % 4
+        cmd["print"]["slot_id"] = slot_id
 
         if tray_info_idx == "no_filament":
             tray_info_idx = ""
@@ -1270,14 +1295,14 @@ class BambuPrinter:
         cmd = copy.deepcopy(EXTRUSION_CALI_SEL)
 
         ams_id = math.floor(tray_id / 4)
-
-        if tray_id in (254, 255):
-            ams_id = tray_id
-            tray_id = 0
+        slot_id = tray_id % 4
+        if tray_id == 254 or tray_id == 255:
+            ams_id = 255
+            slot_id = 0
 
         cmd["print"]["ams_id"] = ams_id
         cmd["print"]["tray_id"] = tray_id
-        cmd["print"]["slot_id"] = tray_id % 4
+        cmd["print"]["slot_id"] = slot_id
         cmd["print"]["cali_idx"] = cali_idx
 
         self.client.publish(
@@ -1601,22 +1626,28 @@ class BambuPrinter:
 
             # if ams filament settings have changed
             if "command" in status and status["command"] == "ams_filament_setting":
-                # let's sleep for a couple seconds and do a full refresh
-                time.sleep(2)
-                logger.debug(
-                    f"filament change triggered publishing ANNOUNCE_VERSION to [device/{self.config.serial_number}/request]"
-                )
-                self.client.publish(
-                    f"device/{self.config.serial_number}/request",
-                    json.dumps(ANNOUNCE_VERSION),
-                )
-                logger.debug(
-                    f"filament change triggered publishing ANNOUNCE_PUSH to [device/{self.config.serial_number}/request]"
-                )
-                self.client.publish(
-                    f"device/{self.config.serial_number}/request",
-                    json.dumps(ANNOUNCE_PUSH),
-                )
+
+                def _delayed_refresh():
+                    # let's sleep for a couple seconds and do a full refresh
+                    time.sleep(2.5)
+                    logger.debug(
+                        f"filament change triggered publishing ANNOUNCE_VERSION to [device/{self.config.serial_number}/request]"
+                    )
+                    self.client.publish(
+                        f"device/{self.config.serial_number}/request",
+                        json.dumps(ANNOUNCE_VERSION),
+                    )
+                    logger.debug(
+                        f"filament change triggered publishing ANNOUNCE_PUSH to [device/{self.config.serial_number}/request]"
+                    )
+                    self.client.publish(
+                        f"device/{self.config.serial_number}/request",
+                        json.dumps(ANNOUNCE_PUSH),
+                    )
+
+                threading.Thread(
+                    target=_delayed_refresh, name="bambuprinter-ams-refresh"
+                ).start()
 
             if "bed_target_temper" in status:
                 bed_temp_target = int(status["bed_target_temper"])
@@ -1707,7 +1738,6 @@ class BambuPrinter:
             ):
                 if int(status["ams"]["ams_exist_bits"]) & 0x1:
                     spools: list[BambuSpool] = []
-
                     self.config.startup_read_option = status["ams"].get(
                         "power_on_flag", False
                     )
@@ -1754,43 +1784,39 @@ class BambuPrinter:
                     self._printer_state.spools = spools
 
             if "vt_tray" in status:
+                spools = self._printer_state.spools
                 tray = status.get("vt_tray", {})
-                try:
-                    tray_color = hex_to_name("#" + tray["tray_color"][:6])
-                except Exception:
+                if (tray.get("id", -1)) != -1:
                     try:
-                        tray_color = "#" + tray["tray_color"]
+                        tray_color = hex_to_name("#" + tray["tray_color"][:6])
                     except Exception:
-                        tray_color = ""
+                        try:
+                            tray_color = "#" + tray["tray_color"]
+                        except Exception:
+                            tray_color = ""
 
-                spool = BambuSpool(
-                    int(tray.get("id")),
-                    tray.get("tray_id_name", ""),
-                    tray.get("tray_type", ""),
-                    tray.get("tray_sub_brands", ""),
-                    tray_color,
-                    tray.get("tray_info_idx", ""),
-                    tray.get("k", 0.0),
-                    tray.get("bed_temp", 0),
-                    tray.get("nozzle_temp_min", 0),
-                    tray.get("nozzle_temp_max", 0),
-                    tray.get("drying_temp", 0),
-                    tray.get("drying_time", 0),
-                    -1,
-                    tray.get("state", -1),
-                    tray.get("total_len", 0),
-                    tray.get("tray_weight", 0),
-                    int(tray.get("id", -1)),
-                    -1,
-                )
-                if self._printer_state.ams_connected_count == 0:
-                    spools = [
-                        spool,
-                    ]
-                else:
-                    spools = self._printer_state.spools
+                    spool = BambuSpool(
+                        int(tray.get("id")),
+                        tray.get("tray_id_name", ""),
+                        tray.get("tray_type", ""),
+                        tray.get("tray_sub_brands", ""),
+                        tray_color,
+                        tray.get("tray_info_idx", ""),
+                        tray.get("k", 0.0),
+                        tray.get("bed_temp", 0),
+                        tray.get("nozzle_temp_min", 0),
+                        tray.get("nozzle_temp_max", 0),
+                        tray.get("drying_temp", 0),
+                        tray.get("drying_time", 0),
+                        -1,
+                        tray.get("state", -1),
+                        tray.get("total_len", 0),
+                        tray.get("tray_weight", 0),
+                        int(tray.get("id", -1)),
+                        -1,
+                    )
                     spools.append(spool)
-                self._printer_state.spools = spools
+                    self._printer_state.spools = spools
 
             if "vir_slot" in status:
                 spools = self._printer_state.spools
@@ -1878,7 +1904,6 @@ class BambuPrinter:
             logger.warning(
                 f"\r_on_message - unknown message type received - bambu_msg: [{message}]"
             )
-
         self._printer_state = BambuState.fromJson(message, self)
         self._notify_update()
 
