@@ -1699,7 +1699,7 @@ your printer's display.  These must match your Docker container's applicable env
 So long as the backend api (api/api.py) is running, there a number of useful http endpoints you can call to assist with troubleshooting.</p>
 <ul>
 <li>
-<p><code>http://{container_host_ip}:{container_host_port}/api/health_check</code> - This service route dumps the entire <code>BambuPrinter</code> attribute
+<p><code>http://{container_host_ip}:{container_host_port}/api/health_check</code> - This service route dumps the entire <a href="../reference/bpm/bambuprinter/#bpm.bambuprinter.BambuPrinter"><code>BambuPrinter</code></a> attribute
 structure as a <code>json</code> document and adds a general success / failure node at the bottom.</p>
 </li>
 <li>
@@ -1717,7 +1717,7 @@ reports.</p>
 required for logging to resume.</p>
 </li>
 <li>
-<p><code>http://{container_host_ip}:{container_host_port}/api/toggle_session</code> - This service route pauses or resumes the <code>BambuPrinter</code> session.  This may be
+<p><code>http://{container_host_ip}:{container_host_port}/api/toggle_session</code> - This service route pauses or resumes the <a href="../reference/bpm/bambuprinter/#bpm.bambuprinter.BambuPrinter"><code>BambuPrinter</code></a> session.  This may be
 helpful on machines such as the <code>A1</code> where only one client can be connected at a time.</p>
 </li>
 </ul>

@@ -1311,6 +1311,12 @@
 <span class="linenos" data-linenos="10 "></span>    ftpsclient/
 <span class="linenos" data-linenos="11 "></span>        _client.py         # internal class used for performing `FTPS` operations
 </code></pre></div>
+<p>Code Reference links for the classes above:
+- <a href="reference/bpm/bambuconfig/#bpm.bambuconfig.BambuConfig"><code>BambuConfig</code></a>
+- <a href="reference/bpm/bambuprinter/#bpm.bambuprinter.BambuPrinter"><code>BambuPrinter</code></a>
+- <a href="reference/bpm/bambuproject/#bpm.bambuproject.ActiveJobInfo"><code>ActiveJobInfo</code></a>, <a href="reference/bpm/bambuproject/#bpm.bambuproject.ProjectInfo"><code>ProjectInfo</code></a>
+- <a href="reference/bpm/bambuspool/#bpm.bambuspool.BambuSpool"><code>BambuSpool</code></a>
+- <a href="reference/bpm/bambustate/#bpm.bambustate.BambuState"><code>BambuState</code></a>, <a href="reference/bpm/bambustate/#bpm.bambustate.AMSUnitState"><code>AMSUnitState</code></a></p>
 <h3 id="dependencies">Dependencies</h3>
 <div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><a href="#__codelineno-0-1"><span class="linenos" data-linenos="1 "></span></a>Python 3.11+
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a><a href="#__codelineno-0-2"><span class="linenos" data-linenos="2 "></span></a>
@@ -1353,7 +1359,7 @@ or even
 <h3 id="future-compatibility">Future Compatibility</h3>
 <p>This library is evolving and expect to see shifting variables and classes leading up to v1.0.0. Deprecated methods and attributes will be removed upon its release.</p>
 <h3 id="usage-patterns">Usage Patterns</h3>
-<p>You can either poll <code>BambuPrinter</code> periodically for data updates or rely on a callback when
+<p>You can either poll <a href="reference/bpm/bambuprinter/#bpm.bambuprinter.BambuPrinter"><code>BambuPrinter</code></a> periodically for data updates or rely on a callback when
 new data becomes available.  The preferred pattern should be callback based, however both
 of these approaches will work fine.</p>
 <p>Please consider the examples provided here as mere starting points.</p>
