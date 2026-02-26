@@ -5,8 +5,10 @@ the job.
 """
 
 import base64
+import fnmatch
 import json
 import logging
+import re
 import xml.etree.ElementTree as ET
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -39,6 +41,8 @@ class ProjectInfo:
     """The plate number this `3mf` targets."""
     metadata: dict = field(default_factory=dict)
     """The associated metadata of this `3mf`."""
+    plates: list[int] = field(default_factory=list)
+    """The plate numbers contained within this `3mf`."""
 
 
 @dataclass
@@ -124,6 +128,111 @@ def get_project_info(
                 return plate.findall(node_name)
         return []
 
+    def _split_config_list(value: str) -> list[str]:
+        raw = value.strip()
+        if not raw:
+            return []
+
+        if raw.startswith("[") and raw.endswith("]"):
+            raw = raw[1:-1]
+
+        parts = [part.strip().strip('"').strip("'") for part in re.split(r"[;,]", raw)]
+        return [part for part in parts if part]
+
+    def _extract_list_from_config(config_text: str, key: str) -> list[str]:
+        if not config_text:
+            return []
+
+        for line in config_text.splitlines():
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            if not stripped.startswith(f"{key}"):
+                continue
+            if "=" not in stripped:
+                continue
+            _, value = stripped.split("=", 1)
+            values = _split_config_list(value)
+            if values:
+                return values
+
+        xml_match = re.search(rf'key="{re.escape(key)}"\s+value="([^"]*)"', config_text)
+        if xml_match:
+            return _split_config_list(xml_match.group(1))
+
+        return []
+
+    def _extract_list_from_gcode_header(gcode_text: str, key: str) -> list[str]:
+        if not gcode_text:
+            return []
+
+        pattern = re.compile(rf"^\s*;\s*{re.escape(key)}\s*=\s*(.*)$", re.IGNORECASE)
+        for line in gcode_text.splitlines():
+            match = pattern.match(line)
+            if match:
+                return _split_config_list(match.group(1))
+
+        return []
+
+    def _normalize_hex_color(value: str) -> str:
+        color = value.strip().upper()
+        if not color:
+            return color
+
+        if color.startswith("#"):
+            color = color[1:]
+
+        if len(color) == 8:
+            color = color[:6]
+
+        if len(color) == 6 and re.fullmatch(r"[0-9A-F]{6}", color):
+            return f"#{color}"
+
+        return value.strip()
+
+    def _ensure_ams_mapping(metadata: dict[str, Any]) -> None:
+        if "ams_mapping" in metadata and isinstance(metadata["ams_mapping"], list):
+            normalized_mapping: list[str] = []
+            for item in metadata["ams_mapping"]:
+                try:
+                    normalized_mapping.append(str(int(item)))
+                except (TypeError, ValueError):
+                    normalized_mapping.append("-1")
+            metadata["ams_mapping"] = normalized_mapping
+            return
+
+        filament_list = metadata.get("filament", [])
+        map_ids = metadata.get("map", {}).get("filament_ids", [])
+
+        mapping_size = 0
+        if isinstance(map_ids, list) and map_ids:
+            mapping_size = len(map_ids)
+        elif isinstance(filament_list, list) and filament_list:
+            max_filament_id = 0
+            for filament in filament_list:
+                try:
+                    max_filament_id = max(max_filament_id, int(filament.get("id", 0)))
+                except (TypeError, ValueError):
+                    continue
+            mapping_size = max_filament_id if max_filament_id > 0 else len(filament_list)
+
+        if mapping_size <= 0:
+            metadata["ams_mapping"] = []
+            return
+
+        ams_mapping: list[str] = ["-1"] * mapping_size
+        if isinstance(filament_list, list):
+            for filament in filament_list:
+                try:
+                    filament_id = int(filament.get("id", 0))
+                except (TypeError, ValueError):
+                    continue
+                map_index = filament_id - 1
+                if 0 <= map_index < len(ams_mapping):
+                    ams_mapping[map_index] = str(filament_id)
+
+        metadata["ams_mapping"] = ams_mapping
+
     pi = ProjectInfo()
     ret = None
 
@@ -143,6 +252,20 @@ def get_project_info(
         localfile = Path(local_file)
 
     remote_files = None
+
+    if not metadata.exists() and not local_file:
+        metapath = cache_path / "metadata"
+        matches = list(metapath.glob(f"{filename}-?.json"))
+        if matches:
+            metadata = matches[0]
+            plate_num_match = re.search(
+                rf"{re.escape(filename)}-(\d+)\.json", metadata.name
+            )
+            if plate_num_match:
+                plate_num = int(plate_num_match.group(1))
+            logger.info(
+                f"get_project_info - using fallback metadata file: [{metadata.name}] plate: [{plate_num}]"
+            )
 
     if metadata.exists() and not local_file:
         lmd = None
@@ -177,11 +300,13 @@ def get_project_info(
 
             pi.id = lmd["id"]
             pi.name = lmd["name"]
+            pi.plates = lmd.get("plates", [])
             pi.plate_num = plate_num
             pi.md5 = lmd["md5"]
             pi.timestamp = lmd["timestamp"]
             pi.size = lmd["size"]
             pi.metadata = lmd["metadata"]
+            _ensure_ams_mapping(pi.metadata)
 
             return pi
 
@@ -201,12 +326,36 @@ def get_project_info(
     top_view_png = None
     plate_map = None
     slice_info_cfg = None
+    project_settings_cfg = ""
 
-    with ZipFile(localfile) as zf:
+    plate_nums = []
+    with ZipFile(localfile, "r") as zf:
+        all_files = zf.namelist()
+        plate_pattern = "Metadata/plate_?.json"
+        plate_files = fnmatch.filter(all_files, plate_pattern)
+        for plate_file in plate_files:
+            num = plate_file.split("/")[-1].split(".")[0].split("_")[-1]
+            if num.isnumeric():
+                plate_nums.append(int(num))
+
+    if plate_num not in plate_nums:
+        num = plate_nums[0] if plate_nums else 1
+        logger.info(
+            f"get_project_info - requested plate_num [{plate_num}] not found in 3mf metadata - defaulting to plate_num [{num}]"
+        )
+        plate_num = num
+
+    with ZipFile(localfile, "r") as zf:
         with zf.open("Metadata/slice_info.config") as f:
             slice_info_cfg = ET.fromstring(f.read().decode("utf-8"))
 
-        for num in range(1, 10):
+        try:
+            with zf.open("Metadata/project_settings.config") as f:
+                project_settings_cfg = f.read().decode("utf-8", errors="ignore")
+        except KeyError:
+            project_settings_cfg = ""
+
+        for num in plate_nums:
             try:
                 with zf.open(f"Metadata/plate_{num}.json") as f:
                     plate_map = f.read()
@@ -245,6 +394,94 @@ def get_project_info(
                     type = filament.get("type", "")
                     color = filament.get("color", "")
                     filament_list.append({"id": id, "type": type, "color": color})
+
+                if not filament_list:
+                    map_ids = pi.metadata["map"].get("filament_ids", [])
+                    map_colors = pi.metadata["map"].get("filament_colors", [])
+
+                    ps_types = _extract_list_from_config(
+                        project_settings_cfg,
+                        "filament_type",
+                    )
+                    ps_colors = _extract_list_from_config(
+                        project_settings_cfg,
+                        "filament_colour",
+                    )
+
+                    plate_gcode_header = ""
+                    try:
+                        with zf.open(f"Metadata/plate_{num}.gcode") as f:
+                            plate_gcode_header = f.read().decode("utf-8", errors="ignore")
+                    except KeyError:
+                        plate_gcode_header = ""
+
+                    gcode_types = _extract_list_from_gcode_header(
+                        plate_gcode_header,
+                        "filament_type",
+                    )
+                    gcode_colors = _extract_list_from_gcode_header(
+                        plate_gcode_header,
+                        "filament_colour",
+                    )
+
+                    fallback_filament_map: dict[int, dict[str, Any]] = {}
+
+                    for idx, raw_id in enumerate(map_ids):
+                        numeric_id = -1
+                        if isinstance(raw_id, int):
+                            numeric_id = raw_id
+                        elif isinstance(raw_id, str) and raw_id.isdigit():
+                            numeric_id = int(raw_id)
+
+                        filament_id = numeric_id if numeric_id > 0 else idx + 1
+
+                        filament_type = ""
+                        if 0 <= numeric_id < len(ps_types):
+                            filament_type = ps_types[numeric_id]
+                        elif idx < len(ps_types):
+                            filament_type = ps_types[idx]
+                        elif 0 <= numeric_id < len(gcode_types):
+                            filament_type = gcode_types[numeric_id]
+                        elif idx < len(gcode_types):
+                            filament_type = gcode_types[idx]
+
+                        color = ""
+                        if idx < len(map_colors):
+                            color = map_colors[idx]
+                        if not color and 0 <= numeric_id < len(ps_colors):
+                            color = ps_colors[numeric_id]
+                        if not color and idx < len(ps_colors):
+                            color = ps_colors[idx]
+                        if not color and 0 <= numeric_id < len(gcode_colors):
+                            color = gcode_colors[numeric_id]
+                        if not color and idx < len(gcode_colors):
+                            color = gcode_colors[idx]
+
+                        fallback_filament_map[filament_id] = {
+                            "id": filament_id,
+                            "type": filament_type,
+                            "color": _normalize_hex_color(color),
+                        }
+
+                    if not fallback_filament_map and ps_types:
+                        for idx, filament_type in enumerate(ps_types):
+                            color = ""
+                            if idx < len(ps_colors):
+                                color = ps_colors[idx]
+                            elif idx < len(gcode_colors):
+                                color = gcode_colors[idx]
+
+                            fallback_filament_map[idx + 1] = {
+                                "id": idx + 1,
+                                "type": filament_type,
+                                "color": _normalize_hex_color(color),
+                            }
+
+                    filament_list = [
+                        fallback_filament_map[key]
+                        for key in sorted(fallback_filament_map.keys())
+                    ]
+
                 pi.metadata["filament"] = filament_list
 
                 filament_maps = []
@@ -264,8 +501,12 @@ def get_project_info(
                         break
                 if filament_maps:
                     for filament in pi.metadata["filament"]:
-                        filament_maps[filament["id"] - 1] = filament["id"]
+                        map_index = filament["id"] - 1
+                        if 0 <= map_index < len(filament_maps):
+                            filament_maps[map_index] = str(filament["id"])
                     pi.metadata["ams_mapping"] = filament_maps
+
+                _ensure_ams_mapping(pi.metadata)
 
                 if not remote_files:
                     remote_files = (
@@ -281,6 +522,7 @@ def get_project_info(
 
                 pi.id = entry["id"]
                 pi.name = entry["name"]
+                pi.plates = plate_nums
                 pi.plate_num = num
                 pi.size = entry["size"]
                 pi.timestamp = entry["timestamp"]
