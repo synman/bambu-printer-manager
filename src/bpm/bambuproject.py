@@ -233,9 +233,6 @@ def get_project_info(
 
         metadata["ams_mapping"] = ams_mapping
 
-    pi = ProjectInfo()
-    ret = None
-
     file = project_file_id
 
     if not file.startswith("/"):
@@ -298,6 +295,8 @@ def get_project_info(
         ):
             logger.debug(f"get_project_info - using cached 3mf metadata for [{file}]")
 
+            pi = ProjectInfo()
+
             pi.id = lmd["id"]
             pi.name = lmd["name"]
             pi.plates = lmd.get("plates", [])
@@ -340,7 +339,7 @@ def get_project_info(
 
     if plate_num not in plate_nums:
         num = plate_nums[0] if plate_nums else 1
-        logger.info(
+        logger.debug(
             f"get_project_info - requested plate_num [{plate_num}] not found in 3mf metadata - defaulting to plate_num [{num}]"
         )
         plate_num = num
@@ -355,7 +354,10 @@ def get_project_info(
         except KeyError:
             project_settings_cfg = ""
 
+        ret = None
+
         for num in plate_nums:
+            pi = ProjectInfo()
             try:
                 with zf.open(f"Metadata/plate_{num}.json") as f:
                     plate_map = f.read()
@@ -530,19 +532,25 @@ def get_project_info(
 
                 md = cache_path / "metadata" / f"{filename}-{num}.json"
                 with md.open("w") as f:
+                    logger.debug(
+                        f"get_project_info - caching 3mf metadata for [{file}] plate [{num}]"
+                    )
                     json.dump(asdict(pi), f, indent=4)
 
                 if pi.plate_num == plate_num:
+                    logger.debug(
+                        f"get_project_info - set return value for [{pi.id}] plate [{pi.plate_num}]"
+                    )
                     ret = pi
 
             except KeyError as ke:
                 if printer.config.verbose:
-                    logger.debug(f"get_project_info - Key Error for [{file}] - [{ke}]")
+                    logger.debug(
+                        f"get_project_info - Key Error for [{file}] plate [{num}] - [{ke}]"
+                    )
                 continue
 
     if not local_file:
         localfile.unlink(missing_ok=True)
-
-    logger.debug(f"get_project_info - cached 3mf metadata for [{file}]")
 
     return ret
