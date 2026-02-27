@@ -3,7 +3,7 @@
 """
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from bpm.bambutools import LoggerName, PrinterModel, getPrinterModelBySerial
@@ -29,6 +29,20 @@ class PrinterCapabilities:
     """Confirmed presence of the Chamber Thermal Controller (CTC) ambient sensor."""
     has_chamber_door_sensor: bool = False
     """Verification that the front glass enclosure is equipped with a hall-effect sensor."""
+    has_sound_enable_support: bool = False
+    """Indicates whether prompt sound control is supported by firmware telemetry flags."""
+    has_auto_recovery_support: bool = False
+    """Indicates whether auto-recovery control is supported by explicit support telemetry keys."""
+    has_auto_switch_filament_support: bool = False
+    """Indicates whether AMS auto-switch control is supported by explicit support telemetry keys."""
+    has_filament_tangle_detect_support: bool = False
+    """Indicates whether filament tangle detection control is supported by firmware telemetry flags."""
+    has_nozzle_blob_detect_support: bool = False
+    """Indicates whether nozzle blob detection control is supported by firmware telemetry flags."""
+    has_air_print_detect_support: bool = False
+    """Indicates whether air-print detection control is supported by firmware telemetry flags."""
+    has_buildplate_marker_detector_support: bool = False
+    """Indicates whether buildplate marker detector control is supported by xcam telemetry."""
 
 
 @dataclass
@@ -58,7 +72,7 @@ class BambuConfig:
     """Duration in seconds before a connection is flagged as stale."""
     external_chamber: bool = False
     """If True, ignores internal CTC telemetry to allow manual sensor injection."""
-    capabilities: PrinterCapabilities | None = None
+    capabilities: PrinterCapabilities = field(default_factory=PrinterCapabilities)
     """Pre-defined or discovered hardware feature set."""
     bpm_cache_path: Path | None = None
     """The underlying directory BPM uses for managing cache / metadata."""
@@ -84,6 +98,10 @@ class BambuConfig:
     """Enablement for the spool-weight based estimation of the remaining filament length in the AMS."""
     buildplate_marker_detector: bool = False
     """Toggles the AI vision ArUco marker scanning system used to verify build surface compatibility."""
+    nozzle_blob_detect: bool = False
+    """Toggles the AI vision system used to detect nozzle blobs / clumps."""
+    air_print_detect: bool = False
+    """Toggles air-print detection to detect clogging or filament grinding conditions."""
     verbose: bool = False
     """Provides an additional log level for dumping all messages"""
 
@@ -92,10 +110,6 @@ class BambuConfig:
         Post-initialization logic to handle defaults.
         """
         self.printer_model = getPrinterModelBySerial(self.serial_number)
-
-        # Default capabilities
-        if self.capabilities is None:
-            self.capabilities = PrinterCapabilities()
 
         # Default bpm_cache_path and creation
         if self.bpm_cache_path is None:

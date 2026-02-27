@@ -1,5 +1,55 @@
 # bambu-printer-manager AI Agent Guidelines
 
+## KISS Principle (Mandatory)
+
+**KISS is a hard requirement with no exceptions**: Keep It Simple and Straightforward.
+
+For every change, always prefer the simplest solution that fully satisfies verified requirements.
+
+**Required KISS behavior:**
+- Do the minimum effective change first; avoid speculative architecture.
+- Prefer clear, direct logic over clever or abstract patterns.
+- Reuse existing code paths/components before creating new ones.
+- Avoid adding flags, layers, helpers, or indirection unless required by demonstrated need.
+- Keep public behavior stable unless change is explicitly required.
+- If two solutions are valid, choose the one with fewer moving parts.
+
+**KISS enforcement check before finalizing work:**
+- Is every added line necessary to satisfy the request?
+- Did I avoid introducing complexity for hypothetical future use?
+- Can a maintainer understand this quickly without deep context?
+- Is there a simpler implementation that preserves correctness?
+
+## Telemetry Mapping Parity Rule (Mandatory)
+
+When adding or changing support for a telemetry field that belongs to an existing family (for example print_option flags), the implementation MUST follow the proven pattern used by sibling fields unless direct evidence proves otherwise.
+
+**Hard requirements:**
+- Use the nearest working sibling field as the baseline reference (for example `nozzle_blob_detect`).
+- Verify where sibling values are sourced (for example `home_flag` bitfield, `cfg`, `xcam`, or explicit key) before coding.
+- If sibling print_option state is sourced from `home_flag`, default new sibling steady-state mapping to `home_flag` as well unless direct evidence proves a different source.
+- Do not introduce a new parsing path (for example command-ack-only tracking) unless verified evidence shows sibling parity is invalid.
+- If a user says to use a specific field as a reference point, treat that as a mandatory implementation constraint.
+
+**Evidence requirements before coding telemetry mappings:**
+1. Confirm upstream behavior in at least one authoritative source (BambuStudio preferred).
+2. Confirm current project behavior for sibling fields in source code.
+3. Confirm runtime evidence (logs/payloads) and classify it correctly:
+	- command ack payloads confirm command acceptance,
+	- status payloads or bitfields confirm steady-state telemetry source.
+4. Implement using the source that represents steady-state truth unless proven otherwise.
+
+**Anti-fabrication guardrails:**
+- Never invent a new telemetry lifecycle model when a proven local pattern already exists.
+- Never treat command ack events as a complete substitute for continuous status mapping unless explicitly verified.
+- If evidence is mixed, stop and state the uncertainty, then request/collect the missing payload needed to resolve it.
+
+**Parity checklist (must all be true before finalizing):**
+- Did I compare against at least one sibling field implementation line-by-line?
+- Did I verify the same source-of-truth path for both fields?
+- Did I avoid adding special-case logic without explicit evidence?
+- Did I document why this field matches or intentionally differs from sibling behavior?
+
 ## Verification First - Before Any Work
 
 **Critical Principle**: Never infer architecture, features, behavior, or implementation details from partial code patterns. **ALWAYS verify against actual source code before acting.** This applies to everything: documentation, code analysis, bug fixes, feature work, reverse engineering.
@@ -14,6 +64,11 @@
 3. **Does this path actually execute?** (Check conditionals, handlers, try/catch blocks - don't assume)
 4. **Are there edge cases I missed?** (Search for all usages, not just one example)
 5. **What do authoritative reference implementations do?** (Cross-check with ha-bambulab, BambuStudio, OrcaSlicer if unsure)
+
+**Telemetry absence rule (mandatory):**
+- For telemetry-key claims, explicitly search local runtime evidence (`tests/` fixtures, logs, captured payloads) for the exact key.
+- If the key is absent locally, treat **"missing in local telemetry"** as a first-class interpretation and state it before proposing alternatives.
+- Do not imply local presence from upstream references alone; upstream presence can justify parser support but not claim local telemetry coverage.
 
 **Pattern Matching Trap**: Finding evidence of a pattern (e.g., command template, enum value, function name) does NOT mean the feature is implemented or used. Each claim requires independent verification:
 - Template exists ≠ command is sent
@@ -73,8 +128,9 @@
 - [ ] Did I check for conditionals that change behavior?
 - [ ] Can I cite specific line numbers where this behavior occurs?
 - [ ] Did I use actual values from the code, not placeholder syntax?
+- [ ] For telemetry keys, did I explicitly check local fixtures/logs and state whether the key is missing locally?
 
-**If you cannot check all 5 boxes above, your verification is INSUFFICIENT.**
+**If you cannot check all required boxes above, your verification is INSUFFICIENT.**
 
 ## Code Style
 

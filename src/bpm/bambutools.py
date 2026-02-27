@@ -232,6 +232,8 @@ class PrintOption(Enum):
     FILAMENT_TANGLE_DETECT = 1
     SOUND_ENABLE = 2
     AUTO_SWITCH_FILAMENT = 3
+    NOZZLE_BLOB_DETECT = 4
+    AIR_PRINT_DETECT = 5
 
 
 class ServiceState(Enum):

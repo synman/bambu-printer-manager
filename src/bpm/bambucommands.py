@@ -3,6 +3,8 @@
 to interact with your printer.  They are not documented but can be found [here](https://github.com/synman/bambu-printer-manager/blob/main/src/bpm/bambucommands.py).
 """
 
+from typing import Any
+
 ANNOUNCE_PUSH = {
     "pushing": {
         "command": "pushall",
@@ -87,7 +89,9 @@ EXTRUSION_CALI_SEL = {
     }
 }
 
-PRINT_OPTION_COMMAND = {"print": {"command": "print_option", "sequence_id": "0"}}
+PRINT_OPTION_COMMAND: dict[str, Any] = {
+    "print": {"command": "print_option", "sequence_id": "0"}
+}
 
 PAUSE_PRINT = {"print": {"sequence_id": "0", "command": "pause"}}
 

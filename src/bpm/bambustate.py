@@ -228,9 +228,7 @@ class BambuState:
         updates = {}
 
         # CAPABILITIES
-        caps = asdict(
-            config.capabilities if config.capabilities else PrinterCapabilities()
-        )
+        caps = asdict(config.capabilities)
         if ctc_root:
             caps["has_chamber_temp"] = True
         if "ams" in ams_root or "ams" in p:
@@ -246,7 +244,7 @@ class BambuState:
         if xcam_data:
             caps["has_lidar"] = xcam_data.get("first_layer_inspector", False)
         else:
-            caps["has_lidar"] = config.capabilities and config.capabilities.has_lidar
+            caps["has_lidar"] = config.capabilities.has_lidar
 
         new_caps = PrinterCapabilities(**caps)
 
@@ -533,7 +531,7 @@ class BambuState:
 
         part_cooling_fan_speed_percent = -1
 
-        if config.capabilities and not config.capabilities.has_chamber_temp:
+        if not config.capabilities.has_chamber_temp:
             part_cooling_fan_speed_percent = (
                 scaleFanSpeed(p.get("cooling_fan_speed"))
                 if p.get("cooling_fan_speed", -1) != -1
@@ -556,7 +554,7 @@ class BambuState:
         updates["climate"].heatbreak_fan_speed_percent = heatbreak_fan_speed_percent
 
         exhaust_fan_speed_percent = -1
-        if config.capabilities and not config.capabilities.has_chamber_temp:
+        if not config.capabilities.has_chamber_temp:
             exhaust_fan_speed_percent = scaleFanSpeed(p.get("big_fan2_speed", -1))
         else:
             exhaust_fan_speed_percent = updates["climate"].zone_exhaust_percent
@@ -566,7 +564,7 @@ class BambuState:
         updates["climate"].exhaust_fan_speed_percent = exhaust_fan_speed_percent
 
         aux_fan_speed_percent = -1
-        if config.capabilities and not config.capabilities.has_chamber_temp:
+        if not config.capabilities.has_chamber_temp:
             aux_fan_speed_percent = scaleFanSpeed(p.get("big_fan1_speed", -1))
         else:
             aux_fan_speed_percent = updates["climate"].zone_aux_percent

@@ -372,7 +372,7 @@ class BambuPrinter:
         * value : float - The target chamber temperature.
         * temper_check : OPTIONAL bool - perform a temperature check?
         """
-        if self.config.capabilities and self.config.capabilities.has_chamber_temp:
+        if self.config.capabilities.has_chamber_temp:
             cmd = copy.deepcopy(SET_CHAMBER_TEMP_TARGET)
             cmd["print"]["ctt_val"] = value
             cmd["print"]["temper_check"] = temper_check
@@ -900,10 +900,10 @@ class BambuPrinter:
         Enable or disable one of the `PrintOption` options
         """
         cmd = PRINT_OPTION_COMMAND
-        cmd["print"][option.name.lower()] = "true" if enabled else "false"
+        cmd["print"][option.name.lower()] = enabled
 
         if option == PrintOption.AUTO_RECOVERY:
-            cmd["print"]["option"] = "1" if enabled else "0"
+            cmd["print"]["option"] = 1 if enabled else 0
             self.config.auto_recovery = enabled
         elif option == PrintOption.AUTO_SWITCH_FILAMENT:
             self.config.auto_switch_filament = enabled
@@ -911,6 +911,10 @@ class BambuPrinter:
             self.config.filament_tangle_detect = enabled
         elif option == PrintOption.SOUND_ENABLE:
             self.config.sound_enable = enabled
+        elif option == PrintOption.NOZZLE_BLOB_DETECT:
+            self.config.nozzle_blob_detect = enabled
+        elif option == PrintOption.AIR_PRINT_DETECT:
+            self.config.air_print_detect = enabled
 
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
@@ -1102,6 +1106,9 @@ class BambuPrinter:
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
+
+        self.config.buildplate_marker_detector = enabled
+
         logger.debug(
             f"set_buildplate_marker_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
@@ -1868,13 +1875,46 @@ class BambuPrinter:
                     spools.append(spool)
                 self._printer_state.spools = spools
 
+            # i have no evidence of these actually being sent by the printer, but
+            # Bambu Studio seems to be using these fields to determine support for
+            # these features.  I think this is just Bambu Lab engineers not
+            # talking to each other and putting these flags in random places.
+            #
+            # if "support_auto_recovery_step_loss" in status:
+            #     self.config.capabilities.has_auto_recovery_support = bool(
+            #         status["support_auto_recovery_step_loss"]
+            #     )
+            # if "support_command_ams_switch" in status:
+            #     self.config.capabilities.has_auto_switch_filament_support = bool(
+            #         status["support_command_ams_switch"]
+            #     )
+
             if "home_flag" in status:
                 flag = int(status["home_flag"])
-                self.config.sound_enable = (flag >> 17) & 0x1 != 0
                 self.config.auto_recovery = (flag >> 4) & 0x1 != 0
                 self.config.auto_switch_filament = (flag >> 10) & 0x1 != 0
-                self.config.filament_tangle_detect = (flag >> 20) & 0x1 != 0
                 self.config.calibrate_remain_flag = (flag >> 7) & 0x1 != 0
+                self.config.capabilities.has_sound_enable_support = (
+                    flag >> 18
+                ) & 0x1 != 0
+                self.config.capabilities.has_filament_tangle_detect_support = (
+                    flag >> 19
+                ) & 0x1 != 0
+                self.config.capabilities.has_nozzle_blob_detect_support = (
+                    flag >> 25
+                ) & 0x1 != 0
+                self.config.capabilities.has_air_print_detect_support = (
+                    flag >> 29
+                ) & 0x1 != 0
+
+                if self.config.capabilities.has_sound_enable_support:
+                    self.config.sound_enable = (flag >> 17) & 0x1 != 0
+                if self.config.capabilities.has_filament_tangle_detect_support:
+                    self.config.filament_tangle_detect = (flag >> 20) & 0x1 != 0
+                if self.config.capabilities.has_nozzle_blob_detect_support:
+                    self.config.nozzle_blob_detect = (flag >> 24) & 0x1 != 0
+                if self.config.capabilities.has_air_print_detect_support:
+                    self.config.air_print_detect = (flag >> 28) & 0x1 != 0
 
             if "s_obj" in status:
                 self._skipped_objects = status["s_obj"]
@@ -1885,6 +1925,7 @@ class BambuPrinter:
                 self._nozzle_diameter = status["nozzle_diameter"]
 
             if "xcam" in status and "buildplate_marker_detector" in status["xcam"]:
+                self.config.capabilities.has_buildplate_marker_detector_support = True
                 self.config.buildplate_marker_detector = status["xcam"][
                     "buildplate_marker_detector"
                 ]
