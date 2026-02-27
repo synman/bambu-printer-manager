@@ -257,6 +257,10 @@ class BambuState:
         updates["fun"] = p.get("fun", base.fun)
         fun = int(updates["fun"], 16)
         new_caps.has_chamber_door_sensor = bool((fun >> 12) & 0x01)
+        new_caps.has_spaghetti_detector_support = bool((fun >> 42) & 0x01)
+        new_caps.has_purgechutepileup_detector_support = bool((fun >> 43) & 0x01)
+        new_caps.has_nozzleclumping_detector_support = bool((fun >> 44) & 0x01)
+        new_caps.has_airprinting_detector_support = bool((fun >> 45) & 0x01)
 
         if new_caps.has_chamber_door_sensor:
             updates["stat"] = p.get("stat", base.stat)

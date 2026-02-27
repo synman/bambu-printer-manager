@@ -1100,6 +1100,7 @@ class BambuPrinter:
         Enables or disables the buildplate_marker_detector
         """
         cmd = copy.deepcopy(XCAM_CONTROL_SET)
+        cmd["xcam"]["module_name"] = "buildplate_marker_detector"
         cmd["xcam"]["control"] = enabled
         cmd["xcam"]["enable"] = enabled
 
@@ -1111,6 +1112,104 @@ class BambuPrinter:
 
         logger.debug(
             f"set_buildplate_marker_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+        )
+
+    def set_spaghetti_detector(self, enabled: bool, sensitivity: str = "medium"):
+        """
+        Enables or disables the spaghetti_detector
+        """
+        sensitivity = sensitivity.lower()
+        if sensitivity not in {"low", "medium", "high"}:
+            sensitivity = "medium"
+
+        cmd = copy.deepcopy(XCAM_CONTROL_SET)
+        cmd["xcam"]["module_name"] = "spaghetti_detector"
+        cmd["xcam"]["control"] = enabled
+        cmd["xcam"]["enable"] = enabled
+        cmd["xcam"]["print_halt"] = True
+        cmd["xcam"]["halt_print_sensitivity"] = sensitivity
+
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+
+        self.config.spaghetti_detector = enabled
+        self.config.spaghetti_detector_sensitivity = sensitivity
+
+        logger.debug(
+            f"set_spaghetti_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+        )
+
+    def set_purgechutepileup_detector(self, enabled: bool, sensitivity: str = "medium"):
+        """Enables or disables the pileup_detector."""
+        sensitivity = sensitivity.lower()
+        if sensitivity not in {"low", "medium", "high"}:
+            sensitivity = "medium"
+
+        cmd = copy.deepcopy(XCAM_CONTROL_SET)
+        cmd["xcam"]["module_name"] = "pileup_detector"
+        cmd["xcam"]["control"] = enabled
+        cmd["xcam"]["enable"] = enabled
+        cmd["xcam"]["print_halt"] = True
+        cmd["xcam"]["halt_print_sensitivity"] = sensitivity
+
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+
+        self.config.purgechutepileup_detector = enabled
+        self.config.purgechutepileup_detector_sensitivity = sensitivity
+
+        logger.debug(
+            f"set_purgechutepileup_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+        )
+
+    def set_nozzleclumping_detector(self, enabled: bool, sensitivity: str = "medium"):
+        """Enables or disables the clump_detector."""
+        sensitivity = sensitivity.lower()
+        if sensitivity not in {"low", "medium", "high"}:
+            sensitivity = "medium"
+
+        cmd = copy.deepcopy(XCAM_CONTROL_SET)
+        cmd["xcam"]["module_name"] = "clump_detector"
+        cmd["xcam"]["control"] = enabled
+        cmd["xcam"]["enable"] = enabled
+        cmd["xcam"]["print_halt"] = True
+        cmd["xcam"]["halt_print_sensitivity"] = sensitivity
+
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+
+        self.config.nozzleclumping_detector = enabled
+        self.config.nozzleclumping_detector_sensitivity = sensitivity
+
+        logger.debug(
+            f"set_nozzleclumping_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+        )
+
+    def set_airprinting_detector(self, enabled: bool, sensitivity: str = "medium"):
+        """Enables or disables the airprint_detector."""
+        sensitivity = sensitivity.lower()
+        if sensitivity not in {"low", "medium", "high"}:
+            sensitivity = "medium"
+
+        cmd = copy.deepcopy(XCAM_CONTROL_SET)
+        cmd["xcam"]["module_name"] = "airprint_detector"
+        cmd["xcam"]["control"] = enabled
+        cmd["xcam"]["enable"] = enabled
+        cmd["xcam"]["print_halt"] = True
+        cmd["xcam"]["halt_print_sensitivity"] = sensitivity
+
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+
+        self.config.airprinting_detector = enabled
+        self.config.airprinting_detector_sensitivity = sensitivity
+
+        logger.debug(
+            f"set_airprinting_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
     def set_nozzle_details(
@@ -1929,6 +2028,90 @@ class BambuPrinter:
                 self.config.buildplate_marker_detector = status["xcam"][
                     "buildplate_marker_detector"
                 ]
+
+            if "xcam" in status:
+                xcam = status["xcam"]
+                has_fun_support = "fun" in status
+
+                if "cfg" in xcam:
+                    if not has_fun_support:
+                        self.config.capabilities.has_spaghetti_detector_support = True
+                        self.config.capabilities.has_purgechutepileup_detector_support = (
+                            True
+                        )
+                        self.config.capabilities.has_nozzleclumping_detector_support = (
+                            True
+                        )
+                        self.config.capabilities.has_airprinting_detector_support = True
+                    xcam_cfg = int(xcam["cfg"])
+                    self.config.spaghetti_detector = (xcam_cfg >> 7) & 0x1 != 0
+                    self.config.purgechutepileup_detector = (xcam_cfg >> 10) & 0x1 != 0
+                    self.config.nozzleclumping_detector = (xcam_cfg >> 13) & 0x1 != 0
+                    self.config.airprinting_detector = (xcam_cfg >> 16) & 0x1 != 0
+
+                    sensitivity_value = (xcam_cfg >> 8) & 0x3
+                    sensitivity_map = {
+                        0: "low",
+                        1: "medium",
+                        2: "high",
+                    }
+                    if sensitivity_value in sensitivity_map:
+                        self.config.spaghetti_detector_sensitivity = sensitivity_map[
+                            sensitivity_value
+                        ]
+
+                    sensitivity_value = (xcam_cfg >> 11) & 0x3
+                    if sensitivity_value in sensitivity_map:
+                        self.config.purgechutepileup_detector_sensitivity = (
+                            sensitivity_map[sensitivity_value]
+                        )
+
+                    sensitivity_value = (xcam_cfg >> 14) & 0x3
+                    if sensitivity_value in sensitivity_map:
+                        self.config.nozzleclumping_detector_sensitivity = sensitivity_map[
+                            sensitivity_value
+                        ]
+
+                    sensitivity_value = (xcam_cfg >> 17) & 0x3
+                    if sensitivity_value in sensitivity_map:
+                        self.config.airprinting_detector_sensitivity = sensitivity_map[
+                            sensitivity_value
+                        ]
+
+                else:
+                    if "spaghetti_detector" in xcam:
+                        if not has_fun_support:
+                            self.config.capabilities.has_spaghetti_detector_support = True
+                        self.config.spaghetti_detector = xcam["spaghetti_detector"]
+
+                        if xcam.get("print_halt"):
+                            self.config.spaghetti_detector_sensitivity = "medium"
+
+                    if "pileup_detector" in xcam:
+                        if not has_fun_support:
+                            self.config.capabilities.has_purgechutepileup_detector_support = True
+                        self.config.purgechutepileup_detector = xcam["pileup_detector"]
+
+                        if xcam.get("print_halt"):
+                            self.config.purgechutepileup_detector_sensitivity = "medium"
+
+                    if "clump_detector" in xcam:
+                        if not has_fun_support:
+                            self.config.capabilities.has_nozzleclumping_detector_support = True
+                        self.config.nozzleclumping_detector = xcam["clump_detector"]
+
+                        if xcam.get("print_halt"):
+                            self.config.nozzleclumping_detector_sensitivity = "medium"
+
+                    if "airprint_detector" in xcam:
+                        if not has_fun_support:
+                            self.config.capabilities.has_airprinting_detector_support = (
+                                True
+                            )
+                        self.config.airprinting_detector = xcam["airprint_detector"]
+
+                        if xcam.get("print_halt"):
+                            self.config.airprinting_detector_sensitivity = "medium"
 
         elif "info" in message and "module" in message["info"]:
             self._recent_update = True

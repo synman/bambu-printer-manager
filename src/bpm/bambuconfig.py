@@ -43,6 +43,14 @@ class PrinterCapabilities:
     """Indicates whether air-print detection control is supported by firmware telemetry flags."""
     has_buildplate_marker_detector_support: bool = False
     """Indicates whether buildplate marker detector control is supported by xcam telemetry."""
+    has_spaghetti_detector_support: bool = False
+    """Indicates whether spaghetti detector control is supported by xcam telemetry."""
+    has_purgechutepileup_detector_support: bool = False
+    """Indicates whether purge-chute pileup detector control is supported by xcam telemetry."""
+    has_nozzleclumping_detector_support: bool = False
+    """Indicates whether nozzle-clumping detector control is supported by xcam telemetry."""
+    has_airprinting_detector_support: bool = False
+    """Indicates whether air-printing detector control is supported by xcam telemetry."""
 
 
 @dataclass
@@ -98,6 +106,22 @@ class BambuConfig:
     """Enablement for the spool-weight based estimation of the remaining filament length in the AMS."""
     buildplate_marker_detector: bool = False
     """Toggles the AI vision ArUco marker scanning system used to verify build surface compatibility."""
+    spaghetti_detector: bool = False
+    """Toggles AI spaghetti detection for failed-print strand detection."""
+    spaghetti_detector_sensitivity: str = "medium"
+    """Sensitivity level for spaghetti detection pause behavior (low|medium|high)."""
+    purgechutepileup_detector: bool = False
+    """Toggles AI purge-chute pileup detection."""
+    purgechutepileup_detector_sensitivity: str = "medium"
+    """Sensitivity level for purge-chute pileup pause behavior (low|medium|high)."""
+    nozzleclumping_detector: bool = False
+    """Toggles AI nozzle clumping detection."""
+    nozzleclumping_detector_sensitivity: str = "medium"
+    """Sensitivity level for nozzle clumping pause behavior (low|medium|high)."""
+    airprinting_detector: bool = False
+    """Toggles AI air-printing detection."""
+    airprinting_detector_sensitivity: str = "medium"
+    """Sensitivity level for air-printing pause behavior (low|medium|high)."""
     nozzle_blob_detect: bool = False
     """Toggles the AI vision system used to detect nozzle blobs / clumps."""
     air_print_detect: bool = False

@@ -20,6 +20,26 @@ For every change, always prefer the simplest solution that fully satisfies verif
 - Can a maintainer understand this quickly without deep context?
 - Is there a simpler implementation that preserves correctness?
 
+## Quality-First Mode (Mandatory)
+
+For **all work** (simple or complex), prioritize quality over speed.
+
+**Hard requirements:**
+- Prefer correctness, conciseness, repeatability, and thorough analysis over fast turnaround.
+- Verify assumptions with source evidence before editing, even for small changes.
+- Keep responses concise but complete; do not skip required validation to save time.
+- Use deterministic, minimal patches that are easy to review and reproduce.
+
+## Response Scope Rule (Mandatory)
+
+Close responses with the task result only. Do not append unsolicited recommendations, optional follow-up offers, or unrelated "next step" suggestions.
+
+**Hard requirements:**
+- Do not include "If you want, I can..." style add-ons unless the user explicitly asked for options.
+- Do not propose extra cleanups, refactors, audits, or expansions that were not requested.
+- If additional work is genuinely required to complete the requested task, state that requirement directly and briefly.
+- Keep endings factual and scoped to what was requested, changed, and validated.
+
 ## Telemetry Mapping Parity Rule (Mandatory)
 
 When adding or changing support for a telemetry field that belongs to an existing family (for example print_option flags), the implementation MUST follow the proven pattern used by sibling fields unless direct evidence proves otherwise.
@@ -131,6 +151,20 @@ When adding or changing support for a telemetry field that belongs to an existin
 - [ ] For telemetry keys, did I explicitly check local fixtures/logs and state whether the key is missing locally?
 
 **If you cannot check all required boxes above, your verification is INSUFFICIENT.**
+
+## Strict Execution Mode (Mandatory)
+
+Use this workflow for every non-trivial request:
+1. **Verify first**: gather concrete evidence with `grep_search` + `read_file` before proposing or applying changes.
+2. **Patch minimally**: implement the smallest targeted change that satisfies verified requirements.
+3. **Validate immediately**: run diagnostics/tests relevant to touched files right after editing.
+4. **Do not speculate**: if evidence is insufficient or contradictory, stop and collect the missing payload/code path before changing logic.
+
+**Hard requirements:**
+- No speculative architecture or inferred behavior changes without source proof.
+- No broad multi-area edits when a single focused patch is sufficient.
+- For protocol/telemetry work, always establish source-of-truth hierarchy first (steady-state status/bitfield over command ack).
+- After changes, report what was verified, what was changed, and what validation ran.
 
 ## Code Style
 
