@@ -97,6 +97,19 @@
 
 **For this project specifically**:
 
+## Cross-Model Compatibility Policy
+
+This project targets **all Bambu Lab printers** (library + frontend), not a single model.
+
+**Default behavior**:
+- Preserve existing/legacy cross-model behavior unless there is verified evidence it fails.
+- Prefer Bambu Studio-compatible behavior as the broad baseline across models.
+
+**Override gate (strict)**:
+- Add model-specific overrides only when the current/legacy logic is proven to fail for that model.
+- Missing fields alone are not a legacy-logic failure. Example: if `ams_mapping2` is missing, add it alongside legacy `ams_mapping` first.
+- Do not alter existing `ams_mapping` semantics unless breakage is demonstrated with direct evidence.
+
 ## Architecture
 
 **Central Class**: `BambuPrinter` (see `src/bpm/bambuprinter.py`) is the main abstraction layer. All printer interaction flows through this class.

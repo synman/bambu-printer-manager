@@ -57,8 +57,10 @@ from bpm.bambutools import (
     NozzleDiameter,
     NozzleType,
     PlateType,
+    PrinterSeries,
     PrintOption,
     ServiceState,
+    getPrinterSeriesByModel,
     parseStage,
     sortFileTreeAlphabetically,
 )
@@ -601,9 +603,8 @@ class BambuPrinter:
         """
         _3mf_file = f"{name}"
         _plate_num = int(plate)
-        # _plate_type = bed
 
-        file = copy.deepcopy(PRINT_3MF_FILE)
+        cmd = copy.deepcopy(PRINT_3MF_FILE)
 
         subtask = name[name.rindex("/") + 1 : :] if "/" in name else name
         subtask = (
@@ -617,17 +618,20 @@ class BambuPrinter:
             else subtask
         )
 
-        # prefix = "/media/usb0"
-        # if getPrinterSeriesByModel(self.config.printer_model) == PrinterSeries.A1:
-        #     prefix = "/sdcard"
+        cmd["print"]["file"] = _3mf_file
 
-        file["print"]["file"] = _3mf_file
-        # file["print"]["url"] = f"file://{prefix}{_3mf_file}"
-        file["print"]["url"] = f"ftp://{_3mf_file}"
-        file["print"]["subtask_name"] = subtask
-        file["print"]["bed_type"] = bed.name.lower()
-        file["print"]["param"] = file["print"]["param"].replace("#", str(_plate_num))
-        file["print"]["use_ams"] = use_ams
+        if getPrinterSeriesByModel(self.config.printer_model) in (
+            PrinterSeries.A1,
+            PrinterSeries.P1,
+        ):
+            cmd["print"]["url"] = f"file:///sdcard{_3mf_file}"
+        else:
+            cmd["print"]["url"] = f"ftp://{_3mf_file}"
+
+        cmd["print"]["subtask_name"] = subtask
+        cmd["print"]["bed_type"] = bed.name.lower()
+        cmd["print"]["param"] = cmd["print"]["param"].replace("#", str(_plate_num))
+        cmd["print"]["use_ams"] = use_ams
 
         def decode_ams_mapping_entry(tray_id: int) -> tuple[int, int]:
             if tray_id < 0:
@@ -653,17 +657,17 @@ class BambuPrinter:
                 ams_id, slot_id = decode_ams_mapping_entry(tray_id)
                 parsed_ams_mapping2.append({"ams_id": ams_id, "slot_id": slot_id})
 
-            file["print"]["ams_mapping"] = parsed_ams_mapping
-            file["print"]["ams_mapping2"] = parsed_ams_mapping2
+            cmd["print"]["ams_mapping"] = parsed_ams_mapping
+            cmd["print"]["ams_mapping2"] = parsed_ams_mapping2
 
-        file["print"]["bed_leveling"] = bedlevel
-        file["print"]["flow_cali"] = flow
-        file["print"]["timelapse"] = timelapse
+        cmd["print"]["bed_leveling"] = bedlevel
+        cmd["print"]["flow_cali"] = flow
+        cmd["print"]["timelapse"] = timelapse
         self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(file)
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"print_3mf_file - published PRINT_3MF_FILE to [device/{self.config.serial_number}/request] print_command: [{file}]"
+            f"print_3mf_file - published PRINT_3MF_FILE to [device/{self.config.serial_number}/request] print_command: [{cmd}]"
         )
 
     def stop_printing(self):
@@ -1613,9 +1617,11 @@ class BambuPrinter:
                     else PlateType.NONE
                 )
 
-                # media/usb0
+                # media/usb0 and sdcard
                 url = status.get("url", "")
-                parts = url.replace("/media/usb0", "").split("://", 1)
+                parts = (
+                    url.replace("/media/usb0", "").replace("/sdcard", "").split("://", 1)
+                )
                 if len(parts) == 2:
                     self._active_job_info.project_info = get_project_info(
                         parts[1], self, md5, plate_num
@@ -1904,6 +1910,7 @@ class BambuPrinter:
             logger.warning(
                 f"\r_on_message - unknown message type received - bambu_msg: [{message}]"
             )
+
         self._printer_state = BambuState.fromJson(message, self)
         self._notify_update()
 
