@@ -1745,9 +1745,12 @@ class BambuPrinter:
                     url.replace("/media/usb0", "").replace("/sdcard", "").split("://", 1)
                 )
                 if len(parts) == 2:
-                    self._active_job_info.project_info = get_project_info(
-                        parts[1], self, md5, plate_num
-                    )
+                    try:
+                        self._active_job_info.project_info = get_project_info(
+                            parts[1], self, md5, plate_num
+                        )
+                    except Exception as e:
+                        logger.warning(f"get_project_info failed for [{parts[1]}]: {e}")
                 self._active_job_info.subtask_name = subtask_name
                 self._active_job_info.plate_num = plate_num
                 self._active_job_info.plate_type = plate_type

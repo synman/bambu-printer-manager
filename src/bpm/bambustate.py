@@ -537,7 +537,25 @@ class BambuState:
             ext.status = ExtruderStatus.NOT_AVAILABLE
             ext.active_tray_id = base.active_tray_id
             ext.target_tray_id = base.target_tray_id
-            ext.tray_state = base.active_tray_state
+            if "tray_now" in ams_root:
+                raw = int(ams_root["tray_now"])
+                ext.active_tray_id = -1 if raw == 255 else raw
+            if "tray_tar" in ams_root:
+                raw = int(ams_root["tray_tar"])
+                ext.target_tray_id = -1 if raw == 255 else raw
+            ext.assigned_to_ams_id = (
+                ext.active_tray_id >> 2
+                if ext.active_tray_id not in (-1, 254, 255)
+                else -1
+            )
+            if aji.stage_id == 24:
+                ext.tray_state = TrayState.LOADING
+            elif aji.stage_id == 22:
+                ext.tray_state = TrayState.UNLOADING
+            elif ext.active_tray_id not in (-1, 254, 255):
+                ext.tray_state = TrayState.LOADED
+            else:
+                ext.tray_state = TrayState.UNLOADED
             ext.nozzle = NozzleCharacteristics.from_telemetry(
                 nozzle_type=p.get(
                     "nozzle_type",
@@ -636,9 +654,14 @@ class BambuState:
             None,
         )
         if a_ext:
-            updates["active_ams_id"] = (
-                a_ext.assigned_to_ams_id if a_ext.active_tray_id not in (254, 255) else -1
-            )
+            if a_ext.active_tray_id not in (254, 255, -1):
+                updates["active_ams_id"] = (
+                    a_ext.assigned_to_ams_id
+                    if a_ext.assigned_to_ams_id != -1
+                    else a_ext.active_tray_id >> 2
+                )
+            else:
+                updates["active_ams_id"] = -1
             updates["active_tray_id"] = a_ext.active_tray_id
             updates["target_tray_id"] = a_ext.target_tray_id
 
