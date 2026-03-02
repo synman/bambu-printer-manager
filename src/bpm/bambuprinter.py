@@ -1625,13 +1625,13 @@ class BambuPrinter:
 
     @property
     @deprecated(
-        "This property is deprecated (v1.0.0). Use `_printer_state.extruders[n].nozzle.diameter_mm` instead."
+        "This property is deprecated (v1.0.0). Use `_printer_state.active_nozzle.diameter_mm` instead."
     )
     def nozzle_diameter(self) -> NozzleDiameter:
         """The diameter of the nozzle currently installed on the printer.
 
         !!! danger "Deprecated"
-            This property is deprecated (v1.0.0). Use `_printer_state.extruders[n].nozzle.diameter_mm` instead.
+            This property is deprecated (v1.0.0). Use `_printer_state.active_nozzle.diameter_mm` instead.
         """
         try:
             return NozzleDiameter(float(self._nozzle_diameter))
@@ -1641,13 +1641,13 @@ class BambuPrinter:
 
     @property
     @deprecated(
-        "This property is deprecated (v1.0.0). Use `_printer_state.extruders[n].nozzle.material` instead."
+        "This property is deprecated (v1.0.0). Use `_printer_state.active_nozzle.material` instead."
     )
     def nozzle_type(self) -> NozzleType:
         """The type of nozzle currently installed on the printer.
 
         !!! danger "Deprecated"
-            This property is deprecated (v1.0.0). Use `_printer_state.extruders[n].nozzle.material` instead.
+            This property is deprecated (v1.0.0). Use `_printer_state.active_nozzle.material` instead.
         """
         if not self._nozzle_type:
             return NozzleType.UNKNOWN

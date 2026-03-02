@@ -271,6 +271,8 @@ class BambuState:
     """Nozzle temp."""
     active_nozzle_temp_target: int = 0
     """Nozzle target."""
+    active_nozzle: NozzleCharacteristics = field(default_factory=NozzleCharacteristics)
+    """Normalized characteristics of the currently active nozzle."""
     ams_status_raw: int = 0
     """Raw AMS status."""
     ams_status_text: str = ""
@@ -669,6 +671,7 @@ class BambuState:
 
             updates["active_nozzle_temp"] = a_ext.temp
             updates["active_nozzle_temp_target"] = a_ext.temp_target
+            updates["active_nozzle"] = a_ext.nozzle
         else:
             # otherwise process a single extruder printer update
             updates["active_nozzle_temp"] = float(
@@ -676,6 +679,11 @@ class BambuState:
             )
             updates["active_nozzle_temp_target"] = int(
                 p.get("nozzle_target_temper", base.active_nozzle_temp_target)
+            )
+            updates["active_nozzle"] = (
+                updates["extruders"][0].nozzle
+                if updates.get("extruders")
+                else base.active_nozzle
             )
             updates["active_tray_id"] = int(ams_root.get("tray_now", base.active_tray_id))
             if updates["active_tray_id"] == 255:
