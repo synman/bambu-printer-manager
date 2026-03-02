@@ -1826,27 +1826,39 @@ class BambuPrinter:
                                 not self._active_job_info.project_info
                                 or not self._active_job_info.project_info.id
                             )
+                            and not self._active_job_info.project_info_fetch_attempted
                             and self._active_job_info.gcode_file
                             and self._active_job_info.subtask_name
                         ):
+                            self._active_job_info.project_info_fetch_attempted = True
                             match = re.search(
                                 r"plate_(\d{1,2})", self._active_job_info.gcode_file
                             )
-                            if match:
-                                plate_num = int(match.group(1))
-                                remote_files = self.get_sdcard_3mf_files()
+                            plate_num = (
+                                int(match.group(1))
+                                if match
+                                else self._active_job_info.plate_num
+                                if self._active_job_info.plate_num > 0
+                                else 1
+                            )
+                            remote_files = self.get_sdcard_3mf_files()
+                            file_entry = get_3mf_entry_by_name(
+                                remote_files,
+                                f"{self._active_job_info.subtask_name}.gcode.3mf",
+                            )
+                            if not file_entry:
                                 file_entry = get_3mf_entry_by_name(
                                     remote_files,
-                                    f"{self._active_job_info.subtask_name}.gcode.3mf",
+                                    f"{self._active_job_info.subtask_name}.3mf",
                                 )
-                                if not file_entry:
-                                    file_entry = get_3mf_entry_by_name(
-                                        remote_files,
-                                        f"{self._active_job_info.subtask_name}.3mf",
-                                    )
-                                if file_entry:
+                            if file_entry:
+                                try:
                                     self._active_job_info.project_info = get_project_info(
                                         file_entry["id"], self, plate_num=plate_num
+                                    )
+                                except Exception as e:
+                                    logger.warning(
+                                        f"get_project_info fallback failed for [{file_entry['id']}]: {e}"
                                     )
 
             if "mc_remaining_time" in status:

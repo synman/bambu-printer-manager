@@ -79,6 +79,8 @@ class ActiveJobInfo:
     """The plate number this job is targetting."""
     plate_type: PlateType = PlateType.NONE
     """The plate type associated with the job"""
+    project_info_fetch_attempted: bool = False
+    """True once a fallback fetch of project_info has been attempted, to prevent repeated FTP calls."""
 
 
 @staticmethod
