@@ -36,3 +36,4 @@ __pycache__
 
 #mkdocs
 /site
+.github/copilot-instructions.md

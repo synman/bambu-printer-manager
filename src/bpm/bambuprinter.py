@@ -34,6 +34,7 @@ from bpm.bambucommands import (
     PAUSE_PRINT,
     PRINT_3MF_FILE,
     PRINT_OPTION_COMMAND,
+    REFRESH_NOZZLE,
     RESUME_PRINT,
     SEND_GCODE_TEMPLATE,
     SET_ACCESSORIES,
@@ -61,6 +62,8 @@ from bpm.bambutools import (
     PrintOption,
     ServiceState,
     getPrinterSeriesByModel,
+    nozzle_type_to_telemetry,
+    parse_nozzle_type,
     parseStage,
     sortFileTreeAlphabetically,
 )
@@ -1017,7 +1020,7 @@ class BambuPrinter:
         ams_id = math.floor(tray_id / 4)
         slot_id = tray_id % 4
         if tray_id == 254 or tray_id == 255:
-            ams_id = 255
+            ams_id = tray_id
             slot_id = 0
 
         cmd["print"]["ams_id"] = ams_id
@@ -1033,7 +1036,6 @@ class BambuPrinter:
             nozzle_temp_max = 0
 
         cmd["print"]["tray_info_idx"] = tray_info_idx
-
         cmd["print"]["tray_id_name"] = tray_id_name
         cmd["print"]["tray_type"] = tray_type
 
@@ -1220,13 +1222,27 @@ class BambuPrinter:
         """
         cmd = copy.deepcopy(SET_ACCESSORIES)
         cmd["system"]["nozzle_diameter"] = nozzle_diameter.value
-        cmd["system"]["nozzle_type"] = nozzle_type.name.lower()
+        cmd["system"]["nozzle_type"] = nozzle_type_to_telemetry(nozzle_type)
 
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
             f"set_nozzle_details - published SET_ACCESSORIES to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+        )
+
+    def refresh_nozzles(self):
+        """
+        Requests the printer to push back current nozzle state.
+        Used for multi-extruder models (H2D, H2D Pro) where nozzles are manually swapped.
+        """
+        cmd = copy.deepcopy(REFRESH_NOZZLE)
+
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+        logger.debug(
+            f"refresh_nozzles - published REFRESH_NOZZLE to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
     def send_anything(self, anything: str):
@@ -1407,7 +1423,7 @@ class BambuPrinter:
         ams_id = math.floor(tray_id / 4)
         slot_id = tray_id % 4
         if tray_id == 254 or tray_id == 255:
-            ams_id = 255
+            ams_id = tray_id
             slot_id = 0
 
         cmd["print"]["ams_id"] = ams_id
@@ -1608,12 +1624,14 @@ class BambuPrinter:
         return self._skipped_objects
 
     @property
-    @deprecated("This property is deprecated (v1.0.0). No replacement yet.")
+    @deprecated(
+        "This property is deprecated (v1.0.0). Use `_printer_state.extruders[n].nozzle.diameter_mm` instead."
+    )
     def nozzle_diameter(self) -> NozzleDiameter:
         """The diameter of the nozzle currently installed on the printer.
 
         !!! danger "Deprecated"
-            This property is deprecated (v1.0.0). No replacement yet.
+            This property is deprecated (v1.0.0). Use `_printer_state.extruders[n].nozzle.diameter_mm` instead.
         """
         try:
             return NozzleDiameter(float(self._nozzle_diameter))
@@ -1622,20 +1640,18 @@ class BambuPrinter:
             return NozzleDiameter.UNKNOWN
 
     @property
-    @deprecated("This property is deprecated (v1.0.0). No replacement yet.")
+    @deprecated(
+        "This property is deprecated (v1.0.0). Use `_printer_state.extruders[n].nozzle.material` instead."
+    )
     def nozzle_type(self) -> NozzleType:
         """The type of nozzle currently installed on the printer.
 
         !!! danger "Deprecated"
-            This property is deprecated (v1.0.0). No replacement yet.
+            This property is deprecated (v1.0.0). Use `_printer_state.extruders[n].nozzle.material` instead.
         """
         if not self._nozzle_type:
             return NozzleType.UNKNOWN
-        try:
-            return NozzleType[self._nozzle_type.upper()]
-        except (ValueError, TypeError, KeyError) as e:
-            logger.warning(f"nozzle_type - exception: [{e}]")
-            return NozzleType.UNKNOWN
+        return parse_nozzle_type(str(self._nozzle_type))
 
     # endregion
 

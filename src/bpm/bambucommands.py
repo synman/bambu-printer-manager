@@ -209,6 +209,8 @@ SET_ACTIVE_TOOL = {
     "print": {"command": "select_extruder", "extruder_index": 0, "sequence_id": "0"}
 }
 
+REFRESH_NOZZLE = {"print": {"sequence_id": "0", "command": "refresh_nozzle"}}
+
 SET_AMS_TO_EXTRUDER_BINDING = {
     "print": {
         "bind_list": [

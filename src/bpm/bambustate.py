@@ -6,7 +6,7 @@ operational state, synchronized via MQTT telemetry.
 # region imports
 import logging
 from dataclasses import asdict, dataclass, field, replace
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Self
 
 from bpm.bambuconfig import PrinterCapabilities
 from bpm.bambuspool import BambuSpool
@@ -20,10 +20,15 @@ from bpm.bambutools import (
     ExtruderInfoState,
     ExtruderStatus,
     LoggerName,
+    NozzleFlowType,
+    NozzleType,
     TrayState,
+    build_nozzle_identifier,
     decodeError,
     decodeHMS,
     getAMSModelBySerial,
+    parse_nozzle_identifier,
+    parse_nozzle_type,
     parseAMSInfo,
     parseAMSStatus,
     parseExtruderInfo,
@@ -39,6 +44,99 @@ if TYPE_CHECKING:
 # endregion
 
 logger = logging.getLogger(LoggerName)
+
+
+@dataclass(frozen=True)
+class NozzleCharacteristics:
+    """Normalized nozzle characteristics across telemetry and encoded identifiers.
+
+    This dataclass captures nozzle material, diameter, and optional flow-family
+    metadata. It is intended to provide a single canonical representation that
+    can be built from telemetry fields (for example `nozzle_type`,
+    `nozzle_diameter`) and optional encoded nozzle identifiers (for example
+    `HS00-0.4`).
+    """
+
+    material: NozzleType = NozzleType.UNKNOWN
+    """Canonical nozzle material/type parsed from telemetry or encoded ID."""
+    diameter_mm: float = 0.0
+    """Nozzle diameter in millimeters."""
+    flow: NozzleFlowType = NozzleFlowType.UNKNOWN
+    """Optional nozzle flow family (standard/high-flow/TPU high-flow)."""
+    encoded_id: str = ""
+    """Raw encoded identifier such as `HS00-0.4` when available."""
+    telemetry_type_raw: str = ""
+    """Original raw `nozzle_type` string from telemetry payloads."""
+
+    @classmethod
+    def from_telemetry(
+        cls,
+        nozzle_type: str | None,
+        nozzle_diameter: str | float | int | None,
+        nozzle_id: str | None = None,
+        flow_type: NozzleFlowType = NozzleFlowType.UNKNOWN,
+    ) -> Self:
+        """Build a `NozzleCharacteristics` instance from telemetry fields.
+
+        Parameters
+        ----------
+        nozzle_type : str | None
+            Raw nozzle type string (for example `hardened_steel`).
+        nozzle_diameter : str | float | int | None
+            Raw nozzle diameter value in millimeters.
+        nozzle_id : str | None
+            Optional encoded identifier (for example `HS00-0.4`).
+
+        Returns
+        -------
+        Self
+            Normalized nozzle characteristics instance.
+        """
+        material = parse_nozzle_type(nozzle_type)
+        diameter = float(nozzle_diameter) if nozzle_diameter is not None else 0.0
+
+        flow = flow_type
+
+        telemetry_type = (nozzle_type or "").strip()
+        if telemetry_type:
+            parsed_flow_from_type, parsed_material_from_type, _ = parse_nozzle_identifier(
+                telemetry_type
+            )
+            if parsed_flow_from_type != NozzleFlowType.UNKNOWN:
+                flow = parsed_flow_from_type
+            if (
+                material == NozzleType.UNKNOWN
+                and parsed_material_from_type != NozzleType.UNKNOWN
+            ):
+                material = parsed_material_from_type
+
+        encoded = (nozzle_id or "").strip()
+        if encoded:
+            parsed_flow, parsed_material, _ = parse_nozzle_identifier(encoded)
+            if parsed_flow != NozzleFlowType.UNKNOWN:
+                flow = parsed_flow
+            if material == NozzleType.UNKNOWN and parsed_material != NozzleType.UNKNOWN:
+                material = parsed_material
+
+        return cls(
+            material=material,
+            diameter_mm=diameter,
+            flow=flow,
+            encoded_id=encoded,
+            telemetry_type_raw=(nozzle_type or ""),
+        )
+
+    def to_identifier(self) -> str:
+        """Return the best available encoded nozzle identifier.
+
+        Returns the original `encoded_id` when present. Otherwise, it attempts
+        to build one from normalized material/flow/diameter values.
+        """
+        if self.encoded_id:
+            return self.encoded_id
+        if self.flow == NozzleFlowType.UNKNOWN:
+            return ""
+        return build_nozzle_identifier(self.flow, self.material, self.diameter_mm)
 
 
 @dataclass
@@ -57,6 +155,8 @@ class ExtruderState:
     """Filament status."""
     status: ExtruderStatus = ExtruderStatus.IDLE
     """Op state."""
+    nozzle: NozzleCharacteristics = field(default_factory=NozzleCharacteristics)
+    """Normalized nozzle characteristics."""
     active_tray_id: int = -1
     """The active tray for this extruder."""
     target_tray_id: int = -1
@@ -221,6 +321,7 @@ class BambuState:
         device = p.get("device", {})
 
         extruder_root = device.get("extruder", {})
+        nozzle_root = device.get("nozzle", {})
         ctc_root = device.get("ctc", {})
         airduct_root = device.get("airduct", {})
 
@@ -340,6 +441,13 @@ class BambuState:
         # EXTRUDERS
         new_extruders = []
         if "info" in extruder_root:
+            nozzle_by_id: dict[int, dict[str, Any]] = {}
+            nozzle_info = nozzle_root.get("info", [])
+            for nozzle_item in nozzle_info:
+                raw_nozzle_id = nozzle_item.get("id")
+                nozzle_id = int(raw_nozzle_id) & 0xFF
+                nozzle_by_id[nozzle_id] = nozzle_item
+
             for new_ext in extruder_root["info"]:
                 raw_t = int(new_ext.get("temp", 0))
                 act_t, tar_t = unpackTemperature(raw_t)
@@ -359,6 +467,30 @@ class BambuState:
                 ext.info_bits = int(new_ext.get("info", 0))
                 ext.state = parseExtruderInfo(ext.info_bits)
                 ext.status = parseExtruderStatus(int(new_ext.get("stat", 0)))
+
+                nozzle_id_key = int(new_ext.get("hnow", ext.id))
+                nozzle_info = nozzle_by_id.get(nozzle_id_key)
+                if nozzle_info is None:
+                    nozzle_info = nozzle_by_id.get(ext.id)
+
+                ext.nozzle = NozzleCharacteristics.from_telemetry(
+                    nozzle_type=(
+                        str(nozzle_info.get("type"))
+                        if nozzle_info is not None and nozzle_info.get("type") is not None
+                        else None
+                    ),
+                    nozzle_diameter=(
+                        nozzle_info.get("diameter")
+                        if nozzle_info is not None
+                        and nozzle_info.get("diameter") is not None
+                        else None
+                    ),
+                    nozzle_id=(
+                        str(nozzle_info.get("id"))
+                        if nozzle_info is not None and nozzle_info.get("id") is not None
+                        else None
+                    ),
+                )
 
                 ext.active_tray_id = parseExtruderTrayState(ext.id, hn, sn)
                 ext.target_tray_id = parseExtruderTrayState(ext.id, ht, st)
@@ -394,6 +526,29 @@ class BambuState:
                     ext.tray_state = base.active_tray_state
 
                 new_extruders.append(ext)
+        else:
+            ext = base.extruders[0] if base.extruders else ExtruderState()
+            ext.id = ActiveTool.SINGLE_EXTRUDER
+            ext.temp = float(p.get("nozzle_temper", base.active_nozzle_temp))
+            ext.temp_target = int(
+                p.get("nozzle_target_temper", base.active_nozzle_temp_target)
+            )
+            ext.state = ExtruderInfoState.NOT_AVAILABLE
+            ext.status = ExtruderStatus.NOT_AVAILABLE
+            ext.active_tray_id = base.active_tray_id
+            ext.target_tray_id = base.target_tray_id
+            ext.tray_state = base.active_tray_state
+            ext.nozzle = NozzleCharacteristics.from_telemetry(
+                nozzle_type=p.get(
+                    "nozzle_type",
+                    ext.nozzle.telemetry_type_raw,
+                ),
+                nozzle_diameter=p.get("nozzle_diameter", ext.nozzle.diameter_mm),
+                nozzle_id=p.get("nozzle_id", ext.nozzle.encoded_id),
+                flow_type=NozzleFlowType.STANDARD,
+            )
+            new_extruders.append(ext)
+
         updates["extruders"] = new_extruders if new_extruders else base.extruders
 
         # TOOL SELECTION

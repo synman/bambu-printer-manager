@@ -1945,8 +1945,9 @@ Details of the currently active job running on the printer, including progress, 
 | 0 | UNKNOWN | Unknown nozzle type |
 | 1 | STAINLESS_STEEL | Stainless steel nozzle |
 | 2 | HARDENED_STEEL | Hardened steel nozzle |
-| 3 | HS01 | HS01 family nozzle |
-| 4 | HH01 | HH01 family nozzle |
+| 3 | TUNGSTEN_CARBIDE | Tungsten carbide nozzle |
+| 4 | BRASS | Brass nozzle |
+| 5 | E3D | E3D nozzle |
 
 ### PlateType
 **Source**: `src/bpm/bambutools.py`

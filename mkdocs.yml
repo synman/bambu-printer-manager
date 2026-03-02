@@ -8,10 +8,10 @@ nav:
   - Data Dictionary: data-dictionary.md
   - MQTT & Integration:
     - Protocol Reference: mqtt-protocol-reference.md
+  - API Reference: api-reference.md
   - Code Reference: reference/
   - Client Container:
     - Overview: container.md
-    - API Reference: api-reference.md
   - License: license.md
 
 markdown_extensions:

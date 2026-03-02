@@ -24,6 +24,7 @@ This REST API provides complete control over Bambu Lab printers via HTTP request
 - [File Management](#file-management)
 - [Tool Control (Dual Extruder)](#tool-control-dual-extruder)
 - [AMS Control](#ams-control)
+- [Detection & Safety](#detection-safety)
 - [Advanced Settings](#advanced-settings)
 - [Telemetry & Data](#telemetry-data)
 - [System & Diagnostics](#system-diagnostics)
@@ -555,7 +556,7 @@ Set nozzle type and diameter.
 - `nozzle_diameter` (float, required): Nozzle diameter
   - Options: `0.2`, `0.4`, `0.6`, `0.8`
 - `nozzle_type` (string, required): Nozzle material type
-  - Options: `STAINLESS_STEEL`, `HARDENED_STEEL`, `HS01`, `HH01`
+  - Options: `STAINLESS_STEEL`, `HARDENED_STEEL`, `TUNGSTEN_CARBIDE`, `BRASS`, `E3D`
 
 **Example**: `/api/set_nozzle_details?nozzle_diameter=0.4&nozzle_type=HARDENED_STEEL`
 
@@ -565,7 +566,92 @@ Set nozzle type and diameter.
 
 ---
 
-## AMS Control
+## Detection & Safety
+
+### GET /api/set_buildplate_marker_detector
+
+Enable or disable the build plate marker detector.
+
+**Parameters**:
+- `enabled` (bool, required): `true` or `false`
+
+**Example**: `/api/set_buildplate_marker_detector?enabled=true`
+
+**Response**: `{"status": "success"}`
+
+---
+
+### GET /api/set_spaghetti_detector
+
+Enable or disable the spaghetti (first layer failure) detector.
+
+**Parameters**:
+- `enabled` (bool, required): `true` or `false`
+- `sensitivity` (string, optional, default=`medium`): Detection sensitivity
+  - Options: `low`, `medium`, `high`
+
+**Example**: `/api/set_spaghetti_detector?enabled=true&sensitivity=high`
+
+**Response**: `{"status": "success"}`
+
+---
+
+### GET /api/set_purgechutepileup_detector
+
+Enable or disable the purge chute pile-up detector.
+
+**Parameters**:
+- `enabled` (bool, required): `true` or `false`
+- `sensitivity` (string, optional, default=`medium`): Detection sensitivity
+  - Options: `low`, `medium`, `high`
+
+**Example**: `/api/set_purgechutepileup_detector?enabled=true&sensitivity=medium`
+
+**Response**: `{"status": "success"}`
+
+---
+
+### GET /api/set_nozzleclumping_detector
+
+Enable or disable the nozzle clumping detector.
+
+**Parameters**:
+- `enabled` (bool, required): `true` or `false`
+- `sensitivity` (string, optional, default=`medium`): Detection sensitivity
+  - Options: `low`, `medium`, `high`
+
+**Example**: `/api/set_nozzleclumping_detector?enabled=true&sensitivity=low`
+
+**Response**: `{"status": "success"}`
+
+---
+
+### GET /api/set_airprinting_detector
+
+Enable or disable the air printing detector.
+
+**Parameters**:
+- `enabled` (bool, required): `true` or `false`
+- `sensitivity` (string, optional, default=`medium`): Detection sensitivity
+  - Options: `low`, `medium`, `high`
+
+**Example**: `/api/set_airprinting_detector?enabled=true&sensitivity=medium`
+
+**Response**: `{"status": "success"}`
+
+---
+
+### GET /api/refresh_nozzles
+
+Trigger a nozzle state refresh on H2D/H2D Pro printers (multi-extruder). Causes the printer to push current nozzle info in its next `push_status` message.
+
+**Response**: `{"status": "success"}`
+
+**Note**: Only relevant for models with `support_refresh_nozzle` capability (H2D, H2D Pro)
+
+---
+
+
 
 ### GET /api/send_ams_control_command
 
@@ -734,7 +820,7 @@ Zoom out on telemetry chart (show more historical data).
 
 ---
 
-### GET /api/dump_data_collections
+### GET /api/dump_data_ds.collections
 
 Dump all internal data collections (debugging).
 
@@ -993,6 +1079,7 @@ For comprehensive documentation of all data structures, attributes, and telemetr
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.2 | 2026-03-02 | Added Detection & Safety section (buildplate, spaghetti, purgechute, nozzleclumping, airprinting detectors, refresh_nozzles); fixed dump_data_ds.collections route name |
 | 1.1 | 2026-02-25 | Updated reference implementations; added comprehensive external sources |
 | 1.0 | 2026-02-23 | Initial REST API reference documentation |
 

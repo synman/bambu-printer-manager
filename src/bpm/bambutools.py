@@ -140,6 +140,7 @@ class ExtruderInfoState(IntEnum):
     EMPTY = 1
     BUFFER_LOADED = 2
     LOADED = 3
+    NOT_AVAILABLE = 4
 
 
 class ExtruderStatus(IntEnum):
@@ -152,6 +153,7 @@ class ExtruderStatus(IntEnum):
     HEATING = 1
     ACTIVE = 2
     SUCCESS = 3
+    NOT_AVAILABLE = 4
 
 
 class NozzleDiameter(Enum):
@@ -168,14 +170,186 @@ class NozzleDiameter(Enum):
 
 class NozzleType(Enum):
     """
-    Nozzle Type enum
+    Canonical cross-model nozzle material type from telemetry.
+
+    This enum intentionally models only material/type categories that appear in
+    telemetry and accessory APIs. Encoded variant identifiers such as `HS01`
+    are parsed via `parse_nozzle_identifier()` / `parse_nozzle_type()`.
     """
 
     UNKNOWN = 0
     STAINLESS_STEEL = 1
     HARDENED_STEEL = 2
-    HS01 = 3
-    HH01 = 4
+    TUNGSTEN_CARBIDE = 3
+    BRASS = 4
+    E3D = 5
+
+
+class NozzleFlowType(Enum):
+    """
+    Canonical nozzle flow families used by BambuStudio/Orca nozzle identifiers.
+
+    Encoded as the second character in identifiers such as `HS00-0.4`.
+    """
+
+    UNKNOWN = "?"
+    STANDARD = "S"
+    HIGH_FLOW = "H"
+    TPU_HIGH_FLOW = "U"
+
+
+class NozzleMaterialCode(Enum):
+    """
+    Canonical material codes used in encoded nozzle identifiers.
+
+    Encoded as characters 3-4 in identifiers such as `HS00-0.4`.
+    """
+
+    UNKNOWN = "??"
+    STAINLESS_STEEL = "00"
+    HARDENED_STEEL = "01"
+    TUNGSTEN_CARBIDE = "05"
+
+
+_FLOW_CODE_TO_TYPE: dict[str, NozzleFlowType] = {
+    "S": NozzleFlowType.STANDARD,
+    "H": NozzleFlowType.HIGH_FLOW,
+    "U": NozzleFlowType.TPU_HIGH_FLOW,
+    "A": NozzleFlowType.STANDARD,
+    "X": NozzleFlowType.STANDARD,
+    "E": NozzleFlowType.HIGH_FLOW,
+}
+
+_TYPE_TO_MATERIAL_CODE: dict[NozzleType, NozzleMaterialCode] = {
+    NozzleType.STAINLESS_STEEL: NozzleMaterialCode.STAINLESS_STEEL,
+    NozzleType.HARDENED_STEEL: NozzleMaterialCode.HARDENED_STEEL,
+    NozzleType.TUNGSTEN_CARBIDE: NozzleMaterialCode.TUNGSTEN_CARBIDE,
+}
+
+_MATERIAL_CODE_TO_TYPE: dict[str, NozzleType] = {
+    NozzleMaterialCode.STAINLESS_STEEL.value: NozzleType.STAINLESS_STEEL,
+    NozzleMaterialCode.HARDENED_STEEL.value: NozzleType.HARDENED_STEEL,
+    NozzleMaterialCode.TUNGSTEN_CARBIDE.value: NozzleType.TUNGSTEN_CARBIDE,
+}
+
+_NOZZLE_TYPE_TELEMETRY_TO_ENUM: dict[str, NozzleType] = {
+    "stainless_steel": NozzleType.STAINLESS_STEEL,
+    "hardened_steel": NozzleType.HARDENED_STEEL,
+    "tungsten_carbide": NozzleType.TUNGSTEN_CARBIDE,
+    "brass": NozzleType.BRASS,
+    "e3d": NozzleType.E3D,
+}
+
+_NOZZLE_TYPE_ENUM_TO_TELEMETRY: dict[NozzleType, str] = {
+    NozzleType.STAINLESS_STEEL: "stainless_steel",
+    NozzleType.HARDENED_STEEL: "hardened_steel",
+    NozzleType.TUNGSTEN_CARBIDE: "tungsten_carbide",
+    NozzleType.BRASS: "brass",
+    NozzleType.E3D: "E3D",
+}
+
+
+def parse_nozzle_identifier(nozzle_id: str) -> tuple[NozzleFlowType, NozzleType, str]:
+    """
+    Parse a Bambu-style nozzle identifier into flow family, material, and diameter.
+
+    Supported encoded formats include values such as `HS00-0.4`, `HH01-0.6`,
+    and `HU00-0.4`.
+
+    Returns
+    -------
+    tuple[NozzleFlowType, NozzleType, str]
+        A tuple of `(flow_type, nozzle_type, diameter)`.
+        Unknown/unsupported parts are returned as `UNKNOWN` enum values.
+    """
+
+    if not nozzle_id:
+        return (NozzleFlowType.UNKNOWN, NozzleType.UNKNOWN, "")
+
+    clean = nozzle_id.strip()
+    if "-" in clean:
+        encoded, diameter = clean.split("-", 1)
+    else:
+        encoded, diameter = clean, ""
+
+    if len(encoded) < 4:
+        return (NozzleFlowType.UNKNOWN, NozzleType.UNKNOWN, diameter)
+
+    flow = _FLOW_CODE_TO_TYPE.get(encoded[1], NozzleFlowType.UNKNOWN)
+    material_code = encoded[2:4]
+    nozzle_type = _MATERIAL_CODE_TO_TYPE.get(material_code, NozzleType.UNKNOWN)
+
+    return (flow, nozzle_type, diameter)
+
+
+def build_nozzle_identifier(
+    flow_type: NozzleFlowType, nozzle_type: NozzleType, diameter: float | str
+) -> str:
+    """
+    Build a canonical Bambu-style nozzle identifier.
+
+    Examples
+    --------
+    `HS00-0.4`, `HH01-0.6`, `HU00-0.4`
+    """
+
+    material = _TYPE_TO_MATERIAL_CODE.get(nozzle_type)
+    if material is None:
+        raise ValueError(f"Unsupported nozzle_type for encoded ID: {nozzle_type}")
+
+    if flow_type not in {
+        NozzleFlowType.STANDARD,
+        NozzleFlowType.HIGH_FLOW,
+        NozzleFlowType.TPU_HIGH_FLOW,
+    }:
+        raise ValueError(f"Unsupported flow_type for encoded ID: {flow_type}")
+
+    if isinstance(diameter, float):
+        diameter_str = f"{diameter:.1f}"
+    else:
+        diameter_str = str(diameter)
+
+    return f"H{flow_type.value}{material.value}-{diameter_str}"
+
+
+def parse_nozzle_type(value: str | None) -> NozzleType:
+    """
+    Resolve a nozzle type from cross-model telemetry strings or encoded IDs.
+
+    Supports direct telemetry values (for example `hardened_steel`) and encoded
+    forms (for example `HH01-0.4`, `HS00`, `HU05`).
+    """
+
+    if value is None:
+        return NozzleType.UNKNOWN
+
+    clean = value.strip()
+    if not clean:
+        return NozzleType.UNKNOWN
+
+    telemetry_key = clean.lower()
+    if telemetry_key in _NOZZLE_TYPE_TELEMETRY_TO_ENUM:
+        return _NOZZLE_TYPE_TELEMETRY_TO_ENUM[telemetry_key]
+
+    if clean in _MATERIAL_CODE_TO_TYPE:
+        return _MATERIAL_CODE_TO_TYPE[clean]
+
+    _, nozzle_type, _ = parse_nozzle_identifier(clean)
+    if nozzle_type != NozzleType.UNKNOWN:
+        return nozzle_type
+
+    try:
+        return NozzleType[clean.upper()]
+    except (KeyError, ValueError):
+        return NozzleType.UNKNOWN
+
+
+def nozzle_type_to_telemetry(value: NozzleType) -> str:
+    """
+    Convert canonical `NozzleType` to telemetry/API string.
+    """
+
+    return _NOZZLE_TYPE_ENUM_TO_TELEMETRY.get(value, "unknown")
 
 
 class PlateType(Enum):
@@ -552,19 +726,17 @@ def parseExtruderStatus(stat_int: int) -> ExtruderStatus:
 
 
 @staticmethod
-def parseExtruderTrayState(extruder: int, idx, status) -> int:
+def parseExtruderTrayState(extruder: int, hotend, slot) -> int:
     if (
-        idx == 254
-        or (extruder == 0 and status == 65280)
-        or (extruder == 1 and status == 65024)
+        hotend == 254
+        or (extruder == 0 and slot == 65280)
+        or (extruder == 1 and slot == 65024)
     ):
         return 255 - extruder
-    if (extruder == 0 and status & 0xFF == 255) or (
-        extruder == 1 and status & 0xFE == 255
-    ):
+    if (extruder == 0 and slot & 0xFF == 255) or (extruder == 1 and slot & 0xFE == 255):
         return -1
     else:
-        return status & 0xFF
+        return slot & 0xFF
 
 
 @staticmethod
