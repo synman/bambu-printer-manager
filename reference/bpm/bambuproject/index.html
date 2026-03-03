@@ -2909,12 +2909,12 @@ internal entries to populate this object:</p>
     <code>filament</code> — using the BambuStudio / OrcaSlicer <code>DevMapping.cpp</code> encoding.
     Serialise this list to a JSON string and pass it to
     <code>BambuPrinter.print_3mf_file</code>'s <code>ams_mapping</code> parameter.</p>
-<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span class="linenos" data-linenos="1 "></span>| Value  | Meaning                                                       |
-<span class="linenos" data-linenos="2 "></span>|--------|---------------------------------------------------------------|
-<span class="linenos" data-linenos="3 "></span>| `&quot;0&quot;`–`&quot;103&quot;` | Standard 4-slot AMS: `tray_id = ams_id * 4 + slot_id` |
-<span class="linenos" data-linenos="4 "></span>| `&quot;128&quot;`–`&quot;135&quot;` | Single-slot AMS HT / N3S: `tray_id = ams_id`        |
-<span class="linenos" data-linenos="5 "></span>| `&quot;254&quot;` | External spool                                               |
-<span class="linenos" data-linenos="6 "></span>| `&quot;-1&quot;` | Filament not mapped to any AMS slot (unmapped)               |
+<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span class="linenos" data-linenos="1 "></span>| Value    | Meaning                                                    |
+<span class="linenos" data-linenos="2 "></span>|----------|------------------------------------------------------------|
+<span class="linenos" data-linenos="3 "></span>| `0–103`  | Standard 4-slot AMS: `ams_id * 4 + slot_id`               |
+<span class="linenos" data-linenos="4 "></span>| `128–135`| Single-slot AMS HT / N3S: `ams_id` (starts at 128)        |
+<span class="linenos" data-linenos="5 "></span>| `254`    | External spool                                             |
+<span class="linenos" data-linenos="6 "></span>| `-1`     | Unmapped — filament not assigned to any AMS slot           |
 </code></pre></div>
 
     </div>
