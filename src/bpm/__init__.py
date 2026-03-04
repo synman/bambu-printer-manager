@@ -1,5 +1,6 @@
 from . import bambucommands as bambucommands
 from . import bambuconfig as bambuconfig
+from . import bambudiscovery as bambudiscovery
 from . import bambuprinter as bambuprinter
 from . import bambuproject as bambuproject
 from . import bambuspool as bambuspool

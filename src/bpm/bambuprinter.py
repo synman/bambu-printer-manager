@@ -12,7 +12,6 @@ import ssl
 import threading
 import time
 import traceback
-from threading import Thread
 from typing import Any
 
 import paho.mqtt.client as mqtt
@@ -55,7 +54,6 @@ from bpm.bambutools import (
     AMSControlCommand,
     AMSUserSetting,
     DetectorSensitivity,
-    jsonSerializer,
     LoggerName,
     NozzleDiameter,
     NozzleType,
@@ -64,6 +62,7 @@ from bpm.bambutools import (
     PrintOption,
     ServiceState,
     getPrinterSeriesByModel,
+    jsonSerializer,
     nozzle_type_to_telemetry,
     parse_nozzle_type,
     parseStage,
@@ -1629,24 +1628,10 @@ class BambuPrinter:
         Returns a `dict` (json document) representing this object's private class
         level attributes that are serializable (most are).
         """
-        response = json.dumps(self, default=self.jsonSerializer, indent=4, sort_keys=True)
+        response = json.dumps(self, default=jsonSerializer, indent=4, sort_keys=True)
         # logger.debug(f"toJson - json: [{response}]")
 
         return json.loads(response)
-
-    def jsonSerializer(self, obj):
-        """
-        Helper method used by `toJson()` to serialize this object.
-        """
-        try:
-            if isinstance(obj, mqtt.Client) or isinstance(obj, Thread):
-                return ""
-            return jsonSerializer(obj)
-        except Exception as e:
-            logger.warning(
-                f"jsonSerializer - unable to serialize object - 'obj': [{obj}] - [{e}]"
-            )
-            return ""
 
     # endregion
 

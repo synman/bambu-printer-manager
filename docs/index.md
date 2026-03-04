@@ -103,10 +103,26 @@ ACCESS_CODES = {
 }
 
 printers = []
+update_counts = {}  # serial_number -> int
+lock = threading.Lock()
 done = threading.Event()
+discovery_complete = False
+
+def _check_done():
+    """Call with lock held. Sets done if discovery is over and all printers have 4 updates."""
+    if discovery_complete and all(update_counts.get(q.config.serial_number, 0) >= 4 for q in printers):
+        done.set()
 
 def on_update(p):
-    print(f"[{p.config.hostname}] gcode_state: {p.printer_state.gcode_state}")
+    with lock:
+        serial = p.config.serial_number
+        update_counts[serial] = update_counts.get(serial, 0) + 1
+        count = update_counts[serial]
+
+    if count == 4:
+        print(f"[{p.config.hostname}] gcode_state: {p.printer_state.gcode_state}")
+        with lock:
+            _check_done()
 
 def on_printer_discovered(discovered):
     access_code = ACCESS_CODES.get(discovered.usn)
@@ -120,13 +136,18 @@ def on_printer_discovered(discovered):
     )
     p = BambuPrinter(config=config)
     p.on_update = on_update
-    printers.append(p)
+    with lock:
+        printers.append(p)
+        update_counts[discovered.usn] = 0
     p.start_session()
 
 def on_discovery_ended(discovered_printers):
+    global discovery_complete
     if not discovered_printers:
-        print("No Bambu Lab printer discovered on the network.")
-    done.set()
+        print("No Bambu Lab printers on the network.")
+    with lock:
+        discovery_complete = True
+        _check_done()
 
 discovery = BambuDiscovery(
     on_printer_discovered=on_printer_discovered,

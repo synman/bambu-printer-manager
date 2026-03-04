@@ -1,20 +1,20 @@
 """
 Hosts the discovery service which provides a wrapper for reading and parsing the Bambu Lab Discovery (SSDP) protocol.
 """
+
 import json
 import threading
 import time
 from dataclasses import dataclass
-from socket import AF_INET, SOCK_DGRAM, socket, timeout
+from socket import AF_INET, SOCK_DGRAM, socket
 
 from bpm.bambutools import PrinterModel, getPrinterModelBySerial, jsonSerializer
-
-
 
 
 @dataclass
 class DiscoveredPrinter:
     """Represents a parsed SSDP response from a Bambu Lab printer."""
+
     usn: str
     """The unique service name, typically the printer serial number."""
     host: str = ""
@@ -49,53 +49,58 @@ class DiscoveredPrinter:
     """The device capabilities flag (e.g., 1)."""
 
     @classmethod
-    def fromData(cls, data: str) -> 'DiscoveredPrinter':
+    def fromData(cls, data: str) -> "DiscoveredPrinter":
         """Parse SSDP data string into a  DiscoveredPrinter instance."""
-        lines = data.strip().split('\n')
+        lines = data.strip().split("\n")
         parsed = {}
         for line in lines:
-            if ':' in line:
-                key, value = line.split(':', 1)
+            if ":" in line:
+                key, value = line.split(":", 1)
                 key = key.strip().lower()
                 value = value.strip()
-                if key == 'host':
-                    parsed['host'] = value
-                elif key == 'server':
-                    parsed['server'] = value
-                elif key == 'location':
-                    parsed['location'] = value
-                elif key == 'nt':
-                    parsed['nt'] = value
-                elif key == 'nts':
-                    parsed['nts'] = value
-                elif key == 'usn':
-                    parsed['usn'] = value
-                    parsed['decoded_model'] = getPrinterModelBySerial(value)
-                elif key == 'cache-control':
-                    parsed['cache_control'] = value
-                elif key == 'devmodel.bambu.com':
-                    parsed['dev_model'] = value
-                elif key == 'devname.bambu.com':
-                    parsed['dev_name'] = value
-                elif key == 'devconnect.bambu.com':
-                    parsed['dev_connect'] = value
-                elif key == 'devbind.bambu.com':
-                    parsed['dev_bind'] = value
-                elif key == 'devseclink.bambu.com':
-                    parsed['dev_seclink'] = value
-                elif key == 'devinf.bambu.com':
-                    parsed['dev_inf'] = value
-                elif key == 'devversion.bambu.com':
-                    parsed['dev_version'] = value
-                elif key == 'devcap.bambu.com':
-                    parsed['dev_cap'] = value
+                if key == "host":
+                    parsed["host"] = value
+                elif key == "server":
+                    parsed["server"] = value
+                elif key == "location":
+                    parsed["location"] = value
+                elif key == "nt":
+                    parsed["nt"] = value
+                elif key == "nts":
+                    parsed["nts"] = value
+                elif key == "usn":
+                    parsed["usn"] = value
+                    parsed["decoded_model"] = getPrinterModelBySerial(value)
+                elif key == "cache-control":
+                    parsed["cache_control"] = value
+                elif key == "devmodel.bambu.com":
+                    parsed["dev_model"] = value
+                elif key == "devname.bambu.com":
+                    parsed["dev_name"] = value
+                elif key == "devconnect.bambu.com":
+                    parsed["dev_connect"] = value
+                elif key == "devbind.bambu.com":
+                    parsed["dev_bind"] = value
+                elif key == "devseclink.bambu.com":
+                    parsed["dev_seclink"] = value
+                elif key == "devinf.bambu.com":
+                    parsed["dev_inf"] = value
+                elif key == "devversion.bambu.com":
+                    parsed["dev_version"] = value
+                elif key == "devcap.bambu.com":
+                    parsed["dev_cap"] = value
         return cls(**parsed)
 
 
 class BambuDiscovery:
     """Manages the SSDP discovery thread for Bambu Lab printers."""
 
-    def __init__(self, on_printer_discovered = None, on_discovery_ended = None, discovery_timeout: int = 15):
+    def __init__(
+        self,
+        on_printer_discovered=None,
+        on_discovery_ended=None,
+        discovery_timeout: int = 15,
+    ):
         self.discovery_timeout = discovery_timeout
         self._thread = None
         self._timer = None
@@ -108,7 +113,9 @@ class BambuDiscovery:
         """Start the discovery thread."""
         if self._thread is None or not self._thread.is_alive():
             self._running = True
-            self._thread = threading.Thread(target=self._discovery_thread, name="bpm-discovery-thread")
+            self._thread = threading.Thread(
+                target=self._discovery_thread, name="bpm-discovery-thread"
+            )
             self._thread.start()
             self._timer = threading.Timer(self.discovery_timeout, self._stop_on_timeout)
             self._timer.start()
@@ -143,7 +150,7 @@ class BambuDiscovery:
 
     def _discovery_thread(self):
         with socket(AF_INET, SOCK_DGRAM) as sock:
-            sock.bind(('', 2021))
+            sock.bind(("", 2021))
             sock.settimeout(1.0)
             while self._running:
                 try:
@@ -158,17 +165,25 @@ class BambuDiscovery:
                     except TypeError:
                         # Skip malformed SSDP messages missing required fields
                         pass
-                except timeout:
+                except TimeoutError:
                     continue
 
+
 if __name__ == "__main__":
+
     def _on_printer_discovered(printer):
-        print(f"Discovered printer: {printer.dev_name} at {printer.location} with USN {printer.usn}")
+        print(
+            f"Discovered printer: {printer.dev_name} at {printer.location} with USN {printer.usn}"
+        )
+
     def _on_discovery_ended(printers):
         print("\r\nDiscovered printers:\r\n")
         print(json.dumps(printers, default=jsonSerializer, indent=2))
 
-    discovery = BambuDiscovery(on_printer_discovered=_on_printer_discovered, on_discovery_ended=_on_discovery_ended)
+    discovery = BambuDiscovery(
+        on_printer_discovered=_on_printer_discovered,
+        on_discovery_ended=_on_discovery_ended,
+    )
     discovery.start()
     try:
         while discovery._running:

@@ -6,6 +6,7 @@ import hashlib
 import logging
 from enum import Enum, IntEnum
 from pathlib import Path
+from threading import Thread
 from typing import Any
 
 from bpm.bambucommands import HMS_STATUS
@@ -919,9 +920,14 @@ def jsonSerializer(obj: Any) -> Any:
     Module-level JSON serializer for use with `json.dumps(default=jsonSerializer)`.
 
     Handles dataclasses, objects with `__dict__`, and falls back to `str()`.
-    Skips `mappingproxy` instances that cannot be serialized meaningfully.
+    Skips MQTT clients, threads, and `mappingproxy` instances that cannot be
+    serialized meaningfully.
     """
     try:
+        if isinstance(obj, Thread):
+            return ""
+        if getattr(obj.__class__, "__module__", "").startswith("paho.mqtt"):
+            return ""
         if str(obj.__class__).replace("<class '", "").replace("'>", "") == "mappingproxy":
             return ""
         return getattr(obj, "__dict__", str(obj))
