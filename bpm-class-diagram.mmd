@@ -1,0 +1,530 @@
+---
+title: bambu-printer-manager Class Diagram
+---
+classDiagram
+    direction TB
+
+    %% ─── bambuconfig ───────────────────────────────────────────────
+    class PrinterCapabilities {
+        +bool has_ams
+        +bool has_lidar
+        +bool has_camera
+        +bool has_dual_extruder
+        +bool has_air_filtration
+        +bool has_chamber_temp
+        +bool has_chamber_door_sensor
+        +bool has_sound_enable_support
+        +bool has_auto_recovery_support
+        +bool has_auto_switch_filament_support
+        +bool has_filament_tangle_detect_support
+        +bool has_nozzle_blob_detect_support
+        +bool has_air_print_detect_support
+        +bool has_buildplate_marker_detector_support
+        +bool has_spaghetti_detector_support
+        +bool has_purgechutepileup_detector_support
+        +bool has_nozzleclumping_detector_support
+        +bool has_airprinting_detector_support
+    }
+
+    class BambuConfig {
+        +str hostname
+        +str access_code
+        +str serial_number
+        +int mqtt_port
+        +str mqtt_client_id
+        +str mqtt_username
+        +int watchdog_timeout
+        +bool external_chamber
+        +PrinterCapabilities capabilities
+        +Path bpm_cache_path
+        +PrinterModel printer_model
+        +str firmware_version
+        +str ams_firmware_version
+        +bool auto_recovery
+        +bool filament_tangle_detect
+        +bool sound_enable
+        +bool auto_switch_filament
+        +bool startup_read_option
+        +bool tray_read_option
+        +bool calibrate_remain_flag
+        +bool buildplate_marker_detector
+        +bool spaghetti_detector
+        +str spaghetti_detector_sensitivity
+        +bool purgechutepileup_detector
+        +str purgechutepileup_detector_sensitivity
+        +bool nozzleclumping_detector
+        +str nozzleclumping_detector_sensitivity
+        +bool airprinting_detector
+        +str airprinting_detector_sensitivity
+        +bool nozzle_blob_detect
+        +bool air_print_detect
+        +bool verbose
+        +set_new_bpm_cache_path(path)
+    }
+
+    %% ─── bambustate ────────────────────────────────────────────────
+    class NozzleCharacteristics {
+        <<frozen dataclass>>
+        +NozzleType material
+        +float diameter_mm
+        +NozzleFlowType flow
+        +str encoded_id
+        +str telemetry_type_raw
+    }
+
+    class ExtruderState {
+        +int id
+        +float temp
+        +int temp_target
+        +int info_bits
+        +ExtruderInfoState state
+        +ExtruderStatus status
+        +NozzleCharacteristics nozzle
+        +int active_tray_id
+        +int target_tray_id
+        +TrayState tray_state
+        +int assigned_to_ams_id
+    }
+
+    class AMSUnitState {
+        +int ams_id
+        +str chip_id
+        +AMSModel model
+        +float temp_actual
+        +int temp_target
+        +int humidity_index
+        +int humidity_raw
+        +int ams_info
+        +AMSHeatingState heater_state
+        +AMSDrySubStatus dry_sub_status
+        +int dry_time
+        +list~bool~ tray_exists
+        +ActiveTool assigned_to_extruder
+    }
+
+    class BambuClimate {
+        +float bed_temp
+        +int bed_temp_target
+        +int airduct_mode
+        +int airduct_sub_mode
+        +float chamber_temp
+        +int chamber_temp_target
+        +AirConditioningMode air_conditioning_mode
+        +int part_cooling_fan_speed_percent
+        +int part_cooling_fan_speed_target_percent
+        +int aux_fan_speed_percent
+        +int exhaust_fan_speed_percent
+        +int heatbreak_fan_speed_percent
+        +bool zone_intake_open
+        +int zone_part_fan_percent
+        +int zone_aux_percent
+        +int zone_exhaust_percent
+        +bool zone_top_vent_open
+        +bool is_chamber_door_open
+        +bool is_chamber_lid_open
+    }
+
+    class BambuState {
+        +str gcode_state
+        +int active_ams_id
+        +int active_tray_id
+        +TrayState active_tray_state
+        +str active_tray_state_name
+        +int target_tray_id
+        +ActiveTool active_tool
+        +bool is_external_spool_active
+        +float active_nozzle_temp
+        +int active_nozzle_temp_target
+        +NozzleCharacteristics active_nozzle
+        +int ams_status_raw
+        +str ams_status_text
+        +int ams_exist_bits
+        +int ams_connected_count
+        +list~AMSUnitState~ ams_units
+        +list~ExtruderState~ extruders
+        +list~BambuSpool~ spools
+        +int print_error
+        +list~dict~ hms_errors
+        +str wifi_signal_strength
+        +BambuClimate climate
+        +str stat
+        +str fun
+    }
+
+    %% ─── bambuspool ─────────────────────────────────────────────────
+    class BambuSpool {
+        +int id
+        +str name
+        +str type
+        +str sub_brands
+        +str color
+        +str tray_info_idx
+        +float k
+        +int bed_temp
+        +int nozzle_temp_min
+        +int nozzle_temp_max
+        +int drying_temp
+        +int drying_time
+        +int remaining_percent
+        +int state
+        +int total_length
+        +int tray_weight
+        +int slot_id
+        +int ams_id
+    }
+
+    %% ─── bambuproject ───────────────────────────────────────────────
+    class ProjectInfo {
+        +str id
+        +str name
+        +int size
+        +int timestamp
+        +str md5
+        +int plate_num
+        +dict metadata
+        +list~int~ plates
+    }
+
+    class ActiveJobInfo {
+        +ProjectInfo project_info
+        +dict project_file_command
+        +int stage_id
+        +str stage_name
+        +int current_layer
+        +int total_layers
+        +int print_percentage
+        +int elapsed_minutes
+        +int remaining_minutes
+        +float monotonic_start_time
+        +str subtask_name
+        +str gcode_file
+        +str print_type
+        +int plate_num
+        +PlateType plate_type
+        +bool project_info_fetch_attempted
+    }
+
+    %% ─── bambuprinter ───────────────────────────────────────────────
+    class BambuPrinter {
+        -BambuConfig _config
+        -BambuState _printer_state
+        -ActiveJobInfo _active_job_info
+        -ServiceState _service_state
+        +start_session()
+        +pause_session()
+        +resume_session()
+        +quit()
+        +refresh()
+        +set_bed_temp_target(value)
+        +set_nozzle_temp_target(value, tool_num)
+        +set_chamber_temp(value)
+        +set_chamber_temp_target(value, temper_check)
+        +set_part_cooling_fan_speed_target_percent(value)
+        +set_aux_fan_speed_target_percent(value)
+        +set_exhaust_fan_speed_target_percent(value)
+        +unload_filament(ams_id)
+        +load_filament(slot_id, ams_id)
+        +send_gcode(gcode)
+        +print_3mf_file(...)
+        +stop_printing()
+        +pause_printing()
+        +resume_printing()
+        +get_sdcard_3mf_files()
+        +get_sdcard_contents()
+        +delete_sdcard_file(file)
+        +delete_sdcard_folder(path)
+        +upload_sdcard_file(src, dest)
+        +download_sdcard_file(src, dest)
+        +make_sdcard_directory(dir)
+        +rename_sdcard_file(src, dest)
+        +sdcard_file_exists(path)
+        +set_print_option(option, enabled)
+        +set_ams_user_setting(...)
+        +set_spool_k_factor(...)
+        +set_spool_details(...)
+        +send_ams_control_command(cmd)
+        +skip_objects(objects)
+        +set_buildplate_marker_detector(enabled)
+        +set_spaghetti_detector(enabled, sensitivity)
+        +set_purgechutepileup_detector(enabled, sensitivity)
+        +set_nozzleclumping_detector(enabled, sensitivity)
+        +set_airprinting_detector(enabled, sensitivity)
+        +set_nozzle_details(...)
+        +refresh_nozzles()
+        +send_anything(anything)
+        +turn_on_ams_dryer(...)
+        +turn_off_ams_dryer(ams_id)
+        +set_active_tool(id)
+        +refresh_spool_rfid(slot_id, ams_id)
+        +get_current_bind_list(state)
+        +select_extrusion_calibration_profile(tray_id, cali_idx)
+        +toJson()
+        +config() BambuConfig
+        +service_state() ServiceState
+        +printer_state() BambuState
+        +active_job_info() ActiveJobInfo
+        +light_state() bool
+        +speed_level() str
+        +nozzle_diameter() NozzleDiameter
+        +nozzle_type() NozzleType
+        +recent_update() bool
+        +cached_sd_card_contents()
+        +cached_sd_card_3mf_files()
+        +skipped_objects()
+    }
+
+    %% ─── ftpsclient ─────────────────────────────────────────────────
+    class FtpListItem {
+        +str name
+        +int size
+        +str timestamp
+    }
+
+    class ImplicitTLS {
+        <<internal>>
+        +ntransfercmd(cmd, rest)
+    }
+
+    class IoTFTPSClient {
+        +str hostname
+        +str access_code
+        +int port
+        +instantiate_ftps_session()
+        +disconnect()
+        +download_file(source, dest)
+        +upload_file(source, dest, callback)
+        +delete_file(path)
+        +delete_folder(path)
+        +move_file(source, dest)
+        +mkdir(path)
+        +fexists(path)
+        +list_files(path)
+        +list_files_ex(path)
+    }
+
+    %% ─── bambutools enums ───────────────────────────────────────────
+    class ActiveTool {
+        <<enumeration>>
+        SINGLE_EXTRUDER = -1
+        RIGHT_EXTRUDER = 0
+        LEFT_EXTRUDER = 1
+        NOT_ACTIVE = 15
+    }
+
+    class ServiceState {
+        <<enumeration>>
+        NO_STATE = 0
+        CONNECTED = 1
+        DISCONNECTED = 2
+        PAUSED = 3
+        QUIT = 4
+    }
+
+    class TrayState {
+        <<enumeration>>
+        UNLOADED = 0
+        LOADED = 1
+        LOADING = 2
+        UNLOADING = 3
+    }
+
+    class PrinterModel {
+        <<enumeration>>
+        UNKNOWN
+        X1C
+        X1
+        X1E
+        P1P
+        P1S
+        A1_MINI
+        A1
+        P2S
+        H2S
+        H2D
+    }
+
+    class PrinterSeries {
+        <<enumeration>>
+        UNKNOWN
+        X1
+        P1
+        A1
+        P2
+        H2
+    }
+
+    class AMSModel {
+        <<enumeration>>
+        UNKNOWN = 0
+        AMS_1 = 1
+        AMS_LITE = 2
+        AMS_2_PRO = 3
+        AMS_HT = 4
+    }
+
+    class AMSSeries {
+        <<enumeration>>
+        UNKNOWN = 0
+        GEN_1 = 1
+        GEN_2 = 2
+    }
+
+    class AMSHeatingState {
+        <<enumeration>>
+        OFF = 0
+        CHECKING = 1
+        DRYING = 2
+        COOLING = 3
+        STOPPING = 4
+        ERROR = 5
+        CANNOT_STOP_HEAT_OOC = 6
+        PRODUCT_TEST = 7
+    }
+
+    class AMSDrySubStatus {
+        <<enumeration>>
+        OFF = 0
+        HEATING = 1
+        DEHUMIDIFY = 2
+    }
+
+    class AMSControlCommand {
+        <<enumeration>>
+        PAUSE = 0
+        RESUME = 1
+        RESET = 2
+    }
+
+    class AMSUserSetting {
+        <<enumeration>>
+        CALIBRATE_REMAIN_FLAG = 0
+        STARTUP_READ_OPTION = 1
+        TRAY_READ_OPTION = 2
+    }
+
+    class NozzleType {
+        <<enumeration>>
+        UNKNOWN = 0
+        STAINLESS_STEEL = 1
+        HARDENED_STEEL = 2
+        TUNGSTEN_CARBIDE = 3
+        BRASS = 4
+        E3D = 5
+    }
+
+    class NozzleFlowType {
+        <<enumeration>>
+        UNKNOWN
+        STANDARD
+        HIGH_FLOW
+        TPU_HIGH_FLOW
+    }
+
+    class NozzleDiameter {
+        <<enumeration>>
+        UNKNOWN
+        POINT_TWO_MM
+        POINT_FOUR_MM
+        POINT_SIX_MM
+        POINT_EIGHT_MM
+    }
+
+    class PlateType {
+        <<enumeration>>
+        AUTO = 0
+        COOL_PLATE = 1
+        ENG_PLATE = 2
+        HOT_PLATE = 3
+        TEXTURED_PLATE = 4
+        NONE = 999
+    }
+
+    class PrintOption {
+        <<enumeration>>
+        AUTO_RECOVERY = 0
+        FILAMENT_TANGLE_DETECT = 1
+        SOUND_ENABLE = 2
+        AUTO_SWITCH_FILAMENT = 3
+        NOZZLE_BLOB_DETECT = 4
+        AIR_PRINT_DETECT = 5
+    }
+
+    class ExtruderInfoState {
+        <<enumeration>>
+        NO_NOZZLE = 0
+        EMPTY = 1
+        BUFFER_LOADED = 2
+        LOADED = 3
+        NOT_AVAILABLE = 4
+    }
+
+    class ExtruderStatus {
+        <<enumeration>>
+        IDLE = 0
+        HEATING = 1
+        ACTIVE = 2
+        SUCCESS = 3
+        NOT_AVAILABLE = 4
+    }
+
+    class AirConditioningMode {
+        <<enumeration>>
+        NOT_SUPPORTED = -1
+        COOL_MODE = 0
+        HEAT_MODE = 1
+    }
+
+    %% ─── Relationships ──────────────────────────────────────────────
+
+    %% BambuPrinter owns/uses
+    BambuPrinter "1" *-- "1" BambuConfig : has
+    BambuPrinter "1" *-- "1" BambuState : has
+    BambuPrinter "1" *-- "1" ActiveJobInfo : has
+    BambuPrinter ..> IoTFTPSClient : uses (FTP ops)
+    BambuPrinter ..> ServiceState : uses
+
+    %% BambuConfig composes
+    BambuConfig "1" *-- "1" PrinterCapabilities : has
+    BambuConfig ..> PrinterModel : uses
+    BambuConfig ..> PrinterSeries : uses
+
+    %% BambuState composes
+    BambuState "1" *-- "1" BambuClimate : has
+    BambuState "1" *-- "1" NozzleCharacteristics : active_nozzle
+    BambuState "1" *-- "*" AMSUnitState : ams_units
+    BambuState "1" *-- "*" ExtruderState : extruders
+    BambuState "1" *-- "*" BambuSpool : spools
+    BambuState ..> ActiveTool : uses
+    BambuState ..> TrayState : uses
+
+    %% ExtruderState composes
+    ExtruderState "1" *-- "1" NozzleCharacteristics : nozzle
+    ExtruderState ..> ExtruderInfoState : uses
+    ExtruderState ..> ExtruderStatus : uses
+    ExtruderState ..> TrayState : uses
+
+    %% AMSUnitState uses
+    AMSUnitState ..> AMSModel : uses
+    AMSUnitState ..> AMSHeatingState : uses
+    AMSUnitState ..> AMSDrySubStatus : uses
+    AMSUnitState ..> ActiveTool : assigned_to_extruder
+
+    %% NozzleCharacteristics uses
+    NozzleCharacteristics ..> NozzleType : uses
+    NozzleCharacteristics ..> NozzleFlowType : uses
+
+    %% BambuClimate uses
+    BambuClimate ..> AirConditioningMode : uses
+
+    %% ActiveJobInfo composes
+    ActiveJobInfo "1" *-- "0..1" ProjectInfo : project_info
+    ActiveJobInfo ..> PlateType : uses
+
+    %% FTP hierarchy
+    ImplicitTLS --|> FtpListItem : produces
+    IoTFTPSClient ..> FtpListItem : produces
+    IoTFTPSClient ..> ImplicitTLS : uses internally
+
+    %% AMSModel → AMSSeries
+    AMSModel ..> AMSSeries : classified by
+    PrinterModel ..> PrinterSeries : classified by
