@@ -382,17 +382,17 @@ class PrinterModel(Enum):
     Printer model enum
     """
 
-    UNKNOWN = 0
-    X1C = 1
-    X1 = 2
-    X1E = 3
-    P1P = 4
-    P1S = 5
-    A1_MINI = 6
-    A1 = 7
-    P2S = 8
-    H2S = 9
-    H2D = 10
+    UNKNOWN = "unknown"
+    X1C = "x1c"
+    X1 = "x1"
+    X1E = "x1e"
+    P1P = "p1p"
+    P1S = "p1s"
+    A1_MINI = "a1_mini"
+    A1 = "a1"
+    P2S = "p2s"
+    H2S = "h2s"
+    H2D = "h2d"
 
 
 class PrinterSeries(Enum):
@@ -912,3 +912,18 @@ def get_file_md5(file_path: str | Path) -> str:
             md5_hash.update(chunk)
 
     return md5_hash.hexdigest().upper()
+
+
+def jsonSerializer(obj: Any) -> Any:
+    """
+    Module-level JSON serializer for use with `json.dumps(default=jsonSerializer)`.
+
+    Handles dataclasses, objects with `__dict__`, and falls back to `str()`.
+    Skips `mappingproxy` instances that cannot be serialized meaningfully.
+    """
+    try:
+        if str(obj.__class__).replace("<class '", "").replace("'>", "") == "mappingproxy":
+            return ""
+        return getattr(obj, "__dict__", str(obj))
+    except Exception:
+        return ""

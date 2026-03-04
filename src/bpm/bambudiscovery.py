@@ -2,12 +2,14 @@
 Hosts the discovery service which provides a wrapper for reading and parsing the Bambu Lab Discovery (SSDP) protocol.
 """
 import json
-import os
-import sys
 import threading
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from socket import AF_INET, SOCK_DGRAM, socket, timeout
+
+from bpm.bambutools import PrinterModel, getPrinterModelBySerial, jsonSerializer
+
+
 
 
 @dataclass
@@ -29,6 +31,8 @@ class DiscoveredPrinter:
     """The cache control header with max-age (e.g., max-age=1800)."""
     dev_model: str = ""
     """The printer model (e.g., O1D)."""
+    decoded_model: PrinterModel = PrinterModel.UNKNOWN
+    """The decoded printer model enum (e.g., PrinterModel.O1D)."""
     dev_name: str = ""
     """The printer name (e.g., 3DP-094-913)."""
     dev_connect: str = ""
@@ -66,6 +70,7 @@ class DiscoveredPrinter:
                     parsed['nts'] = value
                 elif key == 'usn':
                     parsed['usn'] = value
+                    parsed['decoded_model'] = getPrinterModelBySerial(value)
                 elif key == 'cache-control':
                     parsed['cache_control'] = value
                 elif key == 'devmodel.bambu.com':
@@ -161,8 +166,7 @@ if __name__ == "__main__":
         print(f"Discovered printer: {printer.dev_name} at {printer.location} with USN {printer.usn}")
     def _on_discovery_ended(printers):
         print("\r\nDiscovered printers:\r\n")
-        for printer in printers:
-            print(json.dumps(asdict(printer), indent=2), "\r\n")
+        print(json.dumps(printers, default=jsonSerializer, indent=2))
 
     discovery = BambuDiscovery(on_printer_discovered=_on_printer_discovered, on_discovery_ended=_on_discovery_ended)
     discovery.start()

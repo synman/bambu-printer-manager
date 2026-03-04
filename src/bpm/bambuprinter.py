@@ -55,6 +55,7 @@ from bpm.bambutools import (
     AMSControlCommand,
     AMSUserSetting,
     DetectorSensitivity,
+    jsonSerializer,
     LoggerName,
     NozzleDiameter,
     NozzleType,
@@ -1640,12 +1641,7 @@ class BambuPrinter:
         try:
             if isinstance(obj, mqtt.Client) or isinstance(obj, Thread):
                 return ""
-            if (
-                str(obj.__class__).replace("<class '", "").replace("'>", "")
-                == "mappingproxy"
-            ):
-                return ""
-            return getattr(obj, "__dict__", str(obj))
+            return jsonSerializer(obj)
         except Exception as e:
             logger.warning(
                 f"jsonSerializer - unable to serialize object - 'obj': [{obj}] - [{e}]"
