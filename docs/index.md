@@ -12,6 +12,7 @@ While caffiene and sleepness nights drive the delivery of this project, they unf
     bpm/
         bambucommands.py       # collection of constants mainly representing Bambu Lab `mqtt` request commands
         bambuconfig.py         # contains the `BambuConfig` class used for managing configuration data
+        bambudiscovery.py      # contains the `BambuDiscovery` and `DiscoveredPrinter` classes for SSDP network discovery
         bambuprinter.py        # the main `bambu-printer-manager` class `BambuPrinter` lives here
         bambuproject.py        # provides `ActiveJobInfo` and `ProjectInfo` for tracking print job details
         bambuspool.py          # contains the `BambuSpool` class used for managing spool data
@@ -23,6 +24,7 @@ While caffiene and sleepness nights drive the delivery of this project, they unf
 
 Code Reference links for the classes above:
 - [`BambuConfig`](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig)
+- [`BambuDiscovery`](reference/bpm/bambudiscovery.md#bpm.bambudiscovery.BambuDiscovery), [`DiscoveredPrinter`](reference/bpm/bambudiscovery.md#bpm.bambudiscovery.DiscoveredPrinter)
 - [`BambuPrinter`](reference/bpm/bambuprinter.md#bpm.bambuprinter.BambuPrinter)
 - [`ActiveJobInfo`](reference/bpm/bambuproject.md#bpm.bambuproject.ActiveJobInfo), [`ProjectInfo`](reference/bpm/bambuproject.md#bpm.bambuproject.ProjectInfo)
 - [`BambuSpool`](reference/bpm/bambuspool.md#bpm.bambuspool.BambuSpool)
@@ -84,6 +86,55 @@ new data becomes available.  The preferred pattern should be callback based, how
 of these approaches will work fine.
 
 Please consider the examples provided here as mere starting points.
+
+#### Discovery-Driven Connection
+```py
+import os
+import threading
+
+from bpm.bambuconfig import BambuConfig
+from bpm.bambudiscovery import BambuDiscovery
+from bpm.bambuprinter import BambuPrinter
+
+access_code = os.getenv('BAMBU_ACCESS_CODE')
+if not access_code:
+    print("BAMBU_ACCESS_CODE environment variable must be set")
+    raise SystemExit(1)
+
+printers = []
+done = threading.Event()
+
+def on_update(p):
+    print(f"[{p.config.hostname}] gcode_state: {p.printer_state.gcode_state}")
+
+def on_printer_discovered(discovered):
+    config = BambuConfig(
+        hostname=discovered.location,
+        access_code=access_code,
+        serial_number=discovered.usn,
+    )
+    p = BambuPrinter(config=config)
+    p.on_update = on_update
+    printers.append(p)
+    p.start_session()
+
+def on_discovery_ended(discovered_printers):
+    if not discovered_printers:
+        print("No Bambu Lab printer discovered on the network.")
+    done.set()
+
+discovery = BambuDiscovery(
+    on_printer_discovered=on_printer_discovered,
+    on_discovery_ended=on_discovery_ended,
+    discovery_timeout=15,
+)
+discovery.start()
+
+done.wait()
+
+for p in printers:
+    p.quit()
+```
 
 #### Data Polling Example
 ```py
