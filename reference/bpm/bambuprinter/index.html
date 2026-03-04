@@ -1276,17 +1276,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#bpm.bambuprinter.BambuPrinter.jsonSerializer" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;jsonSerializer
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#bpm.bambuprinter.BambuPrinter.load_filament" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2882,14 +2871,6 @@ It provides an object oriented abstraction layer between your project and the
               <td>
                 <div class="doc-md-description">
                   <p>Returns a <code>dict</code> (json document) of ALL files on the printer's SD card.</p>
-                </div>
-              </td>
-            </tr>
-            <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="            jsonSerializer (bpm.bambuprinter.BambuPrinter.jsonSerializer)" href="#bpm.bambuprinter.BambuPrinter.jsonSerializer">jsonSerializer</a></code></td>
-              <td>
-                <div class="doc-md-description">
-                  <p>Helper method used by <code>toJson()</code> to serialize this object.</p>
                 </div>
               </td>
             </tr>
@@ -4530,48 +4511,6 @@ The private class level <code>_sdcard_contents</code> attribute is also populate
 </span><span id="__span-0-772"><a id="__codelineno-0-772" name="__codelineno-0-772"></a><a href="#__codelineno-0-772"><span class="linenos" data-linenos="772 "></span></a>
 </span><span id="__span-0-773"><a id="__codelineno-0-773" name="__codelineno-0-773"></a><a href="#__codelineno-0-773"><span class="linenos" data-linenos="773 "></span></a>    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;get_sdcard_contents - retrieved all files from sdcard&quot;</span><span class="p">)</span>
 </span><span id="__span-0-774"><a id="__codelineno-0-774" name="__codelineno-0-774"></a><a href="#__codelineno-0-774"><span class="linenos" data-linenos="774 "></span></a>    <span class="k">return</span> <span class="n">fs</span>
-</span></code></pre></div>
-            </details>
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="bpm.bambuprinter.BambuPrinter.jsonSerializer" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">jsonSerializer</span>
-
-
-</h3>
-<div class="language-python doc-signature highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">jsonSerializer</span><span class="p">(</span><span class="n"><span title="bpm.bambuprinter.BambuPrinter.jsonSerializer(obj)">obj</span></span><span class="p">)</span>
-</span></code></pre></div>
-
-    <div class="doc doc-contents ">
-
-        <p>Helper method used by <code>toJson()</code> to serialize this object.</p>
-
-
-            <details class="mkdocstrings-source">
-              <summary>Source code in <code>src/bpm/bambuprinter.py</code></summary>
-              <div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-1636"><a id="__codelineno-0-1636" name="__codelineno-0-1636"></a><a href="#__codelineno-0-1636"><span class="linenos" data-linenos="1636 "></span></a><span class="k">def</span> <span class="nf">jsonSerializer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
-</span><span id="__span-0-1637"><a id="__codelineno-0-1637" name="__codelineno-0-1637"></a><a href="#__codelineno-0-1637"><span class="linenos" data-linenos="1637 "></span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-0-1638"><a id="__codelineno-0-1638" name="__codelineno-0-1638"></a><a href="#__codelineno-0-1638"><span class="linenos" data-linenos="1638 "></span></a><span class="sd">    Helper method used by `toJson()` to serialize this object.</span>
-</span><span id="__span-0-1639"><a id="__codelineno-0-1639" name="__codelineno-0-1639"></a><a href="#__codelineno-0-1639"><span class="linenos" data-linenos="1639 "></span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-1640"><a id="__codelineno-0-1640" name="__codelineno-0-1640"></a><a href="#__codelineno-0-1640"><span class="linenos" data-linenos="1640 "></span></a>    <span class="k">try</span><span class="p">:</span>
-</span><span id="__span-0-1641"><a id="__codelineno-0-1641" name="__codelineno-0-1641"></a><a href="#__codelineno-0-1641"><span class="linenos" data-linenos="1641 "></span></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">mqtt</span><span class="o">.</span><span class="n">Client</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Thread</span><span class="p">):</span>
-</span><span id="__span-0-1642"><a id="__codelineno-0-1642" name="__codelineno-0-1642"></a><a href="#__codelineno-0-1642"><span class="linenos" data-linenos="1642 "></span></a>            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
-</span><span id="__span-0-1643"><a id="__codelineno-0-1643" name="__codelineno-0-1643"></a><a href="#__codelineno-0-1643"><span class="linenos" data-linenos="1643 "></span></a>        <span class="k">if</span> <span class="p">(</span>
-</span><span id="__span-0-1644"><a id="__codelineno-0-1644" name="__codelineno-0-1644"></a><a href="#__codelineno-0-1644"><span class="linenos" data-linenos="1644 "></span></a>            <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&lt;class &#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-</span><span id="__span-0-1645"><a id="__codelineno-0-1645" name="__codelineno-0-1645"></a><a href="#__codelineno-0-1645"><span class="linenos" data-linenos="1645 "></span></a>            <span class="o">==</span> <span class="s2">&quot;mappingproxy&quot;</span>
-</span><span id="__span-0-1646"><a id="__codelineno-0-1646" name="__codelineno-0-1646"></a><a href="#__codelineno-0-1646"><span class="linenos" data-linenos="1646 "></span></a>        <span class="p">):</span>
-</span><span id="__span-0-1647"><a id="__codelineno-0-1647" name="__codelineno-0-1647"></a><a href="#__codelineno-0-1647"><span class="linenos" data-linenos="1647 "></span></a>            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
-</span><span id="__span-0-1648"><a id="__codelineno-0-1648" name="__codelineno-0-1648"></a><a href="#__codelineno-0-1648"><span class="linenos" data-linenos="1648 "></span></a>        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;__dict__&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
-</span><span id="__span-0-1649"><a id="__codelineno-0-1649" name="__codelineno-0-1649"></a><a href="#__codelineno-0-1649"><span class="linenos" data-linenos="1649 "></span></a>    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-</span><span id="__span-0-1650"><a id="__codelineno-0-1650" name="__codelineno-0-1650"></a><a href="#__codelineno-0-1650"><span class="linenos" data-linenos="1650 "></span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-</span><span id="__span-0-1651"><a id="__codelineno-0-1651" name="__codelineno-0-1651"></a><a href="#__codelineno-0-1651"><span class="linenos" data-linenos="1651 "></span></a>            <span class="sa">f</span><span class="s2">&quot;jsonSerializer - unable to serialize object - &#39;obj&#39;: [</span><span class="si">{</span><span class="n">obj</span><span class="si">}</span><span class="s2">] - [</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">]&quot;</span>
-</span><span id="__span-0-1652"><a id="__codelineno-0-1652" name="__codelineno-0-1652"></a><a href="#__codelineno-0-1652"><span class="linenos" data-linenos="1652 "></span></a>        <span class="p">)</span>
-</span><span id="__span-0-1653"><a id="__codelineno-0-1653" name="__codelineno-0-1653"></a><a href="#__codelineno-0-1653"><span class="linenos" data-linenos="1653 "></span></a>        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
 </span></code></pre></div>
             </details>
     </div>
@@ -6967,7 +6906,7 @@ level attributes that are serializable (most are).</p>
 </span><span id="__span-0-1628"><a id="__codelineno-0-1628" name="__codelineno-0-1628"></a><a href="#__codelineno-0-1628"><span class="linenos" data-linenos="1628 "></span></a><span class="sd">    Returns a `dict` (json document) representing this object&#39;s private class</span>
 </span><span id="__span-0-1629"><a id="__codelineno-0-1629" name="__codelineno-0-1629"></a><a href="#__codelineno-0-1629"><span class="linenos" data-linenos="1629 "></span></a><span class="sd">    level attributes that are serializable (most are).</span>
 </span><span id="__span-0-1630"><a id="__codelineno-0-1630" name="__codelineno-0-1630"></a><a href="#__codelineno-0-1630"><span class="linenos" data-linenos="1630 "></span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-1631"><a id="__codelineno-0-1631" name="__codelineno-0-1631"></a><a href="#__codelineno-0-1631"><span class="linenos" data-linenos="1631 "></span></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">jsonSerializer</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-0-1631"><a id="__codelineno-0-1631" name="__codelineno-0-1631"></a><a href="#__codelineno-0-1631"><span class="linenos" data-linenos="1631 "></span></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">jsonSerializer</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="__span-0-1632"><a id="__codelineno-0-1632" name="__codelineno-0-1632"></a><a href="#__codelineno-0-1632"><span class="linenos" data-linenos="1632 "></span></a>    <span class="c1"># logger.debug(f&quot;toJson - json: [{response}]&quot;)</span>
 </span><span id="__span-0-1633"><a id="__codelineno-0-1633" name="__codelineno-0-1633"></a><a href="#__codelineno-0-1633"><span class="linenos" data-linenos="1633 "></span></a>
 </span><span id="__span-0-1634"><a id="__codelineno-0-1634" name="__codelineno-0-1634"></a><a href="#__codelineno-0-1634"><span class="linenos" data-linenos="1634 "></span></a>    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
