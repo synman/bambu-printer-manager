@@ -89,17 +89,18 @@ Please consider the examples provided here as mere starting points.
 
 #### Discovery-Driven Connection
 ```py
-import os
 import threading
 
 from bpm.bambuconfig import BambuConfig
 from bpm.bambudiscovery import BambuDiscovery
 from bpm.bambuprinter import BambuPrinter
 
-access_code = os.getenv('BAMBU_ACCESS_CODE')
-if not access_code:
-    print("BAMBU_ACCESS_CODE environment variable must be set")
-    raise SystemExit(1)
+# Each Bambu Lab printer has its own access code found in the printer's
+# network settings. Map serial number -> access code for all printers
+# you want to connect to on the LAN.
+ACCESS_CODES = {
+    "<serial_number>": "<access_code>",
+}
 
 printers = []
 done = threading.Event()
@@ -108,6 +109,10 @@ def on_update(p):
     print(f"[{p.config.hostname}] gcode_state: {p.printer_state.gcode_state}")
 
 def on_printer_discovered(discovered):
+    access_code = ACCESS_CODES.get(discovered.usn)
+    if not access_code:
+        print(f"No access code configured for {discovered.dev_name} ({discovered.usn}) — skipping")
+        return
     config = BambuConfig(
         hostname=discovered.location,
         access_code=access_code,
