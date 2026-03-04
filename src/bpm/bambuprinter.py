@@ -54,6 +54,7 @@ from bpm.bambutools import (
     ActiveTool,
     AMSControlCommand,
     AMSUserSetting,
+    DetectorSensitivity,
     LoggerName,
     NozzleDiameter,
     NozzleType,
@@ -153,7 +154,9 @@ class BambuPrinter:
             if self.service_state != ServiceState.PAUSED:
                 self.service_state = ServiceState.CONNECTED
                 client.subscribe(f"device/{self.config.serial_number}/report")
-                logger.debug(f"subscribed to [device/{self.config.serial_number}/report]")
+                logger.debug(
+                    f"on_connect -subscribed to [device/{self.config.serial_number}/report]"
+                )
 
         def on_disconnect(client, userdata, flags, reason_code, properties):
             logger.debug("on_disconnect - session on_disconnect")
@@ -165,7 +168,6 @@ class BambuPrinter:
                 self.service_state = ServiceState.DISCONNECTED
 
         def on_message(client, userdata, msg):
-            # logger.debug(f"on_message - topic: [{msg.topic}]")
             if self._lastMessageTime and self._recent_update:
                 self._lastMessageTime = time.monotonic()
             self._on_message(msg.payload.decode("utf-8"))
@@ -268,13 +270,18 @@ class BambuPrinter:
     @contextlib.contextmanager
     def ftp_connection(self):
         """
-        Opens a connection to the printer's FTP server to support file management.
+        Open an FTPS connection to the printer's SD card for file management operations.
 
-        Acts as a context manager, so can be used with the with statement. In that case,
-        the connection will be closed automatically, otherwise the calling code has to make
-        sure to close it again.
+        Intended to be used as a context manager so the connection is closed
+        automatically on exit.  All SD card file operations (`upload_sdcard_file`,
+        `download_sdcard_file`, `delete_sdcard_file`, etc.) use this internally.
 
-        This is an internal method.
+        Example
+        -------
+        ```python
+        with printer.ftp_connection() as ftps:
+            ftps.upload_file("/local/myfile.3mf", "/jobs/myfile.3mf")
+        ```
         """
         ftps = None
         try:
@@ -471,7 +478,11 @@ class BambuPrinter:
 
     def unload_filament(self, ams_id: int = 0):
         """
-        Requests the printer to unload whatever filament / spool may be currently loaded.
+        Requests the printer to unload whatever filament / spool is currently loaded.
+
+        Parameters
+        ----------
+        * ams_id : int = 0 - The AMS unit to unload from (default is 0).
         """
         msg = copy.deepcopy(AMS_CHANGE_FILAMENT)
         msg["print"]["ams_id"] = ams_id
@@ -550,59 +561,64 @@ class BambuPrinter:
         timelapse: bool | None = False,
     ):
         """
-        Submits a request to execute the `name` 3mf file on the printer's SDCard.
+        Submits a request to print a `.3mf` file already stored on the printer's SD card.
+
+        The `ams_mapping` value to pass here is available directly from
+        `ProjectInfo.metadata["ams_mapping"]` returned by `get_project_info`.
+        It is the same absolute-tray-ID encoding used by BambuStudio / OrcaSlicer and
+        stored in the 3MF's `Metadata/slice_info.config`.
 
         Parameters
         ----------
-        * name : str                         - path, filename, and extension to execute
-        * plate : int                        - the plate # from your slicer to use (usually 1)
-        * bed : PlateType                    - the bambutools.PlateType to use
-        * use_ams : bool                     - Use the AMS for this print
-        * ams_mapping : Optional[str]        - a variable-length JSON array defining which AMS slot each filament uses (OpenBambuAPI spec).
-                            When provided, `ams_mapping2` is auto-generated from this mapping for firmware compatibility.
-        * bedlevel : Optional[bool] = True   - boolean value indicates whether or not the printer should auto-level the bed
-        * flow : Optional[bool] = True       - boolean value indicates if the printer should perform an extrusion flow calibration
-        * timelapse : Optional[bool] = False - boolean value indicates if printer should take timelapse photos during the job
+        * name : str - Full SD card path to the `.3mf` file, including leading `/`
+            (e.g. `"/jobs/my_project.3mf"` or `"/jobs/my_project.gcode.3mf"`).
+        * plate : int - The 1-indexed plate number from the slicer to print.
+            Available plate numbers are in `ProjectInfo.plates`.
+        * bed : PlateType - Bed surface type to use (e.g. `PlateType.HOT_PLATE`).
+            Pass `PlateType.AUTO` to let the printer decide based on slicer metadata.
+        * use_ams : bool - `True` to route filament through the AMS; `False` to use
+            the external spool regardless of `ams_mapping` content.
+        * ams_mapping : Optional[str] = `""` - JSON array string mapping each project
+            filament (0-indexed) to an absolute AMS tray ID.  Sourced from
+            `ProjectInfo.metadata["ams_mapping"]` (serialised to JSON string).
+            `ams_mapping2` (per-filament `{"ams_id": int, "slot_id": int}` dicts) is
+            auto-generated from this value for firmware compatibility.
+            Pass `""` or `None` to omit the mapping entirely.
+        * bedlevel : Optional[bool] = `True` - Auto-level the bed before printing.
+        * flow : Optional[bool] = `True` - Run extrusion flow calibration before printing.
+        * timelapse : Optional[bool] = `False` - Record a timelapse during printing.
 
-        Example
-        -------
-        * `print_3mf_file("/jobs/my_project.3mf", 1, PlateType.HOT_PLATE, False, "")` - Print with AMS disabled
-        * `print_3mf_file("/jobs/my_project.gcode.3mf", 1, PlateType.HOT_PLATE, True, "[0,1,2]")` - Print using 3 filaments from AMS trays 1-3
+        Examples
+        --------
+        * `print_3mf_file("/jobs/my_project.3mf", 1, PlateType.HOT_PLATE, False, "")` — AMS disabled
+        * `print_3mf_file("/jobs/my_project.gcode.3mf", 1, PlateType.HOT_PLATE, True, "[0,1,2]")` — 3 filaments from AMS trays 1–3
 
-        AMS Mapping
-        -----------
-        Variable-length array where array length equals the number of filaments in the 3mf print file.
-        Array index i corresponds to filament i (0-indexed). Based on BambuStudio/OrcaSlicer DevMapping.cpp:
+        AMS Mapping Encoding
+        --------------------
+        The `ams_mapping` string is a JSON integer array.  Each element is an absolute
+        **tray ID** whose encoding depends on the AMS unit type:
 
-        Array values are absolute TRAY IDs calculated from all AMS units installed on the printer.
-        The formula differs by AMS unit type:
+        | AMS type                        | Formula                   | Range   |
+        |---------------------------------|---------------------------|---------|
+        | Standard 4-slot (AMS 2 / LITE / N3F) | `ams_id * 4 + slot_id` | 0–103  |
+        | Single-slot (N3S / AMS HT)      | `ams_id` (starts at 128)  | 128–135 |
+        | External spool                  | `254`                     | —       |
+        | Unmapped / no AMS               | `-1`                      | —       |
 
-        - Standard 4-slot units (AMS 2, AMS LITE, N3F): tray_id = ams_id * 4 + slot_id
-          Value range: 0-103 (supports up to 26 four-slot units)
-          Example: AMS 0 slots 0-3 → values 0-3; AMS 1 slots 0-3 → values 4-7
+        | ams_mapping    | Meaning                                          |
+        |----------------|--------------------------------------------------|
+        | `"[0]"`        | 1 filament → AMS 0 slot 0                        |
+        | `"[0,1,4]"`    | 3 filaments → AMS 0 slots 0–1, AMS 1 slot 0     |
+        | `"[0,-1,5]"`   | 3 filaments → AMS 0 slot 0, unmapped, AMS 1 slot 1 |
+        | `"[0,1,2,3]"`  | 4 filaments → all 4 slots of AMS 0              |
+        | `"[0,4,128]"`  | 3 filaments → AMS 0 slot 0, AMS 1 slot 0, AMS HT |
 
-        - Single-slot units (N3S/AMS HT): tray_id = ams_id (where ams_id starts at 128)
-          Value range: 128-135 (supports up to 8 single-slot units)
+        The array is generated by the slicer (BambuStudio / OrcaSlicer) via
+        color-distance matching and stored in `Metadata/slice_info.config` inside
+        the `.3mf`.  `get_project_info` parses it into `ProjectInfo.metadata["ams_mapping"]`.
 
-        - Unmapped filaments: -1 (when use_ams is false or slicer could not auto-map)
-
-        The ams_mapping array is generated by the slicer (BambuStudio or OrcaSlicer) using color-distance
-        matching between project filaments and installed AMS trays. External spools are managed separately
-        from the ams_mapping values - when use_ams is false, the printer uses the external spool
-        regardless of ams_mapping content.
-
-        See BambuStudio DevMapping.cpp and DeviceManager.cpp for encoding logic.
-        See OpenBambuAPI specification: https://github.com/Doridian/OpenBambuAPI/blob/main/mqtt.md#ams-mapping-configuration-ams_mapping
-
-        Examples:
-
-        | ams_mapping   | Description                                      |
-        |---------------|--------------------------------------------------|
-        | [0]           | 1 filament from AMS 0 slot 0                     |
-        | [0,1,4]       | 3 filaments: AMS 0 slots 0-1, then AMS 1 slot 0  |
-        | [0,-1,5]      | 3 filaments: AMS 0 slot 0, unmapped, AMS 1 slot 1|
-        | [0,1,2,3]     | 4 filaments from AMS 0 (all slots)               |
-        | [0,4,128]     | 3 filaments: AMS 0 slot 0, AMS 1, AMS HT         |
+        See BambuStudio `DevMapping.cpp` / `DeviceManager.cpp` for the encoding logic.
+        See OpenBambuAPI spec: <https://github.com/Doridian/OpenBambuAPI/blob/main/mqtt.md#ams-mapping-configuration-ams_mapping>
         """
         _3mf_file = f"{name}"
         _plate_num = int(plate)
@@ -765,7 +781,7 @@ class BambuPrinter:
         ----------
         * file : str - the full path filename to be deleted
         """
-        logger.debug(f"deleting remote file: [{file}]")
+        logger.debug(f"delete_sdcard_file - deleting remote file: [{file}]")
 
         with self.ftp_connection() as ftps:
             ftps.delete_file(file)
@@ -900,7 +916,15 @@ class BambuPrinter:
 
     def set_print_option(self, option: PrintOption, enabled: bool):
         """
-        Enable or disable one of the `PrintOption` options
+        Enable or disable one of the `PrintOption` options.
+
+        The corresponding `BambuConfig` attribute is also updated so the new state
+        persists in the local configuration object.
+
+        Parameters
+        ----------
+        * option : PrintOption - The print option to change (e.g. `PrintOption.AUTO_RECOVERY`).
+        * enabled : bool - `True` to enable the option, `False` to disable it.
         """
         cmd = PRINT_OPTION_COMMAND
         cmd["print"][option.name.lower()] = enabled
@@ -930,7 +954,18 @@ class BambuPrinter:
         self, setting: AMSUserSetting, enabled: bool, ams_id: int = 0
     ):
         """
-        Enable or disable one of the `AMSUserSetting` options
+        Enable or disable one of the `AMSUserSetting` options on the specified AMS unit.
+
+        The three settings — `CALIBRATE_REMAIN_FLAG`, `STARTUP_READ_OPTION`, and
+        `TRAY_READ_OPTION` — are all sent together in a single command, with only
+        `setting` toggled to the new value.  The corresponding `BambuConfig` attribute
+        is also updated.
+
+        Parameters
+        ----------
+        * setting : AMSUserSetting - The AMS user setting to change.
+        * enabled : bool - `True` to enable the setting, `False` to disable it.
+        * ams_id : int = 0 - The AMS unit to target (default is 0).
         """
         cmd = copy.deepcopy(AMS_USER_SETTING)
         cmd["print"]["ams_id"] = ams_id
@@ -973,10 +1008,21 @@ class BambuPrinter:
         max_volumetric_speed: int | None = -1,
     ):
         """
-        Sets the linear advance k factor for a specific spool / tray
+        Set the linear advance (pressure advance) k factor for a specific spool tray.
 
-        broken in recent firmware -- will require implementing
-        k factor list management
+        !!! warning "Deprecated"
+            Broken in recent Bambu firmware.  Use
+            [`select_extrusion_calibration_profile`][bpm.bambuprinter.BambuPrinter.select_extrusion_calibration_profile]
+            instead.
+
+        Parameters
+        ----------
+        * tray_id : int - Absolute tray ID (`ams_id * 4 + slot_id`, or `254` for external).
+        * k_value : float - The linear advance k factor to apply.
+        * n_coef : Optional[float] = 1.4 - Pressure advance n coefficient.
+        * nozzle_temp : Optional[int] = -1 - Nozzle temperature in °C (pass -1 to omit).
+        * bed_temp : Optional[int] = -1 - Bed temperature in °C (pass -1 to omit).
+        * max_volumetric_speed : Optional[int] = -1 - Max volumetric speed (pass -1 to omit).
         """
         cmd = copy.deepcopy(EXTRUSION_CALI_SET)
 
@@ -1012,8 +1058,25 @@ class BambuPrinter:
         ams_id: int | None = 0,
     ):
         """
-        Sets spool / tray details such as filament type, color, and nozzle min/max temperature.
-        For the external tray (254), send `no_filament` as the `tray_info_idx` value to empty the tray.
+        Sets spool / tray details such as filament type, color, and nozzle temperature range.
+
+        `ams_id` and `slot_id` are derived automatically from `tray_id`.
+        For the external tray (254), pass `"no_filament"` as `tray_info_idx` to
+        clear the tray entirely.  Colors may be supplied as CSS color names (e.g.
+        `"red"`) or as 6- or 8-character hex strings (e.g. `"FF0000"` / `"FF0000FF"`).
+
+        Parameters
+        ----------
+        * tray_id : int - Absolute tray ID.  For standard 4-slot AMS: `ams_id * 4 + slot_id`.
+                    Use `254` for the external spool holder.
+        * tray_info_idx : str - Filament info index string as defined by Bambu Lab (e.g. `"GFA00"`).
+                    Pass `"no_filament"` to clear the tray.
+        * tray_id_name : Optional[str] - Friendly filament name (e.g. `"Bambu PLA Basic"`).
+        * tray_type : Optional[str] - Short filament type string (e.g. `"PLA"`, `"PETG"`, `"ABS"`).
+        * tray_color : Optional[str] - Filament color as a CSS name or RRGGBB/RRGGBBAA hex string.
+        * nozzle_temp_min : Optional[int] = -1 - Minimum nozzle temperature in °C (pass -1 to leave unchanged).
+        * nozzle_temp_max : Optional[int] = -1 - Maximum nozzle temperature in °C (pass -1 to leave unchanged).
+        * ams_id : Optional[int] = 0 - Unused; derived automatically from `tray_id`.
         """
         cmd = copy.deepcopy(AMS_FILAMENT_SETTING)
 
@@ -1059,7 +1122,15 @@ class BambuPrinter:
 
     def send_ams_control_command(self, ams_control_cmd: AMSControlCommand):
         """
-        Send an AMS Control Command - will pause, resume, or reset the AMS.
+        Send an AMS control command to pause, resume, or reset the AMS.
+
+        When `AMSControlCommand.RESUME` is sent, `resume_printing()` is also called
+        automatically to restart the paused print job.
+
+        Parameters
+        ----------
+        * ams_control_cmd : AMSControlCommand - The control command to send
+            (`AMSControlCommand.PAUSE`, `AMSControlCommand.RESUME`, or `AMSControlCommand.RESET`).
         """
         ams_cmd = ams_control_cmd.name.lower()
         cmd = copy.deepcopy(AMS_CONTROL)
@@ -1078,11 +1149,32 @@ class BambuPrinter:
 
     def skip_objects(self, objects):
         """
-        skip a list of objects extracted from the 3mf's plate_x.json file
+        Instructs the printer to skip (cancel) a list of objects during the current print job.
+
+        The printhead physically avoids skipped objects for the remainder of the print.
+        This is equivalent to the "Cancel Object" feature in BambuStudio.
+
+        **Object ID mapping**
+
+        Object IDs sent here are the `identify_id` values from `Metadata/slice_info.config`
+        inside the `.3mf`.  `get_project_info` extracts them and writes each one into the
+        corresponding `bbox_objects[N]["id"]` entry in `ProjectInfo.metadata["map"]`.
+
+        To get the IDs for the current plate:
+
+        ```python
+        info = get_project_info(file_id, printer, plate_num=1)
+        ids = [obj["id"] for obj in info.metadata["map"]["bbox_objects"] if "id" in obj]
+        printer.skip_objects(ids)   # cancel all objects on the plate
+        ```
+
+        The `bbox_objects` list also carries `name` and bounding-box coordinates so a UI
+        can let the user pick individual objects before calling this method.
 
         Parameters
         ----------
-        objects : list
+        * objects : list[int | str] - One or more `identify_id` values to cancel.
+            Values are coerced to `int` before being sent to the printer.
         """
         objs = []
         for obj in objects:
@@ -1099,7 +1191,15 @@ class BambuPrinter:
 
     def set_buildplate_marker_detector(self, enabled: bool):
         """
-        Enables or disables the buildplate_marker_detector
+        Enable or disable the buildplate marker detector (X-Cam AI vision).
+
+        When enabled, the printer's camera checks for the calibration marker on the
+        build plate before starting a print.  The state is also written to
+        `config.buildplate_marker_detector`.
+
+        Parameters
+        ----------
+        * enabled : bool - `True` to enable the detector, `False` to disable it.
         """
         cmd = copy.deepcopy(XCAM_CONTROL_SET)
         cmd["xcam"]["module_name"] = "buildplate_marker_detector"
@@ -1116,99 +1216,133 @@ class BambuPrinter:
             f"set_buildplate_marker_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
-    def set_spaghetti_detector(self, enabled: bool, sensitivity: str = "medium"):
+    def set_spaghetti_detector(
+        self, enabled: bool, sensitivity: DetectorSensitivity = DetectorSensitivity.MEDIUM
+    ):
         """
-        Enables or disables the spaghetti_detector
-        """
-        sensitivity = sensitivity.lower()
-        if sensitivity not in {"low", "medium", "high"}:
-            sensitivity = "medium"
+        Enable or disable the spaghetti / failed print detector (X-Cam AI vision).
 
+        When triggered, the printer halts the print.  Sensitivity controls how
+        aggressively the camera flags anomalies.  State is persisted to
+        `config.spaghetti_detector` and `config.spaghetti_detector_sensitivity`.
+
+        Parameters
+        ----------
+        * enabled : bool - `True` to enable the detector, `False` to disable it.
+        * sensitivity : DetectorSensitivity = `DetectorSensitivity.MEDIUM` - Detection threshold.
+        """
         cmd = copy.deepcopy(XCAM_CONTROL_SET)
         cmd["xcam"]["module_name"] = "spaghetti_detector"
         cmd["xcam"]["control"] = enabled
         cmd["xcam"]["enable"] = enabled
         cmd["xcam"]["print_halt"] = True
-        cmd["xcam"]["halt_print_sensitivity"] = sensitivity
+        cmd["xcam"]["halt_print_sensitivity"] = sensitivity.value
 
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
 
         self.config.spaghetti_detector = enabled
-        self.config.spaghetti_detector_sensitivity = sensitivity
+        self.config.spaghetti_detector_sensitivity = sensitivity.value
 
         logger.debug(
             f"set_spaghetti_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
-    def set_purgechutepileup_detector(self, enabled: bool, sensitivity: str = "medium"):
-        """Enables or disables the pileup_detector."""
-        sensitivity = sensitivity.lower()
-        if sensitivity not in {"low", "medium", "high"}:
-            sensitivity = "medium"
+    def set_purgechutepileup_detector(
+        self, enabled: bool, sensitivity: DetectorSensitivity = DetectorSensitivity.MEDIUM
+    ):
+        """
+        Enable or disable the purge chute pile-up detector (X-Cam AI vision).
 
+        When triggered, the printer halts the print to prevent purge waste from
+        blocking the toolhead.  State is persisted to `config.purgechutepileup_detector`
+        and `config.purgechutepileup_detector_sensitivity`.
+
+        Parameters
+        ----------
+        * enabled : bool - `True` to enable the detector, `False` to disable it.
+        * sensitivity : DetectorSensitivity = `DetectorSensitivity.MEDIUM` - Detection threshold.
+        """
         cmd = copy.deepcopy(XCAM_CONTROL_SET)
         cmd["xcam"]["module_name"] = "pileup_detector"
         cmd["xcam"]["control"] = enabled
         cmd["xcam"]["enable"] = enabled
         cmd["xcam"]["print_halt"] = True
-        cmd["xcam"]["halt_print_sensitivity"] = sensitivity
+        cmd["xcam"]["halt_print_sensitivity"] = sensitivity.value
 
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
 
         self.config.purgechutepileup_detector = enabled
-        self.config.purgechutepileup_detector_sensitivity = sensitivity
+        self.config.purgechutepileup_detector_sensitivity = sensitivity.value
 
         logger.debug(
             f"set_purgechutepileup_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
-    def set_nozzleclumping_detector(self, enabled: bool, sensitivity: str = "medium"):
-        """Enables or disables the clump_detector."""
-        sensitivity = sensitivity.lower()
-        if sensitivity not in {"low", "medium", "high"}:
-            sensitivity = "medium"
+    def set_nozzleclumping_detector(
+        self, enabled: bool, sensitivity: DetectorSensitivity = DetectorSensitivity.MEDIUM
+    ):
+        """
+        Enable or disable the nozzle clumping / blob detector (X-Cam AI vision).
 
+        When triggered, the printer halts the print to prevent damage from filament
+        build-up on the nozzle.  State is persisted to `config.nozzleclumping_detector`
+        and `config.nozzleclumping_detector_sensitivity`.
+
+        Parameters
+        ----------
+        * enabled : bool - `True` to enable the detector, `False` to disable it.
+        * sensitivity : DetectorSensitivity = `DetectorSensitivity.MEDIUM` - Detection threshold.
+        """
         cmd = copy.deepcopy(XCAM_CONTROL_SET)
         cmd["xcam"]["module_name"] = "clump_detector"
         cmd["xcam"]["control"] = enabled
         cmd["xcam"]["enable"] = enabled
         cmd["xcam"]["print_halt"] = True
-        cmd["xcam"]["halt_print_sensitivity"] = sensitivity
+        cmd["xcam"]["halt_print_sensitivity"] = sensitivity.value
 
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
 
         self.config.nozzleclumping_detector = enabled
-        self.config.nozzleclumping_detector_sensitivity = sensitivity
+        self.config.nozzleclumping_detector_sensitivity = sensitivity.value
 
         logger.debug(
             f"set_nozzleclumping_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
-    def set_airprinting_detector(self, enabled: bool, sensitivity: str = "medium"):
-        """Enables or disables the airprint_detector."""
-        sensitivity = sensitivity.lower()
-        if sensitivity not in {"low", "medium", "high"}:
-            sensitivity = "medium"
+    def set_airprinting_detector(
+        self, enabled: bool, sensitivity: DetectorSensitivity = DetectorSensitivity.MEDIUM
+    ):
+        """
+        Enable or disable the air-printing / no-extrusion detector (X-Cam AI vision).
 
+        When triggered, the printer halts the print because the nozzle is detected to
+        be extruding into open air rather than onto the bed or model.  State is persisted
+        to `config.airprinting_detector` and `config.airprinting_detector_sensitivity`.
+
+        Parameters
+        ----------
+        * enabled : bool - `True` to enable the detector, `False` to disable it.
+        * sensitivity : DetectorSensitivity = `DetectorSensitivity.MEDIUM` - Detection threshold.
+        """
         cmd = copy.deepcopy(XCAM_CONTROL_SET)
         cmd["xcam"]["module_name"] = "airprint_detector"
         cmd["xcam"]["control"] = enabled
         cmd["xcam"]["enable"] = enabled
         cmd["xcam"]["print_halt"] = True
-        cmd["xcam"]["halt_print_sensitivity"] = sensitivity
+        cmd["xcam"]["halt_print_sensitivity"] = sensitivity.value
 
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
 
         self.config.airprinting_detector = enabled
-        self.config.airprinting_detector_sensitivity = sensitivity
+        self.config.airprinting_detector_sensitivity = sensitivity.value
 
         logger.debug(
             f"set_airprinting_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
@@ -1218,7 +1352,17 @@ class BambuPrinter:
         self, nozzle_diameter: NozzleDiameter, nozzle_type: NozzleType
     ):
         """
-        Sets the nozzle details.
+        Inform the printer of the nozzle currently installed.
+
+        Sends a `SET_ACCESSORIES` command so the firmware can apply the correct
+        temperature limits, flow rates, and material compatibility checks.
+
+        Parameters
+        ----------
+        * nozzle_diameter : NozzleDiameter - The physical nozzle diameter
+            (e.g. `NozzleDiameter.DIAMETER_0_4`).
+        * nozzle_type : NozzleType - The nozzle material / type
+            (e.g. `NozzleType.HARDENED_STEEL`, `NozzleType.STAINLESS_STEEL`).
         """
         cmd = copy.deepcopy(SET_ACCESSORIES)
         cmd["system"]["nozzle_diameter"] = nozzle_diameter.value
@@ -1247,7 +1391,15 @@ class BambuPrinter:
 
     def send_anything(self, anything: str):
         """
-        puts an arbritary string on the request topic
+        Publish an arbitrary JSON string directly to the printer's MQTT request topic.
+
+        Intended for advanced use / debugging — bypasses all validation and command
+        abstraction.  The string is parsed then re-serialised before publishing, so
+        it must be valid JSON.
+
+        Parameters
+        ----------
+        * anything : str - A valid JSON string to publish.
         """
         self.client.publish(
             f"device/{self.config.serial_number}/request",
@@ -1303,6 +1455,13 @@ class BambuPrinter:
     def turn_off_ams_dryer(self, ams_id: int = 0):
         """
         Sends a command to the printer to turn off the AMS dryer.
+
+        Also resets `ams_unit.temp_target` to `0` in the local printer state.
+        Raises an exception if `ams_id` does not match a connected AMS unit.
+
+        Parameters
+        ----------
+        * ams_id : int = 0 - The AMS unit whose dryer should be turned off (default is 0).
         """
         cmd = copy.deepcopy(AMS_FILAMENT_DRYING)
         cmd["print"]["ams_id"] = ams_id
@@ -1323,8 +1482,15 @@ class BambuPrinter:
 
     def set_active_tool(self, id: int):
         """
-        sets the current active tool / extruder for machines (H2 series)
-        that have multiple extruders
+        Set the active extruder on multi-tool machines (H2D / H2D Pro).
+
+        Sends a `SET_ACTIVE_TOOL` command that switches which extruder the printer
+        uses for subsequent moves and extrusions.
+
+        Parameters
+        ----------
+        * id : int - The extruder index to activate (`0` = right extruder, `1` = left extruder
+            on H2D; see `ActiveTool` enum for named constants).
         """
         cmd = copy.deepcopy(SET_ACTIVE_TOOL)
         cmd["print"]["extruder_index"] = id
@@ -1337,7 +1503,15 @@ class BambuPrinter:
 
     def refresh_spool_rfid(self, slot_id: int, ams_id: int = 0):
         """
-        read the rfid tag for the selected ams and spool (slot) id.
+        Request the printer to re-read the RFID tag for the specified AMS slot.
+
+        Only RFID-equipped Bambu Lab spools carry tag data.  The printer will push
+        an updated telemetry message containing the spool details after scanning.
+
+        Parameters
+        ----------
+        * slot_id : int - The slot within the AMS unit to scan (0–3 for standard AMS).
+        * ams_id : int = 0 - The AMS unit containing the slot (default is 0).
         """
         cmd = copy.deepcopy(AMS_GET_RFID)
         cmd["print"]["ams_id"] = ams_id
@@ -1352,14 +1526,25 @@ class BambuPrinter:
 
     def get_current_bind_list(self, state: "BambuState") -> list[dict[str, Any]]:
         """
-        Generates the manual_ams_bind list based on current AMS toolhead assignments.
+        Build the `manual_ams_bind` list required by the H2D dual-extruder firmware.
 
-        This method implements the H2D cross-over hardware targeting:
-        - RIGHT_EXTRUDER (0) -> Hardware Index 1
-        - LEFT_EXTRUDER (1)  -> Hardware Index 0
+        Maps each connected AMS unit to its assigned extruder using the H2D's
+        hardware register inversion (RIGHT_EXTRUDER logical index 0 → hardware index 1,
+        LEFT_EXTRUDER logical index 1 → hardware index 0).
 
-        Includes sentinel placeholder logic for single-AMS configurations to satisfy
-        dual-extruder firmware array requirements.
+        When only one AMS unit is connected the firmware still requires a two-entry
+        array; a sentinel placeholder entry (Unit ID 1) is appended automatically to
+        satisfy that requirement.
+
+        Parameters
+        ----------
+        * state : BambuState - Current printer state supplying `ams_units` and
+            `ams_connected_count`.
+
+        Returns
+        -------
+        list[dict] - List of dicts with keys `ams_f_bind` (int), `ams_s_bind` (int),
+            and `extruder` (int, hardware index).
         """
         bind_list = []
 
@@ -1671,7 +1856,7 @@ class BambuPrinter:
                         < time.monotonic()
                     ):
                         if printer._lastMessageTime:
-                            logger.warning("BambuPrinter watchdog timeout")
+                            logger.debug("watchdog_thread - watchdog timeout")
                         printer._lastMessageTime = time.monotonic()
                         printer._recent_update = False
                         printer.client.publish(

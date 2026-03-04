@@ -113,7 +113,7 @@ Quick alphabetical reference to all documented fields. Fields marked with * appe
 | [ams_status_text](#ams_status_text) | BambuState | Human-readable AMS status | [Field Definition](#ams_status_text) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
 | [nozzle_temp_min](#nozzle_temp_min) | BambuSpool | Minimum safe nozzle temperature | [Field Definition](#nozzle_temp_min) · [BambuSpool](reference/bpm/bambuspool.md#bpm.bambuspool.BambuSpool) |
 | [ams_units](#ams_units) | BambuState | Complete state of all connected AMS units | [Field Definition](#ams_units) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
-| [assigned_to_ams_id](#assigned_to_ams_id) | ExtruderState | AMS unit assigned to this extruder (H2D dual-extruder) | [Field Definition](#assigned_to_ams_id) · [ExtruderState](reference/bpm/bambustate.md#bpm.bambustate.ExtruderState) |
+| [assigned_to_ams_id](#assigned_to_ams_id) | ExtruderState | AMS unit assigned to this extruder | [Field Definition](#assigned_to_ams_id) · [ExtruderState](reference/bpm/bambustate.md#bpm.bambustate.ExtruderState) |
 | [part_cooling_fan_speed_percent](#part_cooling_fan_speed_percent) | BambuClimate | Part cooling fan speed | [Field Definition](#part_cooling_fan_speed_percent) · [BambuClimate](reference/bpm/bambustate.md#bpm.bambustate.BambuClimate) |
 | [assigned_to_extruder](#assigned_to_extruder) | AMSUnitState | Target extruder for H2D dual-extruder systems | [Field Definition](#assigned_to_extruder) · [AMSUnitState](reference/bpm/bambustate.md#bpm.bambustate.AMSUnitState) |
 | [part_cooling_fan_speed_target_percent](#part_cooling_fan_speed_target_percent) | BambuClimate | Target part cooling fan speed | [Field Definition](#part_cooling_fan_speed_target_percent) · [BambuClimate](reference/bpm/bambustate.md#bpm.bambustate.BambuClimate) |
@@ -492,14 +492,18 @@ Root state object representing complete printer telemetry.
 
 #### active_ams_id
 - **Type**: `int`
-- **Telemetry**: Computed from `active_tray_id >> 2`
+- **Telemetry**:
+  - Single-extruder (X1/P1/A1): Computed from `active_tray_id >> 2`
+  - Multi-extruder (H2D): `a_ext.assigned_to_ams_id` (physical AMS port assigned to the active extruder)
 - **Valid Range**: `-1` (no AMS), `0-3` (standard AMS), `128-131` (AMS HT)
 - **Purpose**: Currently active AMS unit ID
 - **Reference**: AMS slot addressing scheme
 
 #### active_tray_id
 - **Type**: `int`
-- **Telemetry**: `print.ams.tray_now` or computed from extruder
+- **Telemetry**:
+  - Multi-extruder (H2D): Computed via `parseExtruderTrayState` from extruder info
+  - Single-extruder (X1/P1/A1): `print.ams.tray_now`; value `255` normalized to `-1`
 - **Valid Range**:
   - `0-15`: Standard AMS slots (4 trays × 4 units)
   - `254-255`: External spool
@@ -510,7 +514,9 @@ Root state object representing complete printer telemetry.
 
 #### active_tray_state
 - **Type**: `TrayState` (IntEnum)
-- **Telemetry**: Computed from extruder info/status
+- **Telemetry**:
+  - Multi-extruder (H2D): Computed from extruder info/status
+  - Single-extruder (X1/P1/A1): Computed from `stage_id` — stage 24 → `LOADING`, stage 22 → `UNLOADING`, valid tray → `LOADED`, no tray → `UNLOADED`
 - **Valid Values**:
   - `UNLOADED (0)`
   - `LOADED (1)`
@@ -527,7 +533,7 @@ Root state object representing complete printer telemetry.
 
 #### target_tray_id
 - **Type**: `int`
-- **Telemetry**: Computed from extruder target tray
+- **Telemetry**: `print.ams.tray_tar`; value `255` normalized to `-1`
 - **Valid Range**: Same as `active_tray_id`
 - **Purpose**: Next tray to be loaded
 - **Reference**: BambuStudio tray targeting
@@ -1092,29 +1098,37 @@ Physical extruder/toolhead state.
 
 #### active_tray_id
 - **Type**: `int`
-- **Telemetry**: Computed from `extruder.info[].hnow`, `extruder.info[].snow`
+- **Telemetry**:
+  - Multi-extruder (H2D): Computed from `extruder.info[].hnow`, `extruder.info[].snow`
+  - Single-extruder (id == SINGLE_EXTRUDER): `print.ams.tray_now`
 - **Valid Range**: `-1`, `0-15`, `254-255`
 - **Purpose**: Currently active tray for this extruder
 - **Reference**: BambuStudio tray tracking algorithm
 
 #### target_tray_id
 - **Type**: `int`
-- **Telemetry**: Computed from `extruder.info[].htar`, `extruder.info[].star`
+- **Telemetry**:
+  - Multi-extruder (H2D): Computed from `extruder.info[].htar`, `extruder.info[].star`
+  - Single-extruder (id == SINGLE_EXTRUDER): `print.ams.tray_tar`
 - **Valid Range**: Same as `active_tray_id`
 - **Purpose**: Target tray for this extruder
 - **Reference**: BambuStudio tray targeting
 
 #### tray_state
 - **Type**: `TrayState` (IntEnum)
-- **Telemetry**: Computed from `state` + `status` combination
+- **Telemetry**:
+  - Multi-extruder (H2D): Computed from `state` + `status` combination
+  - Single-extruder (id == SINGLE_EXTRUDER): Computed from `stage_id` — stage 24 → `LOADING`, stage 22 → `UNLOADING`, valid tray → `LOADED`, no tray → `UNLOADED`
 - **Purpose**: Loading state for this extruder's tray
 - **Reference**: State machine derived from BambuStudio
 
 #### assigned_to_ams_id
 - **Type**: `int`
-- **Telemetry**: Set when AMS unit reports H2D extruder assignment
+- **Telemetry**:
+  - Multi-extruder (H2D): Set when AMS unit reports H2D extruder assignment
+  - Single-extruder: Computed as `active_tray_id >> 2` when a valid tray is loaded; `-1` when no tray (external spool or idle)
 - **Valid Range**: `-1`, `0-3`, `128-131`
-- **Purpose**: AMS unit assigned to this extruder (H2D dual-extruder)
+- **Purpose**: AMS unit assigned to this extruder
 - **Reference**: BambuStudio dual-extruder AMS routing
 
 ---
@@ -1691,6 +1705,12 @@ Details of the currently active job running on the printer, including progress, 
 - **Purpose**: The 3MF details for the active job
 - **Reference**: See [ProjectInfo](#projectinfo) section
 - **Update**: Populated via [`get_project_info()`](reference/bpm/bambuproject.md#bpm.bambuproject.get_project_info) method
+- **Note**: A fallback FTP lookup is attempted once when `gcode_state` transitions to `PREPARE` or `RUNNING`: searches the SD card 3MF file list by `subtask_name` and calls `get_project_info()`. Guarded by `project_info_fetch_attempted` to prevent repeated FTP calls on every MQTT push_status message.
+
+#### project_info_fetch_attempted
+- **Type**: `bool`
+- **Default**: `False`
+- **Purpose**: Guards the fallback `project_info` fetch so FTP is only attempted once per job, preventing repeated FTP calls on every MQTT push_status message while `project_info.id` is empty
 
 #### project_file_command
 - **Type**: `dict`

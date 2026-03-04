@@ -25,7 +25,31 @@ logger = logging.getLogger(LoggerName)
 
 @dataclass
 class ProjectInfo:
-    """The details of the associated project (`3mf`)."""
+    """
+    The details of a parsed `.3mf` project file for a single plate.
+
+    A `.3mf` file is a ZIP archive.  `get_project_info` extracts the following
+    internal entries to populate this object:
+
+    | ZIP entry                      | Purpose                                              |
+    |-------------------------------|------------------------------------------------------|
+    | `Metadata/slice_info.config`  | XML — objects, filament IDs, colors, `filament_maps` |
+    | `Metadata/project_settings.config` | INI — filament types and colors (fallback)      |
+    | `Metadata/plate_N.json`       | JSON — bounding boxes, filament IDs/colors per plate |
+    | `Metadata/plate_N.png`        | PNG — slicer preview thumbnail for plate N           |
+    | `Metadata/top_N.png`          | PNG — top-down view thumbnail for plate N            |
+    | `Metadata/plate_N.gcode`      | G-code header — filament type/color fallback (optional) |
+
+    The `metadata` dict produced by `get_project_info` has these keys:
+
+    | Key          | Type              | Description                                                  |
+    |-------------|-------------------|--------------------------------------------------------------|
+    | `thumbnail` | `str`             | `data:image/png;base64,...` — `plate_N.png` as a data URI    |
+    | `topimg`    | `str`             | `data:image/png;base64,...` — `top_N.png` as a data URI      |
+    | `map`       | `dict`            | Full `plate_N.json` content, including `filament_ids`, `filament_colors`, and `bbox_objects` (each enriched with `id` from `slice_info.config`) |
+    | `filament`  | `list[dict]`      | Normalized per-filament list: `{"id": int, "type": str, "color": "#RRGGBB"}`. `id` is 1-indexed. |
+    | `ams_mapping` | `list[str]`     | Stringified absolute tray IDs in the same encoding as `print_3mf_file` `ams_mapping` param. `"-1"` = unmapped. |
+    """
 
     id: str = ""
     """The unique identifier for this project (`3mf` storage location)."""
@@ -40,7 +64,60 @@ class ProjectInfo:
     plate_num: int = 1
     """The plate number this `3mf` targets."""
     metadata: dict = field(default_factory=dict)
-    """The associated metadata of this `3mf`."""
+    """
+    Extracted metadata for `plate_num`, populated by `get_project_info`.
+
+    Keys
+    ----
+    **`thumbnail`** : `str`
+        Slicer preview image for plate N as a `data:image/png;base64,...` URI.
+        Sourced from `Metadata/plate_N.png` inside the `.3mf`.
+
+    **`topimg`** : `str`
+        Top-down view of plate N as a `data:image/png;base64,...` URI.
+        Sourced from `Metadata/top_N.png` inside the `.3mf`.
+
+    **`map`** : `dict`
+        Full contents of `Metadata/plate_N.json`, including:
+
+        - `filament_ids` : `list[str]` — slicer filament slot IDs for this plate
+        - `filament_colors` : `list[str]` — `#RRGGBB` color per filament slot
+        - `bbox_objects` : `list[dict]` — one entry per printable object on the plate.
+          Each entry is enriched by `get_project_info` with an `"id"` key whose value
+          is the integer `identify_id` from `Metadata/slice_info.config`.  These IDs
+          are passed directly to `BambuPrinter.skip_objects` to cancel individual
+          objects mid-print.  Each entry also carries:
+
+          | Field    | Type    | Description                                     |
+          |----------|---------|-------------------------------------------------|
+          | `id`     | `int`   | `identify_id` from `slice_info.config` (added by `get_project_info`) |
+          | `name`   | `str`   | Human-readable object name from the slicer      |
+          | `val`    | `list`  | Bounding-box extents `[x_min, y_min, x_max, y_max]` |
+
+    **`filament`** : `list[dict]`
+        Normalized per-filament list extracted from `Metadata/slice_info.config`.
+        Falls back to `Metadata/project_settings.config` then the `plate_N.gcode`
+        header when `slice_info.config` is absent or sparse.
+
+        Each element: `{"id": int, "type": str, "color": "#RRGGBB"}`
+
+        - `id` is 1-indexed (matches the slicer's filament slot numbering)
+        - `type` is the filament material string (e.g. `"PLA"`, `"PETG-CF"`)
+        - `color` is the slicer colour in `#RRGGBB` format
+
+    **`ams_mapping`** : `list[str]`
+        Stringified absolute tray IDs — one per filament in the same order as
+        `filament` — using the BambuStudio / OrcaSlicer `DevMapping.cpp` encoding.
+        Serialise this list to a JSON string and pass it to
+        `BambuPrinter.print_3mf_file`'s `ams_mapping` parameter.
+
+        | Value    | Meaning                                                    |
+        |----------|------------------------------------------------------------|
+        | `0–103`  | Standard 4-slot AMS: `ams_id * 4 + slot_id`               |
+        | `128–135`| Single-slot AMS HT / N3S: `ams_id` (starts at 128)        |
+        | `254`    | External spool                                             |
+        | `-1`     | Unmapped — filament not assigned to any AMS slot           |
+    """
     plates: list[int] = field(default_factory=list)
     """The plate numbers contained within this `3mf`."""
 
@@ -85,6 +162,21 @@ class ActiveJobInfo:
 
 @staticmethod
 def get_3mf_entry_by_name(node: dict | Any, target_name: str):
+    """
+    Depth-first search of the SD card file-tree dict returned by
+    `BambuPrinter.get_sdcard_3mf_files()` / `get_sdcard_contents()`, matching
+    on the `name` field (filename portion, no path).
+
+    Parameters
+    ----------
+    * node : dict - Root or intermediate tree node.  Each node has the shape
+        `{"id": str, "name": str, "children": list, ...}`.
+    * target_name : str - The filename to find (e.g. `"my_project.3mf"`).
+
+    Returns
+    -------
+    `dict` if a matching node is found, `None` otherwise.
+    """
     if node.get("name") == target_name:
         return node
     if "children" in node and isinstance(node["children"], list):
@@ -97,6 +189,21 @@ def get_3mf_entry_by_name(node: dict | Any, target_name: str):
 
 @staticmethod
 def get_3mf_entry_by_id(node: dict | Any, target_id: str):
+    """
+    Depth-first search of the SD card file-tree dict returned by
+    `BambuPrinter.get_sdcard_3mf_files()` / `get_sdcard_contents()`, matching
+    on the `id` field (full SD card path, e.g. `/jobs/my_project.3mf`).
+
+    Parameters
+    ----------
+    * node : dict - Root or intermediate tree node.  Each node has the shape
+        `{"id": str, "name": str, "size": int, "timestamp": int, "children": list}`.
+    * target_id : str - The full SD card path to find (e.g. `"/jobs/my_project.3mf"`).
+
+    Returns
+    -------
+    `dict` if a matching node is found, `None` otherwise.
+    """
     if node.get("id") == target_id:
         return node
     if "children" in node and isinstance(node["children"], list):
@@ -117,10 +224,75 @@ def get_project_info(
     use_cached_list: bool = False,
 ) -> ProjectInfo | None:
     """
-    Returns a populated `ProjectInfo` class instance if the provided `project_file` can be located
-    on the Printer or is already cached locally. `project_file_md5` if provided will dramatically
-    speed up the method if the file is already cached (and matched). `plate_num` must be taken
-    into account if you need the metadata for anything other than plate #1.
+    Parse a `.3mf` file and return a populated `ProjectInfo` instance for the
+    requested plate, using a local metadata cache to avoid repeated FTPS downloads.
+
+    **Resolution order**
+
+    1. If a valid cached metadata file exists at
+       `{bpm_cache_path}/metadata/{filename}-{plate_num}.json` **and** the SD card
+       entry's `timestamp` + `size` match (or `project_file_md5` matches the cached
+       `md5`), the cached data is returned immediately — no download.
+    2. Otherwise the `.3mf` is downloaded from the printer's SD card via FTPS,
+       every plate is extracted and cached separately, and the local copy is deleted.
+    3. If `local_file` is supplied the download step is skipped entirely and the
+       provided path is parsed directly (used during `upload_sdcard_file`).
+
+    **What is extracted per plate**
+
+    | Source in ZIP                        | Metadata key  | Description                            |
+    |--------------------------------------|---------------|----------------------------------------|
+    | `Metadata/plate_N.png`               | `thumbnail`   | Data-URI PNG — slicer preview          |
+    | `Metadata/top_N.png`                 | `topimg`      | Data-URI PNG — top-down view           |
+    | `Metadata/plate_N.json`              | `map`         | Raw plate JSON (bbox_objects, filament_ids, filament_colors) |
+    | `Metadata/slice_info.config` (XML)   | `filament`    | `[{"id": int, "type": str, "color": "#RRGGBB"}, ...]` |
+    | `Metadata/slice_info.config` (XML)   | `ams_mapping` | Stringified absolute tray IDs; `"-1"` = unmapped |
+    | `Metadata/project_settings.config`   | *(fallback)*  | Filament type + color when slice_info is sparse |
+    | `Metadata/plate_N.gcode` header      | *(fallback)*  | Filament type + color when both above are absent |
+
+    `bbox_objects` entries in `map` are enriched with integer `id` values sourced
+    from the `identify_id` attribute in `slice_info.config`.  These `id` values are
+    the ones passed directly to `BambuPrinter.skip_objects` to cancel individual
+    objects mid-print.  Each entry also carries `name` (human-readable slicer name)
+    and bounding-box coordinates useful for building a per-object cancel UI.
+
+    `ams_mapping` uses the BambuStudio/OrcaSlicer DevMapping.cpp encoding:
+
+    - `0–103` — standard 4-slot AMS (`tray_id = ams_id * 4 + slot_id`)
+    - `128–135` — single-slot AMS HT / N3S (`tray_id = ams_id`)
+    - `254` — external spool
+    - `-1` — filament not mapped to any AMS slot
+
+    This is the same encoding consumed by `BambuPrinter.print_3mf_file`'s
+    `ams_mapping` parameter.
+
+    Parameters
+    ----------
+    * project_file_id : str - Full SD card path to the `.3mf` file
+        (e.g. `"/jobs/my_project.3mf"`).  A leading `/` is prepended if absent.
+    * printer : BambuPrinter - Connected printer instance used for SD card queries
+        and FTPS downloads.
+    * project_file_md5 : Optional[str] - If the caller already knows the file's MD5
+        (uppercase hex), providing it bypasses the SD card listing and validates the
+        cache purely by checksum — significantly faster.
+    * plate_num : int = 1 - The 1-indexed plate number to return metadata for.
+        If the requested plate is absent in the `.3mf`, the first available plate
+        is used instead.
+    * local_file : str = "" - Path to an already-downloaded copy of the `.3mf` on
+        the local filesystem.  When set, the FTPS download and SD card listing are
+        skipped entirely.
+    * use_cached_list : bool = False - When `True`, `printer.cached_sd_card_3mf_files`
+        is used instead of issuing a fresh `get_sdcard_3mf_files()` call.
+
+    Returns
+    -------
+    `ProjectInfo` for `plate_num` if successful, `None` if the file cannot be
+    located on the SD card or the requested plate has no parseable metadata.
+
+    Raises
+    ------
+    `Exception` if `local_file` is not set and the file does not exist on the
+    printer's SD card.
     """
 
     def get_nodes_by_plate_id(xml_root, plate_id, node_name):
@@ -262,7 +434,7 @@ def get_project_info(
             )
             if plate_num_match:
                 plate_num = int(plate_num_match.group(1))
-            logger.info(
+            logger.debug(
                 f"get_project_info - using fallback metadata file: [{metadata.name}] plate: [{plate_num}]"
             )
 
@@ -332,7 +504,7 @@ def get_project_info(
     plate_nums = []
     with ZipFile(localfile, "r") as zf:
         all_files = zf.namelist()
-        plate_pattern = "Metadata/plate_?.json"
+        plate_pattern = "Metadata/plate_*.json"
         plate_files = fnmatch.filter(all_files, plate_pattern)
         for plate_file in plate_files:
             num = plate_file.split("/")[-1].split(".")[0].split("_")[-1]
@@ -547,7 +719,7 @@ def get_project_info(
 
             except KeyError as ke:
                 if printer.config.verbose:
-                    logger.debug(
+                    logger.warning(
                         f"get_project_info - Key Error for [{file}] plate [{num}] - [{ke}]"
                     )
                 continue

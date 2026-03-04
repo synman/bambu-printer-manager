@@ -366,6 +366,17 @@ class PlateType(Enum):
     NONE = 999
 
 
+class DetectorSensitivity(Enum):
+    """
+    Sensitivity level for X-Cam AI vision detectors (spaghetti, pile-up, clump, air-print).
+    The string value is sent directly in the `halt_print_sensitivity` MQTT field.
+    """
+
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+
+
 class PrinterModel(Enum):
     """
     Printer model enum
@@ -799,10 +810,29 @@ def parseStage(stage_int: int) -> str:
         33: "Cutter error pause",
         34: "First layer error pause",
         35: "Nozzle clog pause",
+        36: "Absolute accuracy pre-check",
         37: "Chamber control",
-        38: "Chamber pre-heat (Legacy)",
+        38: "Absolute accuracy post-check",
         39: "Nozzle Offset Calibration",
+        40: "Bed level high temperature",
+        41: "Check quick release",
+        42: "Check door and cover",
+        43: "Laser calibration",
+        44: "Check platform",
+        45: "Check birdeye camera position",
+        46: "Calibrate birdeye camera",
+        47: "Bed level phase 1",
+        48: "Bed level phase 2",
         49: "Heating chamber",
+        50: "Heated bed cooling",
+        51: "Print calibration lines",
+        52: "Check material",
+        53: "Calibrating live view camera",
+        54: "Waiting for heatbed temperature",
+        55: "Check material position",
+        56: "Calibrating cutter model offset",
+        57: "Measuring surface",
+        58: "Thermal preconditioning",
         70: "Leading filament",
         71: "Reached toolhead",
         72: "Grabbing filament",

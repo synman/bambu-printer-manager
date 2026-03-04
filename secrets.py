@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
-"""Encrypted key-value secret store.
+"""Keychain-backed key-value secret store.
 
-Stores secrets in ``~/.bpm_secrets`` as a JSON file where each value is
-independently Fernet-encrypted using a key derived from a master password
-via PBKDF2-HMAC-SHA256.
-
-Master password is read from the ``BPM_SECRETS_PASS`` environment variable;
-if not set, a prompt is shown (input is hidden via getpass).
+Stores secrets in the macOS Keychain using the `security` CLI.
+Service names are stored as ``bpm.<key>``; account is the current user.
 
 Usage::
 
@@ -16,7 +12,7 @@ Usage::
     # Retrieve a secret
     python secrets.py get dockerhub_token
 
-    # List all keys (values are never printed)
+    # List all keys
     python secrets.py list
 
     # Delete a key
@@ -25,74 +21,65 @@ Usage::
 
 from __future__ import annotations
 
-import base64
-import getpass
 import json
 import os
+import subprocess
 import sys
-from pathlib import Path
-
-from cryptography.fernet import Fernet, InvalidToken
-from cryptography.hazmat.primitives.hashes import SHA256
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
-
-STORE_PATH = Path.home() / ".bpm_secrets"
-PBKDF2_ITERATIONS = 480_000  # NIST SP 800-132 recommended minimum (2023)
-
 
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+_SERVICE_PREFIX = "bpm."
+_INDEX_SERVICE = "bpm.__index__"
 
-def _derive_key(password: str, salt: bytes) -> bytes:
-    """Derive a 32-byte URL-safe base64 Fernet key from *password* + *salt*."""
-    kdf = PBKDF2HMAC(
-        algorithm=SHA256(),
-        length=32,
-        salt=salt,
-        iterations=PBKDF2_ITERATIONS,
+
+def _user() -> str:
+    return os.environ.get("USER", "")
+
+
+def _svc(key: str) -> str:
+    return f"{_SERVICE_PREFIX}{key}"
+
+
+def _keychain_get(service: str) -> str | None:
+    r = subprocess.run(
+        ["security", "find-generic-password", "-a", _user(), "-s", service, "-w"],
+        capture_output=True,
+        text=True,
     )
-    return base64.urlsafe_b64encode(kdf.derive(password.encode()))
+    return r.stdout.strip() if r.returncode == 0 else None
 
 
-def _get_password() -> str:
-    """Return master password from env or interactive prompt."""
-    pw = os.environ.get("BPM_SECRETS_PASS", "")
-    if not pw:
-        pw = getpass.getpass("Master password: ")
-    if not pw:
-        print("Error: master password must not be empty.", file=sys.stderr)
-        sys.exit(1)
-    return pw
+def _keychain_set(service: str, value: str) -> bool:
+    _keychain_delete(service)
+    r = subprocess.run(
+        ["security", "add-generic-password", "-a", _user(), "-s", service, "-w", value],
+        capture_output=True,
+        text=True,
+    )
+    return r.returncode == 0
 
 
-def _load_store() -> dict:
-    """Load the on-disk store, returning an empty structure if absent."""
-    if not STORE_PATH.exists():
-        return {}
-    with STORE_PATH.open() as fh:
-        return json.load(fh)
+def _keychain_delete(service: str) -> None:
+    subprocess.run(
+        ["security", "delete-generic-password", "-a", _user(), "-s", service],
+        capture_output=True,
+    )
 
 
-def _save_store(data: dict) -> None:
-    """Persist the store (mode 0600 — owner read/write only)."""
-    STORE_PATH.write_text(json.dumps(data, indent=2))
-    STORE_PATH.chmod(0o600)
+def _index_get() -> list[str]:
+    raw = _keychain_get(_INDEX_SERVICE)
+    if not raw:
+        return []
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return []
 
 
-def _fernet(password: str, store: dict) -> Fernet:
-    """Return a Fernet instance, creating and saving a salt if needed."""
-    if "salt" not in store:
-        store["salt"] = base64.b64encode(os.urandom(16)).decode()
-        store.setdefault("entries", {})
-        _save_store(store)
-    salt = base64.b64decode(store["salt"])
-    return Fernet(_derive_key(password, salt))
+def _index_save(keys: list[str]) -> None:
+    _keychain_set(_INDEX_SERVICE, json.dumps(sorted(set(keys))))
 
 
 # ---------------------------------------------------------------------------
@@ -101,35 +88,29 @@ def _fernet(password: str, store: dict) -> Fernet:
 
 
 def cmd_set(key: str, value: str) -> None:
-    """Encrypt *value* and store it under *key*."""
-    store = _load_store()
-    pw = _get_password()
-    f = _fernet(pw, store)
-    store.setdefault("entries", {})[key] = f.encrypt(value.encode()).decode()
-    _save_store(store)
+    """Store *value* under *key* in the Keychain."""
+    if not _keychain_set(_svc(key), value):
+        print(f"Error: failed to store key '{key}' in Keychain.", file=sys.stderr)
+        sys.exit(1)
+    keys = _index_get()
+    if key not in keys:
+        keys.append(key)
+        _index_save(keys)
     print(f"Stored: {key}")
 
 
 def cmd_get(key: str) -> None:
-    """Decrypt and print the value stored under *key*."""
-    store = _load_store()
-    if "entries" not in store or key not in store["entries"]:
+    """Retrieve and print the value stored under *key*."""
+    value = _keychain_get(_svc(key))
+    if value is None:
         print(f"Error: key '{key}' not found.", file=sys.stderr)
-        sys.exit(1)
-    pw = _get_password()
-    f = _fernet(pw, store)
-    try:
-        value = f.decrypt(store["entries"][key].encode()).decode()
-    except InvalidToken:
-        print("Error: wrong password or corrupted data.", file=sys.stderr)
         sys.exit(1)
     print(value)
 
 
 def cmd_list() -> None:
-    """Print all stored key names (values are never revealed)."""
-    store = _load_store()
-    keys = list((store.get("entries") or {}).keys())
+    """Print all stored key names."""
+    keys = _index_get()
     if not keys:
         print("(no secrets stored)")
         return
@@ -138,15 +119,13 @@ def cmd_list() -> None:
 
 
 def cmd_delete(key: str) -> None:
-    """Remove *key* from the store."""
-    store = _load_store()
-    entries: dict = store.get("entries", {})
-    if key not in entries:
+    """Remove *key* from the Keychain."""
+    if _keychain_get(_svc(key)) is None:
         print(f"Error: key '{key}' not found.", file=sys.stderr)
         sys.exit(1)
-    del entries[key]
-    store["entries"] = entries
-    _save_store(store)
+    _keychain_delete(_svc(key))
+    keys = _index_get()
+    _index_save([k for k in keys if k != key])
     print(f"Deleted: {key}")
 
 
@@ -156,13 +135,10 @@ def cmd_delete(key: str) -> None:
 
 USAGE = """\
 Usage:
-  secrets.py set    <key> <value>   Encrypt and store a secret
-  secrets.py get    <key>           Decrypt and print a secret
-  secrets.py delete <key>           Remove a secret
+  secrets.py set    <key> <value>   Store a secret in the macOS Keychain
+  secrets.py get    <key>           Retrieve a secret from the Keychain
+  secrets.py delete <key>           Remove a secret from the Keychain
   secrets.py list                   List all stored key names
-
-Master password via BPM_SECRETS_PASS env var or interactive prompt.
-Store location: ~/.bpm_secrets  (chmod 600)
 """
 
 
