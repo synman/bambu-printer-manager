@@ -634,6 +634,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#openapi-swagger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenAPI &amp; Swagger
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="OpenAPI &amp; Swagger">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-apiopenapijson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/openapi.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apidocs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/docs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#printer-status-information" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2308,6 +2347,7 @@
 <hr />
 <h2 id="table-of-contents">Table of Contents</h2>
 <ul>
+<li><a href="#openapi-swagger">OpenAPI &amp; Swagger</a></li>
 <li><a href="#printer-status-information">Printer Status &amp; Information</a></li>
 <li><a href="#temperature-control">Temperature Control</a></li>
 <li><a href="#fan-control">Fan Control</a></li>
@@ -2329,9 +2369,24 @@
 <li><a href="#version-history">Version History</a></li>
 </ul>
 <hr />
+<h2 id="openapi-swagger">OpenAPI &amp; Swagger</h2>
+<p>The API server publishes a generated OpenAPI document and an interactive
+Swagger UI.</p>
+<h3 id="get-apiopenapijson">GET /api/openapi.json</h3>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/get_openapi_spec"><code>GET /api/openapi.json</code></a>
+Returns the generated OpenAPI 3.0 document for the currently running API
+routes.</p>
+<p><strong>Success Response</strong> (<code>200 OK</code>): JSON OpenAPI schema document.</p>
+<hr />
+<h3 id="get-apidocs">GET /api/docs</h3>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/api_docs"><code>GET /api/docs</code></a></p>
+<p>Serves Swagger UI configured to load <code>/api/openapi.json</code>.</p>
+<p><strong>Success Response</strong> (<code>200 OK</code>): HTML page with interactive API explorer.</p>
+<hr />
 <h2 id="printer-status-information">Printer Status &amp; Information</h2>
 <h3 id="get-apiprinter">GET /api/printer</h3>
-<p>Returns the complete serialised <code>BambuPrinter</code> object via <code>BambuPrinter.toJson()</code>.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/get_printer_info"><code>GET /api/printer</code></a>
+Returns the complete serialised <code>BambuPrinter</code> object via <code>BambuPrinter.toJson()</code>.</p>
 <p><strong>Condition</strong>: Both <code>printer.recent_update</code> and <code>printer.printer_state.spools</code> must be truthy (i.e. a healthy MQTT data stream has been established and at least one spool entry is present).</p>
 <p><strong>Success Response</strong> (<code>200 OK</code>): Full JSON document produced by <code>BambuPrinter.toJson()</code>, which recursively serialises all public attributes — <code>_config</code>, <code>_service_state</code>, <code>_printer_state</code>, <code>_active_job_info</code>, <code>_sdcard_contents</code>, <code>_sdcard_3mf_files</code>, etc.</p>
 <p><strong>Error Response</strong> (<code>304 Not Modified</code>):
@@ -2339,7 +2394,8 @@
 </span></code></pre></div></p>
 <hr />
 <h3 id="get-apihealth_check">GET /api/health_check</h3>
-<p>Health check that always attempts to return printer JSON regardless of connection state.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/health_check"><code>GET /api/health_check</code></a>
+Health check that always attempts to return printer JSON regardless of connection state.</p>
 <p><strong>Logic</strong>: If <code>not printer.recent_update and not printer.printer_state.spools</code> (both false at once), the response is assembled as a <code>500</code> error tuple; otherwise <code>200</code> success. In both cases <code>printer.toJson()</code> is appended to the response.</p>
 <p><strong>Success Response</strong> (<code>200 OK</code>):
 <div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1"></a><a href="#__codelineno-1-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
@@ -2352,7 +2408,8 @@
 <hr />
 <h2 id="temperature-control">Temperature Control</h2>
 <h3 id="get-apiset_tool_target_temp">GET /api/set_tool_target_temp</h3>
-<p>Set the nozzle temperature target for the currently active extruder.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/set_tool_target_temp"><code>GET /api/set_tool_target_temp</code></a>
+Set the nozzle temperature target for the currently active extruder.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.set_nozzle_temp_target(value, tool_num)</code></p>
 <p>The active tool index is read from <code>printer.printer_state.active_tool.value</code>:</p>
 <ul>
@@ -2384,7 +2441,8 @@
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apiset_bed_target_temp">GET /api/set_bed_target_temp</h3>
-<p>Set the heated bed temperature target.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/set_bed_target_temp"><code>GET /api/set_bed_target_temp</code></a>
+Set the heated bed temperature target.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.set_bed_temp_target(value)</code></p>
 <p><strong>Parameters</strong>:</p>
 <table>
@@ -2411,7 +2469,8 @@
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apiset_chamber_target_temp">GET /api/set_chamber_target_temp</h3>
-<p>Set the chamber temperature target.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/set_chamber_target_temp"><code>GET /api/set_chamber_target_temp</code></a>
+Set the chamber temperature target.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.set_chamber_temp_target(value)</code></p>
 <p>If the printer has <code>capabilities.has_chamber_temp</code>, sends <code>SET_CHAMBER_TEMP_TARGET</code> followed by <code>SET_CHAMBER_AC_MODE</code> (mode <code>0</code> for targets below 40 °C, mode <code>1</code> for 40 °C and above). Otherwise only stores the value locally — used by the external <code>ChamberMonitor</code> integration.</p>
 <p><strong>Parameters</strong>:</p>
@@ -2440,7 +2499,8 @@
 <hr />
 <h2 id="fan-control">Fan Control</h2>
 <h3 id="get-apiset_fan_speed_target">GET /api/set_fan_speed_target</h3>
-<p>Set part-cooling fan speed.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/set_fan_speed_target"><code>GET /api/set_fan_speed_target</code></a>
+Set part-cooling fan speed.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.set_part_cooling_fan_speed_target_percent(value)</code></p>
 <p><strong>Parameters</strong>:</p>
 <table>
@@ -2467,7 +2527,8 @@
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apiset_aux_fan_speed_target">GET /api/set_aux_fan_speed_target</h3>
-<p>Set auxiliary fan speed.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/set_aux_fan_speed_target"><code>GET /api/set_aux_fan_speed_target</code></a>
+Set auxiliary fan speed.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.set_aux_fan_speed_target_percent(value)</code></p>
 <p><strong>Parameters</strong>:</p>
 <table>
@@ -2494,7 +2555,8 @@
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apiset_exhaust_fan_speed_target">GET /api/set_exhaust_fan_speed_target</h3>
-<p>Set exhaust/chamber fan speed.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/set_exhaust_fan_speed_target"><code>GET /api/set_exhaust_fan_speed_target</code></a>
+Set exhaust/chamber fan speed.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.set_exhaust_fan_speed_target_percent(value)</code></p>
 <p><strong>Parameters</strong>:</p>
 <table>
@@ -2522,7 +2584,8 @@
 <hr />
 <h2 id="print-job-control">Print Job Control</h2>
 <h3 id="get-apiprint_3mf">GET /api/print_3mf</h3>
-<p>Start a 3MF print job.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/print_3mf"><code>GET /api/print_3mf</code></a>
+Start a 3MF print job.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.print_3mf_file(name, plate, bed, use_ams, ams_mapping, bedlevel, flow, timelapse)</code></p>
 <p><strong>Parameters</strong>:</p>
 <table>
@@ -2600,22 +2663,26 @@
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apipause_printing">GET /api/pause_printing</h3>
-<p>Pause the current print job.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/pause_printing"><code>GET /api/pause_printing</code></a>
+Pause the current print job.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.pause_printing()</code></p>
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apiresume_printing">GET /api/resume_printing</h3>
-<p>Resume a paused print job.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/resume_printing"><code>GET /api/resume_printing</code></a>
+Resume a paused print job.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.resume_printing()</code></p>
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apistop_printing">GET /api/stop_printing</h3>
-<p>Cancel/stop the current print job.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/stop_printing"><code>GET /api/stop_printing</code></a>
+Cancel/stop the current print job.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.stop_printing()</code></p>
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apiskip_objects">GET /api/skip_objects</h3>
-<p>Skip one or more objects during an active print (uses the printer's exclude-object feature).</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/skip_objects"><code>GET /api/skip_objects</code></a>
+Skip one or more objects during an active print (uses the printer's exclude-object feature).</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.skip_objects(objects)</code></p>
 <p>The <code>objects</code> list is split on commas and passed directly to the library. The integer <code>identify_id</code> values for each object are obtained from <code>get_3mf_props_for_file</code> → <code>metadata.map.bbox_objects[n].id</code>.</p>
 <p><strong>Parameters</strong>:</p>
@@ -2644,7 +2711,8 @@
 <hr />
 <h2 id="filament-management">Filament Management</h2>
 <h3 id="get-apiload_filament">GET /api/load_filament</h3>
-<p>Load filament from the specified AMS slot or external spool.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/load_filament"><code>GET /api/load_filament</code></a>
+Load filament from the specified AMS slot or external spool.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.load_filament(slot_id)</code></p>
 <p><strong>Parameters</strong>:</p>
 <table>
@@ -2671,12 +2739,14 @@
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apiunload_filament">GET /api/unload_filament</h3>
-<p>Unload the currently loaded filament.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/unload_filament"><code>GET /api/unload_filament</code></a>
+Unload the currently loaded filament.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.unload_filament()</code></p>
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apirefresh_spool_rfid">GET /api/refresh_spool_rfid</h3>
-<p>Request the printer to re-read the RFID tag for a specific AMS slot.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/refresh_spool_rfid"><code>GET /api/refresh_spool_rfid</code></a>
+Request the printer to re-read the RFID tag for a specific AMS slot.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.refresh_spool_rfid(slot_id, ams_id=ams_id)</code></p>
 <p>Only RFID-equipped Bambu Lab spools carry tag data. The printer pushes updated telemetry after scanning, which triggers <code>on_printer_update</code> and a <code>printer_update</code> Socket.IO event.</p>
 <p><strong>Parameters</strong>:</p>
@@ -2711,7 +2781,8 @@
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apiset_spool_details">GET /api/set_spool_details</h3>
-<p>Set custom filament details for an AMS tray.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/set_spool_details"><code>GET /api/set_spool_details</code></a>
+Set custom filament details for an AMS tray.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.set_spool_details(tray_id, tray_info_idx, tray_id_name, tray_type, tray_color, nozzle_temp_min, nozzle_temp_max)</code></p>
 <p>The endpoint sleeps 2 seconds after issuing the command to allow the printer to process the update before responding.</p>
 <p><strong>Parameters</strong>:</p>
@@ -2783,14 +2854,16 @@
 <p><strong>Response</strong> (after 2-second delay): <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apiset_spool_k_factor">GET /api/set_spool_k_factor</h3>
-<p>Stub endpoint — no operation is currently performed.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/set_spool_k_factor"><code>GET /api/set_spool_k_factor</code></a>
+Stub endpoint — no operation is currently performed.</p>
 <p>The implementation body is commented out in source. The endpoint accepts <code>tray_id</code> but ignores it and immediately returns success.</p>
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h2 id="file-management">File Management</h2>
 <p>All file operations use FTPS to communicate with the printer SD card.</p>
 <h3 id="get-apiget_sdcard_contents">GET /api/get_sdcard_contents</h3>
-<p>Return the cached SD card file tree (populated by the last <code>get_sdcard_contents()</code> call).</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/get_sdcard_contents"><code>GET /api/get_sdcard_contents</code></a>
+Return the cached SD card file tree (populated by the last <code>get_sdcard_contents()</code> call).</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.get_sdcard_contents()</code> — performs a live FTPS listing and updates the internal cache.</p>
 <p><strong>Response</strong>: Alphabetically sorted tree structure:
 <div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1"></a><a href="#__codelineno-4-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="p">{</span>
@@ -2819,22 +2892,26 @@
 <p>Folder nodes have a <code>children</code> array; file nodes have a <code>size</code> field (bytes). Folders sort before files at every level.</p>
 <hr />
 <h3 id="get-apirefresh_sdcard_contents">GET /api/refresh_sdcard_contents</h3>
-<p>Refresh the SD card file listing from the printer via FTPS and return success.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/refresh_sdcard_contents"><code>GET /api/refresh_sdcard_contents</code></a>
+Refresh the SD card file listing from the printer via FTPS and return success.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.get_sdcard_contents()</code> — also rebuilds the 3MF-only cache.</p>
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apiget_sdcard_3mf_files">GET /api/get_sdcard_3mf_files</h3>
-<p>Return the SD card tree filtered to <code>.3mf</code> files only (all other file types stripped, empty folders retained).</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/get_sdcard_3mf_files"><code>GET /api/get_sdcard_3mf_files</code></a>
+Return the SD card tree filtered to <code>.3mf</code> files only (all other file types stripped, empty folders retained).</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.get_sdcard_3mf_files()</code> — also triggers a full <code>get_sdcard_contents()</code> refresh internally.</p>
 <p><strong>Response</strong>: Same tree structure as <code>get_sdcard_contents</code> but with non-<code>.3mf</code> files removed.</p>
 <hr />
 <h3 id="get-apirefresh_sdcard_3mf_files">GET /api/refresh_sdcard_3mf_files</h3>
-<p>Refresh the SD card listing (both full and 3MF-only caches) via FTPS and return success.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/refresh_sdcard_3mf_files"><code>GET /api/refresh_sdcard_3mf_files</code></a>
+Refresh the SD card listing (both full and 3MF-only caches) via FTPS and return success.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.get_sdcard_3mf_files()</code> which internally calls <code>get_sdcard_contents()</code>.</p>
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apidelete_sdcard_file">GET /api/delete_sdcard_file</h3>
-<p>Delete a file or folder from the SD card via FTPS.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/delete_sdcard_file"><code>GET /api/delete_sdcard_file</code></a>
+Delete a file or folder from the SD card via FTPS.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.delete_sdcard_file(file)</code> for files; <code>BambuPrinter.delete_sdcard_folder(path)</code> for folders (when <code>file</code> ends with <code>/</code>). The folder variant recursively deletes all contents before removing the directory.</p>
 <p>After deletion, both the full file cache and the 3MF cache are updated in-memory. The response is the updated <code>_sdcard_contents</code> tree.</p>
 <p><strong>Parameters</strong>:</p>
@@ -2860,7 +2937,8 @@
 <p><strong>Response</strong>: Updated SD card file tree (same structure as <code>get_sdcard_contents</code>).</p>
 <hr />
 <h3 id="get-apimake_sdcard_directory">GET /api/make_sdcard_directory</h3>
-<p>Create a new directory on the SD card via FTPS.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/make_sdcard_directory"><code>GET /api/make_sdcard_directory</code></a>
+Create a new directory on the SD card via FTPS.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.make_sdcard_directory(dir)</code> — creates the directory then calls <code>get_sdcard_contents()</code>.</p>
 <p><strong>Parameters</strong>:</p>
 <table>
@@ -2885,7 +2963,8 @@
 <p><strong>Response</strong>: Updated SD card file tree (same structure as <code>get_sdcard_contents</code>).</p>
 <hr />
 <h3 id="get-apirename_sdcard_file">GET /api/rename_sdcard_file</h3>
-<p>Rename or move a file/folder on the SD card via FTPS.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/rename_sdcard_file"><code>GET /api/rename_sdcard_file</code></a>
+Rename or move a file/folder on the SD card via FTPS.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.rename_sdcard_file(src, dest)</code> — renames then calls <code>get_sdcard_contents()</code>.</p>
 <p><strong>Parameters</strong>:</p>
 <table>
@@ -2916,7 +2995,8 @@
 <p><strong>Response</strong>: Updated SD card file tree (same structure as <code>get_sdcard_contents</code>).</p>
 <hr />
 <h3 id="post-apiupload_file_to_host">POST /api/upload_file_to_host</h3>
-<p>Upload a file to the API server's local <code>./uploads/</code> directory.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/upload_file_to_host"><code>POST /api/upload_file_to_host</code></a>
+Upload a file to the API server's local <code>./uploads/</code> directory.</p>
 <p>Accepts both <code>GET</code> and <code>POST</code> methods; multipart form data is required in practice.</p>
 <p><strong>Form Data</strong>:</p>
 <table>
@@ -2940,7 +3020,8 @@
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apiupload_file_to_printer">GET /api/upload_file_to_printer</h3>
-<p>Transfer a file from the server's <code>./uploads/</code> directory to the printer SD card via FTPS.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/upload_file_to_printer"><code>GET /api/upload_file_to_printer</code></a>
+Transfer a file from the server's <code>./uploads/</code> directory to the printer SD card via FTPS.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.upload_sdcard_file(f"uploads/{src}", dest)</code> — uploads the file, then if it is a <code>.3mf</code> file runs <code>get_project_info</code> to cache its metadata, then calls <code>get_sdcard_contents()</code> to refresh the file tree.</p>
 <p>Accepts both <code>GET</code> and <code>POST</code> methods.</p>
 <p><strong>Parameters</strong>:</p>
@@ -2972,7 +3053,8 @@
 <p><strong>Response</strong>: Updated SD card file tree (same structure as <code>get_sdcard_contents</code>).</p>
 <hr />
 <h3 id="get-apidownload_file_from_printer">GET /api/download_file_from_printer</h3>
-<p>Download a file from the printer SD card. The file is saved to <code>./uploads/</code> and then streamed to the client.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/download_file_from_printer"><code>GET /api/download_file_from_printer</code></a>
+Download a file from the printer SD card. The file is saved to <code>./uploads/</code> and then streamed to the client.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.download_sdcard_file(src, f"uploads/{filename}")</code></p>
 <p>Accepts both <code>GET</code> and <code>POST</code> methods.</p>
 <p><strong>Parameters</strong>:</p>
@@ -2998,7 +3080,8 @@
 <p><strong>Response</strong>: Binary file download (content-type determined by Flask's <code>send_from_directory</code>).</p>
 <hr />
 <h3 id="get-apiget_3mf_props_for_file">GET /api/get_3mf_props_for_file</h3>
-<p>Parse and return metadata for a specific <code>.3mf</code> file.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/get_3mf_props_for_file"><code>GET /api/get_3mf_props_for_file</code></a>
+Parse and return metadata for a specific <code>.3mf</code> file.</p>
 <p><strong>Library method</strong>: <code>get_project_info(file, printer, plate_num=plate, use_cached_list=True)</code></p>
 <p>Returns a <code>dataclasses.asdict(ProjectInfo)</code> result.</p>
 <p><strong>Parameters</strong>:</p>
@@ -3065,7 +3148,8 @@
 </span></code></pre></div></p>
 <hr />
 <h3 id="get-apiget_current_3mf_props">GET /api/get_current_3mf_props</h3>
-<p>Return metadata for the currently active print job.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/get_current_3mf_props"><code>GET /api/get_current_3mf_props</code></a>
+Return metadata for the currently active print job.</p>
 <p>Checks <code>printer.active_job_info.project_info</code> and returns it if <code>project_info.id</code> is non-empty.</p>
 <p><strong>Success Response</strong> (<code>200 OK</code>): <code>dataclasses.asdict(ProjectInfo)</code> with <code>"status": "success"</code> merged in. Same schema as <code>get_3mf_props_for_file</code>.</p>
 <p><strong>Error Response</strong> (<code>404 Not Found</code>):
@@ -3075,7 +3159,8 @@
 <h2 id="tool-control-dual-extruder">Tool Control (Dual Extruder)</h2>
 <p>These endpoints are only meaningful on H2D / H2D Pro printers with dual extruders.</p>
 <h3 id="get-apitoggle_active_tool">GET /api/toggle_active_tool</h3>
-<p>Switch between right (<code>0</code>) and left (<code>1</code>) extruders on H2D / H2D Pro printers.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/toggle_active_tool"><code>GET /api/toggle_active_tool</code></a>
+Switch between right (<code>0</code>) and left (<code>1</code>) extruders on H2D / H2D Pro printers.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.set_active_tool(tool)</code></p>
 <p>Computes the target tool as <code>abs(active_tool.value - 1)</code>:</p>
 <ul>
@@ -3085,7 +3170,8 @@
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apiset_nozzle_details">GET /api/set_nozzle_details</h3>
-<p>Set the nozzle diameter and material type for the active extruder.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/set_nozzle_details"><code>GET /api/set_nozzle_details</code></a>
+Set the nozzle diameter and material type for the active extruder.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.set_nozzle_details(nozzle_diameter, nozzle_type)</code></p>
 <p>The endpoint sleeps 1 second after issuing the command before responding.</p>
 <p><code>nozzle_diameter</code> is parsed via <code>NozzleDiameter(float(...))</code> and <code>nozzle_type</code> via <code>NozzleType[...]</code>. Supplying an invalid value for either raises a <code>ValueError</code> / <code>KeyError</code> which is caught by the <code>500</code> error handler.</p>
@@ -3121,14 +3207,16 @@
 <p><strong>Response</strong> (after 1-second delay): <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apirefresh_nozzles">GET /api/refresh_nozzles</h3>
-<p>Request the printer to push current nozzle info in its next <code>push_status</code> message.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/refresh_nozzles"><code>GET /api/refresh_nozzles</code></a>
+Request the printer to push current nozzle info in its next <code>push_status</code> message.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.refresh_nozzles()</code></p>
 <p>Relevant only on models with <code>support_refresh_nozzle</code> capability (H2D, H2D Pro).</p>
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h2 id="detection-safety">Detection &amp; Safety</h2>
 <h3 id="get-apiset_buildplate_marker_detector">GET /api/set_buildplate_marker_detector</h3>
-<p>Enable or disable the build-plate marker detector.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/set_buildplate_marker_detector"><code>GET /api/set_buildplate_marker_detector</code></a>
+Enable or disable the build-plate marker detector.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.set_buildplate_marker_detector(enabled)</code></p>
 <p><strong>Parameters</strong>:</p>
 <table>
@@ -3153,7 +3241,8 @@
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apiset_spaghetti_detector">GET /api/set_spaghetti_detector</h3>
-<p>Enable or disable the spaghetti / first-layer failure detector.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/set_spaghetti_detector"><code>GET /api/set_spaghetti_detector</code></a>
+Enable or disable the spaghetti / first-layer failure detector.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.set_spaghetti_detector(enabled, sensitivity)</code></p>
 <p><strong>Parameters</strong>:</p>
 <table>
@@ -3190,7 +3279,8 @@
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apiset_purgechutepileup_detector">GET /api/set_purgechutepileup_detector</h3>
-<p>Enable or disable the purge-chute pile-up detector.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/set_purgechutepileup_detector"><code>GET /api/set_purgechutepileup_detector</code></a>
+Enable or disable the purge-chute pile-up detector.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.set_purgechutepileup_detector(enabled, sensitivity)</code></p>
 <p><strong>Parameters</strong>:</p>
 <table>
@@ -3227,7 +3317,8 @@
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apiset_nozzleclumping_detector">GET /api/set_nozzleclumping_detector</h3>
-<p>Enable or disable the nozzle-clumping detector.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/set_nozzleclumping_detector"><code>GET /api/set_nozzleclumping_detector</code></a>
+Enable or disable the nozzle-clumping detector.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.set_nozzleclumping_detector(enabled, sensitivity)</code></p>
 <p><strong>Parameters</strong>:</p>
 <table>
@@ -3264,7 +3355,8 @@
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apiset_airprinting_detector">GET /api/set_airprinting_detector</h3>
-<p>Enable or disable the air-printing detector.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/set_airprinting_detector"><code>GET /api/set_airprinting_detector</code></a>
+Enable or disable the air-printing detector.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.set_airprinting_detector(enabled, sensitivity)</code></p>
 <p><strong>Parameters</strong>:</p>
 <table>
@@ -3302,7 +3394,8 @@
 <hr />
 <h2 id="ams-control">AMS Control</h2>
 <h3 id="get-apisend_ams_control_command">GET /api/send_ams_control_command</h3>
-<p>Send a control command to the AMS system.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/send_ams_control_command"><code>GET /api/send_ams_control_command</code></a>
+Send a control command to the AMS system.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.send_ams_control_command(ams_cmd)</code></p>
 <p>The <code>cmd</code> value is resolved via <code>AMSControlCommand[cmd.upper()]</code>. Invalid names raise a <code>KeyError</code> → <code>500</code>.</p>
 <p><strong>Parameters</strong>:</p>
@@ -3330,7 +3423,8 @@
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apiset_ams_user_setting">GET /api/set_ams_user_setting</h3>
-<p>Configure an AMS user setting.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/set_ams_user_setting"><code>GET /api/set_ams_user_setting</code></a>
+Configure an AMS user setting.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.set_ams_user_setting(setting, enabled)</code></p>
 <p>The <code>setting</code> value is resolved via <code>AMSUserSetting[setting.upper()]</code>. Invalid names raise a <code>KeyError</code> → <code>500</code>.</p>
 <p><strong>Parameters</strong>:</p>
@@ -3366,7 +3460,8 @@
 <hr />
 <h2 id="advanced-settings">Advanced Settings</h2>
 <h3 id="get-apisend_gcode">GET /api/send_gcode</h3>
-<p>Send one or more raw G-code commands to the printer.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/send_gcode"><code>GET /api/send_gcode</code></a>
+Send one or more raw G-code commands to the printer.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.send_gcode(gcode)</code> — wraps the command in <code>SEND_GCODE_TEMPLATE</code> and publishes via MQTT.</p>
 <p>Pipe characters (<code>|</code>) in the <code>gcode</code> parameter are converted to newlines (<code>\n</code>) before being sent, allowing multiple commands in a single URL.</p>
 <p><strong>Parameters</strong>:</p>
@@ -3398,7 +3493,8 @@
 </div>
 <hr />
 <h3 id="get-apiset_print_option">GET /api/set_print_option</h3>
-<p>Enable or disable a printer option.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/set_print_option"><code>GET /api/set_print_option</code></a>
+Enable or disable a printer option.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.set_print_option(option, enabled)</code></p>
 <p>The <code>option</code> value is resolved via <code>PrintOption[option.upper()]</code>. Invalid names raise a <code>KeyError</code> → <code>500</code>.</p>
 <p><strong>Parameters</strong>:</p>
@@ -3433,7 +3529,8 @@
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apiset_light_state">GET /api/set_light_state</h3>
-<p>Control the chamber and column LED lights.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/set_light_state"><code>GET /api/set_light_state</code></a>
+Control the chamber and column LED lights.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.light_state = bool</code></p>
 <p>Setting the property publishes <code>CHAMBER_LIGHT_TOGGLE</code> commands for three light nodes: <code>chamber_light</code>, <code>chamber_light2</code>, and <code>column_light</code>.</p>
 <p><strong>Parameters</strong>:</p>
@@ -3462,7 +3559,8 @@
 <p><strong>Note</strong>: The application also automatically controls lights based on print state transitions and chamber door sensor events (when <code>capabilities.has_chamber_door_sensor</code> is true).</p>
 <hr />
 <h3 id="get-apiset_speed_level">GET /api/set_speed_level</h3>
-<p>Set the print speed profile.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/set_speed_level"><code>GET /api/set_speed_level</code></a>
+Set the print speed profile.</p>
 <p><strong>Library method</strong>: <code>BambuPrinter.speed_level = str</code></p>
 <p>Publishes <code>SPEED_PROFILE_TEMPLATE</code> with the string value directly as the <code>param</code> field.</p>
 <p><strong>Parameters</strong>:</p>
@@ -3491,12 +3589,14 @@
 <hr />
 <h2 id="telemetry-data">Telemetry &amp; Data</h2>
 <h3 id="get-apiget_all_data">GET /api/get_all_data</h3>
-<p>Return the full telemetry history used for charting, combined with the current printer state.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/get_all_data"><code>GET /api/get_all_data</code></a>
+Return the full telemetry history used for charting, combined with the current printer state.</p>
 <p>Calls <code>build_all_data()</code> internally. See <a href="#build_all_data-response-schema">build_all_data() Response Schema</a> for the complete schema.</p>
 <p><strong>Response</strong> (<code>200 OK</code>): <code>build_all_data()</code> result. See schema section below.</p>
 <hr />
 <h3 id="get-apizoom_in">GET /api/zoom_in</h3>
-<p>Zoom in on a telemetry chart (reduce the visible history window by 500 seconds per call).</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/zoom_in"><code>GET /api/zoom_in</code></a>
+Zoom in on a telemetry chart (reduce the visible history window by 500 seconds per call).</p>
 <p>Finds the named collection in <code>ds.collections</code> and decrements its <code>zoom</code> by 500 seconds. Minimum zoom window is 500 seconds. If the collection has fewer than 500 seconds of data, the call is a no-op.</p>
 <p>If <code>zoom</code> is currently <code>0</code> (show all data), it is first set to <code>min(3600, max_age)</code> before decrementing.</p>
 <p><strong>Parameters</strong>:</p>
@@ -3524,7 +3624,8 @@
 <p><strong>Response</strong>: <code>{"status": "success", "printer": {}}</code></p>
 <hr />
 <h3 id="get-apizoom_out">GET /api/zoom_out</h3>
-<p>Zoom out on a telemetry chart (increase the visible history window by 500 seconds per call).</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/zoom_out"><code>GET /api/zoom_out</code></a>
+Zoom out on a telemetry chart (increase the visible history window by 500 seconds per call).</p>
 <p>If <code>zoom + 500 &gt;= max_age</code>, zoom resets to <code>0</code> (show all data).</p>
 <p><strong>Parameters</strong>:</p>
 <table>
@@ -3551,12 +3652,14 @@
 <p><strong>Response</strong>: <code>{"status": "success", "printer": {}}</code></p>
 <hr />
 <h3 id="get-apidump_data_dscollections">GET /api/dump_data_ds.collections</h3>
-<p>Dump all internal <code>DataCollection</code> objects as newline-delimited JSON (JSONL), one collection per line.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/dump_data_collections"><code>GET /api/dump_data_ds.collections</code></a>
+Dump all internal <code>DataCollection</code> objects as newline-delimited JSON (JSONL), one collection per line.</p>
 <p><strong>Response</strong>: Plain text, MIME type <code>application/jsonl+json</code>. Each line is one JSON-serialised <code>DataCollection</code> object.</p>
 <hr />
 <h2 id="system-diagnostics">System &amp; Diagnostics</h2>
 <h3 id="get-apitoggle_session">GET /api/toggle_session</h3>
-<p>Pause or resume the MQTT connection to the printer.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/toggle_session"><code>GET /api/toggle_session</code></a>
+Pause or resume the MQTT connection to the printer.</p>
 <p><strong>Library methods</strong>: <code>BambuPrinter.pause_session()</code> / <code>BambuPrinter.resume_session()</code></p>
 <ul>
 <li>If <code>service_state</code> is <code>CONNECTED</code> → calls <code>pause_session()</code>.</li>
@@ -3571,7 +3674,8 @@
 <code>state</code> is the <code>ServiceState</code> enum name after the toggle: <code>"PAUSED"</code> or <code>"CONNECTED"</code>.</p>
 <hr />
 <h3 id="get-apitrigger_printer_refresh">GET /api/trigger_printer_refresh</h3>
-<p>Force a printer reconnection or refresh.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/trigger_printer_refresh"><code>GET /api/trigger_printer_refresh</code></a>
+Force a printer reconnection or refresh.</p>
 <p><strong>Library methods</strong>: <code>BambuPrinter.quit()</code> + <code>start_session()</code> when disconnected; <code>BambuPrinter.refresh()</code> when connected.</p>
 <ul>
 <li>If <code>service_state</code> is not <code>CONNECTED</code> and not <code>PAUSED</code>: calls <code>quit()</code>, waits 1 second, calls <code>start_session()</code>, then blocks until <code>CONNECTED</code>.</li>
@@ -3581,7 +3685,8 @@
 <p>Note: <code>printer</code> is always an empty dict in this response. Call <code>/api/printer</code> or <code>/api/get_all_data</code> for current state.</p>
 <hr />
 <h3 id="get-apitoggle_verbosity">GET /api/toggle_verbosity</h3>
-<p>Toggle the root logger between <code>DEBUG</code> and <code>INFO</code> level, and optionally set <code>config.verbose</code>.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/toggle_verbosity"><code>GET /api/toggle_verbosity</code></a>
+Toggle the root logger between <code>DEBUG</code> and <code>INFO</code> level, and optionally set <code>config.verbose</code>.</p>
 <p>The level always toggles based on the <strong>current</strong> level (not the <code>verbose</code> parameter): <code>INFO → DEBUG</code>, <code>DEBUG → INFO</code>. The <code>verbose</code> parameter independently sets <code>printer.config.verbose</code>.</p>
 <p><strong>Parameters</strong>:</p>
 <table>
@@ -3615,14 +3720,17 @@
 <code>level</code> is the new log level name (<code>"DEBUG"</code> or <code>"INFO"</code>). <code>verbose</code> mirrors the value passed in.</p>
 <hr />
 <h3 id="get-apidump_log">GET /api/dump_log</h3>
-<p>Retrieve the contents of <code>./output.log</code>.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/dump_log"><code>GET /api/dump_log</code></a>
+Retrieve the contents of <code>./output.log</code>.</p>
 <p><strong>Response</strong>: Plain text, MIME type <code>application/jsonl+json</code>. Empty string if the file does not exist.</p>
 <hr />
 <h3 id="get-apitruncate_log">GET /api/truncate_log</h3>
-<p>Clear (truncate to zero bytes) <code>./output.log</code>.</p>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/truncate_log"><code>GET /api/truncate_log</code></a>
+Clear (truncate to zero bytes) <code>./output.log</code>.</p>
 <p><strong>Response</strong>: <code>{"status": "success"}</code></p>
 <hr />
 <h3 id="get-apifake_error">GET /api/fake_error</h3>
+<p><strong>Swagger UI</strong>: <a href="http://localhost:5000/api/docs#/default/fake_error"><code>GET /api/fake_error</code></a></p>
 <p>Intentionally raise a <code>ZeroDivisionError</code> to test the <code>500</code> error handler.</p>
 <p><strong>Response</strong> (<code>500 Internal Server Error</code>):
 <div class="language-json highlight"><span class="filename">JSON</span><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1"></a><a href="#__codelineno-10-1"><span class="linenos" data-linenos="1 "></span></a><span class="p">{</span>
