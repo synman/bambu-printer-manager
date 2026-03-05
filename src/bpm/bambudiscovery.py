@@ -154,14 +154,17 @@ class BambuDiscovery:
             sock.settimeout(1.0)
             while self._running:
                 try:
-                    data, addr = sock.recvfrom(1024)
+                    data, _ = sock.recvfrom(1024)
                     data_str = data.decode("utf-8")
                     try:
                         item = DiscoveredPrinter.fromData(data_str)
-                        if item.usn and item.usn not in self._discovered_printers:
-                            self._discovered_printers[item.usn] = item
-                            if self._on_printer_discovered:
+                        if item.usn:
+                            if (
+                                item.usn not in self._discovered_printers
+                                and self._on_printer_discovered
+                            ):
                                 self._on_printer_discovered(item)
+                            self._discovered_printers[item.usn] = item
                     except TypeError:
                         # Skip malformed SSDP messages missing required fields
                         pass

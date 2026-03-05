@@ -211,6 +211,8 @@ SET_ACTIVE_TOOL = {
 
 REFRESH_NOZZLE = {"print": {"sequence_id": "0", "command": "refresh_nozzle"}}
 
+RENAME_PRINTER = {"update": {"name": "", "sequence_id": "0"}}
+
 SET_AMS_TO_EXTRUDER_BINDING = {
     "print": {
         "bind_list": [

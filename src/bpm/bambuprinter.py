@@ -34,6 +34,7 @@ from bpm.bambucommands import (
     PRINT_3MF_FILE,
     PRINT_OPTION_COMMAND,
     REFRESH_NOZZLE,
+    RENAME_PRINTER,
     RESUME_PRINT,
     SEND_GCODE_TEMPLATE,
     SET_ACCESSORIES,
@@ -318,182 +319,206 @@ class BambuPrinter:
                 json.dumps(ANNOUNCE_PUSH),
             )
 
-    def set_bed_temp_target(self, value: int):
+    def delete_sdcard_file(self, file: str):
         """
-        Sets the bed temperature target.
+        Delete the specified file on the printer's SDCard and returns an updated dict of all files on the printer
 
         Parameters
         ----------
-        * value : float - The target bed temperature.
+        * file : str - the full path filename to be deleted
         """
-        if value < 0:
-            value = 0
-        gcode = SEND_GCODE_TEMPLATE
-        gcode["print"]["param"] = f"M140 S{value}\n"
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(gcode)
-        )
+        logger.debug(f"delete_sdcard_file - deleting remote file: [{file}]")
+
+        with self.ftp_connection() as ftps:
+            ftps.delete_file(file)
+
+        def search_for_and_remove_file(file: str, entry: dict):
+            if "children" in entry:
+                entry["children"] = list(
+                    filter(lambda i: i["id"] != file, entry["children"])
+                )
+                for child in entry["children"]:
+                    search_for_and_remove_file(file, child)
+
+        if self._sdcard_contents:
+            search_for_and_remove_file(file, self._sdcard_contents)
+        if self._sdcard_3mf_files:
+            search_for_and_remove_file(file, self._sdcard_3mf_files)
+
+        logger.debug(f"delete_sdcard_file - deleted file [{file}] from sdcard")
+        return self._sdcard_contents
+
+    def delete_sdcard_folder(self, path: str):
+        """
+        Delete the specified folder on the printer's SDCard and returns an updated dict of all files on the printer
+
+        Parameters
+        ----------
+        * path : str - the full path to folder to be deleted
+        """
+        logger.debug(f"delete_sdcard_folder - deleting remote folder: [{path}]")
+
+        def delete_all_contents(ftps: IoTFTPSClient, path: str):
+            fs = ftps.list_files_ex(path)
+            if fs is not None:
+                for item in fs:
+                    if item.is_dir:
+                        delete_all_contents(ftps, item.path)
+                    else:
+                        ftps.delete_file(item.path)
+            ftps.delete_folder(path)
+
+        with self.ftp_connection() as ftps:
+            delete_all_contents(ftps, path)
+
+        def search_for_and_remove_folder(path: str, entry: dict):
+            if not path.endswith("/"):
+                path = f"{path}/"
+            if "children" in entry:
+                entry["children"] = list(
+                    filter(lambda i: not i["id"].startswith(path), entry["children"])
+                )
+                for child in entry["children"]:
+                    search_for_and_remove_folder(path, child)
+
+        if self._sdcard_contents is not None:
+            search_for_and_remove_folder(path, self._sdcard_contents)
+        if self._sdcard_3mf_files is not None:
+            search_for_and_remove_folder(path, self._sdcard_3mf_files)
+        return self._sdcard_contents
+
+    def download_sdcard_file(self, src: str, dest: str):
+        """
+        Downloads a file from the printer
+
+        Parameters
+        ----------
+        * src : str - the full path filename on the printer to be downloaded to the host
+        * dest : str - the full path filename on the host to store the downloaded file
+        """
         logger.debug(
-            f"set_bed_temp_target - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+            f"download_sdcard_file - downloading file src: [{src}] dest: [{dest}]"
         )
-        self._bed_temp_target_time = round(time.time())
+        with self.ftp_connection() as ftps:
+            ftps.download_file(src, dest)
 
-    def set_nozzle_temp_target(self, value: int, tool_num: int = -1):
+    def get_current_bind_list(self, state: "BambuState") -> list[dict[str, Any]]:
         """
-        Sets the nozzle temperature target.
+        Build the `manual_ams_bind` list required by the H2D dual-extruder firmware.
+
+        Maps each connected AMS unit to its assigned extruder using the H2D's
+        hardware register inversion (RIGHT_EXTRUDER logical index 0 → hardware index 1,
+        LEFT_EXTRUDER logical index 1 → hardware index 0).
+
+        When only one AMS unit is connected the firmware still requires a two-entry
+        array; a sentinel placeholder entry (Unit ID 1) is appended automatically to
+        satisfy that requirement.
 
         Parameters
         ----------
-        * value : float - The target nozzle temperature.
-        * tool_num : int - The tool number (default is 0).
-        """
-        if value < 0:
-            value = 0
-        gcode = SEND_GCODE_TEMPLATE
-        gcode["print"]["param"] = (
-            f"M104 S{value}{'' if tool_num == -1 else ' T' + str(tool_num)}\n"
-        )
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(gcode)
-        )
-        logger.debug(
-            f"set_nozzle_temp_target - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
-        )
-        self._tool_temp_target_time = round(time.time())
+        * state : BambuState - Current printer state supplying `ams_units` and
+            `ams_connected_count`.
 
-    def set_chamber_temp(self, value: float):
+        Returns
+        -------
+        list[dict] - List of dicts with keys `ams_f_bind` (int), `ams_s_bind` (int),
+            and `extruder` (int, hardware index).
         """
-        for printers that do not have managed chambers, this enables you to inject
-        a chamber temperature value from an external source
+        bind_list = []
 
-        Parameters
-        ----------
-        * value : float - The chamber temperature.
-        """
-        self._printer_state.climate.chamber_temp = value
+        # 1. Map physical units based on current logical assignments
+        for unit in state.ams_units:
+            # Hardware register inversion logic
+            hw_target = 1 if unit.assigned_to_extruder == ActiveTool.RIGHT_EXTRUDER else 0
 
-    def set_chamber_temp_target(self, value: int, temper_check: bool = True):
-        """
-        set chamber temperature target if printer supports it, otherwise just
-        store the value
-
-        Parameters
-        ----------
-        * value : float - The target chamber temperature.
-        * temper_check : OPTIONAL bool - perform a temperature check?
-        """
-        if self.config.capabilities.has_chamber_temp:
-            cmd = copy.deepcopy(SET_CHAMBER_TEMP_TARGET)
-            cmd["print"]["ctt_val"] = value
-            cmd["print"]["temper_check"] = temper_check
-
-            self.client.publish(
-                f"device/{self.config.serial_number}/request", json.dumps(cmd)
+            bind_list.append(
+                {"ams_f_bind": int(unit.ams_id), "ams_s_bind": 0, "extruder": hw_target}
             )
-            logger.debug(
-                f"set_chamber_temp_target - published SET_CHAMBER_TEMP_TARGET to [device/{self.config.serial_number}/request] command: [{cmd}]"
+
+        # 2. Dual-Extruder Array Completeness Requirement
+        # If only one AMS is connected, firmware requires a placeholder for the unused register.
+        if state.ams_connected_count == 1 and len(bind_list) == 1:
+            existing_assignment = bind_list[0]
+
+            # Determine the unassigned hardware register
+            placeholder_hw_target = 0 if existing_assignment["extruder"] == 1 else 1
+
+            # Add sentinel placeholder (Unit ID 1) to complete the dual-path mapping
+            bind_list.append(
+                {
+                    "ams_f_bind": 1,  # Placeholder Unit ID
+                    "ams_s_bind": 0,
+                    "extruder": placeholder_hw_target,
+                }
             )
 
-            cmd = copy.deepcopy(SET_CHAMBER_AC_MODE)
+        return bind_list
 
-            if value < 40:
-                cmd["print"]["modeId"] = 0
-            else:
-                cmd["print"]["modeId"] = 1
-            self.client.publish(
-                f"device/{self.config.serial_number}/request", json.dumps(cmd)
-            )
-            logger.debug(
-                f"set_chamber_temp_target - published SET_CHAMBER_AC_MODE to [device/{self.config.serial_number}/request] command: [{cmd}]"
-            )
+    # def set_ams_to_extruder_binding(self, ams: int, extruder: int):
+    #     """
+    #     sets the current active tool / extruder for machines (H2 series)
+    #     that have multiple extruders
+    #     """
+    #     cmd = copy.deepcopy(SET_AMS_TO_EXTRUDER_BINDING)
+    #     extruder0 = cmd["print"]["bind_list"][1]
+    #     extruder1 = cmd["print"]["bind_list"][0]
 
-        self._printer_state.climate.chamber_temp_target = value
-        self._chamber_temp_target_time = round(time.time())
+    #     if extruder == 0:
+    #         extruder
+    #     self.client.publish(
+    #         f"device/{self.config.serial_number}/request", json.dumps(cmd)
+    #     )
+    #     logger.debug(
+    #         f"set_active_tool - published SET_AMS_TO_EXTRUDER_BINDING to [device/{self.config.serial_number}/request] command: [{cmd}]"
+    #     )
 
-    def set_part_cooling_fan_speed_target_percent(self, value: int):
+    def get_sdcard_3mf_files(self):
         """
-        sets the part cooling fan speed target represented in percent
+        Returns a `dict` (json document) of all `.3mf` files on the printer's SD card.
 
-        Parameters
-        ----------
-        * value : int - The target speed in percent
+        Usage
+        -----
+        The return value of this method is very useful for binding to things like a clientside `TreeView`
         """
-        if value < 0:
-            value = 0
-        self._printer_state.climate.part_cooling_fan_speed_target_percent = value
-        speed = round(value * 2.55, 0)
-        gcode = SEND_GCODE_TEMPLATE
-        gcode["print"]["param"] = f"M106 P1 S{speed}\n"
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(gcode)
-        )
-        logger.debug(
-            f"set_part_cooling_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
-        )
-        self._fan_speed_target_time = round(time.time())
+        logger.debug("get_sdcard_3mf_files - returning sdcard_3mf_files")
+        self.get_sdcard_contents()
+        return self._sdcard_3mf_files
 
-    def set_aux_fan_speed_target_percent(self, value: int):
+    def get_sdcard_contents(self):
         """
-        sets the aux (chamber recirculation) fan speed target represented in percent
+        Returns a `dict` (json document) of ALL files on the printer's SD card.
+        The private class level `_sdcard_contents` attribute is also populated.
 
-        Parameters
-        ----------
-        * value : int - The target speed in percent
+        Usage
+        -----
+        The return value of this method is very useful for binding to things like a clientside `TreeView`
         """
-        if value < 0:
-            value = 0
-        self._printer_state.climate.zone_aux_percent = value
-        speed = round(value * 2.55, 0)
-        gcode = SEND_GCODE_TEMPLATE
-        gcode["print"]["param"] = f"M106 P2 S{speed}\n"
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(gcode)
-        )
-        logger.debug(
-            f"set_aux_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
-        )
-        # self._fan_speed_target_time = round(time.time())
 
-    def set_exhaust_fan_speed_target_percent(self, value: int):
-        """
-        sets the exhaust (chamber) fan speed target represented in percent
+        with self.ftp_connection() as ftps:
+            fs = self._get_sftp_files(ftps, "/")
+        if fs is None:
+            logger.warning("get_sdcard_contents - failed to retrieve files from sdcard")
+            self._sdcard_contents = None
+            self._sdcard_3mf_files = None
+            return None
 
-        Parameters
-        ----------
-        * value : int - The target speed in percent
-        """
-        if value < 0:
-            value = 0
-        self._printer_state.climate.zone_exhaust_percent = value
-        speed = round(value * 2.55, 0)
-        gcode = SEND_GCODE_TEMPLATE
-        gcode["print"]["param"] = f"M106 P3 S{speed}\n"
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(gcode)
-        )
-        logger.debug(
-            f"set_exhaust_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
-        )
-        # self._fan_speed_target_time = round(time.time())
+        self._sdcard_contents = sortFileTreeAlphabetically(fs)
 
-    def unload_filament(self, ams_id: int = 0):
-        """
-        Requests the printer to unload whatever filament / spool is currently loaded.
+        def search_for_and_remove_all_other_files(mask: str, entry: dict):
+            if "children" in entry:
+                entry["children"] = [
+                    x
+                    for x in entry["children"]
+                    if x["id"].endswith(mask) or "children" in x
+                ]
+                for child in entry["children"]:
+                    search_for_and_remove_all_other_files(mask, child)
 
-        Parameters
-        ----------
-        * ams_id : int = 0 - The AMS unit to unload from (default is 0).
-        """
-        msg = copy.deepcopy(AMS_CHANGE_FILAMENT)
-        msg["print"]["ams_id"] = ams_id
+        self._sdcard_3mf_files = json.loads(json.dumps(self._sdcard_contents))
+        search_for_and_remove_all_other_files(".3mf", self._sdcard_3mf_files)
 
-        self.client.publish(
-            f"device/{self.config.serial_number}/request",
-            json.dumps(msg),
-        )
-        logger.debug(
-            f"unload_filament - published AMS_CHANGE_FILAMENT to [device/{self.config.serial_number}/request] - bambu_msg: [{msg}]"
-        )
+        logger.debug("get_sdcard_contents - retrieved all files from sdcard")
+        return fs
 
     def load_filament(self, slot_id: int, ams_id: int = 0):
         """
@@ -527,26 +552,29 @@ class BambuPrinter:
             f"load_filament - published AMS_CHANGE_FILAMENT to [device/{self.config.serial_number}/request] - target: [{slot_id}], bambu_msg: [{msg}]"
         )
 
-    def send_gcode(self, gcode: str):
+    def make_sdcard_directory(self, dir: str):
         """
-        Submit one, or more, gcode commands to the printer.  To submit multiple gcode commands, separate them with a newline (\\n) character.
+        Creates the specified directory on the printer and returns an updated dict of all files on the printer
 
         Parameters
         ----------
-        gcode : str
-
-        Examples
-        --------
-        * `send_gcode("G91\\nG0 X0\\nG0 X50")` - queues 3 gcode commands on the printer for processing
-        * `send_gcode("G28")` - queues 1 gcode command on the printer for processing
+        * dir : str - the full path directory name to be created
         """
-        cmd = copy.deepcopy(SEND_GCODE_TEMPLATE)
-        cmd["print"]["param"] = f"{gcode} \n"
+        logger.debug(f"make_sdcard_directory - creating remote directory [{dir}]")
+        with self.ftp_connection() as ftps:
+            ftps.mkdir(dir)
+        return self.get_sdcard_contents()
+
+    def pause_printing(self):
+        """
+        Pauses the current print job if one is running.
+        """
         self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+            f"device/{self.config.serial_number}/request",
+            json.dumps(PAUSE_PRINT),
         )
         logger.debug(
-            f"send_gcode - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] gcode: [{gcode}]"
+            f"pause_printing - published PAUSE_PRINT to [device/{self.config.serial_number}/request]"
         )
 
     def print_3mf_file(
@@ -689,204 +717,56 @@ class BambuPrinter:
             f"print_3mf_file - published PRINT_3MF_FILE to [device/{self.config.serial_number}/request] print_command: [{cmd}]"
         )
 
-    def stop_printing(self):
+    def refresh_nozzles(self):
         """
-        Requests the printer to stop printing if a job is currently running.
+        Requests the printer to push back current nozzle state.
+        Used for multi-extruder models (H2D, H2D Pro) where nozzles are manually swapped.
         """
+        cmd = copy.deepcopy(REFRESH_NOZZLE)
+
         self.client.publish(
-            f"device/{self.config.serial_number}/request",
-            json.dumps(STOP_PRINT),
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"stop_printing - published STOP_PRINT to [device/{self.config.serial_number}/request]"
+            f"refresh_nozzles - published REFRESH_NOZZLE to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
-    def pause_printing(self):
+    def refresh_spool_rfid(self, slot_id: int, ams_id: int = 0):
         """
-        Pauses the current print job if one is running.
+        Request the printer to re-read the RFID tag for the specified AMS slot.
+
+        Only RFID-equipped Bambu Lab spools carry tag data.  The printer will push
+        an updated telemetry message containing the spool details after scanning.
+
+        Parameters
+        ----------
+        * slot_id : int - The slot within the AMS unit to scan (0–3 for standard AMS).
+        * ams_id : int = 0 - The AMS unit containing the slot (default is 0).
         """
+        cmd = copy.deepcopy(AMS_GET_RFID)
+        cmd["print"]["ams_id"] = ams_id
+        cmd["print"]["slot_id"] = slot_id
+
         self.client.publish(
-            f"device/{self.config.serial_number}/request",
-            json.dumps(PAUSE_PRINT),
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"pause_printing - published PAUSE_PRINT to [device/{self.config.serial_number}/request]"
+            f"refresh_spool_rfid - published AMS_GET_RFID to [device/{self.config.serial_number}/request] command: [{cmd}]"
         )
 
-    def resume_printing(self):
+    def rename_printer(self, new_name: str):
         """
-        Resumes the current print job if one is paused.
+        Rename the printer to the specified new name.
         """
+        cmd = copy.deepcopy(RENAME_PRINTER)
+        cmd["update"]["name"] = new_name
+
         self.client.publish(
-            f"device/{self.config.serial_number}/request",
-            json.dumps(RESUME_PRINT),
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"resume_printing - published RESUME_PRINT to [device/{self.config.serial_number}/request]"
+            f"rename_printerq - published RENAME_PRINTER to [device/{self.config.serial_number}/request] command: [{cmd}]"
         )
-
-    def get_sdcard_3mf_files(self):
-        """
-        Returns a `dict` (json document) of all `.3mf` files on the printer's SD card.
-
-        Usage
-        -----
-        The return value of this method is very useful for binding to things like a clientside `TreeView`
-        """
-        logger.debug("get_sdcard_3mf_files - returning sdcard_3mf_files")
-        self.get_sdcard_contents()
-        return self._sdcard_3mf_files
-
-    def get_sdcard_contents(self):
-        """
-        Returns a `dict` (json document) of ALL files on the printer's SD card.
-        The private class level `_sdcard_contents` attribute is also populated.
-
-        Usage
-        -----
-        The return value of this method is very useful for binding to things like a clientside `TreeView`
-        """
-
-        with self.ftp_connection() as ftps:
-            fs = self._get_sftp_files(ftps, "/")
-        if fs is None:
-            logger.warning("get_sdcard_contents - failed to retrieve files from sdcard")
-            self._sdcard_contents = None
-            self._sdcard_3mf_files = None
-            return None
-
-        self._sdcard_contents = sortFileTreeAlphabetically(fs)
-
-        def search_for_and_remove_all_other_files(mask: str, entry: dict):
-            if "children" in entry:
-                entry["children"] = [
-                    x
-                    for x in entry["children"]
-                    if x["id"].endswith(mask) or "children" in x
-                ]
-                for child in entry["children"]:
-                    search_for_and_remove_all_other_files(mask, child)
-
-        self._sdcard_3mf_files = json.loads(json.dumps(self._sdcard_contents))
-        search_for_and_remove_all_other_files(".3mf", self._sdcard_3mf_files)
-
-        logger.debug("get_sdcard_contents - retrieved all files from sdcard")
-        return fs
-
-    def delete_sdcard_file(self, file: str):
-        """
-        Delete the specified file on the printer's SDCard and returns an updated dict of all files on the printer
-
-        Parameters
-        ----------
-        * file : str - the full path filename to be deleted
-        """
-        logger.debug(f"delete_sdcard_file - deleting remote file: [{file}]")
-
-        with self.ftp_connection() as ftps:
-            ftps.delete_file(file)
-
-        def search_for_and_remove_file(file: str, entry: dict):
-            if "children" in entry:
-                entry["children"] = list(
-                    filter(lambda i: i["id"] != file, entry["children"])
-                )
-                for child in entry["children"]:
-                    search_for_and_remove_file(file, child)
-
-        if self._sdcard_contents:
-            search_for_and_remove_file(file, self._sdcard_contents)
-        if self._sdcard_3mf_files:
-            search_for_and_remove_file(file, self._sdcard_3mf_files)
-
-        logger.debug(f"delete_sdcard_file - deleted file [{file}] from sdcard")
-        return self._sdcard_contents
-
-    def delete_sdcard_folder(self, path: str):
-        """
-        Delete the specified folder on the printer's SDCard and returns an updated dict of all files on the printer
-
-        Parameters
-        ----------
-        * path : str - the full path to folder to be deleted
-        """
-        logger.debug(f"delete_sdcard_folder - deleting remote folder: [{path}]")
-
-        def delete_all_contents(ftps: IoTFTPSClient, path: str):
-            fs = ftps.list_files_ex(path)
-            if fs is not None:
-                for item in fs:
-                    if item.is_dir:
-                        delete_all_contents(ftps, item.path)
-                    else:
-                        ftps.delete_file(item.path)
-            ftps.delete_folder(path)
-
-        with self.ftp_connection() as ftps:
-            delete_all_contents(ftps, path)
-
-        def search_for_and_remove_folder(path: str, entry: dict):
-            if not path.endswith("/"):
-                path = f"{path}/"
-            if "children" in entry:
-                entry["children"] = list(
-                    filter(lambda i: not i["id"].startswith(path), entry["children"])
-                )
-                for child in entry["children"]:
-                    search_for_and_remove_folder(path, child)
-
-        if self._sdcard_contents is not None:
-            search_for_and_remove_folder(path, self._sdcard_contents)
-        if self._sdcard_3mf_files is not None:
-            search_for_and_remove_folder(path, self._sdcard_3mf_files)
-        return self._sdcard_contents
-
-    def upload_sdcard_file(self, src: str, dest: str):
-        """
-        Uploads the local filesystem file to the printer and returns an updated dict of all files on the printer
-
-        Parameters
-        ----------
-        * src : str - the full path filename on the host to be uploaded to the printer
-        * dest : str - the full path filename on the printer to upload to
-        """
-        logger.debug(f"upload_sdcard_file - uploading file src: [{src}] dest: [{dest}]")
-        with self.ftp_connection() as ftps:
-            ftps.upload_file(src, dest)
-
-        if src.endswith(".3mf"):
-            get_project_info(dest, self, local_file=src)
-
-        remote_files = self.get_sdcard_contents()
-        return remote_files
-
-    def download_sdcard_file(self, src: str, dest: str):
-        """
-        Downloads a file from the printer
-
-        Parameters
-        ----------
-        * src : str - the full path filename on the printer to be downloaded to the host
-        * dest : str - the full path filename on the host to store the downloaded file
-        """
-        logger.debug(
-            f"download_sdcard_file - downloading file src: [{src}] dest: [{dest}]"
-        )
-        with self.ftp_connection() as ftps:
-            ftps.download_file(src, dest)
-
-    def make_sdcard_directory(self, dir: str):
-        """
-        Creates the specified directory on the printer and returns an updated dict of all files on the printer
-
-        Parameters
-        ----------
-        * dir : str - the full path directory name to be created
-        """
-        logger.debug(f"make_sdcard_directory - creating remote directory [{dir}]")
-        with self.ftp_connection() as ftps:
-            ftps.mkdir(dir)
-        return self.get_sdcard_contents()
 
     def rename_sdcard_file(self, src: str, dest: str):
         """
@@ -902,6 +782,18 @@ class BambuPrinter:
             ftps.move_file(src, dest)
         return self.get_sdcard_contents()
 
+    def resume_printing(self):
+        """
+        Resumes the current print job if one is paused.
+        """
+        self.client.publish(
+            f"device/{self.config.serial_number}/request",
+            json.dumps(RESUME_PRINT),
+        )
+        logger.debug(
+            f"resume_printing - published RESUME_PRINT to [device/{self.config.serial_number}/request]"
+        )
+
     def sdcard_file_exists(self, path: str) -> bool:
         """
         Checks to see if a file exists on the printer at the `path` specified
@@ -914,40 +806,156 @@ class BambuPrinter:
         with self.ftp_connection() as ftps:
             return ftps.fexists(path)
 
-    def set_print_option(self, option: PrintOption, enabled: bool):
+    def select_extrusion_calibration_profile(self, tray_id: int, cali_idx: int = -1):
         """
-        Enable or disable one of the `PrintOption` options.
-
-        The corresponding `BambuConfig` attribute is also updated so the new state
-        persists in the local configuration object.
+        Sets the k factor profile for the specified tray.
 
         Parameters
         ----------
-        * option : PrintOption - The print option to change (e.g. `PrintOption.AUTO_RECOVERY`).
-        * enabled : bool - `True` to enable the option, `False` to disable it.
+        tray_id : int - tray id
+        cali_idx : calibration index , optional, defaults to -1 (the default profile)
         """
-        cmd = PRINT_OPTION_COMMAND
-        cmd["print"][option.name.lower()] = enabled
+        cmd = copy.deepcopy(EXTRUSION_CALI_SEL)
 
-        if option == PrintOption.AUTO_RECOVERY:
-            cmd["print"]["option"] = 1 if enabled else 0
-            self.config.auto_recovery = enabled
-        elif option == PrintOption.AUTO_SWITCH_FILAMENT:
-            self.config.auto_switch_filament = enabled
-        elif option == PrintOption.FILAMENT_TANGLE_DETECT:
-            self.config.filament_tangle_detect = enabled
-        elif option == PrintOption.SOUND_ENABLE:
-            self.config.sound_enable = enabled
-        elif option == PrintOption.NOZZLE_BLOB_DETECT:
-            self.config.nozzle_blob_detect = enabled
-        elif option == PrintOption.AIR_PRINT_DETECT:
-            self.config.air_print_detect = enabled
+        ams_id = math.floor(tray_id / 4)
+        slot_id = tray_id % 4
+        if tray_id == 254 or tray_id == 255:
+            ams_id = tray_id
+            slot_id = 0
+
+        cmd["print"]["ams_id"] = ams_id
+        cmd["print"]["tray_id"] = tray_id
+        cmd["print"]["slot_id"] = slot_id
+        cmd["print"]["cali_idx"] = cali_idx
 
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"set_print_option - published PRINT_OPTION_COMMAND to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+            f"select_extrusion_calibration_profile - published EXTRUSION_CALI_SEL to [device/{self.config.serial_number}/request] cmd: [{cmd}]"
+        )
+
+    def send_ams_control_command(self, ams_control_cmd: AMSControlCommand):
+        """
+        Send an AMS control command to pause, resume, or reset the AMS.
+
+        When `AMSControlCommand.RESUME` is sent, `resume_printing()` is also called
+        automatically to restart the paused print job.
+
+        Parameters
+        ----------
+        * ams_control_cmd : AMSControlCommand - The control command to send
+            (`AMSControlCommand.PAUSE`, `AMSControlCommand.RESUME`, or `AMSControlCommand.RESET`).
+        """
+        ams_cmd = ams_control_cmd.name.lower()
+        cmd = copy.deepcopy(AMS_CONTROL)
+        cmd["print"]["param"] = ams_cmd
+
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+        logger.debug(
+            f"send_ams_control_commandpublished AMS_CONTROL to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+        )
+
+        # trigger resume print for good measure
+        if ams_control_cmd == AMSControlCommand.RESUME:
+            self.resume_printing()
+
+    def send_anything(self, anything: str):
+        """
+        Publish an arbitrary JSON string directly to the printer's MQTT request topic.
+
+        Intended for advanced use / debugging — bypasses all validation and command
+        abstraction.  The string is parsed then re-serialised before publishing, so
+        it must be valid JSON.
+
+        Parameters
+        ----------
+        * anything : str - A valid JSON string to publish.
+        """
+        self.client.publish(
+            f"device/{self.config.serial_number}/request",
+            json.dumps(json.loads(anything)),
+        )
+        logger.debug(
+            f"send_anything - published message to [device/{self.config.serial_number}/request] message: [{anything}]"
+        )
+
+    def send_gcode(self, gcode: str):
+        """
+        Submit one, or more, gcode commands to the printer.  To submit multiple gcode commands, separate them with a newline (\\n) character.
+
+        Parameters
+        ----------
+        gcode : str
+
+        Examples
+        --------
+        * `send_gcode("G91\\nG0 X0\\nG0 X50")` - queues 3 gcode commands on the printer for processing
+        * `send_gcode("G28")` - queues 1 gcode command on the printer for processing
+        """
+        cmd = copy.deepcopy(SEND_GCODE_TEMPLATE)
+        cmd["print"]["param"] = f"{gcode} \n"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+        logger.debug(
+            f"send_gcode - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] gcode: [{gcode}]"
+        )
+
+    def set_active_tool(self, id: int):
+        """
+        Set the active extruder on multi-tool machines (H2D / H2D Pro).
+
+        Sends a `SET_ACTIVE_TOOL` command that switches which extruder the printer
+        uses for subsequent moves and extrusions.
+
+        Parameters
+        ----------
+        * id : int - The extruder index to activate (`0` = right extruder, `1` = left extruder
+            on H2D; see `ActiveTool` enum for named constants).
+        """
+        cmd = copy.deepcopy(SET_ACTIVE_TOOL)
+        cmd["print"]["extruder_index"] = id
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+        logger.debug(
+            f"set_active_tool - published SET_ACTIVE_TOOL to [device/{self.config.serial_number}/request] command: [{cmd}]"
+        )
+
+    def set_airprinting_detector(
+        self, enabled: bool, sensitivity: DetectorSensitivity = DetectorSensitivity.MEDIUM
+    ):
+        """
+        Enable or disable the air-printing / no-extrusion detector (X-Cam AI vision).
+
+        When triggered, the printer halts the print because the nozzle is detected to
+        be extruding into open air rather than onto the bed or model.  State is persisted
+        to `config.airprinting_detector` and `config.airprinting_detector_sensitivity`.
+
+        Parameters
+        ----------
+        * enabled : bool - `True` to enable the detector, `False` to disable it.
+        * sensitivity : DetectorSensitivity = `DetectorSensitivity.MEDIUM` - Detection threshold.
+        """
+        cmd = copy.deepcopy(XCAM_CONTROL_SET)
+        cmd["xcam"]["module_name"] = "airprint_detector"
+        cmd["xcam"]["control"] = enabled
+        cmd["xcam"]["enable"] = enabled
+        cmd["xcam"]["print_halt"] = True
+        cmd["xcam"]["halt_print_sensitivity"] = sensitivity.value
+
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+
+        self.config.airprinting_detector = enabled
+        self.config.airprinting_detector_sensitivity = sensitivity.value
+
+        logger.debug(
+            f"set_airprinting_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
     def set_ams_user_setting(
@@ -998,52 +1006,351 @@ class BambuPrinter:
     @deprecated(
         "This method is deprecated. The closest alternative is `select_extrusion_calibration_profile`."
     )
-    def set_spool_k_factor(
-        self,
-        tray_id: int,
-        k_value: float,
-        n_coef: float | None = 1.399999976158142,
-        nozzle_temp: int | None = -1,
-        bed_temp: int | None = -1,
-        max_volumetric_speed: int | None = -1,
-    ):
+    def set_aux_fan_speed_target_percent(self, value: int):
         """
-        Set the linear advance (pressure advance) k factor for a specific spool tray.
-
-        !!! warning "Deprecated"
-            Broken in recent Bambu firmware.  Use
-            [`select_extrusion_calibration_profile`][bpm.bambuprinter.BambuPrinter.select_extrusion_calibration_profile]
-            instead.
+        sets the aux (chamber recirculation) fan speed target represented in percent
 
         Parameters
         ----------
-        * tray_id : int - Absolute tray ID (`ams_id * 4 + slot_id`, or `254` for external).
-        * k_value : float - The linear advance k factor to apply.
-        * n_coef : Optional[float] = 1.4 - Pressure advance n coefficient.
-        * nozzle_temp : Optional[int] = -1 - Nozzle temperature in °C (pass -1 to omit).
-        * bed_temp : Optional[int] = -1 - Bed temperature in °C (pass -1 to omit).
-        * max_volumetric_speed : Optional[int] = -1 - Max volumetric speed (pass -1 to omit).
+        * value : int - The target speed in percent
         """
-        cmd = copy.deepcopy(EXTRUSION_CALI_SET)
+        if value < 0:
+            value = 0
+        self._printer_state.climate.zone_aux_percent = value
+        speed = round(value * 2.55, 0)
+        gcode = SEND_GCODE_TEMPLATE
+        gcode["print"]["param"] = f"M106 P2 S{speed}\n"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(gcode)
+        )
+        logger.debug(
+            f"set_aux_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
+        # self._fan_speed_target_time = round(time.time())
 
-        cmd["print"]["tray_id"] = tray_id
-        cmd["print"]["slot_id"] = tray_id % 4
+    def set_bed_temp_target(self, value: int):
+        """
+        Sets the bed temperature target.
 
-        cmd["print"]["k_value"] = k_value
-        cmd["print"]["n_coef"] = n_coef
+        Parameters
+        ----------
+        * value : float - The target bed temperature.
+        """
+        if value < 0:
+            value = 0
+        gcode = SEND_GCODE_TEMPLATE
+        gcode["print"]["param"] = f"M140 S{value}\n"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(gcode)
+        )
+        logger.debug(
+            f"set_bed_temp_target - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
+        self._bed_temp_target_time = round(time.time())
 
-        if nozzle_temp != -1:
-            cmd["print"]["nozzle_temp"] = nozzle_temp
-        if bed_temp != -1:
-            cmd["print"]["bed_temp"] = bed_temp
-        if max_volumetric_speed != -1:
-            cmd["print"]["max_volumetric_speed"] = max_volumetric_speed
+    def set_buildplate_marker_detector(self, enabled: bool):
+        """
+        Enable or disable the buildplate marker detector (X-Cam AI vision).
+
+        When enabled, the printer's camera checks for the calibration marker on the
+        build plate before starting a print.  The state is also written to
+        `config.buildplate_marker_detector`.
+
+        Parameters
+        ----------
+        * enabled : bool - `True` to enable the detector, `False` to disable it.
+        """
+        cmd = copy.deepcopy(XCAM_CONTROL_SET)
+        cmd["xcam"]["module_name"] = "buildplate_marker_detector"
+        cmd["xcam"]["control"] = enabled
+        cmd["xcam"]["enable"] = enabled
+
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+
+        self.config.buildplate_marker_detector = enabled
+
+        logger.debug(
+            f"set_buildplate_marker_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+        )
+
+    def set_chamber_temp(self, value: float):
+        """
+        for printers that do not have managed chambers, this enables you to inject
+        a chamber temperature value from an external source
+
+        Parameters
+        ----------
+        * value : float - The chamber temperature.
+        """
+        self._printer_state.climate.chamber_temp = value
+
+    def set_chamber_temp_target(self, value: int, temper_check: bool = True):
+        """
+        set chamber temperature target if printer supports it, otherwise just
+        store the value
+
+        Parameters
+        ----------
+        * value : float - The target chamber temperature.
+        * temper_check : OPTIONAL bool - perform a temperature check?
+        """
+        if self.config.capabilities.has_chamber_temp:
+            cmd = copy.deepcopy(SET_CHAMBER_TEMP_TARGET)
+            cmd["print"]["ctt_val"] = value
+            cmd["print"]["temper_check"] = temper_check
+
+            self.client.publish(
+                f"device/{self.config.serial_number}/request", json.dumps(cmd)
+            )
+            logger.debug(
+                f"set_chamber_temp_target - published SET_CHAMBER_TEMP_TARGET to [device/{self.config.serial_number}/request] command: [{cmd}]"
+            )
+
+            cmd = copy.deepcopy(SET_CHAMBER_AC_MODE)
+
+            if value < 40:
+                cmd["print"]["modeId"] = 0
+            else:
+                cmd["print"]["modeId"] = 1
+            self.client.publish(
+                f"device/{self.config.serial_number}/request", json.dumps(cmd)
+            )
+            logger.debug(
+                f"set_chamber_temp_target - published SET_CHAMBER_AC_MODE to [device/{self.config.serial_number}/request] command: [{cmd}]"
+            )
+
+        self._printer_state.climate.chamber_temp_target = value
+        self._chamber_temp_target_time = round(time.time())
+
+    def set_exhaust_fan_speed_target_percent(self, value: int):
+        """
+        sets the exhaust (chamber) fan speed target represented in percent
+
+        Parameters
+        ----------
+        * value : int - The target speed in percent
+        """
+        if value < 0:
+            value = 0
+        self._printer_state.climate.zone_exhaust_percent = value
+        speed = round(value * 2.55, 0)
+        gcode = SEND_GCODE_TEMPLATE
+        gcode["print"]["param"] = f"M106 P3 S{speed}\n"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(gcode)
+        )
+        logger.debug(
+            f"set_exhaust_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
+        # self._fan_speed_target_time = round(time.time())
+
+    def set_nozzle_details(
+        self, nozzle_diameter: NozzleDiameter, nozzle_type: NozzleType
+    ):
+        """
+        Inform the printer of the nozzle currently installed.
+
+        Sends a `SET_ACCESSORIES` command so the firmware can apply the correct
+        temperature limits, flow rates, and material compatibility checks.
+
+        Parameters
+        ----------
+        * nozzle_diameter : NozzleDiameter - The physical nozzle diameter
+            (e.g. `NozzleDiameter.DIAMETER_0_4`).
+        * nozzle_type : NozzleType - The nozzle material / type
+            (e.g. `NozzleType.HARDENED_STEEL`, `NozzleType.STAINLESS_STEEL`).
+        """
+        cmd = copy.deepcopy(SET_ACCESSORIES)
+        cmd["system"]["nozzle_diameter"] = nozzle_diameter.value
+        cmd["system"]["nozzle_type"] = nozzle_type_to_telemetry(nozzle_type)
 
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"set_spool_k_factor - published EXTRUSION_CALI_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+            f"set_nozzle_details - published SET_ACCESSORIES to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+        )
+
+    def set_nozzle_temp_target(self, value: int, tool_num: int = -1):
+        """
+        Sets the nozzle temperature target.
+
+        Parameters
+        ----------
+        * value : float - The target nozzle temperature.
+        * tool_num : int - The tool number (default is 0).
+        """
+        if value < 0:
+            value = 0
+        gcode = SEND_GCODE_TEMPLATE
+        gcode["print"]["param"] = (
+            f"M104 S{value}{'' if tool_num == -1 else ' T' + str(tool_num)}\n"
+        )
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(gcode)
+        )
+        logger.debug(
+            f"set_nozzle_temp_target - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
+        self._tool_temp_target_time = round(time.time())
+
+    def set_nozzleclumping_detector(
+        self, enabled: bool, sensitivity: DetectorSensitivity = DetectorSensitivity.MEDIUM
+    ):
+        """
+        Enable or disable the nozzle clumping / blob detector (X-Cam AI vision).
+
+        When triggered, the printer halts the print to prevent damage from filament
+        build-up on the nozzle.  State is persisted to `config.nozzleclumping_detector`
+        and `config.nozzleclumping_detector_sensitivity`.
+
+        Parameters
+        ----------
+        * enabled : bool - `True` to enable the detector, `False` to disable it.
+        * sensitivity : DetectorSensitivity = `DetectorSensitivity.MEDIUM` - Detection threshold.
+        """
+        cmd = copy.deepcopy(XCAM_CONTROL_SET)
+        cmd["xcam"]["module_name"] = "clump_detector"
+        cmd["xcam"]["control"] = enabled
+        cmd["xcam"]["enable"] = enabled
+        cmd["xcam"]["print_halt"] = True
+        cmd["xcam"]["halt_print_sensitivity"] = sensitivity.value
+
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+
+        self.config.nozzleclumping_detector = enabled
+        self.config.nozzleclumping_detector_sensitivity = sensitivity.value
+
+        logger.debug(
+            f"set_nozzleclumping_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+        )
+
+    def set_part_cooling_fan_speed_target_percent(self, value: int):
+        """
+        sets the part cooling fan speed target represented in percent
+
+        Parameters
+        ----------
+        * value : int - The target speed in percent
+        """
+        if value < 0:
+            value = 0
+        self._printer_state.climate.part_cooling_fan_speed_target_percent = value
+        speed = round(value * 2.55, 0)
+        gcode = SEND_GCODE_TEMPLATE
+        gcode["print"]["param"] = f"M106 P1 S{speed}\n"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(gcode)
+        )
+        logger.debug(
+            f"set_part_cooling_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
+        self._fan_speed_target_time = round(time.time())
+
+    def set_print_option(self, option: PrintOption, enabled: bool):
+        """
+        Enable or disable one of the `PrintOption` options.
+
+        The corresponding `BambuConfig` attribute is also updated so the new state
+        persists in the local configuration object.
+
+        Parameters
+        ----------
+        * option : PrintOption - The print option to change (e.g. `PrintOption.AUTO_RECOVERY`).
+        * enabled : bool - `True` to enable the option, `False` to disable it.
+        """
+        cmd = PRINT_OPTION_COMMAND
+        cmd["print"][option.name.lower()] = enabled
+
+        if option == PrintOption.AUTO_RECOVERY:
+            cmd["print"]["option"] = 1 if enabled else 0
+            self.config.auto_recovery = enabled
+        elif option == PrintOption.AUTO_SWITCH_FILAMENT:
+            self.config.auto_switch_filament = enabled
+        elif option == PrintOption.FILAMENT_TANGLE_DETECT:
+            self.config.filament_tangle_detect = enabled
+        elif option == PrintOption.SOUND_ENABLE:
+            self.config.sound_enable = enabled
+        elif option == PrintOption.NOZZLE_BLOB_DETECT:
+            self.config.nozzle_blob_detect = enabled
+        elif option == PrintOption.AIR_PRINT_DETECT:
+            self.config.air_print_detect = enabled
+
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+        logger.debug(
+            f"set_print_option - published PRINT_OPTION_COMMAND to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+        )
+
+    def set_purgechutepileup_detector(
+        self, enabled: bool, sensitivity: DetectorSensitivity = DetectorSensitivity.MEDIUM
+    ):
+        """
+        Enable or disable the purge chute pile-up detector (X-Cam AI vision).
+
+        When triggered, the printer halts the print to prevent purge waste from
+        blocking the toolhead.  State is persisted to `config.purgechutepileup_detector`
+        and `config.purgechutepileup_detector_sensitivity`.
+
+        Parameters
+        ----------
+        * enabled : bool - `True` to enable the detector, `False` to disable it.
+        * sensitivity : DetectorSensitivity = `DetectorSensitivity.MEDIUM` - Detection threshold.
+        """
+        cmd = copy.deepcopy(XCAM_CONTROL_SET)
+        cmd["xcam"]["module_name"] = "pileup_detector"
+        cmd["xcam"]["control"] = enabled
+        cmd["xcam"]["enable"] = enabled
+        cmd["xcam"]["print_halt"] = True
+        cmd["xcam"]["halt_print_sensitivity"] = sensitivity.value
+
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+
+        self.config.purgechutepileup_detector = enabled
+        self.config.purgechutepileup_detector_sensitivity = sensitivity.value
+
+        logger.debug(
+            f"set_purgechutepileup_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+        )
+
+    def set_spaghetti_detector(
+        self, enabled: bool, sensitivity: DetectorSensitivity = DetectorSensitivity.MEDIUM
+    ):
+        """
+        Enable or disable the spaghetti / failed print detector (X-Cam AI vision).
+
+        When triggered, the printer halts the print.  Sensitivity controls how
+        aggressively the camera flags anomalies.  State is persisted to
+        `config.spaghetti_detector` and `config.spaghetti_detector_sensitivity`.
+
+        Parameters
+        ----------
+        * enabled : bool - `True` to enable the detector, `False` to disable it.
+        * sensitivity : DetectorSensitivity = `DetectorSensitivity.MEDIUM` - Detection threshold.
+        """
+        cmd = copy.deepcopy(XCAM_CONTROL_SET)
+        cmd["xcam"]["module_name"] = "spaghetti_detector"
+        cmd["xcam"]["control"] = enabled
+        cmd["xcam"]["enable"] = enabled
+        cmd["xcam"]["print_halt"] = True
+        cmd["xcam"]["halt_print_sensitivity"] = sensitivity.value
+
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+
+        self.config.spaghetti_detector = enabled
+        self.config.spaghetti_detector_sensitivity = sensitivity.value
+
+        logger.debug(
+            f"set_spaghetti_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
     def set_spool_details(
@@ -1120,32 +1427,53 @@ class BambuPrinter:
             f"set_spool_details - published AMS_FILAMENT_SETTING to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
-    def send_ams_control_command(self, ams_control_cmd: AMSControlCommand):
+    def set_spool_k_factor(
+        self,
+        tray_id: int,
+        k_value: float,
+        n_coef: float | None = 1.399999976158142,
+        nozzle_temp: int | None = -1,
+        bed_temp: int | None = -1,
+        max_volumetric_speed: int | None = -1,
+    ):
         """
-        Send an AMS control command to pause, resume, or reset the AMS.
+        Set the linear advance (pressure advance) k factor for a specific spool tray.
 
-        When `AMSControlCommand.RESUME` is sent, `resume_printing()` is also called
-        automatically to restart the paused print job.
+        !!! warning "Deprecated"
+            Broken in recent Bambu firmware.  Use
+            [`select_extrusion_calibration_profile`][bpm.bambuprinter.BambuPrinter.select_extrusion_calibration_profile]
+            instead.
 
         Parameters
         ----------
-        * ams_control_cmd : AMSControlCommand - The control command to send
-            (`AMSControlCommand.PAUSE`, `AMSControlCommand.RESUME`, or `AMSControlCommand.RESET`).
+        * tray_id : int - Absolute tray ID (`ams_id * 4 + slot_id`, or `254` for external).
+        * k_value : float - The linear advance k factor to apply.
+        * n_coef : Optional[float] = 1.4 - Pressure advance n coefficient.
+        * nozzle_temp : Optional[int] = -1 - Nozzle temperature in °C (pass -1 to omit).
+        * bed_temp : Optional[int] = -1 - Bed temperature in °C (pass -1 to omit).
+        * max_volumetric_speed : Optional[int] = -1 - Max volumetric speed (pass -1 to omit).
         """
-        ams_cmd = ams_control_cmd.name.lower()
-        cmd = copy.deepcopy(AMS_CONTROL)
-        cmd["print"]["param"] = ams_cmd
+        cmd = copy.deepcopy(EXTRUSION_CALI_SET)
+
+        cmd["print"]["tray_id"] = tray_id
+        cmd["print"]["slot_id"] = tray_id % 4
+
+        cmd["print"]["k_value"] = k_value
+        cmd["print"]["n_coef"] = n_coef
+
+        if nozzle_temp != -1:
+            cmd["print"]["nozzle_temp"] = nozzle_temp
+        if bed_temp != -1:
+            cmd["print"]["bed_temp"] = bed_temp
+        if max_volumetric_speed != -1:
+            cmd["print"]["max_volumetric_speed"] = max_volumetric_speed
 
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
         logger.debug(
-            f"send_ams_control_commandpublished AMS_CONTROL to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+            f"set_spool_k_factor - published EXTRUSION_CALI_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
-
-        # trigger resume print for good measure
-        if ams_control_cmd == AMSControlCommand.RESUME:
-            self.resume_printing()
 
     def skip_objects(self, objects):
         """
@@ -1189,224 +1517,54 @@ class BambuPrinter:
             f"skip_objects - published SKIP_OBJECTS to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
-    def set_buildplate_marker_detector(self, enabled: bool):
+    def stop_printing(self):
         """
-        Enable or disable the buildplate marker detector (X-Cam AI vision).
-
-        When enabled, the printer's camera checks for the calibration marker on the
-        build plate before starting a print.  The state is also written to
-        `config.buildplate_marker_detector`.
-
-        Parameters
-        ----------
-        * enabled : bool - `True` to enable the detector, `False` to disable it.
-        """
-        cmd = copy.deepcopy(XCAM_CONTROL_SET)
-        cmd["xcam"]["module_name"] = "buildplate_marker_detector"
-        cmd["xcam"]["control"] = enabled
-        cmd["xcam"]["enable"] = enabled
-
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(cmd)
-        )
-
-        self.config.buildplate_marker_detector = enabled
-
-        logger.debug(
-            f"set_buildplate_marker_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
-        )
-
-    def set_spaghetti_detector(
-        self, enabled: bool, sensitivity: DetectorSensitivity = DetectorSensitivity.MEDIUM
-    ):
-        """
-        Enable or disable the spaghetti / failed print detector (X-Cam AI vision).
-
-        When triggered, the printer halts the print.  Sensitivity controls how
-        aggressively the camera flags anomalies.  State is persisted to
-        `config.spaghetti_detector` and `config.spaghetti_detector_sensitivity`.
-
-        Parameters
-        ----------
-        * enabled : bool - `True` to enable the detector, `False` to disable it.
-        * sensitivity : DetectorSensitivity = `DetectorSensitivity.MEDIUM` - Detection threshold.
-        """
-        cmd = copy.deepcopy(XCAM_CONTROL_SET)
-        cmd["xcam"]["module_name"] = "spaghetti_detector"
-        cmd["xcam"]["control"] = enabled
-        cmd["xcam"]["enable"] = enabled
-        cmd["xcam"]["print_halt"] = True
-        cmd["xcam"]["halt_print_sensitivity"] = sensitivity.value
-
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(cmd)
-        )
-
-        self.config.spaghetti_detector = enabled
-        self.config.spaghetti_detector_sensitivity = sensitivity.value
-
-        logger.debug(
-            f"set_spaghetti_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
-        )
-
-    def set_purgechutepileup_detector(
-        self, enabled: bool, sensitivity: DetectorSensitivity = DetectorSensitivity.MEDIUM
-    ):
-        """
-        Enable or disable the purge chute pile-up detector (X-Cam AI vision).
-
-        When triggered, the printer halts the print to prevent purge waste from
-        blocking the toolhead.  State is persisted to `config.purgechutepileup_detector`
-        and `config.purgechutepileup_detector_sensitivity`.
-
-        Parameters
-        ----------
-        * enabled : bool - `True` to enable the detector, `False` to disable it.
-        * sensitivity : DetectorSensitivity = `DetectorSensitivity.MEDIUM` - Detection threshold.
-        """
-        cmd = copy.deepcopy(XCAM_CONTROL_SET)
-        cmd["xcam"]["module_name"] = "pileup_detector"
-        cmd["xcam"]["control"] = enabled
-        cmd["xcam"]["enable"] = enabled
-        cmd["xcam"]["print_halt"] = True
-        cmd["xcam"]["halt_print_sensitivity"] = sensitivity.value
-
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(cmd)
-        )
-
-        self.config.purgechutepileup_detector = enabled
-        self.config.purgechutepileup_detector_sensitivity = sensitivity.value
-
-        logger.debug(
-            f"set_purgechutepileup_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
-        )
-
-    def set_nozzleclumping_detector(
-        self, enabled: bool, sensitivity: DetectorSensitivity = DetectorSensitivity.MEDIUM
-    ):
-        """
-        Enable or disable the nozzle clumping / blob detector (X-Cam AI vision).
-
-        When triggered, the printer halts the print to prevent damage from filament
-        build-up on the nozzle.  State is persisted to `config.nozzleclumping_detector`
-        and `config.nozzleclumping_detector_sensitivity`.
-
-        Parameters
-        ----------
-        * enabled : bool - `True` to enable the detector, `False` to disable it.
-        * sensitivity : DetectorSensitivity = `DetectorSensitivity.MEDIUM` - Detection threshold.
-        """
-        cmd = copy.deepcopy(XCAM_CONTROL_SET)
-        cmd["xcam"]["module_name"] = "clump_detector"
-        cmd["xcam"]["control"] = enabled
-        cmd["xcam"]["enable"] = enabled
-        cmd["xcam"]["print_halt"] = True
-        cmd["xcam"]["halt_print_sensitivity"] = sensitivity.value
-
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(cmd)
-        )
-
-        self.config.nozzleclumping_detector = enabled
-        self.config.nozzleclumping_detector_sensitivity = sensitivity.value
-
-        logger.debug(
-            f"set_nozzleclumping_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
-        )
-
-    def set_airprinting_detector(
-        self, enabled: bool, sensitivity: DetectorSensitivity = DetectorSensitivity.MEDIUM
-    ):
-        """
-        Enable or disable the air-printing / no-extrusion detector (X-Cam AI vision).
-
-        When triggered, the printer halts the print because the nozzle is detected to
-        be extruding into open air rather than onto the bed or model.  State is persisted
-        to `config.airprinting_detector` and `config.airprinting_detector_sensitivity`.
-
-        Parameters
-        ----------
-        * enabled : bool - `True` to enable the detector, `False` to disable it.
-        * sensitivity : DetectorSensitivity = `DetectorSensitivity.MEDIUM` - Detection threshold.
-        """
-        cmd = copy.deepcopy(XCAM_CONTROL_SET)
-        cmd["xcam"]["module_name"] = "airprint_detector"
-        cmd["xcam"]["control"] = enabled
-        cmd["xcam"]["enable"] = enabled
-        cmd["xcam"]["print_halt"] = True
-        cmd["xcam"]["halt_print_sensitivity"] = sensitivity.value
-
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(cmd)
-        )
-
-        self.config.airprinting_detector = enabled
-        self.config.airprinting_detector_sensitivity = sensitivity.value
-
-        logger.debug(
-            f"set_airprinting_detector - published XCAM_CONTROL_SET to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
-        )
-
-    def set_nozzle_details(
-        self, nozzle_diameter: NozzleDiameter, nozzle_type: NozzleType
-    ):
-        """
-        Inform the printer of the nozzle currently installed.
-
-        Sends a `SET_ACCESSORIES` command so the firmware can apply the correct
-        temperature limits, flow rates, and material compatibility checks.
-
-        Parameters
-        ----------
-        * nozzle_diameter : NozzleDiameter - The physical nozzle diameter
-            (e.g. `NozzleDiameter.DIAMETER_0_4`).
-        * nozzle_type : NozzleType - The nozzle material / type
-            (e.g. `NozzleType.HARDENED_STEEL`, `NozzleType.STAINLESS_STEEL`).
-        """
-        cmd = copy.deepcopy(SET_ACCESSORIES)
-        cmd["system"]["nozzle_diameter"] = nozzle_diameter.value
-        cmd["system"]["nozzle_type"] = nozzle_type_to_telemetry(nozzle_type)
-
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(cmd)
-        )
-        logger.debug(
-            f"set_nozzle_details - published SET_ACCESSORIES to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
-        )
-
-    def refresh_nozzles(self):
-        """
-        Requests the printer to push back current nozzle state.
-        Used for multi-extruder models (H2D, H2D Pro) where nozzles are manually swapped.
-        """
-        cmd = copy.deepcopy(REFRESH_NOZZLE)
-
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(cmd)
-        )
-        logger.debug(
-            f"refresh_nozzles - published REFRESH_NOZZLE to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
-        )
-
-    def send_anything(self, anything: str):
-        """
-        Publish an arbitrary JSON string directly to the printer's MQTT request topic.
-
-        Intended for advanced use / debugging — bypasses all validation and command
-        abstraction.  The string is parsed then re-serialised before publishing, so
-        it must be valid JSON.
-
-        Parameters
-        ----------
-        * anything : str - A valid JSON string to publish.
+        Requests the printer to stop printing if a job is currently running.
         """
         self.client.publish(
             f"device/{self.config.serial_number}/request",
-            json.dumps(json.loads(anything)),
+            json.dumps(STOP_PRINT),
         )
         logger.debug(
-            f"send_anything - published message to [device/{self.config.serial_number}/request] message: [{anything}]"
+            f"stop_printing - published STOP_PRINT to [device/{self.config.serial_number}/request]"
+        )
+
+    def toJson(self):
+        """
+        Returns a `dict` (json document) representing this object's private class
+        level attributes that are serializable (most are).
+        """
+        response = json.dumps(self, default=jsonSerializer, indent=4, sort_keys=True)
+        # logger.debug(f"toJson - json: [{response}]")
+
+        return json.loads(response)
+
+    def turn_off_ams_dryer(self, ams_id: int = 0):
+        """
+        Sends a command to the printer to turn off the AMS dryer.
+
+        Also resets `ams_unit.temp_target` to `0` in the local printer state.
+        Raises an exception if `ams_id` does not match a connected AMS unit.
+
+        Parameters
+        ----------
+        * ams_id : int = 0 - The AMS unit whose dryer should be turned off (default is 0).
+        """
+        cmd = copy.deepcopy(AMS_FILAMENT_DRYING)
+        cmd["print"]["ams_id"] = ams_id
+        cmd["print"]["mode"] = 0  # Turn off drying mode
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+        )
+
+        ams = next((u for u in self._printer_state.ams_units if u.ams_id == ams_id), None)
+        if not ams:
+            raise Exception("invalid ams_id provided")
+
+        ams.temp_target = 0
+
+        logger.debug(
+            f"turn_off_ams_dryer - published AMS_FILAMENT_DRYING to [device/{self.config.serial_number}/request] command: [{cmd}]"
         )
 
     def turn_on_ams_dryer(
@@ -1452,186 +1610,43 @@ class BambuPrinter:
             f"turn_on_ams_dryer - published AMS_FILAMENT_DRYING to [device/{self.config.serial_number}/request] command: [{cmd}]"
         )
 
-    def turn_off_ams_dryer(self, ams_id: int = 0):
+    def unload_filament(self, ams_id: int = 0):
         """
-        Sends a command to the printer to turn off the AMS dryer.
-
-        Also resets `ams_unit.temp_target` to `0` in the local printer state.
-        Raises an exception if `ams_id` does not match a connected AMS unit.
+        Requests the printer to unload whatever filament / spool is currently loaded.
 
         Parameters
         ----------
-        * ams_id : int = 0 - The AMS unit whose dryer should be turned off (default is 0).
+        * ams_id : int = 0 - The AMS unit to unload from (default is 0).
         """
-        cmd = copy.deepcopy(AMS_FILAMENT_DRYING)
-        cmd["print"]["ams_id"] = ams_id
-        cmd["print"]["mode"] = 0  # Turn off drying mode
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(cmd)
-        )
-
-        ams = next((u for u in self._printer_state.ams_units if u.ams_id == ams_id), None)
-        if not ams:
-            raise Exception("invalid ams_id provided")
-
-        ams.temp_target = 0
-
-        logger.debug(
-            f"turn_off_ams_dryer - published AMS_FILAMENT_DRYING to [device/{self.config.serial_number}/request] command: [{cmd}]"
-        )
-
-    def set_active_tool(self, id: int):
-        """
-        Set the active extruder on multi-tool machines (H2D / H2D Pro).
-
-        Sends a `SET_ACTIVE_TOOL` command that switches which extruder the printer
-        uses for subsequent moves and extrusions.
-
-        Parameters
-        ----------
-        * id : int - The extruder index to activate (`0` = right extruder, `1` = left extruder
-            on H2D; see `ActiveTool` enum for named constants).
-        """
-        cmd = copy.deepcopy(SET_ACTIVE_TOOL)
-        cmd["print"]["extruder_index"] = id
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(cmd)
-        )
-        logger.debug(
-            f"set_active_tool - published SET_ACTIVE_TOOL to [device/{self.config.serial_number}/request] command: [{cmd}]"
-        )
-
-    def refresh_spool_rfid(self, slot_id: int, ams_id: int = 0):
-        """
-        Request the printer to re-read the RFID tag for the specified AMS slot.
-
-        Only RFID-equipped Bambu Lab spools carry tag data.  The printer will push
-        an updated telemetry message containing the spool details after scanning.
-
-        Parameters
-        ----------
-        * slot_id : int - The slot within the AMS unit to scan (0–3 for standard AMS).
-        * ams_id : int = 0 - The AMS unit containing the slot (default is 0).
-        """
-        cmd = copy.deepcopy(AMS_GET_RFID)
-        cmd["print"]["ams_id"] = ams_id
-        cmd["print"]["slot_id"] = slot_id
+        msg = copy.deepcopy(AMS_CHANGE_FILAMENT)
+        msg["print"]["ams_id"] = ams_id
 
         self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(cmd)
+            f"device/{self.config.serial_number}/request",
+            json.dumps(msg),
         )
         logger.debug(
-            f"refresh_spool_rfid - published AMS_GET_RFID to [device/{self.config.serial_number}/request] command: [{cmd}]"
+            f"unload_filament - published AMS_CHANGE_FILAMENT to [device/{self.config.serial_number}/request] - bambu_msg: [{msg}]"
         )
 
-    def get_current_bind_list(self, state: "BambuState") -> list[dict[str, Any]]:
+    def upload_sdcard_file(self, src: str, dest: str):
         """
-        Build the `manual_ams_bind` list required by the H2D dual-extruder firmware.
-
-        Maps each connected AMS unit to its assigned extruder using the H2D's
-        hardware register inversion (RIGHT_EXTRUDER logical index 0 → hardware index 1,
-        LEFT_EXTRUDER logical index 1 → hardware index 0).
-
-        When only one AMS unit is connected the firmware still requires a two-entry
-        array; a sentinel placeholder entry (Unit ID 1) is appended automatically to
-        satisfy that requirement.
+        Uploads the local filesystem file to the printer and returns an updated dict of all files on the printer
 
         Parameters
         ----------
-        * state : BambuState - Current printer state supplying `ams_units` and
-            `ams_connected_count`.
-
-        Returns
-        -------
-        list[dict] - List of dicts with keys `ams_f_bind` (int), `ams_s_bind` (int),
-            and `extruder` (int, hardware index).
+        * src : str - the full path filename on the host to be uploaded to the printer
+        * dest : str - the full path filename on the printer to upload to
         """
-        bind_list = []
+        logger.debug(f"upload_sdcard_file - uploading file src: [{src}] dest: [{dest}]")
+        with self.ftp_connection() as ftps:
+            ftps.upload_file(src, dest)
 
-        # 1. Map physical units based on current logical assignments
-        for unit in state.ams_units:
-            # Hardware register inversion logic
-            hw_target = 1 if unit.assigned_to_extruder == ActiveTool.RIGHT_EXTRUDER else 0
+        if src.endswith(".3mf"):
+            get_project_info(dest, self, local_file=src)
 
-            bind_list.append(
-                {"ams_f_bind": int(unit.ams_id), "ams_s_bind": 0, "extruder": hw_target}
-            )
-
-        # 2. Dual-Extruder Array Completeness Requirement
-        # If only one AMS is connected, firmware requires a placeholder for the unused register.
-        if state.ams_connected_count == 1 and len(bind_list) == 1:
-            existing_assignment = bind_list[0]
-
-            # Determine the unassigned hardware register
-            placeholder_hw_target = 0 if existing_assignment["extruder"] == 1 else 1
-
-            # Add sentinel placeholder (Unit ID 1) to complete the dual-path mapping
-            bind_list.append(
-                {
-                    "ams_f_bind": 1,  # Placeholder Unit ID
-                    "ams_s_bind": 0,
-                    "extruder": placeholder_hw_target,
-                }
-            )
-
-        return bind_list
-
-    # def set_ams_to_extruder_binding(self, ams: int, extruder: int):
-    #     """
-    #     sets the current active tool / extruder for machines (H2 series)
-    #     that have multiple extruders
-    #     """
-    #     cmd = copy.deepcopy(SET_AMS_TO_EXTRUDER_BINDING)
-    #     extruder0 = cmd["print"]["bind_list"][1]
-    #     extruder1 = cmd["print"]["bind_list"][0]
-
-    #     if extruder == 0:
-    #         extruder
-    #     self.client.publish(
-    #         f"device/{self.config.serial_number}/request", json.dumps(cmd)
-    #     )
-    #     logger.debug(
-    #         f"set_active_tool - published SET_AMS_TO_EXTRUDER_BINDING to [device/{self.config.serial_number}/request] command: [{cmd}]"
-    #     )
-
-    def select_extrusion_calibration_profile(self, tray_id: int, cali_idx: int = -1):
-        """
-        Sets the k factor profile for the specified tray.
-
-        Parameters
-        ----------
-        tray_id : int - tray id
-        cali_idx : calibration index , optional, defaults to -1 (the default profile)
-        """
-        cmd = copy.deepcopy(EXTRUSION_CALI_SEL)
-
-        ams_id = math.floor(tray_id / 4)
-        slot_id = tray_id % 4
-        if tray_id == 254 or tray_id == 255:
-            ams_id = tray_id
-            slot_id = 0
-
-        cmd["print"]["ams_id"] = ams_id
-        cmd["print"]["tray_id"] = tray_id
-        cmd["print"]["slot_id"] = slot_id
-        cmd["print"]["cali_idx"] = cali_idx
-
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(cmd)
-        )
-        logger.debug(
-            f"select_extrusion_calibration_profile - published EXTRUSION_CALI_SEL to [device/{self.config.serial_number}/request] cmd: [{cmd}]"
-        )
-
-    def toJson(self):
-        """
-        Returns a `dict` (json document) representing this object's private class
-        level attributes that are serializable (most are).
-        """
-        response = json.dumps(self, default=jsonSerializer, indent=4, sort_keys=True)
-        # logger.debug(f"toJson - json: [{response}]")
-
-        return json.loads(response)
+        remote_files = self.get_sdcard_contents()
+        return remote_files
 
     # endregion
 
