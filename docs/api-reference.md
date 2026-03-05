@@ -16,6 +16,7 @@ This REST API provides complete control over Bambu Lab printers via HTTP request
 
 ## Table of Contents
 
+- [OpenAPI & Swagger](#openapi-swagger)
 - [Printer Status & Information](#printer-status-information)
 - [Temperature Control](#temperature-control)
 - [Fan Control](#fan-control)
@@ -38,10 +39,38 @@ This REST API provides complete control over Bambu Lab printers via HTTP request
 
 ---
 
+## OpenAPI & Swagger
+
+The API server publishes a generated OpenAPI document and an interactive
+Swagger UI.
+
+### GET /api/openapi.json
+
+
+**Swagger UI**: [`GET /api/openapi.json`](http://localhost:5000/api/docs#/default/get_openapi_spec)
+Returns the generated OpenAPI 3.0 document for the currently running API
+routes.
+
+**Success Response** (`200 OK`): JSON OpenAPI schema document.
+
+---
+
+### GET /api/docs
+
+**Swagger UI**: [`GET /api/docs`](http://localhost:5000/api/docs#/default/api_docs)
+
+Serves Swagger UI configured to load `/api/openapi.json`.
+
+**Success Response** (`200 OK`): HTML page with interactive API explorer.
+
+---
+
 ## Printer Status & Information
 
 ### GET /api/printer
 
+
+**Swagger UI**: [`GET /api/printer`](http://localhost:5000/api/docs#/default/get_printer_info)
 Returns the complete serialised `BambuPrinter` object via `BambuPrinter.toJson()`.
 
 **Condition**: Both `printer.recent_update` and `printer.printer_state.spools` must be truthy (i.e. a healthy MQTT data stream has been established and at least one spool entry is present).
@@ -57,6 +86,8 @@ Returns the complete serialised `BambuPrinter` object via `BambuPrinter.toJson()
 
 ### GET /api/health_check
 
+
+**Swagger UI**: [`GET /api/health_check`](http://localhost:5000/api/docs#/default/health_check)
 Health check that always attempts to return printer JSON regardless of connection state.
 
 **Logic**: If `not printer.recent_update and not printer.printer_state.spools` (both false at once), the response is assembled as a `500` error tuple; otherwise `200` success. In both cases `printer.toJson()` is appended to the response.
@@ -78,6 +109,8 @@ Health check that always attempts to return printer JSON regardless of connectio
 
 ### GET /api/set_tool_target_temp
 
+
+**Swagger UI**: [`GET /api/set_tool_target_temp`](http://localhost:5000/api/docs#/default/set_tool_target_temp)
 Set the nozzle temperature target for the currently active extruder.
 
 **Library method**: `BambuPrinter.set_nozzle_temp_target(value, tool_num)`
@@ -101,6 +134,8 @@ The active tool index is read from `printer.printer_state.active_tool.value`:
 
 ### GET /api/set_bed_target_temp
 
+
+**Swagger UI**: [`GET /api/set_bed_target_temp`](http://localhost:5000/api/docs#/default/set_bed_target_temp)
 Set the heated bed temperature target.
 
 **Library method**: `BambuPrinter.set_bed_temp_target(value)`
@@ -119,6 +154,8 @@ Set the heated bed temperature target.
 
 ### GET /api/set_chamber_target_temp
 
+
+**Swagger UI**: [`GET /api/set_chamber_target_temp`](http://localhost:5000/api/docs#/default/set_chamber_target_temp)
 Set the chamber temperature target.
 
 **Library method**: `BambuPrinter.set_chamber_temp_target(value)`
@@ -141,6 +178,8 @@ If the printer has `capabilities.has_chamber_temp`, sends `SET_CHAMBER_TEMP_TARG
 
 ### GET /api/set_fan_speed_target
 
+
+**Swagger UI**: [`GET /api/set_fan_speed_target`](http://localhost:5000/api/docs#/default/set_fan_speed_target)
 Set part-cooling fan speed.
 
 **Library method**: `BambuPrinter.set_part_cooling_fan_speed_target_percent(value)`
@@ -159,6 +198,8 @@ Set part-cooling fan speed.
 
 ### GET /api/set_aux_fan_speed_target
 
+
+**Swagger UI**: [`GET /api/set_aux_fan_speed_target`](http://localhost:5000/api/docs#/default/set_aux_fan_speed_target)
 Set auxiliary fan speed.
 
 **Library method**: `BambuPrinter.set_aux_fan_speed_target_percent(value)`
@@ -177,6 +218,8 @@ Set auxiliary fan speed.
 
 ### GET /api/set_exhaust_fan_speed_target
 
+
+**Swagger UI**: [`GET /api/set_exhaust_fan_speed_target`](http://localhost:5000/api/docs#/default/set_exhaust_fan_speed_target)
 Set exhaust/chamber fan speed.
 
 **Library method**: `BambuPrinter.set_exhaust_fan_speed_target_percent(value)`
@@ -197,6 +240,8 @@ Set exhaust/chamber fan speed.
 
 ### GET /api/print_3mf
 
+
+**Swagger UI**: [`GET /api/print_3mf`](http://localhost:5000/api/docs#/default/print_3mf)
 Start a 3MF print job.
 
 **Library method**: `BambuPrinter.print_3mf_file(name, plate, bed, use_ams, ams_mapping, bedlevel, flow, timelapse)`
@@ -225,6 +270,8 @@ Start a 3MF print job.
 
 ### GET /api/pause_printing
 
+
+**Swagger UI**: [`GET /api/pause_printing`](http://localhost:5000/api/docs#/default/pause_printing)
 Pause the current print job.
 
 **Library method**: `BambuPrinter.pause_printing()`
@@ -235,6 +282,8 @@ Pause the current print job.
 
 ### GET /api/resume_printing
 
+
+**Swagger UI**: [`GET /api/resume_printing`](http://localhost:5000/api/docs#/default/resume_printing)
 Resume a paused print job.
 
 **Library method**: `BambuPrinter.resume_printing()`
@@ -245,6 +294,8 @@ Resume a paused print job.
 
 ### GET /api/stop_printing
 
+
+**Swagger UI**: [`GET /api/stop_printing`](http://localhost:5000/api/docs#/default/stop_printing)
 Cancel/stop the current print job.
 
 **Library method**: `BambuPrinter.stop_printing()`
@@ -255,6 +306,8 @@ Cancel/stop the current print job.
 
 ### GET /api/skip_objects
 
+
+**Swagger UI**: [`GET /api/skip_objects`](http://localhost:5000/api/docs#/default/skip_objects)
 Skip one or more objects during an active print (uses the printer's exclude-object feature).
 
 **Library method**: `BambuPrinter.skip_objects(objects)`
@@ -277,6 +330,8 @@ The `objects` list is split on commas and passed directly to the library. The in
 
 ### GET /api/load_filament
 
+
+**Swagger UI**: [`GET /api/load_filament`](http://localhost:5000/api/docs#/default/load_filament)
 Load filament from the specified AMS slot or external spool.
 
 **Library method**: `BambuPrinter.load_filament(slot_id)`
@@ -295,6 +350,8 @@ Load filament from the specified AMS slot or external spool.
 
 ### GET /api/unload_filament
 
+
+**Swagger UI**: [`GET /api/unload_filament`](http://localhost:5000/api/docs#/default/unload_filament)
 Unload the currently loaded filament.
 
 **Library method**: `BambuPrinter.unload_filament()`
@@ -305,6 +362,8 @@ Unload the currently loaded filament.
 
 ### GET /api/refresh_spool_rfid
 
+
+**Swagger UI**: [`GET /api/refresh_spool_rfid`](http://localhost:5000/api/docs#/default/refresh_spool_rfid)
 Request the printer to re-read the RFID tag for a specific AMS slot.
 
 **Library method**: `BambuPrinter.refresh_spool_rfid(slot_id, ams_id=ams_id)`
@@ -326,6 +385,8 @@ Only RFID-equipped Bambu Lab spools carry tag data. The printer pushes updated t
 
 ### GET /api/set_spool_details
 
+
+**Swagger UI**: [`GET /api/set_spool_details`](http://localhost:5000/api/docs#/default/set_spool_details)
 Set custom filament details for an AMS tray.
 
 **Library method**: `BambuPrinter.set_spool_details(tray_id, tray_info_idx, tray_id_name, tray_type, tray_color, nozzle_temp_min, nozzle_temp_max)`
@@ -355,6 +416,8 @@ The endpoint sleeps 2 seconds after issuing the command to allow the printer to 
 
 ### GET /api/set_spool_k_factor
 
+
+**Swagger UI**: [`GET /api/set_spool_k_factor`](http://localhost:5000/api/docs#/default/set_spool_k_factor)
 Stub endpoint — no operation is currently performed.
 
 The implementation body is commented out in source. The endpoint accepts `tray_id` but ignores it and immediately returns success.
@@ -369,6 +432,8 @@ All file operations use FTPS to communicate with the printer SD card.
 
 ### GET /api/get_sdcard_contents
 
+
+**Swagger UI**: [`GET /api/get_sdcard_contents`](http://localhost:5000/api/docs#/default/get_sdcard_contents)
 Return the cached SD card file tree (populated by the last `get_sdcard_contents()` call).
 
 **Library method**: `BambuPrinter.get_sdcard_contents()` — performs a live FTPS listing and updates the internal cache.
@@ -405,6 +470,8 @@ Folder nodes have a `children` array; file nodes have a `size` field (bytes). Fo
 
 ### GET /api/refresh_sdcard_contents
 
+
+**Swagger UI**: [`GET /api/refresh_sdcard_contents`](http://localhost:5000/api/docs#/default/refresh_sdcard_contents)
 Refresh the SD card file listing from the printer via FTPS and return success.
 
 **Library method**: `BambuPrinter.get_sdcard_contents()` — also rebuilds the 3MF-only cache.
@@ -415,6 +482,8 @@ Refresh the SD card file listing from the printer via FTPS and return success.
 
 ### GET /api/get_sdcard_3mf_files
 
+
+**Swagger UI**: [`GET /api/get_sdcard_3mf_files`](http://localhost:5000/api/docs#/default/get_sdcard_3mf_files)
 Return the SD card tree filtered to `.3mf` files only (all other file types stripped, empty folders retained).
 
 **Library method**: `BambuPrinter.get_sdcard_3mf_files()` — also triggers a full `get_sdcard_contents()` refresh internally.
@@ -425,6 +494,8 @@ Return the SD card tree filtered to `.3mf` files only (all other file types stri
 
 ### GET /api/refresh_sdcard_3mf_files
 
+
+**Swagger UI**: [`GET /api/refresh_sdcard_3mf_files`](http://localhost:5000/api/docs#/default/refresh_sdcard_3mf_files)
 Refresh the SD card listing (both full and 3MF-only caches) via FTPS and return success.
 
 **Library method**: `BambuPrinter.get_sdcard_3mf_files()` which internally calls `get_sdcard_contents()`.
@@ -435,6 +506,8 @@ Refresh the SD card listing (both full and 3MF-only caches) via FTPS and return 
 
 ### GET /api/delete_sdcard_file
 
+
+**Swagger UI**: [`GET /api/delete_sdcard_file`](http://localhost:5000/api/docs#/default/delete_sdcard_file)
 Delete a file or folder from the SD card via FTPS.
 
 **Library method**: `BambuPrinter.delete_sdcard_file(file)` for files; `BambuPrinter.delete_sdcard_folder(path)` for folders (when `file` ends with `/`). The folder variant recursively deletes all contents before removing the directory.
@@ -455,6 +528,8 @@ After deletion, both the full file cache and the 3MF cache are updated in-memory
 
 ### GET /api/make_sdcard_directory
 
+
+**Swagger UI**: [`GET /api/make_sdcard_directory`](http://localhost:5000/api/docs#/default/make_sdcard_directory)
 Create a new directory on the SD card via FTPS.
 
 **Library method**: `BambuPrinter.make_sdcard_directory(dir)` — creates the directory then calls `get_sdcard_contents()`.
@@ -473,6 +548,8 @@ Create a new directory on the SD card via FTPS.
 
 ### GET /api/rename_sdcard_file
 
+
+**Swagger UI**: [`GET /api/rename_sdcard_file`](http://localhost:5000/api/docs#/default/rename_sdcard_file)
 Rename or move a file/folder on the SD card via FTPS.
 
 **Library method**: `BambuPrinter.rename_sdcard_file(src, dest)` — renames then calls `get_sdcard_contents()`.
@@ -492,6 +569,8 @@ Rename or move a file/folder on the SD card via FTPS.
 
 ### POST /api/upload_file_to_host
 
+
+**Swagger UI**: [`POST /api/upload_file_to_host`](http://localhost:5000/api/docs#/default/upload_file_to_host)
 Upload a file to the API server's local `./uploads/` directory.
 
 Accepts both `GET` and `POST` methods; multipart form data is required in practice.
@@ -508,6 +587,8 @@ Accepts both `GET` and `POST` methods; multipart form data is required in practi
 
 ### GET /api/upload_file_to_printer
 
+
+**Swagger UI**: [`GET /api/upload_file_to_printer`](http://localhost:5000/api/docs#/default/upload_file_to_printer)
 Transfer a file from the server's `./uploads/` directory to the printer SD card via FTPS.
 
 **Library method**: `BambuPrinter.upload_sdcard_file(f"uploads/{src}", dest)` — uploads the file, then if it is a `.3mf` file runs `get_project_info` to cache its metadata, then calls `get_sdcard_contents()` to refresh the file tree.
@@ -529,6 +610,8 @@ Accepts both `GET` and `POST` methods.
 
 ### GET /api/download_file_from_printer
 
+
+**Swagger UI**: [`GET /api/download_file_from_printer`](http://localhost:5000/api/docs#/default/download_file_from_printer)
 Download a file from the printer SD card. The file is saved to `./uploads/` and then streamed to the client.
 
 **Library method**: `BambuPrinter.download_sdcard_file(src, f"uploads/{filename}")`
@@ -549,6 +632,8 @@ Accepts both `GET` and `POST` methods.
 
 ### GET /api/get_3mf_props_for_file
 
+
+**Swagger UI**: [`GET /api/get_3mf_props_for_file`](http://localhost:5000/api/docs#/default/get_3mf_props_for_file)
 Parse and return metadata for a specific `.3mf` file.
 
 **Library method**: `get_project_info(file, printer, plate_num=plate, use_cached_list=True)`
@@ -607,6 +692,8 @@ The `metadata.map.bbox_objects[n].id` integer is the `identify_id` required by `
 
 ### GET /api/get_current_3mf_props
 
+
+**Swagger UI**: [`GET /api/get_current_3mf_props`](http://localhost:5000/api/docs#/default/get_current_3mf_props)
 Return metadata for the currently active print job.
 
 Checks `printer.active_job_info.project_info` and returns it if `project_info.id` is non-empty.
@@ -626,6 +713,8 @@ These endpoints are only meaningful on H2D / H2D Pro printers with dual extruder
 
 ### GET /api/toggle_active_tool
 
+
+**Swagger UI**: [`GET /api/toggle_active_tool`](http://localhost:5000/api/docs#/default/toggle_active_tool)
 Switch between right (`0`) and left (`1`) extruders on H2D / H2D Pro printers.
 
 **Library method**: `BambuPrinter.set_active_tool(tool)`
@@ -641,6 +730,8 @@ Computes the target tool as `abs(active_tool.value - 1)`:
 
 ### GET /api/set_nozzle_details
 
+
+**Swagger UI**: [`GET /api/set_nozzle_details`](http://localhost:5000/api/docs#/default/set_nozzle_details)
 Set the nozzle diameter and material type for the active extruder.
 
 **Library method**: `BambuPrinter.set_nozzle_details(nozzle_diameter, nozzle_type)`
@@ -664,6 +755,8 @@ The endpoint sleeps 1 second after issuing the command before responding.
 
 ### GET /api/refresh_nozzles
 
+
+**Swagger UI**: [`GET /api/refresh_nozzles`](http://localhost:5000/api/docs#/default/refresh_nozzles)
 Request the printer to push current nozzle info in its next `push_status` message.
 
 **Library method**: `BambuPrinter.refresh_nozzles()`
@@ -678,6 +771,8 @@ Relevant only on models with `support_refresh_nozzle` capability (H2D, H2D Pro).
 
 ### GET /api/set_buildplate_marker_detector
 
+
+**Swagger UI**: [`GET /api/set_buildplate_marker_detector`](http://localhost:5000/api/docs#/default/set_buildplate_marker_detector)
 Enable or disable the build-plate marker detector.
 
 **Library method**: `BambuPrinter.set_buildplate_marker_detector(enabled)`
@@ -696,6 +791,8 @@ Enable or disable the build-plate marker detector.
 
 ### GET /api/set_spaghetti_detector
 
+
+**Swagger UI**: [`GET /api/set_spaghetti_detector`](http://localhost:5000/api/docs#/default/set_spaghetti_detector)
 Enable or disable the spaghetti / first-layer failure detector.
 
 **Library method**: `BambuPrinter.set_spaghetti_detector(enabled, sensitivity)`
@@ -715,6 +812,8 @@ Enable or disable the spaghetti / first-layer failure detector.
 
 ### GET /api/set_purgechutepileup_detector
 
+
+**Swagger UI**: [`GET /api/set_purgechutepileup_detector`](http://localhost:5000/api/docs#/default/set_purgechutepileup_detector)
 Enable or disable the purge-chute pile-up detector.
 
 **Library method**: `BambuPrinter.set_purgechutepileup_detector(enabled, sensitivity)`
@@ -734,6 +833,8 @@ Enable or disable the purge-chute pile-up detector.
 
 ### GET /api/set_nozzleclumping_detector
 
+
+**Swagger UI**: [`GET /api/set_nozzleclumping_detector`](http://localhost:5000/api/docs#/default/set_nozzleclumping_detector)
 Enable or disable the nozzle-clumping detector.
 
 **Library method**: `BambuPrinter.set_nozzleclumping_detector(enabled, sensitivity)`
@@ -753,6 +854,8 @@ Enable or disable the nozzle-clumping detector.
 
 ### GET /api/set_airprinting_detector
 
+
+**Swagger UI**: [`GET /api/set_airprinting_detector`](http://localhost:5000/api/docs#/default/set_airprinting_detector)
 Enable or disable the air-printing detector.
 
 **Library method**: `BambuPrinter.set_airprinting_detector(enabled, sensitivity)`
@@ -774,6 +877,8 @@ Enable or disable the air-printing detector.
 
 ### GET /api/send_ams_control_command
 
+
+**Swagger UI**: [`GET /api/send_ams_control_command`](http://localhost:5000/api/docs#/default/send_ams_control_command)
 Send a control command to the AMS system.
 
 **Library method**: `BambuPrinter.send_ams_control_command(ams_cmd)`
@@ -794,6 +899,8 @@ The `cmd` value is resolved via `AMSControlCommand[cmd.upper()]`. Invalid names 
 
 ### GET /api/set_ams_user_setting
 
+
+**Swagger UI**: [`GET /api/set_ams_user_setting`](http://localhost:5000/api/docs#/default/set_ams_user_setting)
 Configure an AMS user setting.
 
 **Library method**: `BambuPrinter.set_ams_user_setting(setting, enabled)`
@@ -817,6 +924,8 @@ The `setting` value is resolved via `AMSUserSetting[setting.upper()]`. Invalid n
 
 ### GET /api/send_gcode
 
+
+**Swagger UI**: [`GET /api/send_gcode`](http://localhost:5000/api/docs#/default/send_gcode)
 Send one or more raw G-code commands to the printer.
 
 **Library method**: `BambuPrinter.send_gcode(gcode)` — wraps the command in `SEND_GCODE_TEMPLATE` and publishes via MQTT.
@@ -840,6 +949,8 @@ Pipe characters (`|`) in the `gcode` parameter are converted to newlines (`\n`) 
 
 ### GET /api/set_print_option
 
+
+**Swagger UI**: [`GET /api/set_print_option`](http://localhost:5000/api/docs#/default/set_print_option)
 Enable or disable a printer option.
 
 **Library method**: `BambuPrinter.set_print_option(option, enabled)`
@@ -861,6 +972,8 @@ The `option` value is resolved via `PrintOption[option.upper()]`. Invalid names 
 
 ### GET /api/set_light_state
 
+
+**Swagger UI**: [`GET /api/set_light_state`](http://localhost:5000/api/docs#/default/set_light_state)
 Control the chamber and column LED lights.
 
 **Library method**: `BambuPrinter.light_state = bool`
@@ -883,6 +996,8 @@ Setting the property publishes `CHAMBER_LIGHT_TOGGLE` commands for three light n
 
 ### GET /api/set_speed_level
 
+
+**Swagger UI**: [`GET /api/set_speed_level`](http://localhost:5000/api/docs#/default/set_speed_level)
 Set the print speed profile.
 
 **Library method**: `BambuPrinter.speed_level = str`
@@ -905,6 +1020,8 @@ Publishes `SPEED_PROFILE_TEMPLATE` with the string value directly as the `param`
 
 ### GET /api/get_all_data
 
+
+**Swagger UI**: [`GET /api/get_all_data`](http://localhost:5000/api/docs#/default/get_all_data)
 Return the full telemetry history used for charting, combined with the current printer state.
 
 Calls `build_all_data()` internally. See [build\_all\_data() Response Schema](#build_all_data-response-schema) for the complete schema.
@@ -915,6 +1032,8 @@ Calls `build_all_data()` internally. See [build\_all\_data() Response Schema](#b
 
 ### GET /api/zoom_in
 
+
+**Swagger UI**: [`GET /api/zoom_in`](http://localhost:5000/api/docs#/default/zoom_in)
 Zoom in on a telemetry chart (reduce the visible history window by 500 seconds per call).
 
 Finds the named collection in `ds.collections` and decrements its `zoom` by 500 seconds. Minimum zoom window is 500 seconds. If the collection has fewer than 500 seconds of data, the call is a no-op.
@@ -935,6 +1054,8 @@ If `zoom` is currently `0` (show all data), it is first set to `min(3600, max_ag
 
 ### GET /api/zoom_out
 
+
+**Swagger UI**: [`GET /api/zoom_out`](http://localhost:5000/api/docs#/default/zoom_out)
 Zoom out on a telemetry chart (increase the visible history window by 500 seconds per call).
 
 If `zoom + 500 >= max_age`, zoom resets to `0` (show all data).
@@ -953,6 +1074,8 @@ If `zoom + 500 >= max_age`, zoom resets to `0` (show all data).
 
 ### GET /api/dump_data_ds.collections
 
+
+**Swagger UI**: [`GET /api/dump_data_ds.collections`](http://localhost:5000/api/docs#/default/dump_data_collections)
 Dump all internal `DataCollection` objects as newline-delimited JSON (JSONL), one collection per line.
 
 **Response**: Plain text, MIME type `application/jsonl+json`. Each line is one JSON-serialised `DataCollection` object.
@@ -963,6 +1086,8 @@ Dump all internal `DataCollection` objects as newline-delimited JSON (JSONL), on
 
 ### GET /api/toggle_session
 
+
+**Swagger UI**: [`GET /api/toggle_session`](http://localhost:5000/api/docs#/default/toggle_session)
 Pause or resume the MQTT connection to the printer.
 
 **Library methods**: `BambuPrinter.pause_session()` / `BambuPrinter.resume_session()`
@@ -983,6 +1108,8 @@ Pause or resume the MQTT connection to the printer.
 
 ### GET /api/trigger_printer_refresh
 
+
+**Swagger UI**: [`GET /api/trigger_printer_refresh`](http://localhost:5000/api/docs#/default/trigger_printer_refresh)
 Force a printer reconnection or refresh.
 
 **Library methods**: `BambuPrinter.quit()` + `start_session()` when disconnected; `BambuPrinter.refresh()` when connected.
@@ -998,6 +1125,8 @@ Note: `printer` is always an empty dict in this response. Call `/api/printer` or
 
 ### GET /api/toggle_verbosity
 
+
+**Swagger UI**: [`GET /api/toggle_verbosity`](http://localhost:5000/api/docs#/default/toggle_verbosity)
 Toggle the root logger between `DEBUG` and `INFO` level, and optionally set `config.verbose`.
 
 The level always toggles based on the **current** level (not the `verbose` parameter): `INFO → DEBUG`, `DEBUG → INFO`. The `verbose` parameter independently sets `printer.config.verbose`.
@@ -1024,6 +1153,8 @@ The level always toggles based on the **current** level (not the `verbose` param
 
 ### GET /api/dump_log
 
+
+**Swagger UI**: [`GET /api/dump_log`](http://localhost:5000/api/docs#/default/dump_log)
 Retrieve the contents of `./output.log`.
 
 **Response**: Plain text, MIME type `application/jsonl+json`. Empty string if the file does not exist.
@@ -1032,6 +1163,8 @@ Retrieve the contents of `./output.log`.
 
 ### GET /api/truncate_log
 
+
+**Swagger UI**: [`GET /api/truncate_log`](http://localhost:5000/api/docs#/default/truncate_log)
 Clear (truncate to zero bytes) `./output.log`.
 
 **Response**: `{"status": "success"}`
@@ -1039,6 +1172,8 @@ Clear (truncate to zero bytes) `./output.log`.
 ---
 
 ### GET /api/fake_error
+
+**Swagger UI**: [`GET /api/fake_error`](http://localhost:5000/api/docs#/default/fake_error)
 
 Intentionally raise a `ZeroDivisionError` to test the `500` error handler.
 

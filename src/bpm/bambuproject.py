@@ -230,7 +230,7 @@ def get_project_info(
     **Resolution order**
 
     1. If a valid cached metadata file exists at
-       `{bpm_cache_path}/metadata/{filename}-{plate_num}.json` **and** the SD card
+       `{bpm_cache_path}/{serial_number}/metadata/{sd_card_path_with_dashes}-{plate_num}.json` **and** the SD card
        entry's `timestamp` + `size` match (or `project_file_md5` matches the cached
        `md5`), the cached data is returned immediately — no download.
     2. Otherwise the `.3mf` is downloaded from the printer's SD card via FTPS,
@@ -412,10 +412,14 @@ def get_project_info(
     if not file.startswith("/"):
         file = f"/{file}"
 
-    filename = file.split("/")[-1]
+    filename = file.lstrip("/").replace("/", "-")
+    serial = printer.config.serial_number
     cache_path = (
         printer.config.bpm_cache_path if printer.config.bpm_cache_path else Path()
     )
+    if serial:
+        cache_path = cache_path / serial
+    (cache_path / "metadata").mkdir(parents=True, exist_ok=True)
     metadata = cache_path / "metadata" / f"{filename}-{plate_num}.json"
     localfile = cache_path / filename
 

@@ -12,6 +12,7 @@ import ssl
 import threading
 import time
 import traceback
+from pathlib import Path
 from typing import Any
 
 import paho.mqtt.client as mqtt
@@ -332,6 +333,20 @@ class BambuPrinter:
         with self.ftp_connection() as ftps:
             ftps.delete_file(file)
 
+        # Invalidate all cached plate metadata for this file
+        filename = file.lstrip("/").replace("/", "-")
+        serial = self.config.serial_number
+        cache_path = self.config.bpm_cache_path if self.config.bpm_cache_path else Path()
+        if serial:
+            cache_path = cache_path / serial
+        for cached in (
+            (cache_path / "metadata").glob(f"{filename}-*.json")
+            if (cache_path / "metadata").exists()
+            else []
+        ):
+            cached.unlink(missing_ok=True)
+            logger.debug(f"delete_sdcard_file - removed cache entry [{cached.name}]")
+
         def search_for_and_remove_file(file: str, entry: dict):
             if "children" in entry:
                 entry["children"] = list(
@@ -370,6 +385,20 @@ class BambuPrinter:
 
         with self.ftp_connection() as ftps:
             delete_all_contents(ftps, path)
+
+        # Invalidate all cached plate metadata for files under this folder
+        prefix = path.strip("/").replace("/", "-")
+        serial = self.config.serial_number
+        cache_path = self.config.bpm_cache_path if self.config.bpm_cache_path else Path()
+        if serial:
+            cache_path = cache_path / serial
+        metadata_dir = cache_path / "metadata"
+        if metadata_dir.exists():
+            for cached in metadata_dir.glob(f"{prefix}-*.json"):
+                cached.unlink(missing_ok=True)
+                logger.debug(
+                    f"delete_sdcard_folder - removed cache entry [{cached.name}]"
+                )
 
         def search_for_and_remove_folder(path: str, entry: dict):
             if not path.endswith("/"):
@@ -1575,6 +1604,7 @@ class BambuPrinter:
         cooling_temp: int = 45,
         rotate_tray: bool = False,
         ams_id: int = 0,
+        filament_type: str = "",
     ):
         """
         Sends a command to the printer to turn on the AMS dryer with specified parameters.
@@ -1582,15 +1612,17 @@ class BambuPrinter:
         Parameters
         ----------
         * target_temp : int - The target drying temperature.
-        * duration : int - The drying duration in minutes.
+        * duration : int - The drying duration in hours.
         * target_humidity : int - The target humidity level.
         * cooling_temp : int - The cooling temperature after drying (default is 45).
         * rotate_tray : bool - Whether to rotate the tray during drying (default is False).
         * ams_id : int - The AMS ID to control (default is 0).
+        * filament_type : str - The filament type string (e.g. 'ABS'). Passed to firmware for validation.
         """
         cmd = copy.deepcopy(AMS_FILAMENT_DRYING)
         cmd["print"]["ams_id"] = ams_id
         cmd["print"]["mode"] = 1  # Turn on drying mode
+        cmd["print"]["filament"] = filament_type
         cmd["print"]["temp"] = target_temp
         cmd["print"]["duration"] = duration
         cmd["print"]["humidity"] = target_humidity

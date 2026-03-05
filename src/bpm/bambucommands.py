@@ -136,6 +136,7 @@ AMS_FILAMENT_DRYING = {
         "command": "ams_filament_drying",
         "ams_id": 0,
         "mode": 0,
+        "filament": "",
         "temp": 0,
         "cooling_temp": 45,
         "duration": 0,
