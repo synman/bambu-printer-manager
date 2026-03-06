@@ -33,7 +33,6 @@ import os
 import re
 import socket
 import ssl
-from contextlib import redirect_stdout
 
 logger = logging.getLogger(__name__)
 
@@ -235,10 +234,9 @@ class IoTFTPSClient:
     def list_files_ex(self, path: str) -> list[FtpListItem] | None:
         """list files under a path inside the FTPS server"""
         try:
-            f = io.StringIO()
-            with redirect_stdout(f):
-                self.ftps_session.dir(path)
-            s = f.getvalue()
+            lines: list[str] = []
+            self.ftps_session.dir(path, lines.append)
+            s = "\n".join(lines)
         except ftplib.error_perm:
             # no permission for this path
             return []
