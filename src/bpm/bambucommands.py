@@ -108,6 +108,23 @@ CLEAN_PRINT_ERROR_TEMPLATE = {
     }
 }
 
+# Sent alongside clean_print_error to signal "UI dialog acknowledged" to the printer.
+# Without this, the printer remains in a UI-acknowledgment pending state and any open
+# BambuStudio session will re-raise print_error on every push_status until it receives
+# this signal. Source: BambuStudio DeviceManager.cpp command_clean_print_error_uiop().
+# The "err" field must be substituted with the uppercase 8-char hex error code at send time.
+CLEAN_PRINT_ERROR_UIOP_TEMPLATE = {
+    "system": {
+        "sequence_id": "0",
+        "command": "uiop",
+        "name": "print_error",
+        "action": "close",
+        "source": 1,
+        "type": "dialog",
+        "err": "",  # substitute: f"{print_error:08X}"
+    }
+}
+
 SEND_GCODE_TEMPLATE = {
     "print": {"sequence_id": "0", "command": "gcode_line", "param": ""}
 }

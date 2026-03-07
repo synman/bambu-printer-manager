@@ -30,6 +30,7 @@ from bpm.bambucommands import (
     ANNOUNCE_VERSION,
     CHAMBER_LIGHT_TOGGLE,
     CLEAN_PRINT_ERROR_TEMPLATE,
+    CLEAN_PRINT_ERROR_UIOP_TEMPLATE,
     EXTRUSION_CALI_SEL,
     EXTRUSION_CALI_SET,
     PAUSE_PRINT,
@@ -320,6 +321,61 @@ class BambuPrinter:
                 f"device/{self.config.serial_number}/request",
                 json.dumps(ANNOUNCE_PUSH),
             )
+
+    def clean_print_error(self, subtask_id: str = "", print_error: int = 0):
+        """
+        Clears an active print_error on the printer. Sends a clean_print_error
+        command acknowledged by a push_status with print_error reset to 0.
+
+        subtask_id: the subtask_id of the failed job (from ActiveJobInfo). Pass
+            empty string to clear without a specific subtask context.
+        print_error: the integer error code to clear (e.g. 50348044 for 0x0300400C
+            "task was canceled"). Pass 0 to clear any active error.
+        """
+        import copy
+
+        cmd = copy.deepcopy(CLEAN_PRINT_ERROR_TEMPLATE)
+        cmd["print"]["subtask_id"] = subtask_id
+        cmd["print"]["print_error"] = print_error
+        self.client.publish(
+            f"device/{self.config.serial_number}/request",
+            json.dumps(cmd),
+        )
+        logger.debug(
+            f"clean_print_error - published CLEAN_PRINT_ERROR to "
+            f"[device/{self.config.serial_number}/request] subtask_id=[{subtask_id}] print_error=[{print_error}]"
+        )
+
+    def clean_print_error_uiop(self, print_error: int = 0):
+        """
+        Sends the UI dialog-close acknowledgment that BambuStudio sends alongside
+        clean_print_error when dismissing an error dialog.
+
+        Without this signal the printer remains in a "waiting for UI acknowledgment"
+        state. Any open BambuStudio session will re-raise print_error on every
+        push_status until it receives this acknowledgment. Always call this immediately
+        after clean_print_error() to ensure the error stays cleared regardless of
+        whether BambuStudio is open.
+
+        print_error: the integer error code being cleared (e.g. 50348044 for
+            HMS_0300-400C "task was canceled"). Used to populate the "err" field as
+            an uppercase 8-character hex string (e.g. "0300400C").
+
+        Source: BambuStudio src/slic3r/GUI/DeviceManager.cpp,
+            command_clean_print_error_uiop() (lines 1253–1268).
+        """
+        import copy
+
+        cmd = copy.deepcopy(CLEAN_PRINT_ERROR_UIOP_TEMPLATE)
+        cmd["system"]["err"] = f"{print_error:08X}"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request",
+            json.dumps(cmd),
+        )
+        logger.debug(
+            f"clean_print_error_uiop - published uiop dialog-close to "
+            f"[device/{self.config.serial_number}/request] err=[{print_error:08X}]"
+        )
 
     def delete_sdcard_file(self, file: str):
         """
@@ -1559,30 +1615,7 @@ class BambuPrinter:
             f"stop_printing - published STOP_PRINT to [device/{self.config.serial_number}/request]"
         )
 
-    def clean_print_error(self, subtask_id: str = "", print_error: int = 0):
-        """
-        Clears an active print_error on the printer. Sends a clean_print_error
-        command acknowledged by a push_status with print_error reset to 0.
-
-        subtask_id: the subtask_id of the failed job (from ActiveJobInfo). Pass
-            empty string to clear without a specific subtask context.
-        print_error: the integer error code to clear (e.g. 50348044 for 0x0300400C
-            "task was canceled"). Pass 0 to clear any active error.
-        """
-        import copy
-
-        cmd = copy.deepcopy(CLEAN_PRINT_ERROR_TEMPLATE)
-        cmd["print"]["subtask_id"] = subtask_id
-        cmd["print"]["print_error"] = print_error
-        self.client.publish(
-            f"device/{self.config.serial_number}/request",
-            json.dumps(cmd),
-        )
-        logger.debug(
-            f"clean_print_error - published CLEAN_PRINT_ERROR to "
-            f"[device/{self.config.serial_number}/request] subtask_id=[{subtask_id}] print_error=[{print_error}]"
-        )
-
+    def toJson(self):
         """
         Returns a `dict` (json document) representing this object's private class
         level attributes that are serializable (most are).
