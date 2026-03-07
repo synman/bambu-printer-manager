@@ -99,6 +99,15 @@ RESUME_PRINT = {"print": {"sequence_id": "0", "command": "resume"}}
 
 STOP_PRINT = {"print": {"sequence_id": "0", "command": "stop"}}
 
+CLEAN_PRINT_ERROR_TEMPLATE = {
+    "print": {
+        "sequence_id": "0",
+        "command": "clean_print_error",
+        "subtask_id": "",
+        "print_error": 0,
+    }
+}
+
 SEND_GCODE_TEMPLATE = {
     "print": {"sequence_id": "0", "command": "gcode_line", "param": ""}
 }

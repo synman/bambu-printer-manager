@@ -29,6 +29,7 @@ from bpm.bambucommands import (
     ANNOUNCE_PUSH,
     ANNOUNCE_VERSION,
     CHAMBER_LIGHT_TOGGLE,
+    CLEAN_PRINT_ERROR_TEMPLATE,
     EXTRUSION_CALI_SEL,
     EXTRUSION_CALI_SET,
     PAUSE_PRINT,
@@ -1558,7 +1559,30 @@ class BambuPrinter:
             f"stop_printing - published STOP_PRINT to [device/{self.config.serial_number}/request]"
         )
 
-    def toJson(self):
+    def clean_print_error(self, subtask_id: str = "", print_error: int = 0):
+        """
+        Clears an active print_error on the printer. Sends a clean_print_error
+        command acknowledged by a push_status with print_error reset to 0.
+
+        subtask_id: the subtask_id of the failed job (from ActiveJobInfo). Pass
+            empty string to clear without a specific subtask context.
+        print_error: the integer error code to clear (e.g. 50348044 for 0x0300400C
+            "task was canceled"). Pass 0 to clear any active error.
+        """
+        import copy
+
+        cmd = copy.deepcopy(CLEAN_PRINT_ERROR_TEMPLATE)
+        cmd["print"]["subtask_id"] = subtask_id
+        cmd["print"]["print_error"] = print_error
+        self.client.publish(
+            f"device/{self.config.serial_number}/request",
+            json.dumps(cmd),
+        )
+        logger.debug(
+            f"clean_print_error - published CLEAN_PRINT_ERROR to "
+            f"[device/{self.config.serial_number}/request] subtask_id=[{subtask_id}] print_error=[{print_error}]"
+        )
+
         """
         Returns a `dict` (json document) representing this object's private class
         level attributes that are serializable (most are).
