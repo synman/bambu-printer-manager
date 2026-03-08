@@ -600,8 +600,12 @@ class BambuState:
             id = int(ams_u.get("id", 0))
             u = cur_ams.get(id, AMSUnitState(ams_id=id))
             u.temp_actual = float(ams_u.get("temp", u.temp_actual))
-            u.humidity_index = int(float(ams_u.get("humidity", u.humidity_index)))
-            u.humidity_raw = int(float(ams_u.get("humidity_raw", u.humidity_raw)))
+            _hIdx = int(float(ams_u.get("humidity", 0)))
+            if 1 <= _hIdx <= 5:
+                u.humidity_index = _hIdx
+            _hRaw = int(float(ams_u.get("humidity_raw", 0)))
+            if 1 <= _hRaw <= 100:
+                u.humidity_raw = _hRaw
             u.dry_time = int(float(ams_u.get("dry_time", u.dry_time)))
 
             # ugly hack for capturing target temp
