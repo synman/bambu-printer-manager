@@ -117,6 +117,23 @@ class ProjectInfo:
         | `128–135`| Single-slot AMS HT / N3S: `ams_id` (starts at 128)        |
         | `254`    | External spool                                             |
         | `-1`     | Unmapped — filament not assigned to any AMS slot           |
+
+    **`slicer_settings`** : `dict`
+        Key slicer parameters extracted from `Metadata/project_settings.config`.
+        Present only when that file exists in the `.3mf`. Falls back to empty dict
+        when the file is absent (e.g. older BambuStudio exports).
+
+        | Key                    | Type  | Description                                  |
+        |------------------------|-------|----------------------------------------------|
+        | `enable_support`       | `str` | `"1"` if support structures are enabled      |
+        | `support_type`         | `str` | `"normal"`, `"tree"`, etc.                   |
+        | `brim_type`            | `str` | `"no_brim"`, `"outer_brim"`, `"inner_brim"` etc. |
+        | `brim_width`           | `str` | Brim width in mm (string, e.g. `"5"`)        |
+        | `raft_layers`          | `str` | Number of raft layers (`"0"` = no raft)      |
+        | `sparse_infill_density`| `str` | Infill density, e.g. `"15%"`                 |
+        | `wall_loops`           | `str` | Number of perimeter walls                    |
+        | `layer_height`         | `str` | Layer height in mm                           |
+        | `initial_layer_height` | `str` | First layer height in mm                     |
     """
     plates: list[int] = field(default_factory=list)
     """The plate numbers contained within this `3mf`."""
@@ -687,6 +704,23 @@ def get_project_info(
                     pi.metadata["ams_mapping"] = filament_maps
 
                 _ensure_ams_mapping(pi.metadata)
+
+                def _single(key, default=""):
+                    vals = _extract_list_from_config(project_settings_cfg, key)
+                    return vals[0] if vals else default
+
+                pi.metadata["slicer_settings"] = {
+                    "enable_support": _single("enable_support", "0"),
+                    "support_type": _single("support_type", "normal"),
+                    "brim_type": _single("brim_type", "no_brim"),
+                    "brim_width": _single("brim_width", "0"),
+                    "raft_layers": _single("raft_layers", "0"),
+                    "sparse_infill_density": _single("sparse_infill_density")
+                    or _single("infill_density", "15%"),
+                    "wall_loops": _single("wall_loops") or _single("perimeters", "2"),
+                    "layer_height": _single("layer_height", "0.2"),
+                    "initial_layer_height": _single("initial_layer_height", "0.2"),
+                }
 
                 if not remote_files:
                     remote_files = (
