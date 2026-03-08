@@ -65,6 +65,7 @@ from bpm.bambutools import (
     PrinterSeries,
     PrintOption,
     ServiceState,
+    SpeedLevel,
     getPrinterSeriesByModel,
     jsonSerializer,
     nozzle_type_to_telemetry,
@@ -1846,15 +1847,30 @@ class BambuPrinter:
         )
 
     @property
-    def speed_level(self):
-        """The active print speed mode. Updating this will change the printer's execution speed."""
-        return self._speed_level
+    def speed_level(self) -> SpeedLevel | int:
+        """The active print speed mode. Returns a SpeedLevel enum member when the firmware
+        value is recognised (1–4); returns the raw integer otherwise (e.g. 0 at startup
+        before the first telemetry push)."""
+        try:
+            return SpeedLevel(self._speed_level)
+        except ValueError:
+            return self._speed_level
 
     @speed_level.setter
-    def speed_level(self, value: str):
-        value = str(value)
+    def speed_level(self, value: "SpeedLevel | int | str"):
+        """Set the active print speed mode.
+
+        Accepts a SpeedLevel enum member, an integer code (1–4), or a case-insensitive
+        name string ('quiet', 'standard', 'sport', 'ludicrous').
+        """
+        if isinstance(value, SpeedLevel):
+            code = str(value.value)
+        elif isinstance(value, int):
+            code = str(value)
+        else:
+            code = str(SpeedLevel[str(value).upper()].value)
         cmd = SPEED_PROFILE_TEMPLATE
-        cmd["print"]["param"] = value
+        cmd["print"]["param"] = code
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )

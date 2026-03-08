@@ -367,6 +367,21 @@ class PlateType(Enum):
     NONE = 999
 
 
+class SpeedLevel(IntEnum):
+    """
+    Print speed profile levels. Maps human-readable names to the firmware integer codes
+    sent in the `print_speed` MQTT command (`param` field) and reported back in `spd_lvl`.
+
+    Used by `BambuPrinter.speed_level` getter (returns the active level) and setter
+    (accepts a `SpeedLevel` to change the active profile).
+    """
+
+    QUIET = 1
+    STANDARD = 2
+    SPORT = 3
+    LUDICROUS = 4
+
+
 class DetectorSensitivity(Enum):
     """
     Sensitivity level for X-Cam AI vision detectors (spaghetti, pile-up, clump, air-print).
