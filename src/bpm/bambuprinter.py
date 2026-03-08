@@ -1089,9 +1089,6 @@ class BambuPrinter:
             f"set_ams_user_setting - published AMS_USER_SETTING to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
         )
 
-    @deprecated(
-        "This method is deprecated. The closest alternative is `select_extrusion_calibration_profile`."
-    )
     def set_aux_fan_speed_target_percent(self, value: int):
         """
         sets the aux (chamber recirculation) fan speed target represented in percent
