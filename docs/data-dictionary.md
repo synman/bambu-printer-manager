@@ -346,7 +346,7 @@ Main configuration class for [`BambuPrinter`](reference/bpm/bambuprinter.md#bpm.
 #### filament_tangle_detect
 - **Type**: `bool`
 - **Default**: `False`
-- **Purpose**: Master switch for AMS tension-based monitor logic
+- **Purpose**: Master switch for AMS tension-based filament tangle monitor logic. Only meaningful when an AMS unit is present and actively feeding — has no effect during external spool or standalone prints.
 - **MQTT Control**: [Set Print Options](mqtt-protocol-reference.md#set-print-options)
 - **Reference**: AMS filament runout/tangle detection
 
@@ -360,7 +360,7 @@ Main configuration class for [`BambuPrinter`](reference/bpm/bambuprinter.md#bpm.
 #### auto_switch_filament
 - **Type**: `bool`
 - **Default**: `False`
-- **Purpose**: Enables automatic AMS failover to redundant spools
+- **Purpose**: Enables automatic AMS failover when the active spool runs out, switching to another AMS slot loaded with the **same filament type AND color**. Both conditions (type and color) must match. Applies to AMS-hosted spools only — the external spool holder is not eligible.
 - **MQTT Control**: [Set Print Options](mqtt-protocol-reference.md#set-print-options)
 - **Reference**: AMS automatic spool switching
 
@@ -381,7 +381,7 @@ Main configuration class for [`BambuPrinter`](reference/bpm/bambuprinter.md#bpm.
 #### calibrate_remain_flag
 - **Type**: `bool`
 - **Default**: `False`
-- **Purpose**: Enablement for the spool-weight based estimation of the remaining filament length in the AMS
+- **Purpose**: Enablement for spool-weight based estimation of remaining filament length. Requires an AMS unit with built-in weight sensors. **AMS 2 Pro only** — AMS Lite and AMS HT do not have weight sensors and will not respond to this setting.
 - **MQTT Control**: [AMS User Settings](mqtt-protocol-reference.md#ams-user-settings)
 - **Reference**: AMS filament remaining calculation
 
@@ -2015,10 +2015,12 @@ Details of the currently active job running on the printer, including progress, 
 
 | Value | Name | Description |
 |-------|------|-------------|
-| 0 | AUTO_RECOVERY | Auto print recovery option |
-| 1 | FILAMENT_TANGLE_DETECT | Filament tangle detect option |
-| 2 | SOUND_ENABLE | Buzzer/sound option |
-| 3 | AUTO_SWITCH_FILAMENT | Automatic spool switch option |
+| 0 | AUTO_RECOVERY | Resume print automatically after power loss or hardware fault. |
+| 1 | FILAMENT_TANGLE_DETECT | Pause if AMS sensors detect a filament tangle. AMS-only; no effect on external spool prints. Guarded by `has_filament_tangle_detect_support`. |
+| 2 | SOUND_ENABLE | Enable audible beep notifications for print events. Guarded by `has_sound_enable_support`. |
+| 3 | AUTO_SWITCH_FILAMENT | Auto-switch to another AMS slot when the active spool runs out, if a slot with the same filament type AND color is available. AMS-hosted spools only. |
+| 4 | NOZZLE_BLOB_DETECT | Legacy firmware-level (home_flag) nozzle blob detection. On supported printers, prefer `set_nozzleclumping_detector()` (xcam AI) which adds sensitivity control. Guarded by `has_nozzle_blob_detect_support`. |
+| 5 | AIR_PRINT_DETECT | Legacy firmware-level (home_flag) air-printing detection. On supported printers, prefer `set_airprinting_detector()` (xcam AI) which adds sensitivity control. Guarded by `has_air_print_detect_support`. |
 
 ### ServiceState
 **Source**: `src/bpm/bambutools.py`

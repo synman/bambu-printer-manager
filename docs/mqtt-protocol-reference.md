@@ -731,9 +731,11 @@ printer.send_gcode("G91\nG0 X10")  # Relative move 10mm in X
 | Field | Type | Value | Purpose |
 |-------|------|-------|---------|
 | `auto_recovery` | string | `"true"`/`"false"` | Resume print after power loss |
-| `auto_switch_filament` | string | `"true"`/`"false"` | Auto-switch to backup filament |
-| `filament_tangle_detect` | string | `"true"`/`"false"` | Pause if filament tangles |
+| `auto_switch_filament` | string | `"true"`/`"false"` | Auto-switch to another AMS slot when active spool runs out. Target slot must have the **same filament type AND color**. AMS-hosted spools only. |
+| `filament_tangle_detect` | string | `"true"`/`"false"` | Pause if AMS sensors detect a tangle. AMS-only; no effect on external spool prints. |
 | `sound_enable` | string | `"true"`/`"false"` | Beep for notifications |
+| `nozzle_blob_detect` | string | `"true"`/`"false"` | Legacy firmware-level nozzle blob detection. On supported printers, prefer xcam `nozzleclumping_detector` (adds sensitivity control). |
+| `air_print_detect` | string | `"true"`/`"false"` | Legacy firmware-level air-printing detection. On supported printers, prefer xcam `airprinting_detector` (adds sensitivity control). |
 | `option` | string | `"1"` / `"0"` | Meta-control flag |
 
 **Data Dictionary Correlation**:

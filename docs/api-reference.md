@@ -773,7 +773,7 @@ Relevant only on models with `support_refresh_nozzle` capability (H2D, H2D Pro).
 
 
 **Swagger UI**: [`GET /api/set_buildplate_marker_detector`](http://localhost:5000/api/docs#/default/set_buildplate_marker_detector)
-Enable or disable the build-plate marker detector.
+Enable or disable the build-plate ArUco marker detector. The camera reads ArUco fiducial markers printed on the build surface before the print starts to verify the plate type (e.g. textured PEI vs. smooth PEI). If the plate is incompatible with the sliced settings, the printer pauses before the first layer. Runs pre-print only — not during the print. No sensitivity parameter. Disable if your plate's markers are worn or you are using a third-party plate.
 
 **Library method**: `BambuPrinter.set_buildplate_marker_detector(enabled)`
 
@@ -793,7 +793,7 @@ Enable or disable the build-plate marker detector.
 
 
 **Swagger UI**: [`GET /api/set_spaghetti_detector`](http://localhost:5000/api/docs#/default/set_spaghetti_detector)
-Enable or disable the spaghetti / first-layer failure detector.
+Enable or disable the spaghetti / failed-print detector. Detects loose filament strands extruded in mid-air rather than adhering to the print — the classic sign of a delaminated or detached print. When triggered, the printer halts.
 
 **Library method**: `BambuPrinter.set_spaghetti_detector(enabled, sensitivity)`
 
@@ -835,7 +835,7 @@ Enable or disable the purge-chute pile-up detector.
 
 
 **Swagger UI**: [`GET /api/set_nozzleclumping_detector`](http://localhost:5000/api/docs#/default/set_nozzleclumping_detector)
-Enable or disable the nozzle-clumping detector.
+Enable or disable the nozzle-clumping detector (X-Cam AI vision). Detects filament accumulating as a blob around the nozzle tip. This is the newer, preferred path for nozzle blob detection — it supersedes the `NOZZLE_BLOB_DETECT` PrintOption (home_flag) on supported printers and adds sensitivity control.
 
 **Library method**: `BambuPrinter.set_nozzleclumping_detector(enabled, sensitivity)`
 
@@ -856,7 +856,7 @@ Enable or disable the nozzle-clumping detector.
 
 
 **Swagger UI**: [`GET /api/set_airprinting_detector`](http://localhost:5000/api/docs#/default/set_airprinting_detector)
-Enable or disable the air-printing detector.
+Enable or disable the air-printing / no-extrusion detector (X-Cam AI vision). Detects the nozzle extruding into open air, indicating a clog or filament grinding. This is the newer, preferred path — it supersedes the `AIR_PRINT_DETECT` PrintOption (home_flag) on supported printers and adds sensitivity control.
 
 **Library method**: `BambuPrinter.set_airprinting_detector(enabled, sensitivity)`
 
@@ -911,7 +911,7 @@ The `setting` value is resolved via `AMSUserSetting[setting.upper()]`. Invalid n
 
 | Name | Type | Required | Allowed values | Description |
 |------|------|----------|----------------|-------------|
-| `setting` | string | yes | `CALIBRATE_REMAIN_FLAG`, `STARTUP_READ_OPTION`, `TRAY_READ_OPTION` | Setting to modify (`AMSUserSetting` enum name). |
+| `setting` | string | yes | `CALIBRATE_REMAIN_FLAG`, `STARTUP_READ_OPTION`, `TRAY_READ_OPTION` | Setting to modify (`AMSUserSetting` enum name). `CALIBRATE_REMAIN_FLAG` enables weight-sensor-based remaining estimation — **AMS 2 Pro only** (AMS Lite and AMS HT lack weight sensors). |
 | `enabled` | bool | yes | `"true"` / other | Enable or disable the setting. |
 
 **Example**: `/api/set_ams_user_setting?setting=STARTUP_READ_OPTION&enabled=true`
@@ -961,8 +961,19 @@ The `option` value is resolved via `PrintOption[option.upper()]`. Invalid names 
 
 | Name | Type | Required | Allowed values | Description |
 |------|------|----------|----------------|-------------|
-| `option` | string | yes | `AUTO_RECOVERY`, `FILAMENT_TANGLE_DETECT`, `SOUND_ENABLE`, `AUTO_SWITCH_FILAMENT`, `NOZZLE_BLOB_DETECT`, `AIR_PRINT_DETECT` | Option to modify (`PrintOption` enum name). |
+| `option` | string | yes | `AUTO_RECOVERY`, `FILAMENT_TANGLE_DETECT`, `SOUND_ENABLE`, `AUTO_SWITCH_FILAMENT`, `NOZZLE_BLOB_DETECT`, `AIR_PRINT_DETECT` | Option to modify (`PrintOption` enum name). See descriptions below. |
 | `enabled` | bool | yes | `"true"` / other | Enable or disable the option. |
+
+**Option descriptions**:
+
+| Option | Description |
+|--------|-------------|
+| `AUTO_RECOVERY` | Resume print automatically after power loss or fault. |
+| `FILAMENT_TANGLE_DETECT` | Pause if AMS sensors detect a tangle. AMS-only — no effect on external spool prints. |
+| `SOUND_ENABLE` | Enable audible beep notifications. |
+| `AUTO_SWITCH_FILAMENT` | Auto-switch to another AMS slot when the active spool runs out. Target slot must have the **same filament type AND color**. AMS-hosted spools only. |
+| `NOZZLE_BLOB_DETECT` | Legacy firmware-level nozzle blob detection (home_flag). On supported printers, prefer `set_nozzleclumping_detector` (xcam AI, adds sensitivity). |
+| `AIR_PRINT_DETECT` | Legacy firmware-level air-printing detection (home_flag). On supported printers, prefer `set_airprinting_detector` (xcam AI, adds sensitivity). |
 
 **Example**: `/api/set_print_option?option=AUTO_RECOVERY&enabled=true`
 
