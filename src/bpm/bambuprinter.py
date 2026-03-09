@@ -66,8 +66,11 @@ from bpm.bambutools import (
     PrintOption,
     ServiceState,
     SpeedLevel,
+    cache_read,
+    cache_write,
     getPrinterSeriesByModel,
     jsonSerializer,
+    make_cache_key,
     nozzle_type_to_telemetry,
     parse_nozzle_type,
     parseStage,
@@ -1940,6 +1943,30 @@ class BambuPrinter:
 
     # region private methods
 
+    def _elapsed_key(self) -> str | None:
+        raw = (
+            self._active_job_info.subtask_name or self._active_job_info.gcode_file or ""
+        ).strip()
+        return make_cache_key(raw)
+
+    def _persist_job_start(self) -> None:
+        key = self._elapsed_key()
+        if key and self._active_job_info.wall_start_time >= 0:
+            cache_write(
+                self.config.bpm_cache_path / "elapsed",
+                key,
+                {"wall_start_time": self._active_job_info.wall_start_time},
+            )
+
+    def _load_job_start(self) -> float:
+        key = self._elapsed_key()
+        if not key:
+            return -1.0
+        data = cache_read(self.config.bpm_cache_path / "elapsed", key)
+        if data and "wall_start_time" in data:
+            return float(data["wall_start_time"])
+        return -1.0
+
     def _notify_update(self):
         if self.on_update:
             self.on_update(self)
@@ -2100,10 +2127,15 @@ class BambuPrinter:
                 gcode_state = status["gcode_state"]
                 if gcode_state != self._printer_state.gcode_state:
                     if gcode_state in ("FAILED", "FINISH"):
-                        self._active_job_info.monotonic_start_time = -1.0
+                        self._active_job_info.wall_start_time = -1.0
                     elif gcode_state in ("PREPARE", "RUNNING"):
-                        if self._active_job_info.monotonic_start_time == -1.0:
-                            self._active_job_info.monotonic_start_time = time.monotonic()
+                        if self._active_job_info.wall_start_time == -1.0:
+                            # Try to recover persisted start time first; fall back to now
+                            persisted = self._load_job_start()
+                            self._active_job_info.wall_start_time = (
+                                persisted if persisted > 0 else time.time()
+                            )
+                            self._persist_job_start()
                         if (
                             (
                                 not self._active_job_info.project_info
@@ -2150,10 +2182,7 @@ class BambuPrinter:
                     self._active_job_info.remaining_minutes = remaining_minutes
                     if gcode_state == "RUNNING":
                         self._active_job_info.elapsed_minutes = int(
-                            (
-                                time.monotonic()
-                                - self._active_job_info.monotonic_start_time
-                            )
+                            max(0.0, time.time() - self._active_job_info.wall_start_time)
                             / 60.0
                         )
 

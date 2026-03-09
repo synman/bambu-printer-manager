@@ -67,7 +67,7 @@ ActiveJobInfo (project root)
 ├── current_layer, total_layers
 ├── print_percentage
 ├── elapsed_minutes, remaining_minutes
-├── monotonic_start_time
+├── wall_start_time
 └── subtask_name, gcode_file, print_type, plate_num, plate_type
 ```
 
@@ -98,7 +98,7 @@ Quick alphabetical reference to all documented fields. Fields marked with * appe
 | [airduct_mode](#airduct_mode) | BambuClimate | Raw airduct mode value | [Field Definition](#airduct_mode) · [BambuClimate](reference/bpm/bambustate.md#bpm.bambustate.BambuClimate) |
 | [model](#model) | AMSUnitState | AMS hardware model type | [Field Definition](#model) · [AMSUnitState](reference/bpm/bambustate.md#bpm.bambustate.AMSUnitState) |
 | [airduct_sub_mode](#airduct_sub_mode) | BambuClimate | Raw airduct sub-mode value | [Field Definition](#airduct_sub_mode) · [BambuClimate](reference/bpm/bambustate.md#bpm.bambustate.BambuClimate) |
-| [monotonic_start_time](#monotonic_start_time) | ActiveJobInfo | The monotonic timestamp of when this job started | [Field Definition](#monotonic_start_time) · [ActiveJobInfo](reference/bpm/bambuproject.md#bpm.bambuproject.ActiveJobInfo) |
+| [wall_start_time](#wall_start_time) | ActiveJobInfo | Wall-clock timestamp of when this job started | [Field Definition](#wall_start_time) · [ActiveJobInfo](reference/bpm/bambuproject.md#bpm.bambuproject.ActiveJobInfo) |
 | [ams_connected_count](#ams_connected_count) | BambuState | Number of connected AMS units | [Field Definition](#ams_connected_count) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
 | [mqtt_client_id](#mqtt_client_id) | BambuConfig | Unique identifier used during the MQTT handshake protocol | [Field Definition](#mqtt_client_id) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
 | [ams_exist_bits](#ams_exist_bits) | BambuState | Bitmask of connected AMS units | [Field Definition](#ams_exist_bits) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
@@ -1768,10 +1768,12 @@ Details of the currently active job running on the printer, including progress, 
 #### elapsed_minutes
 - **Type**: `int`
 - **Default**: `0`
-- **Telemetry**: Computed from `print.mc_remaining_time` and `print_percentage`
+- **Telemetry**: Computed from `mc_remaining_time` + `wall_start_time`
 - **Unit**: minutes
 - **Purpose**: The elapsed time in minutes for this (or the last) job
-- **Reference**: Calculated from telemetry timing data
+- **Reference**: Calculated as `max(0, time.time() - wall_start_time) / 60`. `wall_start_time` is
+  persisted to `~/.bpm/elapsed/<job_key>.json` so elapsed survives process restarts. The `max(0, …)`
+  guard prevents negative values if the system clock steps backward (e.g. NTP correction).
 
 #### remaining_minutes
 - **Type**: `int`
@@ -1781,12 +1783,15 @@ Details of the currently active job running on the printer, including progress, 
 - **Purpose**: Time remaining in minutes for the current job
 - **Reference**: BambuStudio time estimation
 
-#### monotonic_start_time
+#### wall_start_time
 - **Type**: `float`
-- **Default**: `-1.0`
-- **Purpose**: The monotonic timestamp of when this job started
-- **Reference**: Python `time.monotonic()` value at job start
-- **Usage**: Accurate elapsed time calculation independent of system clock changes
+- **Default**: `-1.0` (unset)
+- **Purpose**: Wall-clock timestamp (`time.time()`) of when this job started
+- **Reference**: Set on PREPARE/RUNNING state transition; loaded from `~/.bpm/elapsed/<job_key>.json`
+  on restart so the anchor survives process restarts. Use `max(0, time.time() - wall_start_time)`
+  when computing elapsed — guards against NTP clock steps backward.
+- **Replaces**: `monotonic_start_time` (removed — `time.monotonic()` is process-relative and resets
+  on every restart, making elapsed incorrect after any process restart)
 
 ### Job Details
 
@@ -2147,6 +2152,30 @@ state population or metadata derivation.
 | [`get_3mf_entry_by_id(node, target_id)`](reference/bpm/bambuproject.md#bpm.bambuproject) | `bambuproject.py` | Locate 3MF tree node by identifier |
 | [`get_project_info(...)`](reference/bpm/bambuproject.md#bpm.bambuproject.get_project_info) | `bambuproject.py` | Build [`ProjectInfo`](reference/bpm/bambuproject.md#bpm.bambuproject.ProjectInfo) from printer or local 3MF source |
 | [`BambuState.fromJson(data, printer)`](reference/bpm/bambustate.md#bpm.bambustate.BambuState.fromJson) | `bambustate.py` | Primary state parser mapping MQTT payloads to dataclasses |
+
+### Disk-Persistence Framework (`bambutools.py`)
+
+General-purpose helpers for persisting any JSON-serializable runtime value across
+process restarts. All BPM on-disk state should use these functions.
+
+| Function | Purpose |
+|----------|---------|
+| `make_cache_key(raw, max_len=80) → str \| None` | Sanitize any raw string (subtask name, gcode path, etc.) into a filesystem-safe filename stem. Returns `None` for empty input. |
+| `cache_write(cache_dir, key, value)` | Persist a JSON-serializable value to `cache_dir/<key>.json`. Creates the directory if needed. Silent on error. |
+| `cache_read(cache_dir, key, default=None)` | Load a persisted value from `cache_dir/<key>.json`. Returns `default` on any error or cache miss. |
+| `cache_delete(cache_dir, key)` | Remove `cache_dir/<key>.json`. Silent on error or missing file. |
+
+**Usage pattern:**
+```python
+cache_dir = self.config.bpm_cache_path / "<subdir>"
+key       = make_cache_key(raw_identifier)        # returns None if empty
+cache_write(cache_dir, key, {"field": value})
+data      = cache_read(cache_dir, key)             # None = miss
+cache_delete(cache_dir, key)
+```
+
+The cache directory is created lazily on first `cache_write`. Do not pre-create
+subdirs in `BambuConfig.set_new_bpm_cache_path()` — that method creates the root only.
 
 ---
 

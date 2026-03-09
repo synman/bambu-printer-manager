@@ -161,8 +161,10 @@ class ActiveJobInfo:
     """The elapsed time in minutes for this (or the last) job"""
     remaining_minutes: int = 0
     """Time remaining in minutes for the current job."""
-    monotonic_start_time: float = -1.0
-    """The monotonic time stamp of when this job started"""
+    wall_start_time: float = -1.0
+    """Wall-clock timestamp (time.time()) of when this job started. Persisted to disk
+    so elapsed survives process restarts. Use max(0, delta) when computing elapsed to
+    guard against NTP clock steps backward."""
     subtask_name: str = ""
     """The subtask name for this job."""
     gcode_file: str = ""
@@ -177,7 +179,6 @@ class ActiveJobInfo:
     """True once a fallback fetch of project_info has been attempted, to prevent repeated FTP calls."""
 
 
-@staticmethod
 def get_3mf_entry_by_name(node: dict | Any, target_name: str):
     """
     Depth-first search of the SD card file-tree dict returned by
@@ -204,7 +205,6 @@ def get_3mf_entry_by_name(node: dict | Any, target_name: str):
     return None
 
 
-@staticmethod
 def get_3mf_entry_by_id(node: dict | Any, target_id: str):
     """
     Depth-first search of the SD card file-tree dict returned by
@@ -231,7 +231,6 @@ def get_3mf_entry_by_id(node: dict | Any, target_id: str):
     return None
 
 
-@staticmethod
 def get_project_info(
     project_file_id: str,
     printer: "BambuPrinter",

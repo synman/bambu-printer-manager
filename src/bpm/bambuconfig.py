@@ -143,5 +143,4 @@ class BambuConfig:
     def set_new_bpm_cache_path(self, path: Path):
         """Enables changing the bpm cache directory at runtime.  Will orphan previous contents."""
         self.bpm_cache_path = path
-        metadata = self.bpm_cache_path / "metadata"
-        metadata.mkdir(parents=True, exist_ok=True)
+        self.bpm_cache_path.mkdir(parents=True, exist_ok=True)

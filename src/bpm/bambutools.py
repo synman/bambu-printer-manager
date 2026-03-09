@@ -3,6 +3,7 @@
 """
 
 import hashlib
+import json
 import logging
 from enum import Enum, IntEnum
 from pathlib import Path
@@ -461,7 +462,6 @@ class TrayState(IntEnum):
     UNLOADING = 3
 
 
-@staticmethod
 def decodeError(error: int) -> dict:
     """
     Decodes a raw print_error integer into a full HMS dictionary.
@@ -521,7 +521,6 @@ def decodeError(error: int) -> dict:
     return res
 
 
-@staticmethod
 def decodeHMS(hms_list: list) -> list[dict]:
     """
     Decodes the raw HMS list from telemetry into a structured list of dictionaries.
@@ -582,7 +581,6 @@ def decodeHMS(hms_list: list) -> list[dict]:
     return decoded_errors
 
 
-@staticmethod
 def getAMSHeatingState(ams_info: int) -> AMSHeatingState:
     """
     Decodes the AMS drying/heater state from bits 4-7 of the ams_info value.
@@ -603,7 +601,6 @@ def getAMSHeatingState(ams_info: int) -> AMSHeatingState:
     return AMSHeatingState(dry_status)
 
 
-@staticmethod
 def getAMSModelBySerial(serial: str) -> AMSModel:
     """
     Returns the hardware model based on the serial number prefix.
@@ -620,7 +617,6 @@ def getAMSModelBySerial(serial: str) -> AMSModel:
     return AMSModel.UNKNOWN
 
 
-@staticmethod
 def getAMSSeriesByModel(model: AMSModel) -> AMSSeries:
     """
     Returns the AMS series enum based on the provided model.
@@ -632,7 +628,6 @@ def getAMSSeriesByModel(model: AMSModel) -> AMSSeries:
     return AMSSeries.UNKNOWN
 
 
-@staticmethod
 def getPrinterModelBySerial(serial: str) -> PrinterModel:
     """
     Returns the Printer model enum based on the provided serial #.
@@ -653,7 +648,6 @@ def getPrinterModelBySerial(serial: str) -> PrinterModel:
     return mapping.get(prefix, PrinterModel.UNKNOWN)
 
 
-@staticmethod
 def getPrinterSeriesByModel(model: PrinterModel) -> PrinterSeries:
     """
     Returns the Printer series enum based on the provided model.
@@ -664,7 +658,6 @@ def getPrinterSeriesByModel(model: PrinterModel) -> PrinterSeries:
         return PrinterSeries.UNKNOWN
 
 
-@staticmethod
 def parseAMSInfo(info_hex: str) -> dict:
     """
     Extracts all documented telemetry attributes from the AMS info hex string.
@@ -706,7 +699,6 @@ def parseAMSInfo(info_hex: str) -> dict:
     return ret
 
 
-@staticmethod
 def parseAMSStatus(status_int: int) -> str:
     """
     Maps the ams_status code to human-readable descriptions.
@@ -725,7 +717,6 @@ def parseAMSStatus(status_int: int) -> str:
     return status_map.get(main_status, "Idle")
 
 
-@staticmethod
 def parseExtruderInfo(info_int: int) -> ExtruderInfoState:
     """
     Decodes the extruder 'info' bit-packed status using unique ExtruderInfoState names.
@@ -739,7 +730,6 @@ def parseExtruderInfo(info_int: int) -> ExtruderInfoState:
     return ExtruderInfoState.EMPTY
 
 
-@staticmethod
 def parseExtruderStatus(stat_int: int) -> ExtruderStatus:
     """
     Decodes the operational extruder state using the exhaustive Enum map.
@@ -752,7 +742,6 @@ def parseExtruderStatus(stat_int: int) -> ExtruderStatus:
     return ExtruderStatus.IDLE
 
 
-@staticmethod
 def parseExtruderTrayState(extruder: int, hotend, slot) -> int:
     if (
         hotend == 254
@@ -766,7 +755,6 @@ def parseExtruderTrayState(extruder: int, hotend, slot) -> int:
         return slot & 0xFF
 
 
-@staticmethod
 def parseRFIDStatus(status):
     """
     Can be used to parse `ams_rfid_status`
@@ -783,7 +771,6 @@ def parseRFIDStatus(status):
     return rfid_map.get(status, "Unknown")
 
 
-@staticmethod
 def parseStage(stage_int: int) -> str:
     """
     Maps stg_cur numeric codes to human-readable print stages.
@@ -863,7 +850,6 @@ def parseStage(stage_int: int) -> str:
     return stage_map.get(stage_int, f"Stage [{stage_int}]")
 
 
-@staticmethod
 def scaleFanSpeed(raw_val: Any) -> int:
     """
     Scales proprietary 0-15 fan speed values to a 0-100 percentage.
@@ -875,7 +861,6 @@ def scaleFanSpeed(raw_val: Any) -> int:
         return 0
 
 
-@staticmethod
 def sortFileTreeAlphabetically(source) -> dict:
     """
     Sorts a dict of file/directory nodes hierarchically.
@@ -894,7 +879,6 @@ def sortFileTreeAlphabetically(source) -> dict:
     return source
 
 
-@staticmethod
 def unpackTemperature(raw_temp: int) -> tuple[float, float]:
     """
     Unpacks a 32-bit packed temperature integer into a tuple of (Actual, Target).
@@ -902,7 +886,6 @@ def unpackTemperature(raw_temp: int) -> tuple[float, float]:
     return float(raw_temp & 0xFFFF), float((raw_temp >> 16) & 0xFFFF)
 
 
-@staticmethod
 def get_file_md5(file_path: str | Path) -> str:
     """
     Generates an MD5 hex hash for a given file.
@@ -948,3 +931,96 @@ def jsonSerializer(obj: Any) -> Any:
         return getattr(obj, "__dict__", str(obj))
     except Exception:
         return ""
+
+
+# ---------------------------------------------------------------------------
+# Disk-persistence framework
+# ---------------------------------------------------------------------------
+# General-purpose helpers for persisting any JSON-serializable runtime value
+# to a named cache directory.  All state that BPM needs to survive across
+# process restarts should flow through these four functions.
+#
+# Pattern:
+#   cache_dir  = self.config.bpm_cache_path / "<subdir>"
+#   key        = make_cache_key(<raw identifier>)
+#   cache_write(cache_dir, key, {"field": value})
+#   data       = cache_read(cache_dir, key)          # returns None on miss
+#   cache_delete(cache_dir, key)
+# ---------------------------------------------------------------------------
+
+
+def make_cache_key(raw: str, max_len: int = 80) -> str | None:
+    """
+    Sanitize a raw string into a filesystem-safe cache key.
+
+    Strips leading/trailing whitespace, replaces ``/`` and spaces with ``_``,
+    and truncates to *max_len* characters.  Returns ``None`` when the result
+    would be an empty string (i.e. the input carried no usable content).
+
+    Args:
+        raw:     The source identifier (e.g. subtask name, gcode file path).
+        max_len: Maximum length of the returned key (default 80).
+
+    Returns:
+        A non-empty sanitized string, or ``None``.
+    """
+    sanitized = raw.strip().replace("/", "_").replace(" ", "_")
+    return sanitized[:max_len] or None
+
+
+def cache_write(cache_dir: Path, key: str, value: Any) -> None:
+    """
+    Persist *value* to ``cache_dir/<key>.json``.
+
+    *value* must be JSON-serializable (dict, list, scalar).  The cache
+    directory is created if it does not already exist.  All errors are
+    silently swallowed so callers never need to guard this call.
+
+    Args:
+        cache_dir: Directory under ``bpm_cache_path`` (e.g. ``…/elapsed``).
+        key:       Filename stem produced by :func:`make_cache_key`.
+        value:     Any JSON-serializable object to persist.
+    """
+    try:
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        (cache_dir / f"{key}.json").write_text(json.dumps(value))
+    except Exception:
+        pass
+
+
+def cache_read(cache_dir: Path, key: str, default: Any = None) -> Any:
+    """
+    Load a persisted value from ``cache_dir/<key>.json``.
+
+    Returns *default* (``None`` unless overridden) on any error — missing
+    file, corrupt JSON, permission error, etc.  Callers should always
+    treat ``None`` / *default* as a cache miss and fall back gracefully.
+
+    Args:
+        cache_dir: Directory under ``bpm_cache_path``.
+        key:       Filename stem produced by :func:`make_cache_key`.
+        default:   Value to return on any read failure (default ``None``).
+
+    Returns:
+        The deserialized value, or *default*.
+    """
+    try:
+        return json.loads((cache_dir / f"{key}.json").read_text())
+    except Exception:
+        return default
+
+
+def cache_delete(cache_dir: Path, key: str) -> None:
+    """
+    Remove ``cache_dir/<key>.json`` if it exists.
+
+    Silently ignores missing files and all other errors.
+
+    Args:
+        cache_dir: Directory under ``bpm_cache_path``.
+        key:       Filename stem produced by :func:`make_cache_key`.
+    """
+    try:
+        (cache_dir / f"{key}.json").unlink(missing_ok=True)
+    except Exception:
+        pass
