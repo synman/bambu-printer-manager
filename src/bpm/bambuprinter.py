@@ -2317,25 +2317,15 @@ class BambuPrinter:
                     spools.append(spool)
                 self._printer_state.spools = spools
 
-            # i have no evidence of these actually being sent by the printer, but
-            # Bambu Studio seems to be using these fields to determine support for
-            # these features.  I think this is just Bambu Lab engineers not
-            # talking to each other and putting these flags in random places.
-            #
-            # if "support_auto_recovery_step_loss" in status:
-            #     self.config.capabilities.has_auto_recovery_support = bool(
-            #         status["support_auto_recovery_step_loss"]
-            #     )
-            # if "support_command_ams_switch" in status:
-            #     self.config.capabilities.has_auto_switch_filament_support = bool(
-            #         status["support_command_ams_switch"]
-            #     )
-
             if "home_flag" in status:
                 flag = int(status["home_flag"])
                 self.config.auto_recovery = (flag >> 4) & 0x1 != 0
                 self.config.auto_switch_filament = (flag >> 10) & 0x1 != 0
                 self.config.calibrate_remain_flag = (flag >> 7) & 0x1 != 0
+                self.config.capabilities.has_auto_recovery_support = True
+                self.config.capabilities.has_auto_switch_filament_support = (
+                    self.config.capabilities.has_ams
+                )
                 self.config.capabilities.has_sound_enable_support = (
                     flag >> 18
                 ) & 0x1 != 0
