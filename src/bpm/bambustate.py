@@ -336,6 +336,7 @@ class BambuState:
             caps["has_chamber_temp"] = True
         if "ams" in ams_root or "ams" in p:
             caps["has_ams"] = True
+            caps["has_auto_switch_filament_support"] = True
         if airduct_root:
             caps["has_air_filtration"] = True
         if len(extruder_root.get("info", [])) > 1:
