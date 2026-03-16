@@ -38,3 +38,4 @@ __pycache__
 /site
 .github/copilot-instructions.md
 .tmp_*
+CLAUDE.md
