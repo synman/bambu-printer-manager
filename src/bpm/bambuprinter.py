@@ -66,6 +66,7 @@ from bpm.bambutools import (
     PrintOption,
     ServiceState,
     SpeedLevel,
+    cache_delete,
     cache_read,
     cache_write,
     getPrinterSeriesByModel,
@@ -2128,6 +2129,12 @@ class BambuPrinter:
                 if gcode_state != self._printer_state.gcode_state:
                     if gcode_state in ("FAILED", "FINISH"):
                         self._active_job_info.wall_start_time = -1.0
+                        key = self._elapsed_key()
+                        if key:
+                            cache_delete(
+                                self.config.bpm_cache_path / "elapsed",
+                                key,
+                            )
                     elif gcode_state in ("PREPARE", "RUNNING"):
                         if self._active_job_info.wall_start_time == -1.0:
                             # Try to recover persisted start time first; fall back to now
@@ -2191,7 +2198,7 @@ class BambuPrinter:
                 and "ams" in status["ams"]
                 and "ams_exist_bits" in status["ams"]
             ):
-                if int(status["ams"]["ams_exist_bits"]) & 0x1:
+                if int(str(status["ams"]["ams_exist_bits"]), 0) & 0x1:
                     spools: list[BambuSpool] = []
                     self.config.startup_read_option = status["ams"].get(
                         "power_on_flag", False

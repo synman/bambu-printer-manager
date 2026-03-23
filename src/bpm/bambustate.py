@@ -643,8 +643,8 @@ class BambuState:
                     # AMS-HT: 128, 129, 130, 131 -> shift 16, 20, 24, 28
                     if id >= 128:
                         shift = 16 + (4 * (id - 128))
-                        # AMS-HT is a 1-slot unit, so we check only range(1)
-                        u.tray_exists = [bool((eb >> shift) & (1 << j)) for j in range(1)]
+                        # AMS-HT has 4 slots like standard AMS
+                        u.tray_exists = [bool((eb >> shift) & (1 << j)) for j in range(4)]
                     else:
                         shift = 4 * id
                         # Standard AMS is a 4-slot unit, so we check range(4)
