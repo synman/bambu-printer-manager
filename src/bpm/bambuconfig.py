@@ -76,6 +76,8 @@ class BambuConfig:
     """Unique identifier used during the MQTT handshake protocol."""
     mqtt_username: str = "bblp"
     """Authentication username for the local MQTT broker (Default: 'bblp')."""
+    mqtt_connection_timeout: int = 10
+    """Duration in seconds to wait for the MQTT connection to be established before timing out."""
     watchdog_timeout: int = 30
     """Duration in seconds before a connection is flagged as stale."""
     external_chamber: bool = False

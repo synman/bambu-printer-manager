@@ -205,10 +205,12 @@ class BambuPrinter:
         self.client.username_pw_set(
             self.config.mqtt_username, password=self.config.access_code
         )
+
         self.client.user_data_set(self.config.mqtt_client_id)
+        self.client.connect_timeout = self.config.mqtt_connection_timeout
 
         try:
-            self.client.connect(self.config.hostname, self.config.mqtt_port, 60)
+            self.client.connect(self.config.hostname, self.config.mqtt_port)
         except Exception as e:
             self._internalException = e
             logger.warning(
