@@ -1,292 +1,148 @@
+"""
+`bambuconfig` contains the `BambuConfig` class used for managing configuration data
+"""
+
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from pathlib import Path
 
-from bpm.bambutools import PrinterModel, getPrinterModelBySerial
+from bpm.bambutools import LoggerName, PrinterModel, getPrinterModelBySerial
 
-LoggerName = "bambu_printer_manager"
 logger = logging.getLogger(LoggerName)
 
 
 @dataclass
 class PrinterCapabilities:
-    """Discovery features based on hardware block presence in telemetry."""
+    """Hardware capabilities discovered during the initial handshake or telemetry analysis."""
 
     has_ams: bool = False
-    """True if an AMS unit is detected. Population: `ams` block presence."""
+    """Indicates an active AMS unit is detected on the hardware bus via the `ams` block."""
     has_lidar: bool = False
-    """True if printer has LiDAR. Population: `xcam` block presence."""
+    """Confirmed presence of the Micro LiDAR sensor based on `xcam` telemetry existence."""
     has_camera: bool = False
-    """True if printer has camera. Population: Hardcoded True for H2D."""
+    """Verified availability of the onboard AI camera module."""
     has_dual_extruder: bool = False
-    """True if H2D architecture. Population: `len(extruder_root.info) > 1`."""
+    """Identifies the H2D dual-path architecture where independent hotend monitoring is required."""
     has_air_filtration: bool = False
-    """True if airduct exists. Population: `airduct` block presence."""
+    """Indicates the motorized airduct and filtration subsystem is physically installed."""
     has_chamber_temp: bool = False
-    """True if CTC exists. Population: `ctc_root` block presence."""
+    """Confirmed presence of the Chamber Thermal Controller (CTC) ambient sensor."""
     has_chamber_door_sensor: bool = False
-    """True if fun reports we have a door check function"""
+    """Verification that the front glass enclosure is equipped with a hall-effect sensor."""
+    has_sound_enable_support: bool = False
+    """Indicates whether prompt sound control is supported by firmware telemetry flags."""
+    has_auto_recovery_support: bool = False
+    """Indicates whether auto-recovery control is supported by explicit support telemetry keys."""
+    has_auto_switch_filament_support: bool = False
+    """Indicates whether AMS auto-switch control is supported by explicit support telemetry keys."""
+    has_filament_tangle_detect_support: bool = False
+    """Indicates whether filament tangle detection control is supported by firmware telemetry flags."""
+    has_nozzle_blob_detect_support: bool = False
+    """Indicates whether nozzle blob detection control is supported by firmware telemetry flags."""
+    has_air_print_detect_support: bool = False
+    """Indicates whether air-print detection control is supported by firmware telemetry flags."""
+    has_buildplate_marker_detector_support: bool = False
+    """Indicates whether buildplate marker detector control is supported by xcam telemetry."""
+    has_spaghetti_detector_support: bool = False
+    """Indicates whether spaghetti detector control is supported by xcam telemetry."""
+    has_purgechutepileup_detector_support: bool = False
+    """Indicates whether purge-chute pileup detector control is supported by xcam telemetry."""
+    has_nozzleclumping_detector_support: bool = False
+    """Indicates whether nozzle-clumping detector control is supported by xcam telemetry."""
+    has_airprinting_detector_support: bool = False
+    """Indicates whether air-printing detector control is supported by xcam telemetry."""
 
 
+@dataclass
 class BambuConfig:
     """
     This is the main configuration class for `BambuPrinter` and is how it knows where to connect to a printer,
-    what access code, and serial # to use. Further, it contains a number of printer behavioral settings that
-    can be changed based on client needs. `BambuConfig` can also be used to change the log level of
-    `bambu-printer-manager`'s logging engine.
+    what access code, and serial # to use. Further, it contains a number of printer behavioral settings and
+    capabability values.
     """
 
-    def __init__(
-        self,
-        hostname: str,
-        access_code: str,
-        serial_number: str,
-        mqtt_port: int = 8883,
-        mqtt_client_id: str = "studio_client_id:0c1f",
-        mqtt_username: str = "bblp",
-        watchdog_timeout: int = 30,
-        external_chamber: bool = False,
-        verbose: bool = False,
-        capabilities: PrinterCapabilities | None = None,
-    ):
+    # Required Parameters
+    hostname: str
+    """IP address or DNS name of the printer on the local subnet."""
+    access_code: str
+    """8-character LAN-only access code for MQTT authentication."""
+    serial_number: str
+    """Unique hardware identifier used to derive the printer model."""
+
+    # Optional Parameters
+    mqtt_port: int = 8883
+    """Network port for the SSL-encrypted MQTT broker (Default: 8883)."""
+    mqtt_client_id: str = "studio_client_id:0c1f"
+    """Unique identifier used during the MQTT handshake protocol."""
+    mqtt_username: str = "bblp"
+    """Authentication username for the local MQTT broker (Default: 'bblp')."""
+    mqtt_connection_timeout: int = 10
+    """Duration in seconds to wait for the MQTT connection to be established before timing out."""
+    watchdog_timeout: int = 30
+    """Duration in seconds before a connection is flagged as stale."""
+    external_chamber: bool = False
+    """If True, ignores internal CTC telemetry to allow manual sensor injection."""
+    capabilities: PrinterCapabilities = field(default_factory=PrinterCapabilities)
+    """Pre-defined or discovered hardware feature set."""
+    bpm_cache_path: Path | None = None
+    """The underlying directory BPM uses for managing cache / metadata."""
+    printer_model: PrinterModel = PrinterModel.UNKNOWN
+    """Read-only classification of the printer hardware (e.g. A1, H2D) derived from the serial number prefix."""
+    firmware_version: str = ""
+    """Semantic version string of the main printer firmware."""
+    ams_firmware_version: str = ""
+    """Semantic version string of the primary AMS controller."""
+    auto_recovery: bool = False
+    """Firmware-level toggle for resuming prints after step-loss."""
+    filament_tangle_detect: bool = False
+    """Master switch for AMS tension-based monitor logic."""
+    sound_enable: bool = False
+    """Controls the machine's internal speaker for user notifications."""
+    auto_switch_filament: bool = False
+    """Enables automatic AMS failover to redundant spools."""
+    startup_read_option: bool = False
+    """Configures whether the AMS unit performs a full RFID scan of all slots upon printer power-on."""
+    tray_read_option: bool = False
+    """Toggles the automatic RFID identification sequence when a new filament spool is inserted or detected."""
+    calibrate_remain_flag: bool = False
+    """Enablement for the spool-weight based estimation of the remaining filament length in the AMS."""
+    buildplate_marker_detector: bool = False
+    """Toggles the AI vision ArUco marker scanning system used to verify build surface compatibility."""
+    spaghetti_detector: bool = False
+    """Toggles AI spaghetti detection for failed-print strand detection."""
+    spaghetti_detector_sensitivity: str = "medium"
+    """Sensitivity level for spaghetti detection pause behavior (low|medium|high)."""
+    purgechutepileup_detector: bool = False
+    """Toggles AI purge-chute pileup detection."""
+    purgechutepileup_detector_sensitivity: str = "medium"
+    """Sensitivity level for purge-chute pileup pause behavior (low|medium|high)."""
+    nozzleclumping_detector: bool = False
+    """Toggles AI nozzle clumping detection."""
+    nozzleclumping_detector_sensitivity: str = "medium"
+    """Sensitivity level for nozzle clumping pause behavior (low|medium|high)."""
+    airprinting_detector: bool = False
+    """Toggles AI air-printing detection."""
+    airprinting_detector_sensitivity: str = "medium"
+    """Sensitivity level for air-printing pause behavior (low|medium|high)."""
+    nozzle_blob_detect: bool = False
+    """Toggles the AI vision system used to detect nozzle blobs / clumps."""
+    air_print_detect: bool = False
+    """Toggles air-print detection to detect clogging or filament grinding conditions."""
+    verbose: bool = False
+    """Provides an additional log level for dumping all messages"""
+
+    def __post_init__(self):
         """
-        Sets up all internal storage attributes for `BambuConfig`.
-
-        Parameters
-        ----------
-        * hostname : Optional[str] = None
-        * access_code : Optional[str] = None
-        * serial_number : Optional[str] = None
-        * mqtt_port : Optional[int] = 8883
-        * mqtt_client_id : Optional[str] = "studio_client_id:0c1f"
-        * mqtt_username : Optional[str] = "bblp"
-        * watchdog_timeout : Optional[int] = 30
-        * external_chamber : Optional[bool] = False
-        * verbose : Optional[bool] = False
-        * capabilities : Optional[PrinterCapabilities]
-
-        `external_chamber` can be used to tell `BambuPrinter` not to use any of the chamber
-        temperature data received from the printer.  This can be useful if you are using an
-        external chamber temperature sensor / heater and want to inject the sensor value and
-        target temperatures into `BambuPrinter` directly.
-
-        `verbose` triggers a global log level change (within the scope of `bambu-printer-manager`)
-        based on its value.  `True` will set a log level of `DEBUG` and `False` (the default) will
-        set the log level to `WARNING`.
-
-        Attributes
-        ---------
-        * All parameters listed above
-        * _firmware_version : str - Reported printer firmware version
-        * _ams_firmware_version : str - Reported AMS firmware version
-        * _printer_model : bambutools.PrinterModel - Model # derived from serial #
-        * _auto_recovery : bool - auto recovery from lost steps print option
-        * _filament_tangle_detect : bool - detect spool tangles print option
-        * _sound_enable : bool - printer speaker print option
-        * _auto_switch_filament : bool - AMS auto switch filamement on runout print option
-        * _startup_read_option : bool - AMS will automatically read RFID on boot
-        * _tray_read_option : bool - AMS will automatically read RFID on tray/spool change
-        * _calibrate_remain_flag : bool - AMS will calculate remaining amount of filament in spool (unverified)
-        * _buildplate_marker_detector : bool - printer will attempt to validate build plate
-        * _capabilities : PrinterCapabilities - collection of printer capabilities
+        Post-initialization logic to handle defaults.
         """
+        self.printer_model = getPrinterModelBySerial(self.serial_number)
 
-        self._hostname = hostname
-        self._access_code = access_code
-        self.serial_number = serial_number if serial_number else ""
-        self._mqtt_port = mqtt_port
-        self._mqtt_client_id = mqtt_client_id
-        self._mqtt_username = mqtt_username
-        self._watchdog_timeout = watchdog_timeout
-        self._external_chamber = external_chamber
-        self._verbose = verbose
+        # Default bpm_cache_path and creation
+        if self.bpm_cache_path is None:
+            self.bpm_cache_path = Path("~/.bpm").expanduser()
+        self.set_new_bpm_cache_path(self.bpm_cache_path)
 
-        self._firmware_version = ""
-        self._ams_firmware_version = ""
-        self._printer_model = PrinterModel.UNKNOWN
-        self._auto_recovery = True
-        self._filament_tangle_detect = True
-        self._sound_enable = True
-        self._auto_switch_filament = True
-        self._startup_read_option = True
-        self._tray_read_option = True
-        self._calibrate_remain_flag = True
-        self._buildplate_marker_detector = True
-
-        if capabilities is None:
-            capabilities = PrinterCapabilities()
-        self._capabilities = capabilities
-
-    @property
-    def hostname(self) -> str:
-        return self._hostname
-
-    @hostname.setter
-    def hostname(self, value: str):
-        self._hostname = str(value)
-
-    @property
-    def access_code(self) -> str:
-        return self._access_code
-
-    @access_code.setter
-    def access_code(self, value: str):
-        self._access_code = str(value)
-
-    @property
-    def serial_number(self) -> str:
-        return self._serial_number
-
-    @serial_number.setter
-    def serial_number(self, value: str):
-        self._serial_number = str(value)
-        self._printer_model = getPrinterModelBySerial(self._serial_number)
-
-    @property
-    def printer_model(self) -> PrinterModel:
-        return getPrinterModelBySerial(self._serial_number)
-
-    @property
-    def mqtt_port(self) -> int:
-        return self._mqtt_port
-
-    @mqtt_port.setter
-    def mqtt_port(self, value: int):
-        self._mqtt_port = int(value)
-
-    @property
-    def mqtt_client_id(self) -> str:
-        return self._mqtt_client_id
-
-    @mqtt_client_id.setter
-    def mqtt_client_id(self, value: str):
-        self._mqtt_client_id = str(value)
-
-    @property
-    def mqtt_username(self) -> str:
-        return self._mqtt_username
-
-    @mqtt_username.setter
-    def mqtt_username(self, value: str):
-        self._mqtt_username = str(value)
-
-    @property
-    def watchdog_timeout(self) -> int:
-        return self._watchdog_timeout
-
-    @watchdog_timeout.setter
-    def watchdog_timeout(self, value: int):
-        self._watchdog_timeout = int(value)
-
-    @property
-    def firmware_version(self) -> str:
-        return self._firmware_version
-
-    @firmware_version.setter
-    def firmware_version(self, value: str):
-        self._firmware_version = str(value)
-
-    @property
-    def ams_firmware_version(self) -> str:
-        return self._ams_firmware_version
-
-    @ams_firmware_version.setter
-    def ams_firmware_version(self, value: str):
-        self._ams_firmware_version = str(value)
-
-    @property
-    def external_chamber(self) -> bool:
-        return self._external_chamber
-
-    @external_chamber.setter
-    def external_chamber(self, value: bool):
-        self._external_chamber = bool(value)
-
-    @property
-    def auto_recovery(self) -> bool:
-        return self._auto_recovery
-
-    @auto_recovery.setter
-    def auto_recovery(self, value: bool):
-        self._auto_recovery = bool(value)
-
-    @property
-    def filament_tangle_detect(self) -> bool:
-        return self._filament_tangle_detect
-
-    @filament_tangle_detect.setter
-    def filament_tangle_detect(self, value: bool):
-        self._filament_tangle_detect = bool(value)
-
-    @property
-    def sound_enable(self) -> bool:
-        return self._sound_enable
-
-    @sound_enable.setter
-    def sound_enable(self, value: bool):
-        self._sound_enable = bool(value)
-
-    @property
-    def auto_switch_filament(self) -> bool:
-        return self._auto_switch_filament
-
-    @auto_switch_filament.setter
-    def auto_switch_filament(self, value: bool):
-        self._auto_switch_filament = bool(value)
-
-    @property
-    def startup_read_option(self) -> bool:
-        return self._startup_read_option
-
-    @startup_read_option.setter
-    def startup_read_option(self, value: bool):
-        self._startup_read_option = bool(value)
-
-    @property
-    def tray_read_option(self) -> bool:
-        return self._tray_read_option
-
-    @tray_read_option.setter
-    def tray_read_option(self, value: bool):
-        self._tray_read_option = bool(value)
-
-    @property
-    def calibrate_remain_flag(self) -> bool:
-        return self._calibrate_remain_flag
-
-    @calibrate_remain_flag.setter
-    def calibrate_remain_flag(self, value: bool):
-        self._calibrate_remain_flag = bool(value)
-
-    @property
-    def buildplate_marker_detector(self) -> bool:
-        return self._buildplate_marker_detector
-
-    @buildplate_marker_detector.setter
-    def buildplate_marker_detector(self, value: bool):
-        self._buildplate_marker_detector = bool(value)
-
-    @property
-    def capabilities(self) -> PrinterCapabilities:
-        return self._capabilities
-
-    @capabilities.setter
-    def capabilities(self, value: PrinterCapabilities):
-        self._capabilities = value
-
-    @property
-    def verbose(self) -> bool:
-        return self._verbose
-
-    @verbose.setter
-    def verbose(self, value: bool):
-        self._verbose = bool(value)
-        if self._verbose:
-            logger.setLevel(logging.DEBUG)
-            logging.basicConfig(level=logging.DEBUG)
-        else:
-            if logger.level != logging.WARNING:
-                logger.setLevel(logging.WARNING)
-                logging.basicConfig(level=logging.WARNING)
-        logger.info(
-            f"log level changed - new_level: {logging.getLevelName(logger.level)}"
-        )
+    def set_new_bpm_cache_path(self, path: Path):
+        """Enables changing the bpm cache directory at runtime.  Will orphan previous contents."""
+        self.bpm_cache_path = path
+        self.bpm_cache_path.mkdir(parents=True, exist_ok=True)

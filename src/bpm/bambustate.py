@@ -3,35 +3,140 @@
 operational state, synchronized via MQTT telemetry.
 """
 
+# region imports
 import logging
-import time
 from dataclasses import asdict, dataclass, field, replace
-from typing import Any
+from typing import TYPE_CHECKING, Any, Self
 
-from bpm.bambuconfig import BambuConfig, PrinterCapabilities
+from bpm.bambuconfig import PrinterCapabilities
 from bpm.bambuspool import BambuSpool
 from bpm.bambutools import (
     ActiveTool,
     AirConditioningMode,
+    AMSDryFanStatus,
+    AMSDrySubStatus,
     AMSHeatingState,
     AMSModel,
     ExtruderInfoState,
     ExtruderStatus,
+    LoggerName,
+    NozzleFlowType,
+    NozzleType,
     TrayState,
+    build_nozzle_identifier,
     decodeError,
     decodeHMS,
     getAMSModelBySerial,
+    parse_nozzle_identifier,
+    parse_nozzle_type,
     parseAMSInfo,
     parseAMSStatus,
     parseExtruderInfo,
     parseExtruderStatus,
     parseExtruderTrayState,
-    parseStage,
     scaleFanSpeed,
     unpackTemperature,
 )
 
-logger = logging.getLogger("bpm")
+if TYPE_CHECKING:
+    from bpm.bambuprinter import BambuPrinter
+
+# endregion
+
+logger = logging.getLogger(LoggerName)
+
+
+@dataclass(frozen=True)
+class NozzleCharacteristics:
+    """Normalized nozzle characteristics across telemetry and encoded identifiers.
+
+    This dataclass captures nozzle material, diameter, and optional flow-family
+    metadata. It is intended to provide a single canonical representation that
+    can be built from telemetry fields (for example `nozzle_type`,
+    `nozzle_diameter`) and optional encoded nozzle identifiers (for example
+    `HS00-0.4`).
+    """
+
+    material: NozzleType = NozzleType.UNKNOWN
+    """Canonical nozzle material/type parsed from telemetry or encoded ID."""
+    diameter_mm: float = 0.0
+    """Nozzle diameter in millimeters."""
+    flow: NozzleFlowType = NozzleFlowType.UNKNOWN
+    """Optional nozzle flow family (standard/high-flow/TPU high-flow)."""
+    encoded_id: str = ""
+    """Raw encoded identifier such as `HS00-0.4` when available."""
+    telemetry_type_raw: str = ""
+    """Original raw `nozzle_type` string from telemetry payloads."""
+
+    @classmethod
+    def from_telemetry(
+        cls,
+        nozzle_type: str | None,
+        nozzle_diameter: str | float | int | None,
+        nozzle_id: str | None = None,
+        flow_type: NozzleFlowType = NozzleFlowType.UNKNOWN,
+    ) -> Self:
+        """Build a `NozzleCharacteristics` instance from telemetry fields.
+
+        Parameters
+        ----------
+        nozzle_type : str | None
+            Raw nozzle type string (for example `hardened_steel`).
+        nozzle_diameter : str | float | int | None
+            Raw nozzle diameter value in millimeters.
+        nozzle_id : str | None
+            Optional encoded identifier (for example `HS00-0.4`).
+
+        Returns
+        -------
+        Self
+            Normalized nozzle characteristics instance.
+        """
+        material = parse_nozzle_type(nozzle_type)
+        diameter = float(nozzle_diameter) if nozzle_diameter is not None else 0.0
+
+        flow = flow_type
+
+        telemetry_type = (nozzle_type or "").strip()
+        if telemetry_type:
+            parsed_flow_from_type, parsed_material_from_type, _ = parse_nozzle_identifier(
+                telemetry_type
+            )
+            if parsed_flow_from_type != NozzleFlowType.UNKNOWN:
+                flow = parsed_flow_from_type
+            if (
+                material == NozzleType.UNKNOWN
+                and parsed_material_from_type != NozzleType.UNKNOWN
+            ):
+                material = parsed_material_from_type
+
+        encoded = (nozzle_id or "").strip()
+        if encoded:
+            parsed_flow, parsed_material, _ = parse_nozzle_identifier(encoded)
+            if parsed_flow != NozzleFlowType.UNKNOWN:
+                flow = parsed_flow
+            if material == NozzleType.UNKNOWN and parsed_material != NozzleType.UNKNOWN:
+                material = parsed_material
+
+        return cls(
+            material=material,
+            diameter_mm=diameter,
+            flow=flow,
+            encoded_id=encoded,
+            telemetry_type_raw=(nozzle_type or ""),
+        )
+
+    def to_identifier(self) -> str:
+        """Return the best available encoded nozzle identifier.
+
+        Returns the original `encoded_id` when present. Otherwise, it attempts
+        to build one from normalized material/flow/diameter values.
+        """
+        if self.encoded_id:
+            return self.encoded_id
+        if self.flow == NozzleFlowType.UNKNOWN:
+            return ""
+        return build_nozzle_identifier(self.flow, self.material, self.diameter_mm)
 
 
 @dataclass
@@ -39,21 +144,23 @@ class ExtruderState:
     """State for an individual physical extruder toolhead."""
 
     id: int = 0
-    """Physical ID. Population: `int(r.get("id"))`."""
+    """Physical ID."""
     temp: float = 0.0
-    """Current Temp. Population: `unpackTemperature(r.temp)`."""
+    """Current Temp."""
     temp_target: int = 0
-    """Target Temp. Population: `unpackTemperature(r.temp)`."""
+    """Target Temp."""
     info_bits: int = 0
-    """Raw bitmask. Population: `int(r.get("info"))`."""
+    """Raw bitmask."""
     state: ExtruderInfoState = ExtruderInfoState.NO_NOZZLE
-    """Filament status. Population: `parseExtruderInfo`."""
+    """Filament status."""
     status: ExtruderStatus = ExtruderStatus.IDLE
-    """Op state. Population: `parseExtruderStatus`."""
+    """Op state."""
+    nozzle: NozzleCharacteristics = field(default_factory=NozzleCharacteristics)
+    """Normalized nozzle characteristics."""
     active_tray_id: int = -1
-    """The active tray for this extruder. Population: `int(r.hnow)`"""
+    """The active tray for this extruder."""
     target_tray_id: int = -1
-    """The target tray for this extruder. Population: `int(r.htar >> 8)`."""
+    """The target tray for this extruder."""
     tray_state: TrayState = TrayState.LOADED
     """The tray state of this extruder"""
     assigned_to_ams_id: int = -1
@@ -65,29 +172,33 @@ class AMSUnitState:
     """State information about an individual AMS unit."""
 
     ams_id: int
-    """Unique ID. Population: `str(ams_idx)`."""
+    """Unique ID."""
     chip_id: str = ""
-    """Hardware serial. Population: `m.get("sn")`."""
+    """Hardware serial."""
     model: AMSModel = AMSModel.UNKNOWN
     """`AMSModel` for this unit"""
     temp_actual: float = 0.0
-    """Actual temp. Population: `float(r.get("temp"))`."""
+    """Actual temp."""
     temp_target: int = 0
-    """Target drying temp. Population: `trays[0].drying_temp`."""
+    """Target drying temp."""
     humidity_index: int = 0
-    """Humidity index. Population: `int(float(r.get("humidity")))`."""
+    """Humidity index."""
     humidity_raw: int = 0
-    """Raw humidity. Population: `int(float(r.get("humidity_raw")))`."""
+    """Raw humidity."""
     ams_info: int = 0
     """Underlying ams info value"""
-    heater_state: AMSHeatingState = AMSHeatingState.NO_POWER
+    heater_state: AMSHeatingState = AMSHeatingState.OFF
     """The computed state of the AMS's heater"""
-    raw_extruder_id: int = -1
-    """Raw extruder ID extracted from ams_info"""
+    dry_fan1_status: AMSDryFanStatus = AMSDryFanStatus.OFF
+    """Drying fan 1 status (bits 18-19 of ams_info)"""
+    dry_fan2_status: AMSDryFanStatus = AMSDryFanStatus.OFF
+    """Drying fan 2 status (bits 20-21 of ams_info)"""
+    dry_sub_status: AMSDrySubStatus = AMSDrySubStatus.OFF
+    """Drying sub-status phase (bits 22-25 of ams_info)"""
     dry_time: int = 0
-    """Minutes left. Population: `int(float(r.get("dry_time")))`."""
+    """Minutes left."""
     tray_exists: list[bool] = field(default_factory=lambda: [False] * 4)
-    """Slot presence. Population: Shifting `tray_exist_bits`."""
+    """Slot presence."""
     assigned_to_extruder: ActiveTool = ActiveTool.SINGLE_EXTRUDER
     """Target tool computed from raw_extruder_id"""
 
@@ -97,37 +208,37 @@ class BambuClimate:
     """Contains all climate related attributes"""
 
     bed_temp: float = 0.0
-    """Bed temp. Population: `float(p.get("bed_temper"))`."""
+    """Bed temp."""
     bed_temp_target: int = 0
-    """Bed target. Population: `float(p.get("bed_target_temper"))`."""
+    """Bed target."""
     airduct_mode: int = -1
-    """Raw current mode. Population: airduct.modeCur."""
+    """Raw current mode."""
     airduct_sub_mode: int = -1
-    """Raw sub mode. Population: airduct.subMode."""
+    """Raw sub mode."""
     chamber_temp: float = 0.0
-    """Chamber temp. Population: `unpackTemperature(ctc_root.info.temp)`."""
+    """Chamber temp."""
     chamber_temp_target: int = 0
-    """Chamber target. Population: `unpackTemperature(ctc_root.info.temp)`."""
+    """Chamber target."""
     air_conditioning_mode: AirConditioningMode = AirConditioningMode.NOT_SUPPORTED
     """The mode the printer's AC is in if equipped with one."""
     part_cooling_fan_speed_percent: int = 0
-    """Part fan %. Population: `scaleFanSpeed(p.cooling_fan_speed)`."""
+    """Part fan %."""
     part_cooling_fan_speed_target_percent: int = 0
-    """Part target %. Population: `scaleFanSpeed(p.cooling_fan_target_speed)`."""
+    """Part target %."""
     aux_fan_speed_percent: int = 0
-    """aux fan %. Population: `scaleFanSpeed(p.big_fan1_speed)`."""
+    """aux fan %."""
     exhaust_fan_speed_percent: int = 0
-    """Exhaust (chamber) fan %. Population: `scaleFanSpeed(p.big_fan2_speed)`."""
+    """Exhaust (chamber) fan %."""
     heatbreak_fan_speed_percent: int = 0
-    """Heatbreak fan %. Population: `scaleFanSpeed(p.heatbreak_fan_speed)`."""
+    """Heatbreak fan %."""
     zone_intake_open: bool = False
-    """Heater power. Population: airduct.parts ID 96."""
+    """Heater power."""
     zone_part_fan_percent: int = 0
-    """Internal %. Population: `airduct.parts` ID 16."""
+    """Internal %."""
     zone_aux_percent: int = 0
-    """aux %. Population: `airduct.parts` ID 32."""
+    """aux %."""
     zone_exhaust_percent: int = 0
-    """Exhaust %. Population: `airduct.parts` ID 48."""
+    """Exhaust %."""
     zone_top_vent_open: bool = False
     """Top vent status - derived from exhaust fan on and cooling ac mode."""
     is_chamber_door_open: bool = False
@@ -141,59 +252,45 @@ class BambuState:
     """Representation of the Bambu printer state synchronized via MQTT."""
 
     gcode_state: str = "IDLE"
-    """Execution state. Population: `p.get("gcode_state")`."""
-    current_stage_id: int = 0
-    """Stage numeric ID. Population: `int(p.get("stg_cur"))`."""
-    current_stage_name: str = ""
-    """Stage human name. Population: `parseStage`."""
-    print_percentage: int = 0
-    """Completion %. Population: `int(p.get("mc_percent"))`."""
-    monotonic_start_time: int = -1
-    """The monotonic time stamp of when this job started"""
-    elapsed_minutes: int = 0
-    """The elapsed time in minutes for this (or the last) job"""
-    remaining_minutes: float = 0.0
-    """Time remaining in minutes for the current job. Population: `int(p.get("mc_remaining_time"))`."""
-    current_layer: int = 0
-    """Layer index. Population: `int(p.get("layer_num"))`."""
-    total_layers: int = 0
-    """Layer total. Population: `int(p.get("total_layer_num"))`."""
+    """Execution state."""
     active_ams_id: int = -1
     """Current active AMS unit id"""
     active_tray_id: int = 255
-    """Current tray. Population: Computed in Tool Handoff."""
+    """Current tray."""
     active_tray_state: TrayState = TrayState.UNLOADED
-    """Loading enum. Population: `ExtruderInfoState` check."""
+    """Loading enum."""
     active_tray_state_name: str = TrayState.UNLOADED.name
-    """Loading string. Population: `active_tray_state.name`."""
+    """Loading string."""
     target_tray_id: int = -1
-    """Next tray. Population: Stage-specific targeting logic."""
+    """Next tray."""
     active_tool: ActiveTool = ActiveTool.SINGLE_EXTRUDER
-    """Active toolhead. Population: `extruder_root.state` shift."""
+    """Active toolhead."""
     is_external_spool_active: bool = False
-    """Ext spool flag. Population: `active_tray_id in [254, 255]`."""
+    """Ext spool flag."""
     active_nozzle_temp: float = 0.0
-    """Nozzle temp. Population: Handoff from `a_ext` or `p`."""
+    """Nozzle temp."""
     active_nozzle_temp_target: int = 0
-    """Nozzle target. Population: Handoff from `a_ext` or `p`."""
+    """Nozzle target."""
+    active_nozzle: NozzleCharacteristics = field(default_factory=NozzleCharacteristics)
+    """Normalized characteristics of the currently active nozzle."""
     ams_status_raw: int = 0
-    """Raw AMS status. Population: `int(p.get("ams_status"))`."""
+    """Raw AMS status."""
     ams_status_text: str = ""
-    """Human AMS status. Population: `parseAMSStatus`."""
+    """Human AMS status."""
     ams_exist_bits: int = 0
-    """AMS mask. Population: `int(ams_root.ams_exist_bits, 16)`."""
+    """AMS mask."""
     ams_connected_count: int = 0
-    """AMS count. Population: `bin(ams_exist_bits).count("1")`."""
+    """AMS count."""
     ams_units: list[AMSUnitState] = field(default_factory=list)
-    """Unit details. Population: Result of unit iteration."""
+    """Unit details."""
     extruders: list[ExtruderState] = field(default_factory=list)
-    """Extruder details. Population: Result of extruder iteration."""
+    """Extruder details."""
     spools: list[BambuSpool] = field(default_factory=list)
     """All spools associated with this printer"""
     print_error: int = 0
-    """Main error. Population: `int(p.get("print_error"))`."""
+    """Main error."""
     hms_errors: list[dict] = field(default_factory=list)
-    """HMS list. Population: `decodeHMS` + `decodeError` synthesis."""
+    """HMS list."""
     wifi_signal_strength: str = ""
     """Wi-Fi signal strength in dBm"""
     climate: BambuClimate = field(default_factory=BambuClimate)
@@ -202,10 +299,12 @@ class BambuState:
     fun: str = "0"
 
     @classmethod
-    def fromJson(
-        cls, data: dict[str, Any], current_state: "BambuState", config: BambuConfig
-    ) -> "BambuState":
+    def fromJson(cls, data: dict[str, Any], printer: "BambuPrinter") -> "BambuState":
         """Parses root MQTT payloads into a hierachical BambuState object."""
+
+        current_state = printer.printer_state
+        config = printer.config
+        aji = printer.active_job_info
 
         base = current_state if current_state else cls()
         info = data.get("info", {})
@@ -224,6 +323,7 @@ class BambuState:
         device = p.get("device", {})
 
         extruder_root = device.get("extruder", {})
+        nozzle_root = device.get("nozzle", {})
         ctc_root = device.get("ctc", {})
         airduct_root = device.get("airduct", {})
 
@@ -236,6 +336,7 @@ class BambuState:
             caps["has_chamber_temp"] = True
         if "ams" in ams_root or "ams" in p:
             caps["has_ams"] = True
+            caps["has_auto_switch_filament_support"] = True
         if airduct_root:
             caps["has_air_filtration"] = True
         if len(extruder_root.get("info", [])) > 1:
@@ -256,44 +357,20 @@ class BambuState:
 
         # STATUS & PROGRESS
         updates["gcode_state"] = p.get("gcode_state", base.gcode_state)
-        updates["current_stage_id"] = int(p.get("stg_cur", base.current_stage_id))
-        updates["current_stage_name"] = parseStage(updates["current_stage_id"])
 
         updates["fun"] = p.get("fun", base.fun)
         fun = int(updates["fun"], 16)
         new_caps.has_chamber_door_sensor = bool((fun >> 12) & 0x01)
+        new_caps.has_spaghetti_detector_support = bool((fun >> 42) & 0x01)
+        new_caps.has_purgechutepileup_detector_support = bool((fun >> 43) & 0x01)
+        new_caps.has_nozzleclumping_detector_support = bool((fun >> 44) & 0x01)
+        new_caps.has_airprinting_detector_support = bool((fun >> 45) & 0x01)
 
         if new_caps.has_chamber_door_sensor:
             updates["stat"] = p.get("stat", base.stat)
             stat = int(updates["stat"], 16)
             updates["climate"].is_chamber_door_open = bool((stat >> 23) & 0x01)
             updates["climate"].is_chamber_lid_open = bool((stat >> 24) & 0x01)
-
-        if (
-            updates["gcode_state"] in ("FAILED", "FINISH")
-            and updates["gcode_state"] != base.gcode_state
-        ):
-            updates["monotonic_start_time"] = -1
-        elif (
-            updates["gcode_state"] in ("PREPARE", "RUNNING")
-            and base.monotonic_start_time == -1
-        ):
-            updates["monotonic_start_time"] = time.monotonic()
-        else:
-            if updates["gcode_state"] in ("PREPARE", "RUNNING"):
-                updates["elapsed_minutes"] = (
-                    time.monotonic()
-                    - updates.get("monotonic_start_time", base.monotonic_start_time)
-                ) / 60.0
-
-                updates["current_layer"] = int(p.get("layer_num", base.current_layer))
-                updates["print_percentage"] = int(
-                    p.get("mc_percent", base.print_percentage)
-                )
-                updates["total_layers"] = int(p.get("total_layer_num", base.total_layers))
-                updates["remaining_minutes"] = float(
-                    p.get("mc_remaining_time", base.remaining_minutes)
-                )
 
         # AIRDUCT
         if airduct_root:
@@ -333,11 +410,6 @@ class BambuState:
                 updates["climate"].zone_exhaust_percent > 0
                 and not updates["climate"].zone_intake_open
             )
-            # bit 58 apparently has the top vent value
-            # is_top_vent_closed_bit = (fun >> 58) & 1
-            # print(f"\r\ntop bit=[{is_top_vent_closed_bit != 1}] update=[{updates['climate'].zone_top_vent_open}]\r\n")
-            # if (not is_top_vent_closed_bit) != updates["climate"].zone_top_vent_open:
-            #     updates["climate"].zone_top_vent_open = not is_top_vent_closed_bit
 
         # THERMALS & CTC DECODING
         updates["climate"].bed_temp = float(p.get("bed_temper", base.climate.bed_temp))
@@ -352,10 +424,10 @@ class BambuState:
             ctc_temp_target = int(ctc_temp_raw[1])
             updates["climate"].chamber_temp = ctc_temp
             updates["climate"].chamber_temp_target = ctc_temp_target
-        else:
-            updates["climate"].chamber_temp = p.get(
-                "chamber_temper", base.climate.chamber_temp
-            )
+        elif not config.external_chamber:
+            chamber_temp = int(p.get("chamber_temper", base.climate.chamber_temp))
+            if chamber_temp != 5:
+                updates["climate"].chamber_temp = chamber_temp
 
         if (
             ctc_temp_target == 0
@@ -372,6 +444,13 @@ class BambuState:
         # EXTRUDERS
         new_extruders = []
         if "info" in extruder_root:
+            nozzle_by_id: dict[int, dict[str, Any]] = {}
+            nozzle_info = nozzle_root.get("info", [])
+            for nozzle_item in nozzle_info:
+                raw_nozzle_id = nozzle_item.get("id")
+                nozzle_id = int(raw_nozzle_id) & 0xFF
+                nozzle_by_id[nozzle_id] = nozzle_item
+
             for new_ext in extruder_root["info"]:
                 raw_t = int(new_ext.get("temp", 0))
                 act_t, tar_t = unpackTemperature(raw_t)
@@ -391,6 +470,30 @@ class BambuState:
                 ext.info_bits = int(new_ext.get("info", 0))
                 ext.state = parseExtruderInfo(ext.info_bits)
                 ext.status = parseExtruderStatus(int(new_ext.get("stat", 0)))
+
+                nozzle_id_key = int(new_ext.get("hnow", ext.id))
+                nozzle_info = nozzle_by_id.get(nozzle_id_key)
+                if nozzle_info is None:
+                    nozzle_info = nozzle_by_id.get(ext.id)
+
+                ext.nozzle = NozzleCharacteristics.from_telemetry(
+                    nozzle_type=(
+                        str(nozzle_info.get("type"))
+                        if nozzle_info is not None and nozzle_info.get("type") is not None
+                        else None
+                    ),
+                    nozzle_diameter=(
+                        nozzle_info.get("diameter")
+                        if nozzle_info is not None
+                        and nozzle_info.get("diameter") is not None
+                        else None
+                    ),
+                    nozzle_id=(
+                        str(nozzle_info.get("id"))
+                        if nozzle_info is not None and nozzle_info.get("id") is not None
+                        else None
+                    ),
+                )
 
                 ext.active_tray_id = parseExtruderTrayState(ext.id, hn, sn)
                 ext.target_tray_id = parseExtruderTrayState(ext.id, ht, st)
@@ -426,6 +529,47 @@ class BambuState:
                     ext.tray_state = base.active_tray_state
 
                 new_extruders.append(ext)
+        else:
+            ext = base.extruders[0] if base.extruders else ExtruderState()
+            ext.id = ActiveTool.SINGLE_EXTRUDER
+            ext.temp = float(p.get("nozzle_temper", base.active_nozzle_temp))
+            ext.temp_target = int(
+                p.get("nozzle_target_temper", base.active_nozzle_temp_target)
+            )
+            ext.state = ExtruderInfoState.NOT_AVAILABLE
+            ext.status = ExtruderStatus.NOT_AVAILABLE
+            ext.active_tray_id = base.active_tray_id
+            ext.target_tray_id = base.target_tray_id
+            if "tray_now" in ams_root:
+                raw = int(ams_root["tray_now"])
+                ext.active_tray_id = -1 if raw == 255 else raw
+            if "tray_tar" in ams_root:
+                raw = int(ams_root["tray_tar"])
+                ext.target_tray_id = -1 if raw == 255 else raw
+            ext.assigned_to_ams_id = (
+                ext.active_tray_id >> 2
+                if ext.active_tray_id not in (-1, 254, 255)
+                else -1
+            )
+            if aji.stage_id == 24:
+                ext.tray_state = TrayState.LOADING
+            elif aji.stage_id == 22:
+                ext.tray_state = TrayState.UNLOADING
+            elif ext.active_tray_id not in (-1, 254, 255):
+                ext.tray_state = TrayState.LOADED
+            else:
+                ext.tray_state = TrayState.UNLOADED
+            ext.nozzle = NozzleCharacteristics.from_telemetry(
+                nozzle_type=p.get(
+                    "nozzle_type",
+                    ext.nozzle.telemetry_type_raw,
+                ),
+                nozzle_diameter=p.get("nozzle_diameter", ext.nozzle.diameter_mm),
+                nozzle_id=p.get("nozzle_id", ext.nozzle.encoded_id),
+                flow_type=NozzleFlowType.STANDARD,
+            )
+            new_extruders.append(ext)
+
         updates["extruders"] = new_extruders if new_extruders else base.extruders
 
         # TOOL SELECTION
@@ -457,8 +601,12 @@ class BambuState:
             id = int(ams_u.get("id", 0))
             u = cur_ams.get(id, AMSUnitState(ams_id=id))
             u.temp_actual = float(ams_u.get("temp", u.temp_actual))
-            u.humidity_index = int(float(ams_u.get("humidity", u.humidity_index)))
-            u.humidity_raw = int(float(ams_u.get("humidity_raw", u.humidity_raw)))
+            _hIdx = int(float(ams_u.get("humidity", 0)))
+            if 1 <= _hIdx <= 5:
+                u.humidity_index = _hIdx
+            _hRaw = int(float(ams_u.get("humidity_raw", 0)))
+            if 1 <= _hRaw <= 100:
+                u.humidity_raw = _hRaw
             u.dry_time = int(float(ams_u.get("dry_time", u.dry_time)))
 
             # ugly hack for capturing target temp
@@ -468,16 +616,20 @@ class BambuState:
                 u.temp_target = 0
 
             if "info" in ams_u:
-                u.ams_info = int(ams_u["info"])
-                p_ams = parseAMSInfo(u.ams_info)
+                u.ams_info = int(ams_u["info"], 16)
+                p_ams = parseAMSInfo(ams_u["info"])
 
                 u.heater_state = p_ams["heater_state"]
-                u.raw_extruder_id = p_ams["extruder_id"]
+                u.dry_fan1_status = p_ams["dry_fan1_status"]
+                u.dry_fan2_status = p_ams["dry_fan2_status"]
+                u.dry_sub_status = p_ams["dry_sub_status"]
+
+                # Update AMS model from parsed info if not already set
+                if u.model == AMSModel.UNKNOWN:
+                    u.model = p_ams["ams_type"]
 
                 if new_caps.has_dual_extruder:
-                    u.assigned_to_extruder = ActiveTool(
-                        p_ams.get("h2d_toolhead_index", 15)
-                    )
+                    u.assigned_to_extruder = ActiveTool(p_ams.get("extruder_id", 15))
                     updates["extruders"][
                         u.assigned_to_extruder.value
                     ].assigned_to_ams_id = u.ams_id
@@ -491,8 +643,8 @@ class BambuState:
                     # AMS-HT: 128, 129, 130, 131 -> shift 16, 20, 24, 28
                     if id >= 128:
                         shift = 16 + (4 * (id - 128))
-                        # AMS-HT is a 1-slot unit, so we check only range(1)
-                        u.tray_exists = [bool((eb >> shift) & (1 << j)) for j in range(1)]
+                        # AMS-HT has 4 slots like standard AMS
+                        u.tray_exists = [bool((eb >> shift) & (1 << j)) for j in range(4)]
                     else:
                         shift = 4 * id
                         # Standard AMS is a 4-slot unit, so we check range(4)
@@ -509,9 +661,14 @@ class BambuState:
             None,
         )
         if a_ext:
-            updates["active_ams_id"] = (
-                a_ext.assigned_to_ams_id if a_ext.active_tray_id not in (254, 255) else -1
-            )
+            if a_ext.active_tray_id not in (254, 255, -1):
+                updates["active_ams_id"] = (
+                    a_ext.assigned_to_ams_id
+                    if a_ext.assigned_to_ams_id != -1
+                    else a_ext.active_tray_id >> 2
+                )
+            else:
+                updates["active_ams_id"] = -1
             updates["active_tray_id"] = a_ext.active_tray_id
             updates["target_tray_id"] = a_ext.target_tray_id
 
@@ -519,6 +676,7 @@ class BambuState:
 
             updates["active_nozzle_temp"] = a_ext.temp
             updates["active_nozzle_temp_target"] = a_ext.temp_target
+            updates["active_nozzle"] = a_ext.nozzle
         else:
             # otherwise process a single extruder printer update
             updates["active_nozzle_temp"] = float(
@@ -527,16 +685,27 @@ class BambuState:
             updates["active_nozzle_temp_target"] = int(
                 p.get("nozzle_target_temper", base.active_nozzle_temp_target)
             )
+            updates["active_nozzle"] = (
+                updates["extruders"][0].nozzle
+                if updates.get("extruders")
+                else base.active_nozzle
+            )
             updates["active_tray_id"] = int(ams_root.get("tray_now", base.active_tray_id))
             if updates["active_tray_id"] == 255:
                 updates["active_tray_id"] = -1
                 updates["active_tray_state"] = TrayState.UNLOADED
-            elif updates["current_stage_id"] == 24:
+            elif aji.stage_id == 24:
                 updates["active_tray_state"] = TrayState.LOADING
-            elif updates["current_stage_id"] == 22:
+            elif aji.stage_id == 22:
                 updates["active_tray_state"] = TrayState.UNLOADING
             else:
                 updates["active_tray_state"] = TrayState.LOADED
+
+            updates["active_ams_id"] = (
+                updates["active_tray_id"] >> 2
+                if updates["active_tray_id"] not in (254, 255)
+                else base.active_ams_id
+            )
 
         if "active_tray_id" in updates:
             updates["is_external_spool_active"] = updates["active_tray_id"] in [254, 255]

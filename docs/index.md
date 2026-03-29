@@ -10,21 +10,31 @@ While caffiene and sleepness nights drive the delivery of this project, they unf
 ## Project Composition
 
     bpm/
-        bambucommands.py                # collection of constants mainly representing Bambu Lab `mqtt` request commands
-        bambuconfig.py                  # contains the `BambuConfig` class used for storing configuration data
-        bambuprinter.py                 # the main `bambu-printer-manager` class `BambuPrinter` lives here
-        bambuspool.py                   # contains the `BambuSpool` class used for storing spool data
-        bambustate.py                   # contains the `BambuState` and `AMSUnitState` classes
-        bambutools.py                   # contains a collection of methods used as tools (mostly internal)
+        bambucommands.py       # collection of constants mainly representing Bambu Lab `mqtt` request commands
+        bambuconfig.py         # contains the `BambuConfig` class used for managing configuration data
+        bambudiscovery.py      # contains the `BambuDiscovery` and `DiscoveredPrinter` classes for SSDP network discovery
+        bambuprinter.py        # the main `bambu-printer-manager` class `BambuPrinter` lives here
+        bambuproject.py        # provides `ActiveJobInfo` and `ProjectInfo` for tracking print job details
+        bambuspool.py          # contains the `BambuSpool` class used for managing spool data
+        bambustate.py          # contains the `BambuState` and `AMSUnitState` classes
+        bambutools.py          # contains a collection of methods used as tools (mostly internal)
 
         ftpsclient/
-            _client.py              # internal class used for performing `FTPS` operations
+            _client.py         # internal class used for performing `FTPS` operations
+
+Code Reference links for the classes above:
+- [`BambuConfig`](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig)
+- [`BambuDiscovery`](reference/bpm/bambudiscovery.md#bpm.bambudiscovery.BambuDiscovery), [`DiscoveredPrinter`](reference/bpm/bambudiscovery.md#bpm.bambudiscovery.DiscoveredPrinter)
+- [`BambuPrinter`](reference/bpm/bambuprinter.md#bpm.bambuprinter.BambuPrinter)
+- [`ActiveJobInfo`](reference/bpm/bambuproject.md#bpm.bambuproject.ActiveJobInfo), [`ProjectInfo`](reference/bpm/bambuproject.md#bpm.bambuproject.ProjectInfo)
+- [`BambuSpool`](reference/bpm/bambuspool.md#bpm.bambuspool.BambuSpool)
+- [`BambuState`](reference/bpm/bambustate.md#bpm.bambustate.BambuState), [`AMSUnitState`](reference/bpm/bambustate.md#bpm.bambustate.AMSUnitState)
 
 ### Dependencies
 ```
 Python 3.11+
 
-* mkdocstrings, webcolors and paho-mqtt install automatically as predefined dependencies
+* mkdocstrings, webcolors, and paho-mqtt install automatically as predefined dependencies
 ```
 ### Installation
 ```
@@ -34,9 +44,7 @@ pip install bambu-printer-manager
 ```py
 from bpm.bambuconfig import BambuConfig
 from bpm.bambuprinter import BambuPrinter
-from bpm.bambutools import PrinterState
 from bpm.bambutools import parseStage
-from bpm.bambutools import parseFan
 ```
 
 ### Constructor(s)
@@ -73,11 +81,86 @@ printer = BambuPrinter(config=BambuConfig(hostname="{host name}", access_code="{
 This library is evolving and expect to see shifting variables and classes leading up to v1.0.0. Deprecated methods and attributes will be removed upon its release.
 
 ### Usage Patterns
-You can either poll `BambuPrinter` periodically for data updates or rely on a callback when
+You can either poll [`BambuPrinter`](reference/bpm/bambuprinter.md#bpm.bambuprinter.BambuPrinter) periodically for data updates or rely on a callback when
 new data becomes available.  The preferred pattern should be callback based, however both
 of these approaches will work fine.
 
 Please consider the examples provided here as mere starting points.
+
+#### Discovery-Driven Connection
+```py
+import threading
+
+from bpm.bambuconfig import BambuConfig
+from bpm.bambudiscovery import BambuDiscovery
+from bpm.bambuprinter import BambuPrinter
+
+# Each Bambu Lab printer has its own access code found in the printer's
+# network settings. Map serial number -> access code for all printers
+# you want to connect to on the LAN.
+ACCESS_CODES = {
+    "<serial_number>": "<access_code>",
+}
+
+printers = []
+update_counts = {}  # serial_number -> int
+lock = threading.Lock()
+done = threading.Event()
+discovery_complete = False
+
+def _check_done():
+    """Call with lock held. Sets done if discovery is over and all printers have 4 updates."""
+    if discovery_complete and all(update_counts.get(q.config.serial_number, 0) >= 4 for q in printers):
+        done.set()
+
+def on_update(p):
+    with lock:
+        serial = p.config.serial_number
+        update_counts[serial] = update_counts.get(serial, 0) + 1
+        count = update_counts[serial]
+
+    if count == 4:
+        print(f"[{p.config.hostname}] gcode_state: {p.printer_state.gcode_state}")
+        with lock:
+            _check_done()
+
+def on_printer_discovered(discovered):
+    access_code = ACCESS_CODES.get(discovered.usn)
+    if not access_code:
+        print(f"No access code configured for {discovered.dev_name} ({discovered.usn}) — skipping")
+        return
+    config = BambuConfig(
+        hostname=discovered.location,
+        access_code=access_code,
+        serial_number=discovered.usn,
+    )
+    p = BambuPrinter(config=config)
+    p.on_update = on_update
+    with lock:
+        printers.append(p)
+        update_counts[discovered.usn] = 0
+    p.start_session()
+
+def on_discovery_ended(discovered_printers):
+    global discovery_complete
+    if not discovered_printers:
+        print("No Bambu Lab printers on the network.")
+    with lock:
+        discovery_complete = True
+        _check_done()
+
+discovery = BambuDiscovery(
+    on_printer_discovered=on_printer_discovered,
+    on_discovery_ended=on_discovery_ended,
+    discovery_timeout=15,
+)
+discovery.start()
+
+done.wait()
+
+for p in printers:
+    p.quit()
+```
 
 #### Data Polling Example
 ```py
@@ -87,7 +170,7 @@ import os
 
 from bpm.bambuconfig import BambuConfig
 from bpm.bambuprinter import BambuPrinter
-from bpm.bambutools import PrinterState
+from bpm.bambutools import parseStage
 
 hostname = os.getenv('BAMBU_HOSTNAME')
 access_code = os.getenv('BAMBU_ACCESS_CODE')
@@ -104,7 +187,7 @@ printer = BambuPrinter(config=config)
 
 printer.start_session()
 
-while printer.state != PrinterState.CONNECTED:
+while printer.service_state != ServiceState.CONNECTED:
     print("waiting for bpm to connect to printer", flush=True)
     if printer.internalException:
         print(f"retrying connection - reason: {printer.internalException if not printer.internalException is None else "no internal exception"}")
@@ -118,28 +201,24 @@ print("sdcard 3mf files refreshed\r\n", flush=True)
 print("bpm is ready for business\r\n")
 
 while True:
-    print(f"tool=[{round(printer.tool_temp, 1)}/{round(printer.tool_temp_target, 1)}] " +
-          f"bed=[{round(printer.bed_temp, 1)}/{round(printer.bed_temp_target, 1)}] " +
-          f"fan=[{parseFan(printer.fan_speed)}] print=[{printer.gcode_state}] speed=[{printer.speed_level}] " +
+    # Access state via printer.printer_state
+    state = printer.printer_state
+    job = printer.active_job_info
+
+    print(f"tool=[{round(state.active_nozzle_temp, 1)}/{round(state.active_nozzle_temp_target, 1)}] " +
+          f"bed=[{round(state.climate.bed_temp, 1)}/{round(state.climate.bed_temp_target, 1)}] " +
+          f"fan=[{state.climate.part_cooling_fan_speed_percent}%] " +
+          f"print=[{state.gcode_state}] speed=[{printer.speed_level}] " +
           f"light=[{'on' if printer.light_state else 'off'}]")
 
-    print(f"stg_cur=[{parseStage(printer.current_stage)}] file=[{printer.gcode_file}] " +
-          f"layers=[{printer.layer_count}] layer=[{printer.current_layer}] " +
-          f"%=[{printer.percent_complete}] eta=[{printer.time_remaining} min] " +
-          f"spool=[{printer.active_spool} ({printer.spool_state})]")
+    print(f"stg_cur=[{parseStage(job.stage_id)}] file=[{job.gcode_file}] " +
+          f"layers=[{job.total_layers}] layer=[{job.current_layer}] " +
+          f"%=[{job.print_percentage}] eta=[{job.remaining_minutes} min] " +
+          f"spool=[{state.active_tray_id} ({state.active_tray_state_name})]")
 
     time.sleep(1)
-
-@app.route('/api/printer')
-def get_printer_info():
-    global printer
-    # checking both the spools tuple and recent_update
-    # states ensure we have a healthy data stream
-    if printer.recent_update and printer.spools:
-        return printer.toJson()
-    else:
-        return {"status": "warn", "reason": "no data to send"}
 ```
+
 #### Callback Pattern
 ```py
 import sys
@@ -148,7 +227,6 @@ import os
 from bpm.bambuconfig import BambuConfig
 from bpm.bambuprinter import BambuPrinter
 from bpm.bambutools import parseStage
-from bpm.bambutools import parseFan
 
 hostname = os.getenv('BAMBU_HOSTNAME')
 access_code = os.getenv('BAMBU_ACCESS_CODE')
@@ -164,15 +242,19 @@ config = BambuConfig(hostname=hostname, access_code=access_code, serial_number=s
 printer = BambuPrinter(config=config)
 
 def on_update(printer):
-    print(f"tool=[{round(printer.tool_temp, 1)}/{round(printer.tool_temp_target, 1)}] " +
-          f"bed=[{round(printer.bed_temp, 1)}/{round(printer.bed_temp_target, 1)}] " +
-          f"fan=[{parseFan(printer.fan_speed)}] print=[{printer.gcode_state}] speed=[{printer.speed_level}] " +
+    state = printer.printer_state
+    job = printer.active_job_info
+
+    print(f"tool=[{round(state.active_nozzle_temp, 1)}/{round(state.active_nozzle_temp_target, 1)}] " +
+          f"bed=[{round(state.climate.bed_temp, 1)}/{round(state.climate.bed_temp_target, 1)}] " +
+          f"fan=[{state.climate.part_cooling_fan_speed_percent}%] " +
+          f"print=[{state.gcode_state}] speed=[{printer.speed_level}] " +
           f"light=[{'on' if printer.light_state else 'off'}]")
 
-    print(f"stg_cur=[{parseStage(printer.current_stage)}] file=[{printer.gcode_file}] " +
-          f"layers=[{printer.layer_count}] layer=[{printer.current_layer}] " +
-          f"%=[{printer.percent_complete}] eta=[{printer.time_remaining} min] " +
-          f"spool=[{printer.active_spool} ({printer.spool_state})]")
+    print(f"stg_cur=[{parseStage(job.stage_id)}] file=[{job.gcode_file}] " +
+          f"layers=[{job.total_layers}] layer=[{job.current_layer}] " +
+          f"%=[{job.print_percentage}] eta=[{job.remaining_minutes} min] " +
+          f"spool=[{state.active_tray_id} ({state.active_tray_state_name})]")
 
 printer.on_update = on_update
 printer.start_session()
@@ -192,9 +274,7 @@ from console.utils import wait_key
 
 from bpm.bambuconfig import BambuConfig
 from bpm.bambuprinter import BambuPrinter
-from bpm.bambutools import PrinterState
-from bpm.bambutools import parseStage
-from bpm.bambutools import parseFan
+from bpm.bambutools import ServiceState, parseStage
 
 gcodeState = ""
 firmware = "N/A"
@@ -203,8 +283,11 @@ ams_firmware = "N/A"
 def on_update(printer):
     global firmware, ams_firmware, gcodeState
 
-    if gcodeState != printer.gcode_state:
-        gcodeState = printer.gcode_state
+    state = printer.printer_state
+    job = printer.active_job_info
+
+    if gcodeState != state.gcode_state:
+        gcodeState = state.gcode_state
 
     if firmware != printer.config.firmware_version:
         firmware = printer.config.firmware_version
@@ -213,15 +296,16 @@ def on_update(printer):
         ams_firmware = printer.config.ams_firmware_version
         print(f"ams firmware: [{ams_firmware}]\r")
 
-    print(f"\r\ntool=[{round(printer.tool_temp * 1.0, 1)}/{round(printer.tool_temp_target * 1.0, 1)}] " +
-         f"bed=[{round(printer.bed_temp * 1.0, 1)}/{round(printer.bed_temp_target * 1.0, 1)}] " +
-         f"fan=[{parseFan(printer.fan_speed)}] print=[{printer.gcode_state}] speed=[{printer.speed_level}] " +
+    print(f"\r\ntool=[{round(state.active_nozzle_temp, 1)}/{round(state.active_nozzle_temp_target, 1)}] " +
+         f"bed=[{round(state.climate.bed_temp, 1)}/{round(state.climate.bed_temp_target, 1)}] " +
+         f"fan=[{state.climate.part_cooling_fan_speed_percent}%] " +
+         f"print=[{state.gcode_state}] speed=[{printer.speed_level}] " +
          f"light=[{'on' if printer.light_state else 'off'}]")
 
-    print(f"\rstg_cur=[{parseStage(printer.current_stage)}] file=[{printer.gcode_file}] " +
-          f"layers=[{printer.layer_count}] layer=[{printer.current_layer}] " +
-          f"%=[{printer.percent_complete}] eta=[{printer.time_remaining} min] " +
-          f"spool=[{printer.active_spool} ({printer.spool_state})]\r")
+    print(f"\rstg_cur=[{parseStage(job.stage_id)}] file=[{job.gcode_file}] " +
+          f"layers=[{job.total_layers}] layer=[{job.current_layer}] " +
+          f"%=[{job.print_percentage}] eta=[{job.remaining_minutes} min] " +
+          f"spool=[{state.active_tray_id} ({state.active_tray_state_name})]\r")
 
 print("\r")
 
@@ -293,7 +377,7 @@ while True:
         print(json.dumps(printer, default=printer.jsonSerializer, indent=4, sort_keys=True).replace("\n", "\r\n"))
 
     if key == "w":
-        print(f"\r\nwifi signal strength: [{printer.wifi_signal}]")
+        print(f"\r\nwifi signal strength: [{printer.printer_state.wifi_signal_strength}]")
 
     if key == "v":
         printer.config.verbose = not printer.config.verbose
@@ -313,21 +397,21 @@ while True:
         temp = input("\r\nTool0 Target Temperature: ")
         printer.resume_session()
         if temp.isnumeric() and confirm("CHANGE_TOOL_TEMP"):
-            printer.tool_temp_target = temp
+            printer.set_nozzle_temp_target(int(temp))
 
     if key == "b":
         printer.pause_session()
         temp = input("\r\nBed Target Temperature: ")
         printer.resume_session()
         if temp.isnumeric():
-            printer.bed_temp_target = temp
+            printer.set_bed_temp_target(int(temp))
 
     if key == "f":
         printer.pause_session()
         speed = input("\r\nFan Speed (%): ")
         printer.resume_session()
         if speed.isnumeric():
-            printer.fan_speed = speed
+            printer.set_part_cooling_fan_speed_target_percent(int(speed))
 
     if key == "r":
         printer.refresh()
@@ -340,7 +424,7 @@ while True:
         slot = input("\r\nTarget Slot: ")
         printer.resume_session()
         if len(slot) > 0:
-            printer.load_filament(slot)
+            printer.load_filament(int(slot))
 
     if key == "g":
         printer.pause_session()
@@ -355,10 +439,18 @@ while True:
         if len(name) > 0:
             bed = input("\rBed type (1=High Temp Plate, 2=Textured PEI Plate): ")
             if len(bed) > 0 and bed.isnumeric():
-                ams = "[{}]".format(input("\rAMS mapping ([-1/0], [-1/1], [-1/2], [-1/3]): "))
+                ams = input("\rAMS mapping as JSON (e.g., '[0,1,2,3]' or '[0,-1,4]' for unmapped): ")
                 if len(ams) > 0:
                     printer.resume_session()
-                    printer.print_3mf_file(name, bed, ams)
+                    # Note: PlateType enum usage would require import, kept simple with int/string for now
+                    # assuming the user knows how to map it or we'd need to import PlateType
+                    # For this example, we'll assume the user passes a valid int that matches the enum
+                    from bpm.bambutools import PlateType
+                    try:
+                        plate_type = PlateType(int(bed))
+                        printer.print_3mf_file(name, 1, plate_type, True, ams)
+                    except ValueError:
+                        print("Invalid bed type")
                     continue
         printer.resume_session()
 
@@ -373,7 +465,7 @@ while True:
         printer.stop_printing()
 
     if key == "~":
-        if printer.state == PrinterState.PAUSED:
+        if printer.service_state == ServiceState.PAUSED:
             printer.resume_session()
             print("\rsession resumed\r")
         else:
@@ -382,3 +474,25 @@ while True:
 
 printer.quit()
 ```
+
+## Contributing
+
+The best way you can contribute to this project is to make a monetary donation to its author. All funds received will go to the purchase of Bambu Lab hardware to support the continued development of this project. Please show your support by becoming a [Sponsor](https://github.com/sponsors/synman) today!
+
+Developers are encouraged to submit a Pull Request to [devel](https://github.com/synman/bambu-printer-manager/compare)!
+
+Please make sure to install pre-commit and lint and format your contributions through it:
+
+```bash
+pip install .[develop]
+pre-commit install
+```
+
+---
+
+## Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.1 | 2026-02-25 | Updated documentation with comprehensive examples and reference implementations |
+| 1.0 | 2026-02-23 | Initial project documentation and getting started guide |

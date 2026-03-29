@@ -1,3 +1,7 @@
+"""
+`bambuspool` contains the `BambuSpool` class used for managing spool data.
+"""
+
 from dataclasses import dataclass
 
 

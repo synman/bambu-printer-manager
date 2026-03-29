@@ -1,7 +1,14 @@
-from enum import Enum, IntEnum
-from typing import Any
+"""
+`bambutools` contains a collection of methods used as tools (mostly internal).
+"""
 
-from typing_extensions import deprecated
+import hashlib
+import json
+import logging
+from enum import Enum, IntEnum
+from pathlib import Path
+from threading import Thread
+from typing import Any
 
 from bpm.bambucommands import HMS_STATUS
 
@@ -9,6 +16,8 @@ from bpm.bambucommands import HMS_STATUS
 `bambutools' hosts various classes and methods used internally and externally
 by `bambu-printer-manager`.
 """
+LoggerName = "bpm"
+logger = logging.getLogger(LoggerName)
 
 
 class ActiveTool(IntEnum):
@@ -59,8 +68,8 @@ class AMSModel(IntEnum):
     UNKNOWN = 0
     AMS_1 = 1
     AMS_LITE = 2
-    AMS_HT = 3
-    AMS_2_PRO = 4
+    AMS_2_PRO = 3  # N3F in BambuStudio
+    AMS_HT = 4  # N3S in BambuStudio
 
 
 class AMSSeries(Enum):
@@ -85,15 +94,42 @@ class AMSUserSetting(Enum):
 
 class AMSHeatingState(IntEnum):
     """
-    Heater-to-Dryer states.
-    Mapped from telemetry values and decimal shifts.
+    AMS Drying/Heater states extracted from bits 4-7 of ams_info.
+    Mapped directly from BambuStudio's DryStatus enum.
+    Only supported on AMS 2 Pro (N3F) and AMS HT (N3S) models.
     """
 
-    HEATING = 3
-    IDLE = 1
-    NO_POWER = 0
-    POSTHEATING = 4
-    PREHEATING = 2
+    OFF = 0  # No drying active
+    CHECKING = 1  # Checking drying status
+    DRYING = 2  # Active drying phase
+    COOLING = 3  # Cooling after drying
+    STOPPING = 4  # Stopping drying process
+    ERROR = 5  # Error state
+    CANNOT_STOP_HEAT_OOC = 6  # Heat control out of control
+    PRODUCT_TEST = 7  # Product testing mode
+
+
+class AMSDrySubStatus(IntEnum):
+    """
+    AMS drying sub-status extracted from bits 22-25 of ams_info.
+    Indicates the specific phase of the drying cycle.
+    Mapped from BambuStudio's DrySubStatus enum.
+    """
+
+    OFF = 0  # No active drying phase
+    HEATING = 1  # Heating phase of drying
+    DEHUMIDIFY = 2  # Dehumidification phase of drying
+
+
+class AMSDryFanStatus(IntEnum):
+    """
+    AMS drying fan status extracted from bits 18-21 of ams_info.
+    Two independent fans (fan1: bits 18-19, fan2: bits 20-21).
+    Mapped from BambuStudio's DryFanStatus enum.
+    """
+
+    OFF = 0  # Fan is off
+    ON = 1  # Fan is running
 
 
 class ExtruderInfoState(IntEnum):
@@ -106,6 +142,7 @@ class ExtruderInfoState(IntEnum):
     EMPTY = 1
     BUFFER_LOADED = 2
     LOADED = 3
+    NOT_AVAILABLE = 4
 
 
 class ExtruderStatus(IntEnum):
@@ -118,6 +155,7 @@ class ExtruderStatus(IntEnum):
     HEATING = 1
     ACTIVE = 2
     SUCCESS = 3
+    NOT_AVAILABLE = 4
 
 
 class NozzleDiameter(Enum):
@@ -134,14 +172,186 @@ class NozzleDiameter(Enum):
 
 class NozzleType(Enum):
     """
-    Nozzle Type enum
+    Canonical cross-model nozzle material type from telemetry.
+
+    This enum intentionally models only material/type categories that appear in
+    telemetry and accessory APIs. Encoded variant identifiers such as `HS01`
+    are parsed via `parse_nozzle_identifier()` / `parse_nozzle_type()`.
     """
 
     UNKNOWN = 0
     STAINLESS_STEEL = 1
     HARDENED_STEEL = 2
-    HS01 = 3
-    HH01 = 4
+    TUNGSTEN_CARBIDE = 3
+    BRASS = 4
+    E3D = 5
+
+
+class NozzleFlowType(Enum):
+    """
+    Canonical nozzle flow families used by BambuStudio/Orca nozzle identifiers.
+
+    Encoded as the second character in identifiers such as `HS00-0.4`.
+    """
+
+    UNKNOWN = "?"
+    STANDARD = "S"
+    HIGH_FLOW = "H"
+    TPU_HIGH_FLOW = "U"
+
+
+class NozzleMaterialCode(Enum):
+    """
+    Canonical material codes used in encoded nozzle identifiers.
+
+    Encoded as characters 3-4 in identifiers such as `HS00-0.4`.
+    """
+
+    UNKNOWN = "??"
+    STAINLESS_STEEL = "00"
+    HARDENED_STEEL = "01"
+    TUNGSTEN_CARBIDE = "05"
+
+
+_FLOW_CODE_TO_TYPE: dict[str, NozzleFlowType] = {
+    "S": NozzleFlowType.STANDARD,
+    "H": NozzleFlowType.HIGH_FLOW,
+    "U": NozzleFlowType.TPU_HIGH_FLOW,
+    "A": NozzleFlowType.STANDARD,
+    "X": NozzleFlowType.STANDARD,
+    "E": NozzleFlowType.HIGH_FLOW,
+}
+
+_TYPE_TO_MATERIAL_CODE: dict[NozzleType, NozzleMaterialCode] = {
+    NozzleType.STAINLESS_STEEL: NozzleMaterialCode.STAINLESS_STEEL,
+    NozzleType.HARDENED_STEEL: NozzleMaterialCode.HARDENED_STEEL,
+    NozzleType.TUNGSTEN_CARBIDE: NozzleMaterialCode.TUNGSTEN_CARBIDE,
+}
+
+_MATERIAL_CODE_TO_TYPE: dict[str, NozzleType] = {
+    NozzleMaterialCode.STAINLESS_STEEL.value: NozzleType.STAINLESS_STEEL,
+    NozzleMaterialCode.HARDENED_STEEL.value: NozzleType.HARDENED_STEEL,
+    NozzleMaterialCode.TUNGSTEN_CARBIDE.value: NozzleType.TUNGSTEN_CARBIDE,
+}
+
+_NOZZLE_TYPE_TELEMETRY_TO_ENUM: dict[str, NozzleType] = {
+    "stainless_steel": NozzleType.STAINLESS_STEEL,
+    "hardened_steel": NozzleType.HARDENED_STEEL,
+    "tungsten_carbide": NozzleType.TUNGSTEN_CARBIDE,
+    "brass": NozzleType.BRASS,
+    "e3d": NozzleType.E3D,
+}
+
+_NOZZLE_TYPE_ENUM_TO_TELEMETRY: dict[NozzleType, str] = {
+    NozzleType.STAINLESS_STEEL: "stainless_steel",
+    NozzleType.HARDENED_STEEL: "hardened_steel",
+    NozzleType.TUNGSTEN_CARBIDE: "tungsten_carbide",
+    NozzleType.BRASS: "brass",
+    NozzleType.E3D: "E3D",
+}
+
+
+def parse_nozzle_identifier(nozzle_id: str) -> tuple[NozzleFlowType, NozzleType, str]:
+    """
+    Parse a Bambu-style nozzle identifier into flow family, material, and diameter.
+
+    Supported encoded formats include values such as `HS00-0.4`, `HH01-0.6`,
+    and `HU00-0.4`.
+
+    Returns
+    -------
+    tuple[NozzleFlowType, NozzleType, str]
+        A tuple of `(flow_type, nozzle_type, diameter)`.
+        Unknown/unsupported parts are returned as `UNKNOWN` enum values.
+    """
+
+    if not nozzle_id:
+        return (NozzleFlowType.UNKNOWN, NozzleType.UNKNOWN, "")
+
+    clean = nozzle_id.strip()
+    if "-" in clean:
+        encoded, diameter = clean.split("-", 1)
+    else:
+        encoded, diameter = clean, ""
+
+    if len(encoded) < 4:
+        return (NozzleFlowType.UNKNOWN, NozzleType.UNKNOWN, diameter)
+
+    flow = _FLOW_CODE_TO_TYPE.get(encoded[1], NozzleFlowType.UNKNOWN)
+    material_code = encoded[2:4]
+    nozzle_type = _MATERIAL_CODE_TO_TYPE.get(material_code, NozzleType.UNKNOWN)
+
+    return (flow, nozzle_type, diameter)
+
+
+def build_nozzle_identifier(
+    flow_type: NozzleFlowType, nozzle_type: NozzleType, diameter: float | str
+) -> str:
+    """
+    Build a canonical Bambu-style nozzle identifier.
+
+    Examples
+    --------
+    `HS00-0.4`, `HH01-0.6`, `HU00-0.4`
+    """
+
+    material = _TYPE_TO_MATERIAL_CODE.get(nozzle_type)
+    if material is None:
+        raise ValueError(f"Unsupported nozzle_type for encoded ID: {nozzle_type}")
+
+    if flow_type not in {
+        NozzleFlowType.STANDARD,
+        NozzleFlowType.HIGH_FLOW,
+        NozzleFlowType.TPU_HIGH_FLOW,
+    }:
+        raise ValueError(f"Unsupported flow_type for encoded ID: {flow_type}")
+
+    if isinstance(diameter, float):
+        diameter_str = f"{diameter:.1f}"
+    else:
+        diameter_str = str(diameter)
+
+    return f"H{flow_type.value}{material.value}-{diameter_str}"
+
+
+def parse_nozzle_type(value: str | None) -> NozzleType:
+    """
+    Resolve a nozzle type from cross-model telemetry strings or encoded IDs.
+
+    Supports direct telemetry values (for example `hardened_steel`) and encoded
+    forms (for example `HH01-0.4`, `HS00`, `HU05`).
+    """
+
+    if value is None:
+        return NozzleType.UNKNOWN
+
+    clean = value.strip()
+    if not clean:
+        return NozzleType.UNKNOWN
+
+    telemetry_key = clean.lower()
+    if telemetry_key in _NOZZLE_TYPE_TELEMETRY_TO_ENUM:
+        return _NOZZLE_TYPE_TELEMETRY_TO_ENUM[telemetry_key]
+
+    if clean in _MATERIAL_CODE_TO_TYPE:
+        return _MATERIAL_CODE_TO_TYPE[clean]
+
+    _, nozzle_type, _ = parse_nozzle_identifier(clean)
+    if nozzle_type != NozzleType.UNKNOWN:
+        return nozzle_type
+
+    try:
+        return NozzleType[clean.upper()]
+    except (KeyError, ValueError):
+        return NozzleType.UNKNOWN
+
+
+def nozzle_type_to_telemetry(value: NozzleType) -> str:
+    """
+    Convert canonical `NozzleType` to telemetry/API string.
+    """
+
+    return _NOZZLE_TYPE_ENUM_TO_TELEMETRY.get(value, "unknown")
 
 
 class PlateType(Enum):
@@ -158,22 +368,48 @@ class PlateType(Enum):
     NONE = 999
 
 
+class SpeedLevel(IntEnum):
+    """
+    Print speed profile levels. Maps human-readable names to the firmware integer codes
+    sent in the `print_speed` MQTT command (`param` field) and reported back in `spd_lvl`.
+
+    Used by `BambuPrinter.speed_level` getter (returns the active level) and setter
+    (accepts a `SpeedLevel` to change the active profile).
+    """
+
+    QUIET = 1
+    STANDARD = 2
+    SPORT = 3
+    LUDICROUS = 4
+
+
+class DetectorSensitivity(Enum):
+    """
+    Sensitivity level for X-Cam AI vision detectors (spaghetti, pile-up, clump, air-print).
+    The string value is sent directly in the `halt_print_sensitivity` MQTT field.
+    """
+
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+
+
 class PrinterModel(Enum):
     """
     Printer model enum
     """
 
-    UNKNOWN = 0
-    X1C = 1
-    X1 = 2
-    X1E = 3
-    P1P = 4
-    P1S = 5
-    A1_MINI = 6
-    A1 = 7
-    P2S = 8
-    H2S = 9
-    H2D = 10
+    UNKNOWN = "unknown"
+    X1C = "x1c"
+    X1 = "x1"
+    X1E = "x1e"
+    P1P = "p1p"
+    P1S = "p1s"
+    A1_MINI = "a1_mini"
+    A1 = "a1"
+    P2S = "p2s"
+    H2S = "h2s"
+    H2D = "h2d"
 
 
 class PrinterSeries(Enum):
@@ -198,6 +434,8 @@ class PrintOption(Enum):
     FILAMENT_TANGLE_DETECT = 1
     SOUND_ENABLE = 2
     AUTO_SWITCH_FILAMENT = 3
+    NOZZLE_BLOB_DETECT = 4
+    AIR_PRINT_DETECT = 5
 
 
 class ServiceState(Enum):
@@ -224,7 +462,6 @@ class TrayState(IntEnum):
     UNLOADING = 3
 
 
-@staticmethod
 def decodeError(error: int) -> dict:
     """
     Decodes a raw print_error integer into a full HMS dictionary.
@@ -284,7 +521,6 @@ def decodeError(error: int) -> dict:
     return res
 
 
-@staticmethod
 def decodeHMS(hms_list: list) -> list[dict]:
     """
     Decodes the raw HMS list from telemetry into a structured list of dictionaries.
@@ -345,37 +581,26 @@ def decodeHMS(hms_list: list) -> list[dict]:
     return decoded_errors
 
 
-@staticmethod
 def getAMSHeatingState(ams_info: int) -> AMSHeatingState:
     """
-    Decodes the AMS Heater state from the AMS Info attribute
+    Decodes the AMS drying/heater state from bits 4-7 of the ams_info value.
+
+    This implementation follows BambuStudio's DevFilaSystem parsing logic,
+    extracting DryStatus from the info field.
+
+    Args:
+        ams_info: Numeric AMS info value containing drying status in bits 4-7.
+
+    Returns:
+        AMSHeatingState enum representing the current drying/heater state.
+        Only AMS 2 Pro (N3F) and AMS HT (N3S) support active drying states.
     """
-    # 1. Primary Power Threshold
-    if ams_info < 2000 and ams_info != 1002:
-        return AMSHeatingState.NO_POWER
+    # Extract DryStatus from bits 4-7 (right-shift by 4, mask 0x0F)
+    dry_status = (ams_info >> 4) & 0x0F
 
-    # 2. Extract Universal Remainder (Strips 99-point model offset)
-    status_rem = ams_info % 100
-    is_high_power = ams_info >= 100000
-
-    # 3. High Power Bus Logic
-    if is_high_power:
-        # 142113, 142123, 142024
-        if status_rem in [13, 23, 24]:
-            return AMSHeatingState.HEATING
-        # 142103, 142014
-        return AMSHeatingState.POSTHEATING
-
-    # 4. Local Bus Logic (+10 / +20 transitions)
-    if status_rem in [13, 24]:
-        return AMSHeatingState.PREHEATING
-    if status_rem == 23:
-        return AMSHeatingState.HEATING
-
-    return AMSHeatingState.IDLE
+    return AMSHeatingState(dry_status)
 
 
-@staticmethod
 def getAMSModelBySerial(serial: str) -> AMSModel:
     """
     Returns the hardware model based on the serial number prefix.
@@ -392,7 +617,6 @@ def getAMSModelBySerial(serial: str) -> AMSModel:
     return AMSModel.UNKNOWN
 
 
-@staticmethod
 def getAMSSeriesByModel(model: AMSModel) -> AMSSeries:
     """
     Returns the AMS series enum based on the provided model.
@@ -404,13 +628,6 @@ def getAMSSeriesByModel(model: AMSModel) -> AMSSeries:
     return AMSSeries.UNKNOWN
 
 
-@staticmethod
-@deprecated("This method is deprecated (v1.0.0). Use `getPrinterModelBySerial`.")
-def getModelBySerial(serial: str) -> PrinterModel:
-    return getPrinterModelBySerial(serial)
-
-
-@staticmethod
 def getPrinterModelBySerial(serial: str) -> PrinterModel:
     """
     Returns the Printer model enum based on the provided serial #.
@@ -431,7 +648,6 @@ def getPrinterModelBySerial(serial: str) -> PrinterModel:
     return mapping.get(prefix, PrinterModel.UNKNOWN)
 
 
-@staticmethod
 def getPrinterSeriesByModel(model: PrinterModel) -> PrinterSeries:
     """
     Returns the Printer series enum based on the provided model.
@@ -442,38 +658,47 @@ def getPrinterSeriesByModel(model: PrinterModel) -> PrinterSeries:
         return PrinterSeries.UNKNOWN
 
 
-@staticmethod
-@deprecated("This method is deprecated (v1.0.0). Use `getPrinterSeriesByModel`.")
-def getSeriesByModel(model: PrinterModel) -> PrinterSeries:
-    return getPrinterSeriesByModel(model)
-
-
-@staticmethod
-def parseAMSInfo(info: int) -> dict:
+def parseAMSInfo(info_hex: str) -> dict:
     """
-    Extracts all established telemetry attributes from the info integer.
-    Verified offsets: 0, 4, 8, 17, 18, 20, 22.
-    """
+    Extracts all documented telemetry attributes from the AMS info hex string.
 
-    extruder_id = (info >> 8) & 0x0F
-    # 11 and 10 == 1 and 0
-    #  8 and  7 == 1 and 0
-    if extruder_id in (8, 11):
-        h2d_toolhead_index = 1
-    else:
-        h2d_toolhead_index = 0
+    Based on BambuStudio's DevFilaSystemParser::ParseAmsInfo implementation.
+    Complete bit field mapping (32-bit integer):
+    - Bits 0-3: AMS type (1=AMS, 2=AMS_LITE, 3=AMS_2_PRO/N3F, 4=AMS_HT/N3S)
+    - Bits 4-7: Dry status (OFF/CHECKING/DRYING/COOLING/STOPPING/ERROR/etc)
+    - Bits 8-11: Extruder ID (for H2D toolhead assignment)
+    - Bits 18-19: Dry fan 1 status (OFF=0, ON=1)
+    - Bits 20-21: Dry fan 2 status (OFF=0, ON=1)
+    - Bits 22-25: Dry sub-status (OFF/HEATING/DEHUMIDIFY)
+
+    Args:
+        info_hex: Hexadecimal string representation of AMS info value
+
+    Returns:
+        Dictionary with all extracted telemetry fields
+    """
+    info = int(info_hex, 16)
+
+    ams_type = info & 0x0F  # Bits 0-3
+    dry_status = (info >> 4) & 0x0F  # Bits 4-7
+    extruder_id = (info >> 8) & 0x0F  # Bits 8-11
+    dry_fan1_status = (info >> 18) & 0x03  # Bits 18-19
+    dry_fan2_status = (info >> 20) & 0x03  # Bits 20-21
+    dry_sub_status = (info >> 22) & 0x0F  # Bits 22-25
 
     ret = {
+        "ams_type": AMSModel(ams_type) if ams_type in range(5) else AMSModel.UNKNOWN,
+        "heater_state": AMSHeatingState(dry_status),
         "extruder_id": extruder_id,
-        "h2d_toolhead_index": h2d_toolhead_index,
-        "heater_state": getAMSHeatingState(info),
+        "dry_fan1_status": AMSDryFanStatus(dry_fan1_status),
+        "dry_fan2_status": AMSDryFanStatus(dry_fan2_status),
+        "dry_sub_status": AMSDrySubStatus(dry_sub_status),
     }
 
     # print(f"\r\n{ret}\r\n")
     return ret
 
 
-@staticmethod
 def parseAMSStatus(status_int: int) -> str:
     """
     Maps the ams_status code to human-readable descriptions.
@@ -492,7 +717,6 @@ def parseAMSStatus(status_int: int) -> str:
     return status_map.get(main_status, "Idle")
 
 
-@staticmethod
 def parseExtruderInfo(info_int: int) -> ExtruderInfoState:
     """
     Decodes the extruder 'info' bit-packed status using unique ExtruderInfoState names.
@@ -506,7 +730,6 @@ def parseExtruderInfo(info_int: int) -> ExtruderInfoState:
     return ExtruderInfoState.EMPTY
 
 
-@staticmethod
 def parseExtruderStatus(stat_int: int) -> ExtruderStatus:
     """
     Decodes the operational extruder state using the exhaustive Enum map.
@@ -519,50 +742,19 @@ def parseExtruderStatus(stat_int: int) -> ExtruderStatus:
     return ExtruderStatus.IDLE
 
 
-@staticmethod
-def parseExtruderTrayState(extruder: int, idx, status) -> int:
+def parseExtruderTrayState(extruder: int, hotend, slot) -> int:
     if (
-        idx == 254
-        or (extruder == 0 and status == 65280)
-        or (extruder == 1 and status == 65024)
+        hotend == 254
+        or (extruder == 0 and slot == 65280)
+        or (extruder == 1 and slot == 65024)
     ):
         return 255 - extruder
-    if (extruder == 0 and status & 0xFF == 255) or (
-        extruder == 1 and status & 0xFE == 255
-    ):
+    if (extruder == 0 and slot & 0xFF == 255) or (extruder == 1 and slot & 0xFE == 255):
         return -1
     else:
-        return status & 0xFF
+        return slot & 0xFF
 
 
-@staticmethod
-@deprecated("This property is deprecated (v1.0.0). Use `scaleFanSpeed`.")
-def parseFan(fan: int) -> int:
-    """
-    !!! danger "Deprecated"
-    This property is deprecated (v1.0.0). Use `scaleFanSpeed`.
-    """
-    fan_map = {
-        1: 10,
-        2: 20,
-        3: 30,
-        4: 30,
-        5: 40,
-        6: 40,
-        7: 50,
-        8: 50,
-        9: 60,
-        10: 70,
-        11: 70,
-        12: 80,
-        13: 90,
-        14: 90,
-        15: 100,
-    }
-    return fan_map.get(int(fan), 0)
-
-
-@staticmethod
 def parseRFIDStatus(status):
     """
     Can be used to parse `ams_rfid_status`
@@ -579,7 +771,6 @@ def parseRFIDStatus(status):
     return rfid_map.get(status, "Unknown")
 
 
-@staticmethod
 def parseStage(stage_int: int) -> str:
     """
     Maps stg_cur numeric codes to human-readable print stages.
@@ -622,10 +813,29 @@ def parseStage(stage_int: int) -> str:
         33: "Cutter error pause",
         34: "First layer error pause",
         35: "Nozzle clog pause",
+        36: "Absolute accuracy pre-check",
         37: "Chamber control",
-        38: "Chamber pre-heat (Legacy)",
+        38: "Absolute accuracy post-check",
         39: "Nozzle Offset Calibration",
+        40: "Bed level high temperature",
+        41: "Check quick release",
+        42: "Check door and cover",
+        43: "Laser calibration",
+        44: "Check platform",
+        45: "Check birdeye camera position",
+        46: "Calibrate birdeye camera",
+        47: "Bed level phase 1",
+        48: "Bed level phase 2",
         49: "Heating chamber",
+        50: "Heated bed cooling",
+        51: "Print calibration lines",
+        52: "Check material",
+        53: "Calibrating live view camera",
+        54: "Waiting for heatbed temperature",
+        55: "Check material position",
+        56: "Calibrating cutter model offset",
+        57: "Measuring surface",
+        58: "Thermal preconditioning",
         70: "Leading filament",
         71: "Reached toolhead",
         72: "Grabbing filament",
@@ -640,7 +850,6 @@ def parseStage(stage_int: int) -> str:
     return stage_map.get(stage_int, f"Stage [{stage_int}]")
 
 
-@staticmethod
 def scaleFanSpeed(raw_val: Any) -> int:
     """
     Scales proprietary 0-15 fan speed values to a 0-100 percentage.
@@ -652,7 +861,6 @@ def scaleFanSpeed(raw_val: Any) -> int:
         return 0
 
 
-@staticmethod
 def sortFileTreeAlphabetically(source) -> dict:
     """
     Sorts a dict of file/directory nodes hierarchically.
@@ -671,9 +879,148 @@ def sortFileTreeAlphabetically(source) -> dict:
     return source
 
 
-@staticmethod
 def unpackTemperature(raw_temp: int) -> tuple[float, float]:
     """
     Unpacks a 32-bit packed temperature integer into a tuple of (Actual, Target).
     """
     return float(raw_temp & 0xFFFF), float((raw_temp >> 16) & 0xFFFF)
+
+
+def get_file_md5(file_path: str | Path) -> str:
+    """
+    Generates an MD5 hex hash for a given file.
+
+    Args:
+        file_path: The path to the file (string or Path object).
+
+    Returns:
+        The 32-character MD5 hexadecimal string.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+    """
+    path = Path(file_path)
+
+    if not path.is_file():
+        raise FileNotFoundError(f"No file found at: {path}")
+
+    md5_hash = hashlib.md5()
+
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            md5_hash.update(chunk)
+
+    return md5_hash.hexdigest().upper()
+
+
+def jsonSerializer(obj: Any) -> Any:
+    """
+    Module-level JSON serializer for use with `json.dumps(default=jsonSerializer)`.
+
+    Handles dataclasses, objects with `__dict__`, and falls back to `str()`.
+    Skips MQTT clients, threads, and `mappingproxy` instances that cannot be
+    serialized meaningfully.
+    """
+    try:
+        if isinstance(obj, Thread):
+            return ""
+        if getattr(obj.__class__, "__module__", "").startswith("paho.mqtt"):
+            return ""
+        if str(obj.__class__).replace("<class '", "").replace("'>", "") == "mappingproxy":
+            return ""
+        return getattr(obj, "__dict__", str(obj))
+    except Exception:
+        return ""
+
+
+# ---------------------------------------------------------------------------
+# Disk-persistence framework
+# ---------------------------------------------------------------------------
+# General-purpose helpers for persisting any JSON-serializable runtime value
+# to a named cache directory.  All state that BPM needs to survive across
+# process restarts should flow through these four functions.
+#
+# Pattern:
+#   cache_dir  = self.config.bpm_cache_path / "<subdir>"
+#   key        = make_cache_key(<raw identifier>)
+#   cache_write(cache_dir, key, {"field": value})
+#   data       = cache_read(cache_dir, key)          # returns None on miss
+#   cache_delete(cache_dir, key)
+# ---------------------------------------------------------------------------
+
+
+def make_cache_key(raw: str, max_len: int = 80) -> str | None:
+    """
+    Sanitize a raw string into a filesystem-safe cache key.
+
+    Strips leading/trailing whitespace, replaces ``/`` and spaces with ``_``,
+    and truncates to *max_len* characters.  Returns ``None`` when the result
+    would be an empty string (i.e. the input carried no usable content).
+
+    Args:
+        raw:     The source identifier (e.g. subtask name, gcode file path).
+        max_len: Maximum length of the returned key (default 80).
+
+    Returns:
+        A non-empty sanitized string, or ``None``.
+    """
+    sanitized = raw.strip().replace("/", "_").replace(" ", "_")
+    return sanitized[:max_len] or None
+
+
+def cache_write(cache_dir: Path, key: str, value: Any) -> None:
+    """
+    Persist *value* to ``cache_dir/<key>.json``.
+
+    *value* must be JSON-serializable (dict, list, scalar).  The cache
+    directory is created if it does not already exist.  All errors are
+    silently swallowed so callers never need to guard this call.
+
+    Args:
+        cache_dir: Directory under ``bpm_cache_path`` (e.g. ``…/elapsed``).
+        key:       Filename stem produced by :func:`make_cache_key`.
+        value:     Any JSON-serializable object to persist.
+    """
+    try:
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        (cache_dir / f"{key}.json").write_text(json.dumps(value))
+    except Exception:
+        pass
+
+
+def cache_read(cache_dir: Path, key: str, default: Any = None) -> Any:
+    """
+    Load a persisted value from ``cache_dir/<key>.json``.
+
+    Returns *default* (``None`` unless overridden) on any error — missing
+    file, corrupt JSON, permission error, etc.  Callers should always
+    treat ``None`` / *default* as a cache miss and fall back gracefully.
+
+    Args:
+        cache_dir: Directory under ``bpm_cache_path``.
+        key:       Filename stem produced by :func:`make_cache_key`.
+        default:   Value to return on any read failure (default ``None``).
+
+    Returns:
+        The deserialized value, or *default*.
+    """
+    try:
+        return json.loads((cache_dir / f"{key}.json").read_text())
+    except Exception:
+        return default
+
+
+def cache_delete(cache_dir: Path, key: str) -> None:
+    """
+    Remove ``cache_dir/<key>.json`` if it exists.
+
+    Silently ignores missing files and all other errors.
+
+    Args:
+        cache_dir: Directory under ``bpm_cache_path``.
+        key:       Filename stem produced by :func:`make_cache_key`.
+    """
+    try:
+        (cache_dir / f"{key}.json").unlink(missing_ok=True)
+    except Exception:
+        pass

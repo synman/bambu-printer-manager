@@ -34,5 +34,8 @@ __pycache__
 # Ruff stuff:
 .ruff_cache/
 
-#mkdocs
+#mkdocs and swagger docs
 /site
+.github/copilot-instructions.md
+.tmp_*
+CLAUDE.md
