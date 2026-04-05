@@ -969,6 +969,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#bpm.bambuconfig.BambuConfig.mqtt_connection_timeout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;mqtt_connection_timeout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#bpm.bambuconfig.BambuConfig.mqtt_port" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1897,9 +1908,10 @@
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(mqtt_port)">mqtt_port</span></span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">=</span> <span class="mi">8883</span><span class="p">,</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(mqtt_client_id)">mqtt_client_id</span></span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;studio_client_id:0c1f&quot;</span><span class="p">,</span>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(mqtt_username)">mqtt_username</span></span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;bblp&quot;</span><span class="p">,</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(watchdog_timeout)">watchdog_timeout</span></span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(external_chamber)">external_chamber</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(capabilities)">capabilities</span></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            PrinterCapabilities
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(mqtt_connection_timeout)">mqtt_connection_timeout</span></span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(watchdog_timeout)">watchdog_timeout</span></span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(external_chamber)">external_chamber</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(capabilities)">capabilities</span></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            PrinterCapabilities
 
 
   
@@ -1910,30 +1922,30 @@
   
       dataclass
    (bpm.bambuconfig.PrinterCapabilities)" href="#bpm.bambuconfig.PrinterCapabilities">PrinterCapabilities</a></span><span class="p">(),</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(bpm_cache_path)">bpm_cache_path</span></span><span class="p">:</span> <span class="n"><span title="pathlib.Path">Path</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(printer_model)">printer_model</span></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            PrinterModel (bpm.bambutools.PrinterModel)" href="../bambutools/#bpm.bambutools.PrinterModel">PrinterModel</a></span> <span class="o">=</span> <span class="n"><span title="bpm.bambutools.PrinterModel.UNKNOWN">UNKNOWN</span></span><span class="p">,</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(firmware_version)">firmware_version</span></span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(ams_firmware_version)">ams_firmware_version</span></span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(auto_recovery)">auto_recovery</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(filament_tangle_detect)">filament_tangle_detect</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(sound_enable)">sound_enable</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(auto_switch_filament)">auto_switch_filament</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(startup_read_option)">startup_read_option</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(tray_read_option)">tray_read_option</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(calibrate_remain_flag)">calibrate_remain_flag</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(buildplate_marker_detector)">buildplate_marker_detector</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(spaghetti_detector)">spaghetti_detector</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(spaghetti_detector_sensitivity)">spaghetti_detector_sensitivity</span></span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;medium&quot;</span><span class="p">,</span>
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(purgechutepileup_detector)">purgechutepileup_detector</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(purgechutepileup_detector_sensitivity)">purgechutepileup_detector_sensitivity</span></span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;medium&quot;</span><span class="p">,</span>
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(nozzleclumping_detector)">nozzleclumping_detector</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(nozzleclumping_detector_sensitivity)">nozzleclumping_detector_sensitivity</span></span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;medium&quot;</span><span class="p">,</span>
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(airprinting_detector)">airprinting_detector</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(airprinting_detector_sensitivity)">airprinting_detector_sensitivity</span></span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;medium&quot;</span><span class="p">,</span>
-</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(nozzle_blob_detect)">nozzle_blob_detect</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(air_print_detect)">air_print_detect</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(verbose)">verbose</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="p">)</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(bpm_cache_path)">bpm_cache_path</span></span><span class="p">:</span> <span class="n"><span title="pathlib.Path">Path</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(printer_model)">printer_model</span></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            PrinterModel (bpm.bambutools.PrinterModel)" href="../bambutools/#bpm.bambutools.PrinterModel">PrinterModel</a></span> <span class="o">=</span> <span class="n"><span title="bpm.bambutools.PrinterModel.UNKNOWN">UNKNOWN</span></span><span class="p">,</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(firmware_version)">firmware_version</span></span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(ams_firmware_version)">ams_firmware_version</span></span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(auto_recovery)">auto_recovery</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(filament_tangle_detect)">filament_tangle_detect</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(sound_enable)">sound_enable</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(auto_switch_filament)">auto_switch_filament</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(startup_read_option)">startup_read_option</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(tray_read_option)">tray_read_option</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(calibrate_remain_flag)">calibrate_remain_flag</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(buildplate_marker_detector)">buildplate_marker_detector</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(spaghetti_detector)">spaghetti_detector</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(spaghetti_detector_sensitivity)">spaghetti_detector_sensitivity</span></span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;medium&quot;</span><span class="p">,</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(purgechutepileup_detector)">purgechutepileup_detector</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(purgechutepileup_detector_sensitivity)">purgechutepileup_detector_sensitivity</span></span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;medium&quot;</span><span class="p">,</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(nozzleclumping_detector)">nozzleclumping_detector</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(nozzleclumping_detector_sensitivity)">nozzleclumping_detector_sensitivity</span></span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;medium&quot;</span><span class="p">,</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(airprinting_detector)">airprinting_detector</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(airprinting_detector_sensitivity)">airprinting_detector_sensitivity</span></span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;medium&quot;</span><span class="p">,</span>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(nozzle_blob_detect)">nozzle_blob_detect</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(air_print_detect)">air_print_detect</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>    <span class="n"><span title="bpm.bambuconfig.BambuConfig(verbose)">verbose</span></span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="p">)</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2268,6 +2280,23 @@ capabability values.</p>
             <td>
               <div class="doc-md-description">
                 <p>Unique identifier used during the MQTT handshake protocol.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><a class="autorefs autorefs-internal" title="            mqtt_connection_timeout
+
+
+  
+      class-attribute
+      instance-attribute
+   (bpm.bambuconfig.BambuConfig.mqtt_connection_timeout)" href="#bpm.bambuconfig.BambuConfig.mqtt_connection_timeout">mqtt_connection_timeout</a></code></td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Duration in seconds to wait for the MQTT connection to be established before timing out.</p>
               </div>
             </td>
           </tr>
@@ -2968,6 +2997,31 @@ capabability values.</p>
 
 
 
+<h3 id="bpm.bambuconfig.BambuConfig.mqtt_connection_timeout" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">mqtt_connection_timeout</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+</h3>
+<div class="language-python doc-signature highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">mqtt_connection_timeout</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">=</span> <span class="mi">10</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Duration in seconds to wait for the MQTT connection to be established before timing out.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
 <h3 id="bpm.bambuconfig.BambuConfig.mqtt_port" class="doc doc-heading">
 <code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">mqtt_port</span>
 
@@ -3384,16 +3438,16 @@ capabability values.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/bpm/bambuconfig.py</code></summary>
-              <div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-132"><a id="__codelineno-0-132" name="__codelineno-0-132"></a><a href="#__codelineno-0-132"><span class="linenos" data-linenos="132 "></span></a><span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="__span-0-133"><a id="__codelineno-0-133" name="__codelineno-0-133"></a><a href="#__codelineno-0-133"><span class="linenos" data-linenos="133 "></span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-0-134"><a id="__codelineno-0-134" name="__codelineno-0-134"></a><a href="#__codelineno-0-134"><span class="linenos" data-linenos="134 "></span></a><span class="sd">    Post-initialization logic to handle defaults.</span>
-</span><span id="__span-0-135"><a id="__codelineno-0-135" name="__codelineno-0-135"></a><a href="#__codelineno-0-135"><span class="linenos" data-linenos="135 "></span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-136"><a id="__codelineno-0-136" name="__codelineno-0-136"></a><a href="#__codelineno-0-136"><span class="linenos" data-linenos="136 "></span></a>    <span class="bp">self</span><span class="o">.</span><span class="n">printer_model</span> <span class="o">=</span> <span class="n">getPrinterModelBySerial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">)</span>
-</span><span id="__span-0-137"><a id="__codelineno-0-137" name="__codelineno-0-137"></a><a href="#__codelineno-0-137"><span class="linenos" data-linenos="137 "></span></a>
-</span><span id="__span-0-138"><a id="__codelineno-0-138" name="__codelineno-0-138"></a><a href="#__codelineno-0-138"><span class="linenos" data-linenos="138 "></span></a>    <span class="c1"># Default bpm_cache_path and creation</span>
-</span><span id="__span-0-139"><a id="__codelineno-0-139" name="__codelineno-0-139"></a><a href="#__codelineno-0-139"><span class="linenos" data-linenos="139 "></span></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bpm_cache_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-0-140"><a id="__codelineno-0-140" name="__codelineno-0-140"></a><a href="#__codelineno-0-140"><span class="linenos" data-linenos="140 "></span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">bpm_cache_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;~/.bpm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
-</span><span id="__span-0-141"><a id="__codelineno-0-141" name="__codelineno-0-141"></a><a href="#__codelineno-0-141"><span class="linenos" data-linenos="141 "></span></a>    <span class="bp">self</span><span class="o">.</span><span class="n">set_new_bpm_cache_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bpm_cache_path</span><span class="p">)</span>
+              <div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-134"><a id="__codelineno-0-134" name="__codelineno-0-134"></a><a href="#__codelineno-0-134"><span class="linenos" data-linenos="134 "></span></a><span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-0-135"><a id="__codelineno-0-135" name="__codelineno-0-135"></a><a href="#__codelineno-0-135"><span class="linenos" data-linenos="135 "></span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-136"><a id="__codelineno-0-136" name="__codelineno-0-136"></a><a href="#__codelineno-0-136"><span class="linenos" data-linenos="136 "></span></a><span class="sd">    Post-initialization logic to handle defaults.</span>
+</span><span id="__span-0-137"><a id="__codelineno-0-137" name="__codelineno-0-137"></a><a href="#__codelineno-0-137"><span class="linenos" data-linenos="137 "></span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-138"><a id="__codelineno-0-138" name="__codelineno-0-138"></a><a href="#__codelineno-0-138"><span class="linenos" data-linenos="138 "></span></a>    <span class="bp">self</span><span class="o">.</span><span class="n">printer_model</span> <span class="o">=</span> <span class="n">getPrinterModelBySerial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">)</span>
+</span><span id="__span-0-139"><a id="__codelineno-0-139" name="__codelineno-0-139"></a><a href="#__codelineno-0-139"><span class="linenos" data-linenos="139 "></span></a>
+</span><span id="__span-0-140"><a id="__codelineno-0-140" name="__codelineno-0-140"></a><a href="#__codelineno-0-140"><span class="linenos" data-linenos="140 "></span></a>    <span class="c1"># Default bpm_cache_path and creation</span>
+</span><span id="__span-0-141"><a id="__codelineno-0-141" name="__codelineno-0-141"></a><a href="#__codelineno-0-141"><span class="linenos" data-linenos="141 "></span></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bpm_cache_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-142"><a id="__codelineno-0-142" name="__codelineno-0-142"></a><a href="#__codelineno-0-142"><span class="linenos" data-linenos="142 "></span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">bpm_cache_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;~/.bpm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+</span><span id="__span-0-143"><a id="__codelineno-0-143" name="__codelineno-0-143"></a><a href="#__codelineno-0-143"><span class="linenos" data-linenos="143 "></span></a>    <span class="bp">self</span><span class="o">.</span><span class="n">set_new_bpm_cache_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bpm_cache_path</span><span class="p">)</span>
 </span></code></pre></div>
             </details>
     </div>
@@ -3418,11 +3472,10 @@ capabability values.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/bpm/bambuconfig.py</code></summary>
-              <div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-143"><a id="__codelineno-0-143" name="__codelineno-0-143"></a><a href="#__codelineno-0-143"><span class="linenos" data-linenos="143 "></span></a><span class="k">def</span> <span class="nf">set_new_bpm_cache_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">):</span>
-</span><span id="__span-0-144"><a id="__codelineno-0-144" name="__codelineno-0-144"></a><a href="#__codelineno-0-144"><span class="linenos" data-linenos="144 "></span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Enables changing the bpm cache directory at runtime.  Will orphan previous contents.&quot;&quot;&quot;</span>
-</span><span id="__span-0-145"><a id="__codelineno-0-145" name="__codelineno-0-145"></a><a href="#__codelineno-0-145"><span class="linenos" data-linenos="145 "></span></a>    <span class="bp">self</span><span class="o">.</span><span class="n">bpm_cache_path</span> <span class="o">=</span> <span class="n">path</span>
-</span><span id="__span-0-146"><a id="__codelineno-0-146" name="__codelineno-0-146"></a><a href="#__codelineno-0-146"><span class="linenos" data-linenos="146 "></span></a>    <span class="n">metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bpm_cache_path</span> <span class="o">/</span> <span class="s2">&quot;metadata&quot;</span>
-</span><span id="__span-0-147"><a id="__codelineno-0-147" name="__codelineno-0-147"></a><a href="#__codelineno-0-147"><span class="linenos" data-linenos="147 "></span></a>    <span class="n">metadata</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+              <div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-145"><a id="__codelineno-0-145" name="__codelineno-0-145"></a><a href="#__codelineno-0-145"><span class="linenos" data-linenos="145 "></span></a><span class="k">def</span> <span class="nf">set_new_bpm_cache_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">):</span>
+</span><span id="__span-0-146"><a id="__codelineno-0-146" name="__codelineno-0-146"></a><a href="#__codelineno-0-146"><span class="linenos" data-linenos="146 "></span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Enables changing the bpm cache directory at runtime.  Will orphan previous contents.&quot;&quot;&quot;</span>
+</span><span id="__span-0-147"><a id="__codelineno-0-147" name="__codelineno-0-147"></a><a href="#__codelineno-0-147"><span class="linenos" data-linenos="147 "></span></a>    <span class="bp">self</span><span class="o">.</span><span class="n">bpm_cache_path</span> <span class="o">=</span> <span class="n">path</span>
+</span><span id="__span-0-148"><a id="__codelineno-0-148" name="__codelineno-0-148"></a><a href="#__codelineno-0-148"><span class="linenos" data-linenos="148 "></span></a>    <span class="bp">self</span><span class="o">.</span><span class="n">bpm_cache_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span></code></pre></div>
             </details>
     </div>

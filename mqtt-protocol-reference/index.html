@@ -2843,19 +2843,31 @@
 <td><code>auto_switch_filament</code></td>
 <td>string</td>
 <td><code>"true"</code>/<code>"false"</code></td>
-<td>Auto-switch to backup filament</td>
+<td>Auto-switch to another AMS slot when active spool runs out. Target slot must have the <strong>same filament type AND color</strong>. AMS-hosted spools only.</td>
 </tr>
 <tr>
 <td><code>filament_tangle_detect</code></td>
 <td>string</td>
 <td><code>"true"</code>/<code>"false"</code></td>
-<td>Pause if filament tangles</td>
+<td>Pause if AMS sensors detect a tangle. AMS-only; no effect on external spool prints.</td>
 </tr>
 <tr>
 <td><code>sound_enable</code></td>
 <td>string</td>
 <td><code>"true"</code>/<code>"false"</code></td>
 <td>Beep for notifications</td>
+</tr>
+<tr>
+<td><code>nozzle_blob_detect</code></td>
+<td>string</td>
+<td><code>"true"</code>/<code>"false"</code></td>
+<td>Legacy firmware-level nozzle blob detection. On supported printers, prefer xcam <code>nozzleclumping_detector</code> (adds sensitivity control).</td>
+</tr>
+<tr>
+<td><code>air_print_detect</code></td>
+<td>string</td>
+<td><code>"true"</code>/<code>"false"</code></td>
+<td>Legacy firmware-level air-printing detection. On supported printers, prefer xcam <code>airprinting_detector</code> (adds sensitivity control).</td>
 </tr>
 <tr>
 <td><code>option</code></td>
