@@ -2180,6 +2180,7 @@ class BambuPrinter:
                                     self._active_job_info.project_info = get_project_info(
                                         file_entry["id"], self, plate_num=plate_num
                                     )
+                                    self._active_job_info.plate_num = plate_num
                                 except Exception as e:
                                     logger.warning(
                                         f"get_project_info fallback failed for [{file_entry['id']}]: {e}"
