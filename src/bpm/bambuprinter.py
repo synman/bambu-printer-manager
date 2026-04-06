@@ -2180,7 +2180,6 @@ class BambuPrinter:
                                     self._active_job_info.project_info = get_project_info(
                                         file_entry["id"], self, plate_num=plate_num
                                     )
-                                    self._active_job_info.plate_num = plate_num
                                 except Exception as e:
                                     logger.warning(
                                         f"get_project_info fallback failed for [{file_entry['id']}]: {e}"
@@ -2461,7 +2460,6 @@ class BambuPrinter:
             info = message["info"]
             for module in info["module"]:
                 if "ota" in module["name"]:
-                    self.config.serial_number = module["sn"]
                     self.config.firmware_version = module["sw_ver"]
                 if "ams" in module.get("product_name", "").lower():
                     self.config.ams_firmware_version = module["sw_ver"]

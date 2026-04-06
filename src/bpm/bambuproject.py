@@ -506,7 +506,7 @@ def get_project_info(
     if not local_file:
         localfile.unlink(missing_ok=True)
 
-    for num in range(1, 10):
+    for num in range(1, 31):
         md = cache_path / "metadata" / f"{filename}-{num}.json"
         md.unlink(missing_ok=True)
 

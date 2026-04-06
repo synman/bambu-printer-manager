@@ -28,7 +28,7 @@ dependencies = [
   "webcolors",
   "paho-mqtt",
   "mkdocstrings-python",
-  "typing-extensions ; python_version<'3.12'",
+  "typing-extensions",
 ]
 
 [project.optional-dependencies]
