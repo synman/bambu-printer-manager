@@ -9,6 +9,7 @@ import logging
 import math
 import re
 import ssl
+import sys
 import threading
 import time
 import traceback
@@ -16,7 +17,12 @@ from pathlib import Path
 from typing import Any
 
 import paho.mqtt.client as mqtt
-from typing_extensions import deprecated
+
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
+
 from webcolors import hex_to_name, name_to_hex
 
 from bpm.bambucommands import (

@@ -12,7 +12,7 @@ exclude = ["bpm/ftpsclient"]
 
 [project]
 name = "bambu-printer-manager"
-version = "1.0.2rc1"
+version = "1.0.2rc2"
 authors = [
   { name="Shell M. Shrader", email="shell@shellware.com" },
 ]
@@ -28,7 +28,7 @@ dependencies = [
   "webcolors",
   "paho-mqtt",
   "mkdocstrings-python",
-  "typing-extensions",
+  "typing-extensions ; python_version<'3.13'",
 ]
 
 [project.optional-dependencies]
