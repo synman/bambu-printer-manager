@@ -269,9 +269,10 @@ class BambuPrinter:
         considered dead after making this call although you may be able to restart a
         session with [start_session](#bpm.bambuprinter.BambuPrinter.start_session)().
         """
-        if self.client and self.client.is_connected():
-            self.client.disconnect()
-            logger.debug("quit - mqtt client was connected and is now disconnected")
+        if self._client:
+            # always call disconnect as is_connected will return False in case of connection loss w/ retry
+            self._client.disconnect()
+            logger.debug("quit - mqtt client is now disconnected")
         else:
             logger.debug("quit - mqtt client was already disconnected")
 
@@ -279,6 +280,7 @@ class BambuPrinter:
         self._notify_update()
 
         if self._mqtt_client_thread and self._mqtt_client_thread.is_alive():
+            # this will block forever if the client hasn't been disconnected properly
             self._mqtt_client_thread.join()
         if self._watchdog_thread and self._watchdog_thread.is_alive():
             self._watchdog_thread.join()
