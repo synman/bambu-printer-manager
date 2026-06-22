@@ -446,7 +446,13 @@ def get_project_info(
 
     if not metadata.exists() and not local_file:
         metapath = cache_path / "metadata"
-        matches = list(metapath.glob(f"{filename}-?.json"))
+        # Match any plate number (single- AND multi-digit). A single-char "?" glob
+        # silently missed cached plates >= 10; numeric-filter + sort for determinism.
+        matches = sorted(
+            p
+            for p in metapath.glob(f"{filename}-*.json")
+            if re.fullmatch(rf"{re.escape(filename)}-\d+\.json", p.name)
+        )
         if matches:
             metadata = matches[0]
             plate_num_match = re.search(
@@ -506,9 +512,12 @@ def get_project_info(
     if not local_file:
         localfile.unlink(missing_ok=True)
 
-    for num in range(1, 31):
-        md = cache_path / "metadata" / f"{filename}-{num}.json"
-        md.unlink(missing_ok=True)
+    # Clear any stale per-plate caches for this file before re-parsing, so plates
+    # removed in a re-slice don't linger. Glob the actual cache files (any plate
+    # number) instead of a hardcoded 1..30 range.
+    for md in (cache_path / "metadata").glob(f"{filename}-*.json"):
+        if re.fullmatch(rf"{re.escape(filename)}-\d+\.json", md.name):
+            md.unlink(missing_ok=True)
 
     if not local_file and printer.sdcard_file_exists(file):
         printer.download_sdcard_file(file, str(localfile))
@@ -765,3 +774,91 @@ def get_project_info(
         localfile.unlink(missing_ok=True)
 
     return ret
+
+
+def get_all_project_info(
+    project_file_id: str,
+    printer: "BambuPrinter",
+    project_file_md5: str | None = None,
+    local_file: str = "",
+    use_cached_list: bool = False,
+    max_plates: int = 30,
+) -> list[ProjectInfo]:
+    """
+    Return one populated `ProjectInfo` per plate in a `.3mf`, ordered by plate number.
+
+    Batch counterpart to `get_project_info`: a single call yields the metadata for
+    *every* plate in the file (plate number, thumbnail, filament list, `ams_mapping`,
+    etc.), so a caller building a plate picker / AMS-mapping UI no longer needs one
+    round-trip per plate.
+
+    This is a thin wrapper over `get_project_info` and adds no parsing cost.  The
+    `.3mf` is downloaded and unzipped exactly once (the first lookup), which caches
+    every plate's metadata to disk as a side effect; the remaining per-plate lookups
+    are served from that cache.
+
+    Plate numbers are NOT assumed to be contiguous or to start at 1.  A `.3mf` may
+    contain an arbitrary, sparse set of plates (e.g. just `[10]`, or
+    `[1, 5, 6, 7, 8, 12, 15]`) — the user may have deleted plates in the slicer.  The
+    actual set is taken from `ProjectInfo.plates` (derived from the zip's
+    `Metadata/plate_*.json` entries) and bounded by `max_plates` as a safety ceiling.
+    Only plates that genuinely exist are fetched, so no absent-plate probing occurs —
+    a blind probe of a missing plate would wipe the metadata cache and force a full
+    re-download (see `get_project_info`).
+
+    Parameters
+    ----------
+    * project_file_id : str - Full SD card path to the `.3mf` (see `get_project_info`).
+    * printer : BambuPrinter - The printer whose SD card hosts the file.
+    * project_file_md5 : Optional[str] = `None` - Cache-validation md5 (see `get_project_info`).
+    * local_file : str = `""` - Parse this local path instead of downloading.
+    * use_cached_list : bool = `False` - Reuse the cached SD card file listing.
+    * max_plates : int = `30` - Safety ceiling on plate number; plates outside
+        `1..max_plates` are ignored.  A `.3mf` is assumed never to exceed this many plates.
+
+    Returns
+    -------
+    `list[ProjectInfo]` - One entry per existing plate (deduplicated), sorted by
+        `plate_num`.  Empty list if the file could not be parsed.
+
+    Examples
+    --------
+    * `get_all_project_info("/jobs/my_project.3mf", printer)` — every plate's info in one call
+    """
+    # One lookup parses the .3mf once and reports the actual plate set via
+    # ProjectInfo.plates (any sparse arrangement). plate_num=1 is only the parse
+    # trigger — get_project_info falls back to the first real plate if 1 is absent,
+    # so this does NOT assume plate 1 exists.
+    first = get_project_info(
+        project_file_id,
+        printer,
+        project_file_md5,
+        plate_num=1,
+        local_file=local_file,
+        use_cached_list=use_cached_list,
+    )
+    if first is None:
+        return []
+
+    plate_nums = sorted({p for p in first.plates if 1 <= p <= max_plates})
+
+    by_plate: dict[int, ProjectInfo] = {}
+    if first.plate_num in plate_nums:
+        by_plate[first.plate_num] = first
+
+    for plate in plate_nums:
+        if plate in by_plate:
+            continue
+        info = get_project_info(
+            project_file_id,
+            printer,
+            project_file_md5,
+            plate_num=plate,
+            use_cached_list=True,
+        )
+        # get_project_info falls back to another plate when `plate` is absent;
+        # keep only a genuine match (and dedupe via the dict).
+        if info is not None and info.plate_num == plate:
+            by_plate[plate] = info
+
+    return [by_plate[plate] for plate in sorted(by_plate)]

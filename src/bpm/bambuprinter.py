@@ -705,14 +705,16 @@ class BambuPrinter:
             Available plate numbers are in `ProjectInfo.plates`.
         * bed : PlateType - Bed surface type to use (e.g. `PlateType.HOT_PLATE`).
             Pass `PlateType.AUTO` to let the printer decide based on slicer metadata.
-        * use_ams : bool - `True` to route filament through the AMS; `False` to use
-            the external spool regardless of `ams_mapping` content.
+        * use_ams : bool - `True` to route filament through the AMS; `False` to print
+            from the external spool.  For an external-spool print, leave `ams_mapping`
+            empty — `bpm` auto-encodes the firmware-required external mapping (see
+            "External spool" below).
         * ams_mapping : Optional[str] = `""` - JSON array string mapping each project
             filament (0-indexed) to an absolute AMS tray ID.  Sourced from
             `ProjectInfo.metadata["ams_mapping"]` (serialised to JSON string).
             `ams_mapping2` (per-filament `{"ams_id": int, "slot_id": int}` dicts) is
             auto-generated from this value for firmware compatibility.
-            Pass `""` or `None` to omit the mapping entirely.
+            Pass `""` or `None` with `use_ams=False` for an external-spool print.
         * bedlevel : Optional[bool] = `True` - Auto-level the bed before printing.
         * flow : Optional[bool] = `True` - Run extrusion flow calibration before printing.
         * timelapse : Optional[bool] = `False` - Record a timelapse during printing.
@@ -748,6 +750,25 @@ class BambuPrinter:
 
         See BambuStudio `DevMapping.cpp` / `DeviceManager.cpp` for the encoding logic.
         See OpenBambuAPI spec: <https://github.com/Doridian/OpenBambuAPI/blob/main/mqtt.md#ams-mapping-configuration-ams_mapping>
+
+        External spool
+        --------------
+        The slicer-file `254` external-spool encoding is NOT accepted in the runtime
+        `project_file` command — current firmware raises HMS `07FF_8012`
+        "Failed to get AMS mapping table" for a raw `254`/`255` (or an omitted) flat
+        `ams_mapping`.  When `use_ams=False`, `bpm` therefore sends flat
+        `ams_mapping=[-1]` and names the external feed only in `ams_mapping2` via
+        `ams_id`: `254` for true dual-nozzle printers (H2D, H2D Pro, H2C, X2D — the
+        deputy/left feed) and `255` for single-nozzle printers (everything else,
+        including the single-nozzle H2S).  This is selected from
+        `has_dual_extruder` (telemetry-derived), not the serial/firmware family.
+
+        H2-family field typing
+        ----------------------
+        H2-family firmware (`PrinterSeries.H2`: H2S, H2D, H2D Pro, H2C, X2D) expects
+        `bed_leveling`, `flow_cali`, `layer_inspect`, and `vibration_cali` as integer
+        `0`/`1`; other families accept JSON booleans.  `use_ams` and `timelapse`
+        remain booleans on all models.
         """
         _3mf_file = f"{name}"
         _plate_num = int(plate)
@@ -807,10 +828,38 @@ class BambuPrinter:
 
             cmd["print"]["ams_mapping"] = parsed_ams_mapping
             cmd["print"]["ams_mapping2"] = parsed_ams_mapping2
+        elif not use_ams:
+            # External spool / no-AMS print. Current firmware rejects raw tray IDs
+            # (254/255) in the flat `ams_mapping` and also rejects an omitted/empty
+            # mapping with HMS 07FF_8012 "Failed to get AMS mapping table". The
+            # runtime project_file command therefore differs from the slicer-file
+            # encoding: the flat array must be [-1], and the external feed is named
+            # only in `ams_mapping2` via `ams_id`. That id is nozzle-count specific:
+            #   254 -> true dual-nozzle (H2D, H2D Pro, H2C, X2D) deputy/left feed
+            #   255 -> single-nozzle (everything else, incl. single-nozzle H2S)
+            # Drive this off has_dual_extruder (telemetry-derived), not the serial /
+            # firmware family: H2S shares the H2 series with H2D but is single-nozzle,
+            # and future dual models may not yet be enumerated in PrinterModel.
+            ext_ams_id = 254 if self.config.capabilities.has_dual_extruder else 255
+            cmd["print"]["ams_mapping"] = [-1]
+            cmd["print"]["ams_mapping2"] = [{"ams_id": ext_ams_id, "slot_id": 0}]
 
         cmd["print"]["bed_leveling"] = bedlevel
         cmd["print"]["flow_cali"] = flow
         cmd["print"]["timelapse"] = timelapse
+
+        # H2-family firmware (H2D, H2D Pro, H2C, X2D, and single-nozzle H2S) expects
+        # the calibration/inspection flags as integer 0/1, not JSON booleans; other
+        # families accept booleans. use_ams and timelapse stay boolean on all models.
+        if getPrinterSeriesByModel(self.config.printer_model) == PrinterSeries.H2:
+            for _field in (
+                "bed_leveling",
+                "flow_cali",
+                "layer_inspect",
+                "vibration_cali",
+            ):
+                cmd["print"][_field] = int(bool(cmd["print"][_field]))
+
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
