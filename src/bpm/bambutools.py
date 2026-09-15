@@ -132,6 +132,54 @@ class AMSDryFanStatus(IntEnum):
     ON = 1  # Fan is running
 
 
+class ExtensionToolType(Enum):
+    """
+    Toolhead extension-tool type reported in `device.ext_tool.type`.
+    Values are the raw type codes mapped from BambuStudio's DevExtensionTool
+    (TOOL_TYPE_* enum). An unrecognized code resolves to `UNKNOWN`; the raw
+    code is preserved in `ExtensionToolState.type_raw`.
+
+    * `NONE ("")`: No extension tool attached (or the attached tool is unpowered).
+    * `CUTTING_MODULE ("CP00")`: Blade cutting module.
+    * `LASER_MODULE ("LB00")`: Laser module.
+    * `ENHANCED_COOLING_FAN ("F000")`: Toolhead Enhanced Cooling Fan.
+    * `UNKNOWN ("?")`: Unrecognized type code (future extension tool).
+    """
+
+    NONE = ""
+    CUTTING_MODULE = "CP00"
+    LASER_MODULE = "LB00"
+    ENHANCED_COOLING_FAN = "F000"
+    UNKNOWN = "?"
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.UNKNOWN
+
+
+class ExtensionToolMountState(IntEnum):
+    """
+    Toolhead extension-tool mount state reported in `device.ext_tool.mount_3d`.
+    Values are mapped from BambuStudio's DevExtensionTool MountState enum.
+
+    * `UNKNOWN (-1)`: No telemetry received yet, or unrecognized value.
+    * `NOT_MOUNTED (0)`: No extension tool mounted.
+    * `MOUNTED (1)`: Extension tool mounted and communicating.
+    * `NO_MODULE (2)`: Mount detected but no module present.
+    * `NO_CABLE (3)`: Module mounted but its cable is not connected.
+    """
+
+    UNKNOWN = -1
+    NOT_MOUNTED = 0
+    MOUNTED = 1
+    NO_MODULE = 2
+    NO_CABLE = 3
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.UNKNOWN
+
+
 class ExtruderInfoState(IntEnum):
     """
     Consolidated logical states for extruder sensor status.

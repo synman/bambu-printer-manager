@@ -1272,6 +1272,35 @@ class BambuPrinter:
         self._printer_state.climate.chamber_temp_target = value
         self._chamber_temp_target_time = round(time.time())
 
+    def set_enhanced_cooling_fan_speed_target_percent(self, value: int):
+        """
+        sets the toolhead enhanced cooling fan (M106 P9) speed target represented in percent
+
+        The printer publishes no telemetry for this fan, so the commanded value
+        is recorded as sticky state (`BambuClimate.enhanced_cooling_fan_target_percent`)
+        and is reset only when the extension tool leaves the MOUNTED state
+        (see `BambuState.extension_tool`). Firmware-observed behavior is
+        effectively on/off — stock slicer G-code only issues S255 or S0;
+        intermediate PWM values are untested. Commands sent while the fan is
+        unplugged are acknowledged by the printer and are harmless no-ops.
+
+        Parameters
+        ----------
+        * value : int - The target speed in percent
+        """
+        if value < 0:
+            value = 0
+        self._printer_state.climate.enhanced_cooling_fan_target_percent = value
+        speed = round(value * 2.55, 0)
+        gcode = SEND_GCODE_TEMPLATE
+        gcode["print"]["param"] = f"M106 P9 S{speed}\n"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(gcode)
+        )
+        logger.debug(
+            f"set_enhanced_cooling_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
+
     def set_exhaust_fan_speed_target_percent(self, value: int):
         """
         sets the exhaust (chamber) fan speed target represented in percent
