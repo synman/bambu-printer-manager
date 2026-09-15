@@ -78,6 +78,8 @@ class BambuConfig:
     """Authentication username for the local MQTT broker (Default: 'bblp')."""
     mqtt_connection_timeout: int = 10
     """Duration in seconds to wait for the MQTT connection to be established before timing out."""
+    ftps_connection_timeout: int = 15
+    """Duration in seconds to wait for the FTPS control connection to be established before timing out."""
     watchdog_timeout: int = 30
     """Duration in seconds before a connection is flagged as stale."""
     external_chamber: bool = False

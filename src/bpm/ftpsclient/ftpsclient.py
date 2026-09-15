@@ -116,12 +116,14 @@ class IoTFTPSClient:
         ftps_user: str | None = "",
         ftps_pass: str | None = "",
         ssl_implicit: bool | None = False,
+        timeout: float | None = 15,
     ) -> None:
         self.ftps_host = ftps_host
         self.ftps_port = ftps_port
         self.ftps_user = ftps_user
         self.ftps_pass = ftps_pass
         self.ssl_implicit = ssl_implicit
+        self.timeout = timeout
         self.instantiate_ftps_session()
 
     def __repr__(self) -> str:
@@ -139,17 +141,31 @@ class IoTFTPSClient:
         self.ftps_session = ImplicitTLS() if self.ssl_implicit else ftplib.FTP()
         self.ftps_session.set_debuglevel(0)
 
-        self.welcome = self.ftps_session.connect(
-            host=self.ftps_host, port=self.ftps_port
-        )
+        try:
+            # Bound the control-connection attempt: without an explicit timeout,
+            # ftplib falls back to the socket default (None → block forever), so
+            # an unreachable/half-open printer FTPS port would hang the caller
+            # indefinitely instead of raising.
+            self.welcome = self.ftps_session.connect(
+                host=self.ftps_host, port=self.ftps_port, timeout=self.timeout
+            )
 
-        if self.ftps_user and self.ftps_pass:
-            self.ftps_session.login(user=self.ftps_user, passwd=self.ftps_pass)
-        else:
-            self.ftps_session.login()
+            if self.ftps_user and self.ftps_pass:
+                self.ftps_session.login(user=self.ftps_user, passwd=self.ftps_pass)
+            else:
+                self.ftps_session.login()
 
-        if self.ssl_implicit:
-            self.ftps_session.prot_p()
+            if self.ssl_implicit:
+                self.ftps_session.prot_p()
+        except Exception:
+            # Recovery: a failed/timed-out setup would otherwise leak the
+            # half-open socket (the caller never receives the object to close).
+            # Tear the session down, then re-raise so the caller can handle it.
+            try:
+                self.ftps_session.close()
+            except Exception:
+                pass
+            raise
 
     def disconnect(self) -> None:
         """disconnect the current session from the ftps server"""

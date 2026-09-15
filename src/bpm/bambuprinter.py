@@ -310,6 +310,7 @@ class BambuPrinter:
                 self._config.mqtt_username,
                 self._config.access_code,
                 ssl_implicit=True,
+                timeout=self._config.ftps_connection_timeout,
             )
             yield ftps
         finally:
