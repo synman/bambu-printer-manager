@@ -595,6 +595,12 @@ class BambuState:
                     ext.tray_state = base.active_tray_state
 
                 new_extruders.append(ext)
+        elif len(base.extruders) > 1:
+            # A partial frame on a multi-extruder printer (a gcode_line ACK, for
+            # example) carries no device.extruder block at all. There is nothing
+            # to re-derive, so keep the last known extruders rather than
+            # collapsing them into the single-extruder model below.
+            new_extruders = list(base.extruders)
         else:
             ext = base.extruders[0] if base.extruders else ExtruderState()
             ext.id = ActiveTool.SINGLE_EXTRUDER
