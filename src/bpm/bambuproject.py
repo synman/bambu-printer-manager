@@ -31,24 +31,32 @@ class ProjectInfo:
     A `.3mf` file is a ZIP archive.  `get_project_info` extracts the following
     internal entries to populate this object:
 
-    | ZIP entry                      | Purpose                                              |
-    |-------------------------------|------------------------------------------------------|
-    | `Metadata/slice_info.config`  | XML — objects, filament IDs, colors, `filament_maps` |
-    | `Metadata/project_settings.config` | INI — filament types and colors (fallback)      |
-    | `Metadata/plate_N.json`       | JSON — bounding boxes, filament IDs/colors per plate |
-    | `Metadata/plate_N.png`        | PNG — slicer preview thumbnail for plate N           |
-    | `Metadata/top_N.png`          | PNG — top-down view thumbnail for plate N            |
-    | `Metadata/plate_N.gcode`      | G-code header — filament type/color fallback (optional) |
+    | ZIP entry                          | Purpose                                                 |
+    |------------------------------------|---------------------------------------------------------|
+    | `Metadata/slice_info.config`       | XML — objects, filament IDs, colors, `filament_maps`.   |
+    | `Metadata/project_settings.config` | INI — filament types and colors (fallback)              |
+    | `Metadata/plate_N.json`            | JSON — bounding boxes, filament IDs/colors per plate    |
+    | `Metadata/plate_N.png`             | PNG — slicer preview thumbnail for plate N              |
+    | `Metadata/top_N.png`               | PNG — top-down view thumbnail for plate N               |
+    | `Metadata/plate_N.gcode`           | G-code header — filament type/color fallback (optional) |
 
     The `metadata` dict produced by `get_project_info` has these keys:
 
-    | Key          | Type              | Description                                                  |
-    |-------------|-------------------|--------------------------------------------------------------|
-    | `thumbnail` | `str`             | `data:image/png;base64,...` — `plate_N.png` as a data URI    |
-    | `topimg`    | `str`             | `data:image/png;base64,...` — `top_N.png` as a data URI      |
-    | `map`       | `dict`            | Full `plate_N.json` content, including `filament_ids`, `filament_colors`, and `bbox_objects` (each enriched with `id` from `slice_info.config`) |
-    | `filament`  | `list[dict]`      | Normalized per-filament list: `{"id": int, "type": str, "color": "#RRGGBB"}`. `id` is 1-indexed. |
-    | `ams_mapping` | `list[str]`     | Stringified absolute tray IDs in the same encoding as `print_3mf_file` `ams_mapping` param. `"-1"` = unmapped. |
+    | Key           | Type              | Description                                                  |
+    |---------------|-------------------|--------------------------------------------------------------|
+    | `thumbnail`   | `str`             | `data:image/png;base64,...` — `plate_N.png` as a data URI    |
+    | `topimg`      | `str`             | `data:image/png;base64,...` — `top_N.png` as a data URI      |
+    | `map`         | `dict`            | Full `plate_N.json` content, including `filament_ids`,       |
+    |               |                   | `filament_colors`, and `bbox_objects` (each enriched with    |
+    |               |                   | `id` from `slice_info.config`).                              |
+    | `filament`    | `list[dict]`      | Normalized per-filament list: `{"id": int, "type": str,      |
+    |               |                   | "color": "#RRGGBB"}`. `id` is 1-indexed.                     |
+    | `ams_mapping` | `list[str]`       | Placeholder in the SHAPE of the `print_3mf_file`             |
+    |               |                   | `ams_mapping` param: index `id - 1` holds `str(id)` per      |
+    |               |                   | filament, `"-1"` fills gaps. NOT tray IDs — the 3mf's        |
+    |               |                   | `filament_maps` is the slicer's extruder assignment, so a    |
+    |               |                   | real mapping must be resolved from the spools loaded on the  |
+    |               |                   | printer.                                                     |
     """
 
     id: str = ""
@@ -88,10 +96,11 @@ class ProjectInfo:
           are passed directly to `BambuPrinter.skip_objects` to cancel individual
           objects mid-print.  Each entry also carries:
 
-          | Field    | Type    | Description                                     |
-          |----------|---------|-------------------------------------------------|
-          | `id`     | `int`   | `identify_id` from `slice_info.config` (added by `get_project_info`) |
-          | `name`   | `str`   | Human-readable object name from the slicer      |
+          | Field    | Type    | Description                                         |
+          |----------|---------|-----------------------------------------------------|
+          | `id`     | `int`   | `identify_id` from `slice_info.config` (added by    |
+          |          |         | `get_project_info`)                                 |
+          | `name`   | `str`   | Human-readable object name from the slicer          |
           | `val`    | `list`  | Bounding-box extents `[x_min, y_min, x_max, y_max]` |
 
     **`filament`** : `list[dict]`
@@ -106,15 +115,20 @@ class ProjectInfo:
         - `color` is the slicer colour in `#RRGGBB` format
 
     **`ams_mapping`** : `list[str]`
-        Stringified absolute tray IDs — one per filament in the same order as
-        `filament` — using the BambuStudio / OrcaSlicer `DevMapping.cpp` encoding.
-        Serialise this list to a JSON string and pass it to
-        `BambuPrinter.print_3mf_file`'s `ams_mapping` parameter.
+        A placeholder in the SHAPE of `BambuPrinter.print_3mf_file`'s
+        `ams_mapping` parameter, not a slot assignment: index `id - 1` holds
+        `str(id)` for every filament in `filament`, `"-1"` fills the gaps. The
+        3mf carries no tray ids — its `filament_maps` value is the slicer's
+        per-filament extruder choice (1 or 2 on H2D) — so the real mapping
+        must be resolved from the spools currently loaded on the printer
+        (match each filament's `type`/`color` to a spool, then encode that
+        spool's tray id as below). Pass the resolved list, serialised to a
+        JSON string, to `print_3mf_file`.
 
         | Value    | Meaning                                                    |
         |----------|------------------------------------------------------------|
-        | `0–103`  | Standard 4-slot AMS: `ams_id * 4 + slot_id`               |
-        | `128–135`| Single-slot AMS HT / N3S: `ams_id` (starts at 128)        |
+        | `0–103`  | Standard 4-slot AMS: `ams_id * 4 + slot_id`                |
+        | `128–135`| Single-slot AMS HT / N3S: `ams_id` (starts at 128)         |
         | `254`    | External spool                                             |
         | `-1`     | Unmapped — filament not assigned to any AMS slot           |
 
@@ -123,17 +137,17 @@ class ProjectInfo:
         Present only when that file exists in the `.3mf`. Falls back to empty dict
         when the file is absent (e.g. older BambuStudio exports).
 
-        | Key                    | Type  | Description                                  |
-        |------------------------|-------|----------------------------------------------|
-        | `enable_support`       | `str` | `"1"` if support structures are enabled      |
-        | `support_type`         | `str` | `"normal"`, `"tree"`, etc.                   |
+        | Key                    | Type  | Description                                      |
+        |------------------------|-------|--------------------------------------------------|
+        | `enable_support`       | `str` | `"1"` if support structures are enabled          |
+        | `support_type`         | `str` | `"normal"`, `"tree"`, etc.                       |
         | `brim_type`            | `str` | `"no_brim"`, `"outer_brim"`, `"inner_brim"` etc. |
-        | `brim_width`           | `str` | Brim width in mm (string, e.g. `"5"`)        |
-        | `raft_layers`          | `str` | Number of raft layers (`"0"` = no raft)      |
-        | `sparse_infill_density`| `str` | Infill density, e.g. `"15%"`                 |
-        | `wall_loops`           | `str` | Number of perimeter walls                    |
-        | `layer_height`         | `str` | Layer height in mm                           |
-        | `initial_layer_height` | `str` | First layer height in mm                     |
+        | `brim_width`           | `str` | Brim width in mm (string, e.g. `"5"`)            |
+        | `raft_layers`          | `str` | Number of raft layers (`"0"` = no raft)          |
+        | `sparse_infill_density`| `str` | Infill density, e.g. `"15%"`                     |
+        | `wall_loops`           | `str` | Number of perimeter walls                        |
+        | `layer_height`         | `str` | Layer height in mm                               |
+        | `initial_layer_height` | `str` | First layer height in mm                         |
     """
     plates: list[int] = field(default_factory=list)
     """The plate numbers contained within this `3mf`."""
@@ -260,11 +274,17 @@ def get_project_info(
     |--------------------------------------|---------------|----------------------------------------|
     | `Metadata/plate_N.png`               | `thumbnail`   | Data-URI PNG — slicer preview          |
     | `Metadata/top_N.png`                 | `topimg`      | Data-URI PNG — top-down view           |
-    | `Metadata/plate_N.json`              | `map`         | Raw plate JSON (bbox_objects, filament_ids, filament_colors) |
-    | `Metadata/slice_info.config` (XML)   | `filament`    | `[{"id": int, "type": str, "color": "#RRGGBB"}, ...]` |
-    | `Metadata/slice_info.config` (XML)   | `ams_mapping` | Stringified absolute tray IDs; `"-1"` = unmapped |
-    | `Metadata/project_settings.config`   | *(fallback)*  | Filament type + color when slice_info is sparse |
-    | `Metadata/plate_N.gcode` header      | *(fallback)*  | Filament type + color when both above are absent |
+    | `Metadata/plate_N.json`              | `map`         | Raw plate JSON (bbox_objects,          |
+    |                                      |               | filament_ids, filament_colors)         |
+    | `Metadata/slice_info.config` (XML)   | `filament`    | `[{"id": int, "type": str,             |
+    |                                      |               | "color": "#RRGGBB"}, ...]`             |
+    | `Metadata/slice_info.config` (XML)   | `ams_mapping` | Placeholder shape, NOT tray IDs: index |
+    |                                      |               | `id - 1` holds `str(id)` per filament, |
+    |                                      |               | `"-1"` fills gaps                      |
+    | `Metadata/project_settings.config`   | *(fallback)*  | Filament type + color when slice_info  |
+    |                                      |               | is sparse                              |
+    | `Metadata/plate_N.gcode` header      | *(fallback)*  | Filament type + color when both above  |
+    |                                      |               | are absent                             |
 
     `bbox_objects` entries in `map` are enriched with integer `id` values sourced
     from the `identify_id` attribute in `slice_info.config`.  These `id` values are
@@ -272,15 +292,12 @@ def get_project_info(
     objects mid-print.  Each entry also carries `name` (human-readable slicer name)
     and bounding-box coordinates useful for building a per-object cancel UI.
 
-    `ams_mapping` uses the BambuStudio/OrcaSlicer DevMapping.cpp encoding:
-
-    - `0–103` — standard 4-slot AMS (`tray_id = ams_id * 4 + slot_id`)
-    - `128–135` — single-slot AMS HT / N3S (`tray_id = ams_id`)
-    - `254` — external spool
-    - `-1` — filament not mapped to any AMS slot
-
-    This is the same encoding consumed by `BambuPrinter.print_3mf_file`'s
-    `ams_mapping` parameter.
+    `ams_mapping` is NOT the BambuStudio/OrcaSlicer DevMapping.cpp tray-id encoding
+    (`0–103` standard 4-slot AMS, `128–135` AMS HT/N3S, `254` external, `-1` unmapped)
+    — that encoding is what `BambuPrinter.print_3mf_file`'s `ams_mapping` parameter
+    expects, but the 3mf's own `filament_maps` carries the slicer's per-filament
+    EXTRUDER choice (1/2 on H2D), not a tray id, so this placeholder must be
+    resolved against the spools actually loaded on the printer before use.
 
     Parameters
     ----------
@@ -695,11 +712,11 @@ def get_project_info(
                 )
                 for slice_meta in slice_info_metadata:
                     if slice_meta.get("key", "") == "filament_maps":
-                        # Extract ams_mapping from 3mf metadata (generated by BambuStudio/OrcaSlicer)
-                        # Values are absolute tray IDs per DevMapping.cpp encoding:
-                        # - 0-103: 4-slot units (formula: ams_id * 4 + slot_id)
-                        # - 128-135: 1-slot units (N3S/AMS HT)
-                        # - -1: unmapped filament
+                        # `filament_maps` is the slicer's per-filament EXTRUDER
+                        # assignment (1 or 2 on H2D), not tray ids, so it is unusable
+                        # as an ams_mapping. Keep only its length and rebuild the
+                        # value below as a filament-id placeholder; callers resolve
+                        # real tray ids from the spools loaded on the printer.
                         filament_maps = slice_meta.get("value", "").split(" ")
                         for f in range(0, len(filament_maps)):
                             filament_maps[f] = "-1"

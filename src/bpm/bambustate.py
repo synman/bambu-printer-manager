@@ -17,6 +17,8 @@ from bpm.bambutools import (
     AMSDrySubStatus,
     AMSHeatingState,
     AMSModel,
+    ExtensionToolMountState,
+    ExtensionToolType,
     ExtruderInfoState,
     ExtruderStatus,
     LoggerName,
@@ -203,6 +205,34 @@ class AMSUnitState:
     """Target tool computed from raw_extruder_id"""
 
 
+@dataclass(frozen=True)
+class ExtensionToolState:
+    """
+    State of the toolhead extension-tool interface, parsed from
+    `device.ext_tool` telemetry (H2-series). The Toolhead Enhanced Cooling
+    Fan, cutting module, and laser module all report through this block.
+    """
+
+    tool_type: ExtensionToolType = ExtensionToolType.NONE
+    """Attached tool type. NOTE: on cable loss the printer reports type as
+    empty ("" = NONE) with mount_state NO_CABLE — key presence checks on
+    mount_state, not tool_type alone."""
+    mount_state: ExtensionToolMountState = ExtensionToolMountState.UNKNOWN
+    """Mount state (mount_3d). MOUNTED is the only healthy attached state."""
+    calibration_raw: int = -1
+    """Raw calib value (0=none, 1=first, 2=mount per BambuStudio CalibState)."""
+    type_raw: str = ""
+    """Verbatim type code from telemetry, preserved for unrecognized tools."""
+
+    @property
+    def is_enhanced_cooling_fan_mounted(self) -> bool:
+        """True when the Toolhead Enhanced Cooling Fan is mounted with its cable connected."""
+        return (
+            self.tool_type == ExtensionToolType.ENHANCED_COOLING_FAN
+            and self.mount_state == ExtensionToolMountState.MOUNTED
+        )
+
+
 @dataclass
 class BambuClimate:
     """Contains all climate related attributes"""
@@ -245,6 +275,14 @@ class BambuClimate:
     """ For printers that support it (see `PrinterCapabilities.has_chamber_door_sensor`), reports whether the chamber door is open """
     is_chamber_lid_open: bool = False
     """ For printers that support it (see `PrinterCapabilities.has_chamber_door_sensor`), reports whether the chamber lid is open """
+    enhanced_cooling_fan_target_percent: int = 0
+    """STICKY commanded state for the Toolhead Enhanced Cooling Fan (M106 P9).
+    UNLIKE every other fan field, this is NEVER updated from telemetry — the
+    printer publishes no run state for this fan (verified fw 01.03.00.00), so
+    the last commanded value is the only state that exists. Written by
+    `BambuPrinter.set_enhanced_cooling_fan_speed_target_percent()`; reset to 0
+    by the parser only when the extension tool leaves the MOUNTED state
+    (unplugged/removed — the commanded value no longer describes reality)."""
 
 
 @dataclass
@@ -295,6 +333,8 @@ class BambuState:
     """Wi-Fi signal strength in dBm"""
     climate: BambuClimate = field(default_factory=BambuClimate)
     """Contains all climate related attributes"""
+    extension_tool: ExtensionToolState = field(default_factory=ExtensionToolState)
+    """Toolhead extension-tool interface state (Enhanced Cooling Fan / cutting / laser)."""
     stat: str = "0"
     fun: str = "0"
 
@@ -410,6 +450,32 @@ class BambuState:
                 updates["climate"].zone_exhaust_percent > 0
                 and not updates["climate"].zone_intake_open
             )
+
+        # EXTENSION TOOL (device.ext_tool — Enhanced Cooling Fan / cutting / laser)
+        ext_tool_root = device.get("ext_tool", {})
+        if ext_tool_root:
+            type_raw = str(ext_tool_root.get("type", ""))
+            new_extension_tool = ExtensionToolState(
+                tool_type=ExtensionToolType(type_raw),
+                mount_state=ExtensionToolMountState(
+                    int(ext_tool_root.get("mount_3d", -1))
+                ),
+                calibration_raw=int(ext_tool_root.get("calib", -1)),
+                type_raw=type_raw,
+            )
+            updates["extension_tool"] = new_extension_tool
+
+            # Sticky-state invalidation: the enhanced cooling fan publishes no
+            # run-state telemetry, so its commanded value survives every parse —
+            # EXCEPT when the tool leaves MOUNTED (unplugged/removed), where the
+            # commanded value no longer describes reality.
+            if (
+                base.extension_tool.mount_state == ExtensionToolMountState.MOUNTED
+                and new_extension_tool.mount_state != ExtensionToolMountState.MOUNTED
+            ):
+                updates["climate"].enhanced_cooling_fan_target_percent = 0
+        else:
+            updates["extension_tool"] = base.extension_tool
 
         # THERMALS & CTC DECODING
         updates["climate"].bed_temp = float(p.get("bed_temper", base.climate.bed_temp))
@@ -529,6 +595,12 @@ class BambuState:
                     ext.tray_state = base.active_tray_state
 
                 new_extruders.append(ext)
+        elif len(base.extruders) > 1:
+            # A partial frame on a multi-extruder printer (a gcode_line ACK, for
+            # example) carries no device.extruder block at all. There is nothing
+            # to re-derive, so keep the last known extruders rather than
+            # collapsing them into the single-extruder model below.
+            new_extruders = list(base.extruders)
         else:
             ext = base.extruders[0] if base.extruders else ExtruderState()
             ext.id = ActiveTool.SINGLE_EXTRUDER

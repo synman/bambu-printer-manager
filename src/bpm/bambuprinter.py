@@ -50,6 +50,7 @@ from bpm.bambucommands import (
     SET_ACTIVE_TOOL,
     SET_CHAMBER_AC_MODE,
     SET_CHAMBER_TEMP_TARGET,
+    SET_NOZZLE,
     SKIP_OBJECTS,
     SPEED_PROFILE_TEMPLATE,
     STOP_PRINT,
@@ -58,7 +59,7 @@ from bpm.bambucommands import (
 from bpm.bambuconfig import BambuConfig
 from bpm.bambuproject import ActiveJobInfo, get_3mf_entry_by_name, get_project_info
 from bpm.bambuspool import BambuSpool
-from bpm.bambustate import BambuState
+from bpm.bambustate import BambuState, NozzleFlowType
 from bpm.bambutools import (
     ActiveTool,
     AMSControlCommand,
@@ -72,6 +73,7 @@ from bpm.bambutools import (
     PrintOption,
     ServiceState,
     SpeedLevel,
+    build_nozzle_identifier,
     cache_delete,
     cache_read,
     cache_write,
@@ -310,6 +312,7 @@ class BambuPrinter:
                 self._config.mqtt_username,
                 self._config.access_code,
                 ssl_implicit=True,
+                timeout=self._config.ftps_connection_timeout,
             )
             yield ftps
         finally:
@@ -692,10 +695,11 @@ class BambuPrinter:
         """
         Submits a request to print a `.3mf` file already stored on the printer's SD card.
 
-        The `ams_mapping` value to pass here is available directly from
-        `ProjectInfo.metadata["ams_mapping"]` returned by `get_project_info`.
-        It is the same absolute-tray-ID encoding used by BambuStudio / OrcaSlicer and
-        stored in the 3MF's `Metadata/slice_info.config`.
+        `ProjectInfo.metadata["ams_mapping"]` from `get_project_info` is only a
+        placeholder in this parameter's SHAPE (filament ids, not tray ids) — the
+        3MF stores no slot assignment. Build the real value from the spools
+        currently loaded: match each project filament to a loaded spool by type
+        and colour, then encode that spool's tray id as in the table below.
 
         Parameters
         ----------
@@ -709,9 +713,10 @@ class BambuPrinter:
             from the external spool.  For an external-spool print, leave `ams_mapping`
             empty — `bpm` auto-encodes the firmware-required external mapping (see
             "External spool" below).
-        * ams_mapping : Optional[str] = `""` - JSON array string mapping each project
-            filament (0-indexed) to an absolute AMS tray ID.  Sourced from
-            `ProjectInfo.metadata["ams_mapping"]` (serialised to JSON string).
+        * ams_mapping : Optional[str] = `""` - JSON array string indexed by filament
+            id (index 0 = filament 1) holding each filament's absolute AMS tray ID,
+            `-1` for an unused id.  Resolved from the loaded spools (see above);
+            `ProjectInfo.metadata["ams_mapping"]` is not a usable source.
             `ams_mapping2` (per-filament `{"ams_id": int, "slot_id": int}` dicts) is
             auto-generated from this value for firmware compatibility.
             Pass `""` or `None` with `use_ams=False` for an external-spool print.
@@ -1271,6 +1276,35 @@ class BambuPrinter:
         self._printer_state.climate.chamber_temp_target = value
         self._chamber_temp_target_time = round(time.time())
 
+    def set_enhanced_cooling_fan_speed_target_percent(self, value: int):
+        """
+        sets the toolhead enhanced cooling fan (M106 P9) speed target represented in percent
+
+        The printer publishes no telemetry for this fan, so the commanded value
+        is recorded as sticky state (`BambuClimate.enhanced_cooling_fan_target_percent`)
+        and is reset only when the extension tool leaves the MOUNTED state
+        (see `BambuState.extension_tool`). Firmware-observed behavior is
+        effectively on/off — stock slicer G-code only issues S255 or S0;
+        intermediate PWM values are untested. Commands sent while the fan is
+        unplugged are acknowledged by the printer and are harmless no-ops.
+
+        Parameters
+        ----------
+        * value : int - The target speed in percent
+        """
+        if value < 0:
+            value = 0
+        self._printer_state.climate.enhanced_cooling_fan_target_percent = value
+        speed = round(value * 2.55, 0)
+        gcode = SEND_GCODE_TEMPLATE
+        gcode["print"]["param"] = f"M106 P9 S{speed}\n"
+        self.client.publish(
+            f"device/{self.config.serial_number}/request", json.dumps(gcode)
+        )
+        logger.debug(
+            f"set_enhanced_cooling_fan_speed_target_percent - published SEND_GCODE_TEMPLATE to [device/{self.config.serial_number}/request] command: [{gcode}]"
+        )
+
     def set_exhaust_fan_speed_target_percent(self, value: int):
         """
         sets the exhaust (chamber) fan speed target represented in percent
@@ -1294,13 +1328,22 @@ class BambuPrinter:
         # self._fan_speed_target_time = round(time.time())
 
     def set_nozzle_details(
-        self, nozzle_diameter: NozzleDiameter, nozzle_type: NozzleType
+        self,
+        nozzle_diameter: NozzleDiameter,
+        nozzle_type: NozzleType,
+        nozzle_flow: NozzleFlowType = NozzleFlowType.STANDARD,
+        extruder_id: int = -1,
     ):
         """
         Inform the printer of the nozzle currently installed.
 
-        Sends a `SET_ACCESSORIES` command so the firmware can apply the correct
-        temperature limits, flow rates, and material compatibility checks.
+        For single extruder setups, sends a `SET_ACCESSORIES` command so the
+        firmware can apply the correct temperature limits, flow rates, and material
+        compatibility checks.
+
+        For dual extruder setups, sends a `SET_NOZZLE` command so the firmware can
+        apply the correct temperature limits, flow rates, and material compatibility
+        checks.
 
         Parameters
         ----------
@@ -1308,17 +1351,36 @@ class BambuPrinter:
             (e.g. `NozzleDiameter.DIAMETER_0_4`).
         * nozzle_type : NozzleType - The nozzle material / type
             (e.g. `NozzleType.HARDENED_STEEL`, `NozzleType.STAINLESS_STEEL`).
+        * nozzle_flow : NozzleFlowType - The flow type of the nozzle (default is `NozzleFlowType.STANDARD`).
+        * extruder_id : int - The extruder ID where the nozzle is installed (default is -1 (use current)).
         """
-        cmd = copy.deepcopy(SET_ACCESSORIES)
-        cmd["system"]["nozzle_diameter"] = nozzle_diameter.value
-        cmd["system"]["nozzle_type"] = nozzle_type_to_telemetry(nozzle_type)
+        if not self.config.capabilities.has_dual_extruder:
+            cmd = copy.deepcopy(SET_ACCESSORIES)
+            cmd["system"]["nozzle_diameter"] = nozzle_diameter.value
+            cmd["system"]["nozzle_type"] = nozzle_type_to_telemetry(nozzle_type)
 
-        self.client.publish(
-            f"device/{self.config.serial_number}/request", json.dumps(cmd)
-        )
-        logger.debug(
-            f"set_nozzle_details - published SET_ACCESSORIES to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
-        )
+            self.client.publish(
+                f"device/{self.config.serial_number}/request", json.dumps(cmd)
+            )
+            logger.debug(
+                f"set_nozzle_details - published SET_ACCESSORIES to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+            )
+        else:
+            cmd = copy.deepcopy(SET_NOZZLE)
+            cmd["print"]["id"] = (
+                extruder_id if extruder_id != -1 else self.printer_state.active_tool
+            )
+            cmd["print"]["diameter"] = nozzle_diameter.value
+            cmd["print"]["type"] = build_nozzle_identifier(
+                nozzle_flow, nozzle_type, nozzle_diameter.value
+            ).split("-")[0]
+
+            self.client.publish(
+                f"device/{self.config.serial_number}/request", json.dumps(cmd)
+            )
+            logger.debug(
+                f"set_nozzle_details - published SET_NOZZLE to [device/{self.config.serial_number}/request] bambu_msg: [{cmd}]"
+            )
 
     def set_nozzle_temp_target(self, value: int, tool_num: int = -1):
         """

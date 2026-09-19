@@ -236,6 +236,17 @@ SET_ACTIVE_TOOL = {
     "print": {"command": "select_extruder", "extruder_index": 0, "sequence_id": "0"}
 }
 
+SET_NOZZLE = {
+    "print": {
+        "command": "set_nozzle",
+        "diameter": 0.4,
+        "id": 0,
+        "sequence_id": "0",
+        "type": "HH01",
+        "wear": 0,
+    }
+}
+
 REFRESH_NOZZLE = {"print": {"sequence_id": "0", "command": "refresh_nozzle"}}
 
 RENAME_PRINTER = {"update": {"name": "", "sequence_id": "0"}}
