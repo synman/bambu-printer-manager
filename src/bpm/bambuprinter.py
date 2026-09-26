@@ -57,7 +57,12 @@ from bpm.bambucommands import (
     XCAM_CONTROL_SET,
 )
 from bpm.bambuconfig import BambuConfig
-from bpm.bambuproject import ActiveJobInfo, get_3mf_entry_by_name, get_project_info
+from bpm.bambuproject import (
+    ActiveJobInfo,
+    ProjectInfo,
+    get_3mf_entry_by_name,
+    get_project_info,
+)
 from bpm.bambuspool import BambuSpool
 from bpm.bambustate import BambuState, NozzleFlowType
 from bpm.bambutools import (
@@ -2354,6 +2359,11 @@ class BambuPrinter:
                     # path bpm could read: an unreadable one (e.g. the internal eMMC
                     # URL of a touchscreen reprint) would block the name lookup later.
                     self._clear_job_record()
+                    # Nor may the previous job's project outlive it: if this job's file
+                    # cannot be read, show nothing rather than the job before, and let
+                    # the name lookup run again for this job.
+                    self._active_job_info.project_info = ProjectInfo()
+                    self._active_job_info.project_info_fetch_attempted = False
                     try:
                         self._active_job_info.project_info = get_project_info(
                             parts[1], self, md5, plate_num
