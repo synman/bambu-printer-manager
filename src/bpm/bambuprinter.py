@@ -61,6 +61,7 @@ from bpm.bambuproject import ActiveJobInfo, get_3mf_entry_by_name, get_project_i
 from bpm.bambuspool import BambuSpool
 from bpm.bambustate import BambuState, NozzleFlowType
 from bpm.bambutools import (
+    VIRTUAL_TRAY_MAIN_ID,
     ActiveTool,
     AMSControlCommand,
     AMSUserSetting,
@@ -83,6 +84,7 @@ from bpm.bambutools import (
     nozzle_type_to_telemetry,
     parse_nozzle_type,
     parseStage,
+    resolve_external_spool_trays,
     sortFileTreeAlphabetically,
 )
 from bpm.ftpsclient.ftpsclient import IoTFTPSClient
@@ -135,6 +137,12 @@ class BambuPrinter:
 
         self._printer_state = BambuState()
         self._active_job_info = ActiveJobInfo()
+
+        # The persisted project_file record for the running job (GH #59); see
+        # _persist_job_record for why it exists and how it is trusted.
+        self._task_id = ""
+        self._job_record_sealed = True
+        self._job_record_checked = False
 
         self._sdcard_contents = None
         self._sdcard_3mf_files = None
@@ -593,6 +601,11 @@ class BambuPrinter:
         Returns a `dict` (json document) of ALL files on the printer's SD card.
         The private class level `_sdcard_contents` attribute is also populated.
 
+        Returns `None` when the listing failed (a timeout, a dropped connection, or a folder
+        that could not be listed), and clears the cached trees. An empty card is a `dict`
+        whose `children` list is empty, so `None` always means an error and never "no files".
+        The same holds for `get_sdcard_3mf_files()`.
+
         Usage
         -----
         The return value of this method is very useful for binding to things like a clientside `TreeView`
@@ -738,7 +751,7 @@ class BambuPrinter:
         |---------------------------------|-----------------------------|---------|
         | Standard 4-slot (AMS 2 / LITE / N3F) | `ams_id * 4 + slot_id` | 0–103   |
         | Single-slot (N3S / AMS HT)      | `ams_id` (starts at 128)    | 128–135 |
-        | External spool                  | `254`                       | —       |
+        | External spool                  | do not pass — see below     | —       |
         | Unmapped / no AMS               | `-1`                        | —       |
 
         | ams_mapping    | Meaning                                            |
@@ -758,15 +771,36 @@ class BambuPrinter:
 
         External spool
         --------------
-        The slicer-file `254` external-spool encoding is NOT accepted in the runtime
-        `project_file` command — current firmware raises HMS `07FF_8012`
-        "Failed to get AMS mapping table" for a raw `254`/`255` (or an omitted) flat
-        `ams_mapping`.  When `use_ams=False`, `bpm` therefore sends flat
-        `ams_mapping=[-1]` and names the external feed only in `ams_mapping2` via
-        `ams_id`: `254` for true dual-nozzle printers (H2D, H2D Pro, H2C, X2D — the
-        deputy/left feed) and `255` for single-nozzle printers (everything else,
-        including the single-nozzle H2S).  This is selected from
-        `has_dual_extruder` (telemetry-derived), not the serial/firmware family.
+        To print from an external spool pass `use_ams=False` and leave `ams_mapping`
+        empty.  `bpm` builds the rest, so callers never handle tray ids for it.
+
+        The slicer-file `254` external-spool encoding is not used in the runtime
+        `project_file` command.  The reporter of issue #55 found that current firmware
+        raises HMS `07FF_8012` "Failed to get AMS mapping table" for a raw `254`/`255`
+        (or an omitted) flat `ams_mapping`; that has not been reproduced here.  What
+        BambuStudio sends, and what `bpm` sends, is a flat `ams_mapping` of `-1` per
+        filament with the external feed named only in `ams_mapping2`.  This is
+        selected from `has_dual_extruder` (telemetry-derived, so a call made before
+        the printer's first status report takes the single-nozzle branch), not the
+        serial or firmware family.
+
+        * Single-nozzle printers (everything else, including the single-nozzle H2S)
+          send `ams_mapping=[-1]` and `ams_mapping2=[{"ams_id": 255, "slot_id": 0}]`.
+        * Dual-nozzle printers (H2D, H2D Pro, H2C, X2D) send arrays sized to the
+          plate's filament count, exactly as BambuStudio does.  Each used filament
+          gets the holder of its own extruder, `255` for the main (right) extruder
+          or `254` for the deputy (left) one, and every other entry is
+          `{"ams_id": 255, "slot_id": 255}`.  The slicer fixes each filament's
+          extruder, so the holder is derived from the `.3mf`'s `filament_maps` and
+          the plate gcode's `physical_extruder_map`, never chosen by the caller.
+          `ValueError` is raised when the plate lacks either, rather than guessing a
+          side.  Several filaments on one extruder share its holder and log a
+          warning, as BambuStudio warns.
+
+        A dual-nozzle external-spool print reads the plate's metadata before it
+        publishes, from the cache or by downloading the `.3mf` from the SD card, so it
+        can also raise the library's generic `Exception` when the file is not on the
+        SD card.
 
         H2-family field typing
         ----------------------
@@ -834,20 +868,31 @@ class BambuPrinter:
             cmd["print"]["ams_mapping"] = parsed_ams_mapping
             cmd["print"]["ams_mapping2"] = parsed_ams_mapping2
         elif not use_ams:
-            # External spool / no-AMS print. Current firmware rejects raw tray IDs
-            # (254/255) in the flat `ams_mapping` and also rejects an omitted/empty
-            # mapping with HMS 07FF_8012 "Failed to get AMS mapping table". The
-            # runtime project_file command therefore differs from the slicer-file
-            # encoding: the flat array must be [-1], and the external feed is named
-            # only in `ams_mapping2` via `ams_id`. That id is nozzle-count specific:
-            #   254 -> true dual-nozzle (H2D, H2D Pro, H2C, X2D) deputy/left feed
-            #   255 -> single-nozzle (everything else, incl. single-nozzle H2S)
-            # Drive this off has_dual_extruder (telemetry-derived), not the serial /
-            # firmware family: H2S shares the H2 series with H2D but is single-nozzle,
-            # and future dual models may not yet be enumerated in PrinterModel.
-            ext_ams_id = 254 if self.config.capabilities.has_dual_extruder else 255
-            cmd["print"]["ams_mapping"] = [-1]
-            cmd["print"]["ams_mapping2"] = [{"ams_id": ext_ams_id, "slot_id": 0}]
+            # External spool / no-AMS print. The #55 reporter saw HMS 07FF_8012
+            # "Failed to get AMS mapping table" for a raw 254/255 or an omitted flat
+            # mapping (not reproduced here). BambuStudio's runtime project_file command
+            # differs from the slicer-file encoding: the flat array is -1 per filament,
+            # and the external feed is named only in `ams_mapping2` via `ams_id`.
+            # Drive the split off has_dual_extruder (telemetry-derived), not the
+            # serial / firmware family: H2S shares the H2 series with H2D but is
+            # single-nozzle, and future dual models may not yet be enumerated.
+            if self.config.capabilities.has_dual_extruder:
+                # A dual-nozzle plate names the holder of each filament's own
+                # extruder, in arrays sized to the plate's filament count, exactly
+                # as BambuStudio sends them (255 right/main, 254 left/deputy).
+                trays = self._resolve_external_spool_trays(_3mf_file, _plate_num)
+                cmd["print"]["ams_mapping"] = [-1] * len(trays)
+                cmd["print"]["ams_mapping2"] = [
+                    {"ams_id": tray, "slot_id": 0}
+                    if tray != -1
+                    else {"ams_id": VIRTUAL_TRAY_MAIN_ID, "slot_id": 255}
+                    for tray in trays
+                ]
+            else:
+                cmd["print"]["ams_mapping"] = [-1]
+                cmd["print"]["ams_mapping2"] = [
+                    {"ams_id": VIRTUAL_TRAY_MAIN_ID, "slot_id": 0}
+                ]
 
         cmd["print"]["bed_leveling"] = bedlevel
         cmd["print"]["flow_cali"] = flow
@@ -1581,6 +1626,11 @@ class BambuPrinter:
         clear the tray entirely.  Colors may be supplied as CSS color names (e.g.
         `"red"`) or as 6- or 8-character hex strings (e.g. `"FF0000"` / `"FF0000FF"`).
 
+        A single-nozzle printer (`has_dual_extruder` false) addresses its external
+        spool as `ams_id` 255 with `tray_id` 254, as BambuStudio does.  The A1 ignores
+        the command with `ams_id` 254, and it is the only model measured.  A
+        dual-nozzle printer keeps `ams_id` equal to `tray_id`.
+
         Parameters
         ----------
         * tray_id : int - Absolute tray ID.  For standard 4-slot AMS: `ams_id * 4 + slot_id`.
@@ -1598,9 +1648,13 @@ class BambuPrinter:
 
         ams_id = math.floor(tray_id / 4)
         slot_id = tray_id % 4
+        # external spool handling
         if tray_id == 254 or tray_id == 255:
             ams_id = tray_id
             slot_id = 0
+            # single extruder external spool handling
+            if tray_id == 254 and not self.config.capabilities.has_dual_extruder:
+                ams_id = 255
 
         cmd["print"]["ams_id"] = ams_id
         cmd["print"]["tray_id"] = tray_id
@@ -1752,25 +1806,20 @@ class BambuPrinter:
         """
         Sends a command to the printer to turn off the AMS dryer.
 
-        Also resets `ams_unit.temp_target` to `0` in the local printer state.
-        Raises an exception if `ams_id` does not match a connected AMS unit.
+        Raises `ValueError` before publishing if `ams_id` does not match a
+        connected AMS unit, or the unit has no dryer.
 
         Parameters
         ----------
         * ams_id : int = 0 - The AMS unit whose dryer should be turned off (default is 0).
         """
+        self._require_ams_dryer(ams_id)
         cmd = copy.deepcopy(AMS_FILAMENT_DRYING)
         cmd["print"]["ams_id"] = ams_id
         cmd["print"]["mode"] = 0  # Turn off drying mode
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
-
-        ams = next((u for u in self._printer_state.ams_units if u.ams_id == ams_id), None)
-        if not ams:
-            raise Exception("invalid ams_id provided")
-
-        ams.temp_target = 0
 
         logger.debug(
             f"turn_off_ams_dryer - published AMS_FILAMENT_DRYING to [device/{self.config.serial_number}/request] command: [{cmd}]"
@@ -1798,7 +1847,11 @@ class BambuPrinter:
         * rotate_tray : bool - Whether to rotate the tray during drying (default is False).
         * ams_id : int - The AMS ID to control (default is 0).
         * filament_type : str - The filament type string (e.g. 'ABS'). Passed to firmware for validation.
+
+        Raises `ValueError` before publishing if `ams_id` does not match a
+        connected AMS unit, or the unit has no dryer.
         """
+        self._require_ams_dryer(ams_id)
         cmd = copy.deepcopy(AMS_FILAMENT_DRYING)
         cmd["print"]["ams_id"] = ams_id
         cmd["print"]["mode"] = 1  # Turn on drying mode
@@ -1811,12 +1864,6 @@ class BambuPrinter:
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(cmd)
         )
-
-        ams = next((u for u in self._printer_state.ams_units if u.ams_id == ams_id), None)
-        if not ams:
-            raise Exception("invalid ams_id provided")
-
-        ams.temp_target = target_temp
 
         logger.debug(
             f"turn_on_ams_dryer - published AMS_FILAMENT_DRYING to [device/{self.config.serial_number}/request] command: [{cmd}]"
@@ -2065,6 +2112,41 @@ class BambuPrinter:
 
     # region private methods
 
+    def _require_ams_dryer(self, ams_id: int):
+        """Raises `ValueError` unless `ams_id` is a connected AMS unit with a dryer."""
+        ams = next((u for u in self._printer_state.ams_units if u.ams_id == ams_id), None)
+        if not ams:
+            raise ValueError(f"invalid ams_id provided: {ams_id}")
+        if ams.dryer is None:
+            raise ValueError(f"AMS unit {ams_id} ({ams.model.name}) has no dryer")
+
+    def _resolve_external_spool_trays(self, file: str, plate: int) -> list[int]:
+        """
+        Derive the external spool holder for each filament of a dual-nozzle plate
+        from the `.3mf` itself, so callers never build the mapping.
+        """
+        info = get_project_info(file, self, plate_num=plate)
+        if info is None:
+            raise ValueError(
+                f"print_3mf_file - no project metadata for [{file}] plate [{plate}]"
+            )
+
+        metadata = info.metadata
+        trays = resolve_external_spool_trays(
+            metadata.get("filament_extruders", []),
+            metadata.get("physical_extruder_map", []),
+            [int(filament["id"]) for filament in metadata.get("filament", [])],
+        )
+
+        used = [tray for tray in trays if tray != -1]
+        if len(used) != len(set(used)):
+            logger.warning(
+                f"print_3mf_file - more than one filament of [{file}] plate [{plate}] "
+                f"maps to the same external spool; the printer will not pause to swap it"
+            )
+
+        return trays
+
     def _elapsed_key(self) -> str | None:
         raw = (
             self._active_job_info.subtask_name or self._active_job_info.gcode_file or ""
@@ -2088,6 +2170,94 @@ class BambuPrinter:
         if data and "wall_start_time" in data:
             return float(data["wall_start_time"])
         return -1.0
+
+    # A job started at the printer's screen reports an empty subtask_name, so the
+    # name-based re-fetch of project_info cannot find its file after a restart
+    # (GH #59). The project_file frame is the only source of the path, so it is
+    # persisted here, one record per printer. A record is trusted only once it is
+    # sealed with the running job's telemetry fingerprint, and only when that
+    # fingerprint still matches after the restart; anything else deletes it and
+    # leaves project_info empty rather than showing another job's project.
+    _JOB_RECORD_KEY = "active"
+
+    def _job_record_dir(self) -> Path:
+        cache_path = self.config.bpm_cache_path or Path()
+        serial = self.config.serial_number
+        return (cache_path / serial if serial else cache_path) / "job"
+
+    def _job_fingerprint(self) -> dict:
+        return {
+            "task_id": self._task_id,
+            "gcode_file": self._active_job_info.gcode_file,
+            "subtask_name": self._active_job_info.subtask_name,
+            "total_layers": self._active_job_info.total_layers,
+        }
+
+    def _persist_job_record(self, path: str, md5: str | None, plate_num: int) -> None:
+        cache_write(
+            self._job_record_dir(),
+            self._JOB_RECORD_KEY,
+            {"path": path, "md5": md5, "plate_num": plate_num, "fingerprint": None},
+        )
+        self._job_record_sealed = False
+
+    def _seal_job_record(self) -> None:
+        """Record the fingerprint once the running job reports its task id and layers."""
+        info = self._active_job_info
+        if (
+            self._job_record_sealed
+            or not (info.project_info and info.project_info.id)
+            or not self._task_id
+            or info.total_layers <= 0
+        ):
+            return
+        record = cache_read(self._job_record_dir(), self._JOB_RECORD_KEY)
+        if record:
+            record["fingerprint"] = self._job_fingerprint()
+            cache_write(self._job_record_dir(), self._JOB_RECORD_KEY, record)
+        self._job_record_sealed = True
+
+    def _clear_job_record(self) -> None:
+        cache_delete(self._job_record_dir(), self._JOB_RECORD_KEY)
+        self._job_record_sealed = True
+
+    def _recover_project_info(self) -> bool:
+        """
+        Restore project_info from the persisted record after a restart.
+
+        Returns True only when a trusted record produced a project, so a failed
+        fetch still falls through to the name-based lookup. Waits, keeping the
+        record, while the task id or layer count is not yet reported; deletes it
+        on an unsealed record or any fingerprint mismatch.
+        """
+        record = cache_read(self._job_record_dir(), self._JOB_RECORD_KEY)
+        if not record:
+            return False
+        live = self._job_fingerprint()
+        if not live["task_id"] or live["total_layers"] <= 0:
+            return False
+        if record.get("fingerprint") != live:
+            logger.info(
+                "_recover_project_info - persisted job record does not match the running job, deleting it"
+            )
+            self._clear_job_record()
+            return False
+        plate_num = int(record.get("plate_num") or 1)
+        try:
+            project_info = get_project_info(
+                record["path"], self, record.get("md5"), plate_num
+            )
+        except Exception as e:
+            logger.warning(
+                f"get_project_info from job record failed for [{record.get('path')}]: {e}"
+            )
+            return False
+        if not (project_info and project_info.id):
+            return False
+        self._active_job_info.project_info = project_info
+        self._active_job_info.plate_num = plate_num
+        self._active_job_info.project_info_fetch_attempted = True
+        return True
 
     def _notify_update(self):
         if self.on_update:
@@ -2143,8 +2313,11 @@ class BambuPrinter:
                 "command" in message["print"]
                 and not message["print"]["command"] == "push_status"
             ):
-                logger.info(
-                    f"_on_message - command message type received - bambu_msg: [{message}]"
+                # a refused command is worth seeing at the default log level
+                refused = str(message["print"].get("result", "")).lower() == "fail"
+                logger.log(
+                    logging.WARNING if refused else logging.INFO,
+                    f"_on_message - command message type received - bambu_msg: [{message}]",
                 )
 
             status = message["print"]
@@ -2177,10 +2350,15 @@ class BambuPrinter:
                     url.replace("/media/usb0", "").replace("/sdcard", "").split("://", 1)
                 )
                 if len(parts) == 2:
+                    # A new job invalidates the previous job's record. Persist only a
+                    # path bpm could read: an unreadable one (e.g. the internal eMMC
+                    # URL of a touchscreen reprint) would block the name lookup later.
+                    self._clear_job_record()
                     try:
                         self._active_job_info.project_info = get_project_info(
                             parts[1], self, md5, plate_num
                         )
+                        self._persist_job_record(parts[1], md5, plate_num)
                     except Exception as e:
                         logger.warning(f"get_project_info failed for [{parts[1]}]: {e}")
                 self._active_job_info.subtask_name = subtask_name
@@ -2192,7 +2370,7 @@ class BambuPrinter:
 
                 def _delayed_refresh():
                     # let's sleep for a couple seconds and do a full refresh
-                    time.sleep(2.5)
+                    time.sleep(10.0)
                     logger.debug(
                         f"filament change triggered publishing ANNOUNCE_VERSION to [device/{self.config.serial_number}/request]"
                     )
@@ -2235,6 +2413,8 @@ class BambuPrinter:
                 self._active_job_info.subtask_name = status["subtask_name"]
             if "gcode_file" in status:
                 self._active_job_info.gcode_file = status["gcode_file"]
+            if "task_id" in status:
+                self._task_id = str(status["task_id"])
             if "print_type" in status:
                 self._active_job_info.print_type = status["print_type"]
             if "layer_num" in status:
@@ -2247,6 +2427,14 @@ class BambuPrinter:
             gcode_state = self._printer_state.gcode_state
             if "gcode_state" in status:
                 gcode_state = status["gcode_state"]
+                # No job is running, so any persisted job record is stale: the job
+                # ended, possibly while this process was down (GH #59).
+                if gcode_state in ("IDLE", "FAILED", "FINISH") and (
+                    gcode_state != self._printer_state.gcode_state
+                    or not self._job_record_checked
+                ):
+                    self._clear_job_record()
+                self._job_record_checked = True
                 if gcode_state != self._printer_state.gcode_state:
                     if gcode_state in ("FAILED", "FINISH"):
                         self._active_job_info.wall_start_time = -1.0
@@ -2270,6 +2458,7 @@ class BambuPrinter:
                                 or not self._active_job_info.project_info.id
                             )
                             and not self._active_job_info.project_info_fetch_attempted
+                            and not self._recover_project_info()
                             and self._active_job_info.gcode_file
                             and self._active_job_info.subtask_name
                         ):
@@ -2303,6 +2492,9 @@ class BambuPrinter:
                                     logger.warning(
                                         f"get_project_info fallback failed for [{file_entry['id']}]: {e}"
                                     )
+
+            if gcode_state == "RUNNING":
+                self._seal_job_record()
 
             if "mc_remaining_time" in status:
                 remaining_minutes = int(status["mc_remaining_time"])
@@ -2603,12 +2795,16 @@ class BambuPrinter:
         ftps: IoTFTPSClient,
         directory: str,
         mask: str | None = None,
-    ) -> dict:
+    ) -> dict | None:
         try:
             files = ftps.list_files_ex(directory)
         except Exception:
             logger.exception("_get_sftp_files - unexpected ftps exception")
-            return {}
+            return None
+
+        if files is None:
+            logger.warning(f"_get_sftp_files - listing [{directory}] failed")
+            return None
 
         dir: dict = {
             "id": directory + ("/" if directory != "/" else ""),
@@ -2624,8 +2820,10 @@ class BambuPrinter:
         for entry in files if files else {}:
             if entry.is_dir:
                 item = self._get_sftp_files(ftps, entry.path)
-                if not item:
-                    continue
+                if item is None:
+                    # a folder that failed to list makes the whole listing a failure,
+                    # rather than a silent partial tree
+                    return None
 
                 item["timestamp"] = entry.timestamp.timestamp()
                 items.append(item)

@@ -13,8 +13,8 @@ from bpm.bambuspool import BambuSpool
 from bpm.bambutools import (
     ActiveTool,
     AirConditioningMode,
-    AMSDryFanStatus,
-    AMSDrySubStatus,
+    AMSDryerFanStatus,
+    AMSDryerSubStatus,
     AMSHeatingState,
     AMSModel,
     ExtensionToolMountState,
@@ -28,6 +28,7 @@ from bpm.bambutools import (
     build_nozzle_identifier,
     decodeError,
     decodeHMS,
+    dryerRefusalMessage,
     getAMSModelBySerial,
     parse_nozzle_identifier,
     parse_nozzle_type,
@@ -169,6 +170,63 @@ class ExtruderState:
     """The id of the ams associated with this extruder"""
 
 
+DRYER_MODELS = (AMSModel.AMS_2_PRO, AMSModel.AMS_HT)
+"""AMS models that can dry filament; only these carry an `AMSDryerState`."""
+
+
+@dataclass
+class AMSDryerState:
+    """State of an AMS unit's filament dryer (AMS 2 Pro and AMS HT only).
+
+    Measured values are plain; values the printer was ordered to use end in
+    `_target`.
+    """
+
+    state: AMSHeatingState = AMSHeatingState.OFF
+    """The computed state of the dryer's heater."""
+    sub_status: AMSDryerSubStatus = AMSDryerSubStatus.OFF
+    """Drying phase (bits 22-25 of `ams_info`)."""
+    fan1_status: AMSDryerFanStatus = AMSDryerFanStatus.OFF
+    """Drying fan 1 status (bits 18-19 of `ams_info`)."""
+    fan2_status: AMSDryerFanStatus = AMSDryerFanStatus.OFF
+    """Drying fan 2 status (bits 20-21 of `ams_info`)."""
+    remaining_minutes: int = 0
+    """Minutes left in the running dry (`dry_time`)."""
+    temp_target: int = -1
+    """Temperature the running dry was ordered at, in °C (`dry_setting`, or the
+    accepted command's `temp`); -1 when idle."""
+    duration_target_hours: int = -1
+    """Duration the running dry was ordered for, in hours (`dry_setting`); -1
+    when idle."""
+    filament_target: str = ""
+    """Filament type the running dry was ordered for (`dry_setting`); empty
+    when idle."""
+    refusals: list[int] = field(default_factory=list)
+    """Why a dry cannot start now: raw `dry_sf_reason` values (`AMSDryerRefusal`).
+    Empty when a dry can start; `[6]` while one runs. Unknown values are kept."""
+    refusal_message: str = ""
+    """BambuStudio's text for `refusals`; empty when a dry can start."""
+    fail_code: str = ""
+    """HMS code of the last refused drying command reply (e.g. `HMS_0500-C04B`).
+    Cleared by the next accepted one."""
+    fail_message: str = ""
+    """Text for `fail_code`, from `HMS_STATUS`."""
+    fail_count: int = 0
+    """Counts refused drying command replies, so a consumer can tell a new
+    refusal from an old one."""
+
+
+def _fit_ams_unit_to_model(u: "AMSUnitState") -> None:
+    """Builds the unit's dryer and sizes its slots once its model is known.
+
+    Called wherever the model can be learned (the module list or the AMS info word),
+    so the dryer exists before any dryer field of the same frame is parsed."""
+    if u.dryer is None and u.model in DRYER_MODELS:
+        u.dryer = AMSDryerState()
+    if u.model == AMSModel.AMS_HT and len(u.tray_exists) != 1:
+        u.tray_exists = u.tray_exists[:1]
+
+
 @dataclass
 class AMSUnitState:
     """State information about an individual AMS unit."""
@@ -181,26 +239,17 @@ class AMSUnitState:
     """`AMSModel` for this unit"""
     temp_actual: float = 0.0
     """Actual temp."""
-    temp_target: int = 0
-    """Target drying temp."""
     humidity_index: int = 0
     """Humidity index."""
     humidity_raw: int = 0
     """Raw humidity."""
     ams_info: int = 0
     """Underlying ams info value"""
-    heater_state: AMSHeatingState = AMSHeatingState.OFF
-    """The computed state of the AMS's heater"""
-    dry_fan1_status: AMSDryFanStatus = AMSDryFanStatus.OFF
-    """Drying fan 1 status (bits 18-19 of ams_info)"""
-    dry_fan2_status: AMSDryFanStatus = AMSDryFanStatus.OFF
-    """Drying fan 2 status (bits 20-21 of ams_info)"""
-    dry_sub_status: AMSDrySubStatus = AMSDrySubStatus.OFF
-    """Drying sub-status phase (bits 22-25 of ams_info)"""
-    dry_time: int = 0
-    """Minutes left."""
+    dryer: AMSDryerState | None = None
+    """The unit's dryer. `None` with `model` `UNKNOWN` means the unit has not
+    reported yet; `None` with any other model means it has no dryer."""
     tray_exists: list[bool] = field(default_factory=lambda: [False] * 4)
-    """Slot presence."""
+    """Slot presence, one entry per slot: 4, or 1 for an AMS HT."""
     assigned_to_extruder: ActiveTool = ActiveTool.SINGLE_EXTRUDER
     """Target tool computed from raw_extruder_id"""
 
@@ -350,14 +399,24 @@ class BambuState:
         info = data.get("info", {})
         p = data.get("print", {})
 
-        if (
-            p.get("command", "") == "ams_filament_drying"
-            and p.get("result", "") == "success"
-        ):
+        if p.get("command", "") == "ams_filament_drying":
             ams_id = p.get("ams_id", -1)
             ams = next((u for u in base.ams_units if u.ams_id == ams_id), None)
-            if ams:
-                ams.temp_target = int(p.get("temp", 0))
+            dryer = ams.dryer if ams else None
+            result = str(p.get("result", "")).lower()
+            if dryer and result == "success":
+                # a start (mode 1) orders a temperature; a stop (mode 0) leaves none
+                on = int(p.get("mode", 1)) == 1
+                dryer.temp_target = int(p.get("temp", 0)) if on else -1
+                dryer.fail_code = ""
+                dryer.fail_message = ""
+            elif dryer and result == "fail":
+                err = decodeError(int(p.get("err_code", 0) or 0))
+                dryer.fail_code = err.get("code", "")
+                dryer.fail_message = (
+                    err.get("msg", "") or "The printer refused the drying command."
+                )
+                dryer.fail_count += 1
 
         ams_root = p.get("ams", {})
         device = p.get("device", {})
@@ -592,7 +651,7 @@ class BambuState:
                 elif ext.status is not ExtruderStatus.IDLE:
                     ext.tray_state = TrayState.LOADING
                 else:
-                    ext.tray_state = base.active_tray_state
+                    ext.tray_state = base_tray_state
 
                 new_extruders.append(ext)
         elif len(base.extruders) > 1:
@@ -666,7 +725,11 @@ class BambuState:
                 ams_id = int(m["name"].split("/")[-1])
                 u = cur_ams.get(ams_id, AMSUnitState(ams_id=ams_id))
                 u.chip_id = m.get("sn", u.chip_id)
-                u.model = getAMSModelBySerial(u.chip_id)
+                # an unlisted serial prefix must not forget a model already known
+                model = getAMSModelBySerial(u.chip_id)
+                if model != AMSModel.UNKNOWN:
+                    u.model = model
+                _fit_ams_unit_to_model(u)
                 cur_ams[ams_id] = u
 
         for ams_u in ams_root.get("ams", []):
@@ -679,26 +742,36 @@ class BambuState:
             _hRaw = int(float(ams_u.get("humidity_raw", 0)))
             if 1 <= _hRaw <= 100:
                 u.humidity_raw = _hRaw
-            u.dry_time = int(float(ams_u.get("dry_time", u.dry_time)))
 
-            # ugly hack for capturing target temp
-            if u.dry_time > 0 and u.temp_target < int(u.temp_actual) - 1:
-                u.temp_target = int(u.temp_actual)
-            elif u.dry_time == 0:
-                u.temp_target = 0
+            # resolve the model before any dryer field, so a unit's first
+            # report keeps its dryer values
+            p_ams = parseAMSInfo(ams_u["info"]) if "info" in ams_u else None
+            if p_ams and u.model == AMSModel.UNKNOWN:
+                u.model = p_ams["ams_type"]
+            _fit_ams_unit_to_model(u)
 
-            if "info" in ams_u:
+            dryer = u.dryer
+            if dryer:
+                dryer.remaining_minutes = int(
+                    float(ams_u.get("dry_time", dryer.remaining_minutes))
+                )
+                if isinstance(ams_u.get("dry_sf_reason"), list):
+                    dryer.refusals = [int(r) for r in ams_u["dry_sf_reason"]]
+                    dryer.refusal_message = dryerRefusalMessage(dryer.refusals)
+                dry_setting = ams_u.get("dry_setting")
+                if isinstance(dry_setting, dict):
+                    dryer.temp_target = int(dry_setting.get("dry_temperature", -1))
+                    dryer.duration_target_hours = int(dry_setting.get("dry_duration", -1))
+                    dryer.filament_target = str(dry_setting.get("dry_filament", ""))
+
+            if p_ams:
                 u.ams_info = int(ams_u["info"], 16)
-                p_ams = parseAMSInfo(ams_u["info"])
 
-                u.heater_state = p_ams["heater_state"]
-                u.dry_fan1_status = p_ams["dry_fan1_status"]
-                u.dry_fan2_status = p_ams["dry_fan2_status"]
-                u.dry_sub_status = p_ams["dry_sub_status"]
-
-                # Update AMS model from parsed info if not already set
-                if u.model == AMSModel.UNKNOWN:
-                    u.model = p_ams["ams_type"]
+                if dryer:
+                    dryer.state = p_ams["heater_state"]
+                    dryer.fan1_status = p_ams["dry_fan1_status"]
+                    dryer.fan2_status = p_ams["dry_fan2_status"]
+                    dryer.sub_status = p_ams["dry_sub_status"]
 
                 if new_caps.has_dual_extruder:
                     u.assigned_to_extruder = ActiveTool(p_ams.get("extruder_id", 15))
@@ -715,8 +788,8 @@ class BambuState:
                     # AMS-HT: 128, 129, 130, 131 -> shift 16, 20, 24, 28
                     if id >= 128:
                         shift = 16 + (4 * (id - 128))
-                        # AMS-HT has 4 slots like standard AMS
-                        u.tray_exists = [bool((eb >> shift) & (1 << j)) for j in range(4)]
+                        # AMS-HT has a single slot
+                        u.tray_exists = [bool((eb >> shift) & 1)]
                     else:
                         shift = 4 * id
                         # Standard AMS is a 4-slot unit, so we check range(4)
@@ -849,9 +922,14 @@ class BambuState:
             decoded_error = decodeError(updates["print_error"])
         else:
             decoded_error = {}
-            base.hms_errors = []
 
-        updates["hms_errors"] = decodeHMS(p.get("hms", base.hms_errors))
+        # A frame with no "hms" key (a gcode_line ACK, a partial push_status) says nothing about
+        # HMS, so the previous entries stay. Only the print_error entry is re-derived every frame.
+        if "hms" in p:
+            raw_hms = p["hms"]
+        else:
+            raw_hms = [e for e in base.hms_errors if e.get("type") != "device_error"]
+        updates["hms_errors"] = decodeHMS(raw_hms)
         if decoded_error and decoded_error not in updates["hms_errors"]:
             updates["hms_errors"].insert(0, decoded_error)
 

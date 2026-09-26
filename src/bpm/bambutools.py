@@ -109,7 +109,7 @@ class AMSHeatingState(IntEnum):
     PRODUCT_TEST = 7  # Product testing mode
 
 
-class AMSDrySubStatus(IntEnum):
+class AMSDryerSubStatus(IntEnum):
     """
     AMS drying sub-status extracted from bits 22-25 of ams_info.
     Indicates the specific phase of the drying cycle.
@@ -121,7 +121,108 @@ class AMSDrySubStatus(IntEnum):
     DEHUMIDIFY = 2  # Dehumidification phase of drying
 
 
-class AMSDryFanStatus(IntEnum):
+class AMSDryerRefusal(IntEnum):
+    """
+    Why an AMS dryer cannot start now, from each AMS block's `dry_sf_reason` list.
+    Mapped from BambuStudio's DevAms::CannotDryReason. The printer sends an empty
+    list when a dry can start, and `DRYING_IN_PROGRESS` alone while one runs.
+    """
+
+    TASK_OCCUPIED = 0
+    INSUFFICIENT_POWER = 1
+    AMS_BUSY = 2  # calibrating, reading RFID, loading or unloading
+    FILAMENT_AT_OUTLET = 3  # filament fed past the AMS outlet
+    INITIATING_DRYING = 4
+    NOT_SUPPORTED_IN_2D_MODE = 5
+    DRYING_IN_PROGRESS = 6
+    UPGRADING = 7
+    INSUFFICIENT_POWER_PLUG_IN = 8
+    FILAMENT_AT_OUTLET_MANUAL_UNLOAD = 10
+
+
+# BambuStudio's text for each refusal (AMSDryControl.cpp get_cannot_reason_text).
+AMS_DRYER_REFUSAL_TEXT = {
+    AMSDryerRefusal.INSUFFICIENT_POWER: (
+        "Insufficient power",
+        "Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting.",
+    ),
+    AMSDryerRefusal.AMS_BUSY: (
+        "AMS is busy",
+        "AMS is calibrating | reading RFID | loading/unloading material, please wait.",
+    ),
+    AMSDryerRefusal.FILAMENT_AT_OUTLET: (
+        "Filament in AMS outlet",
+        "The high drying temperature may cause AMS blockage, please unload first.",
+    ),
+    AMSDryerRefusal.INITIATING_DRYING: ("Initiating AMS drying", ""),
+    AMSDryerRefusal.NOT_SUPPORTED_IN_2D_MODE: ("Not supported in 2D mode", ""),
+    AMSDryerRefusal.DRYING_IN_PROGRESS: (
+        "Task in progress",
+        "The AMS might be in use during Task.",
+    ),
+    AMSDryerRefusal.UPGRADING: (
+        "Upgrading",
+        "Firmware update in progress, please wait...",
+    ),
+    AMSDryerRefusal.INSUFFICIENT_POWER_PLUG_IN: (
+        "Insufficient power",
+        "Please plug in the power and then use the drying function.",
+    ),
+    AMSDryerRefusal.FILAMENT_AT_OUTLET_MANUAL_UNLOAD: (
+        "Filament in AMS outlet",
+        "The high drying temperature may cause AMS blockage. Please unload the filament manually before proceeding.",
+    ),
+}
+AMS_DRYER_REFUSAL_DEFAULT_TEXT = (
+    "System is busy",
+    "Initiating other drying processes, please wait a few seconds...",
+)
+
+
+def dryerRefusalMessage(reasons: list[int]) -> str:
+    """
+    Explains why a dryer cannot start, the way BambuStudio does
+    (AMSDryControl.cpp update_state and organize_cannot_reasons_text).
+
+    Returns "" when a dry can start: no reasons, or only `DRYING_IN_PROGRESS`.
+    Otherwise one line per reason shown: the first of task in progress, AMS busy
+    or filament at the outlet; then insufficient power; then the remaining
+    known reasons in the order received. When none of those apply (task
+    occupied or a value this table does not know), Studio's "System is busy".
+    """
+    if not reasons or set(reasons) == {AMSDryerRefusal.DRYING_IN_PROGRESS}:
+        return ""
+
+    def line(reason: int) -> str:
+        title, detail = AMS_DRYER_REFUSAL_TEXT.get(reason, AMS_DRYER_REFUSAL_DEFAULT_TEXT)
+        return f"{title}. {detail}" if detail else f"{title}."
+
+    lines = []
+    for primary in (
+        AMSDryerRefusal.DRYING_IN_PROGRESS,
+        AMSDryerRefusal.AMS_BUSY,
+        AMSDryerRefusal.FILAMENT_AT_OUTLET,
+        AMSDryerRefusal.FILAMENT_AT_OUTLET_MANUAL_UNLOAD,
+    ):
+        if primary in reasons:
+            lines.append(line(primary))
+            break
+    if AMSDryerRefusal.INSUFFICIENT_POWER in reasons:
+        lines.append(line(AMSDryerRefusal.INSUFFICIENT_POWER))
+    for reason in reasons:
+        if reason in (
+            AMSDryerRefusal.INSUFFICIENT_POWER_PLUG_IN,
+            AMSDryerRefusal.NOT_SUPPORTED_IN_2D_MODE,
+            AMSDryerRefusal.INITIATING_DRYING,
+            AMSDryerRefusal.UPGRADING,
+        ):
+            lines.append(line(reason))
+    if not lines:
+        lines.append(line(-1))
+    return "\n".join(lines)
+
+
+class AMSDryerFanStatus(IntEnum):
     """
     AMS drying fan status extracted from bits 18-21 of ams_info.
     Two independent fans (fan1: bits 18-19, fan2: bits 20-21).
@@ -738,9 +839,9 @@ def parseAMSInfo(info_hex: str) -> dict:
         "ams_type": AMSModel(ams_type) if ams_type in range(5) else AMSModel.UNKNOWN,
         "heater_state": AMSHeatingState(dry_status),
         "extruder_id": extruder_id,
-        "dry_fan1_status": AMSDryFanStatus(dry_fan1_status),
-        "dry_fan2_status": AMSDryFanStatus(dry_fan2_status),
-        "dry_sub_status": AMSDrySubStatus(dry_sub_status),
+        "dry_fan1_status": AMSDryerFanStatus(dry_fan1_status),
+        "dry_fan2_status": AMSDryerFanStatus(dry_fan2_status),
+        "dry_sub_status": AMSDryerSubStatus(dry_sub_status),
     }
 
     # print(f"\r\n{ret}\r\n")
@@ -801,6 +902,79 @@ def parseExtruderTrayState(extruder: int, hotend, slot) -> int:
         return -1
     else:
         return slot & 0xFF
+
+
+VIRTUAL_TRAY_MAIN_ID = 255
+"""Virtual tray id of the main (right on H2D) extruder's external spool holder."""
+
+VIRTUAL_TRAY_DEPUTY_ID = 254
+"""Virtual tray id of the deputy (left on H2D) extruder's external spool holder."""
+
+
+def resolve_external_spool_trays(
+    filament_extruders: list[int],
+    physical_extruder_map: list[int],
+    used_filament_ids: list[int],
+) -> list[int]:
+    """
+    Name the external spool holder that feeds each filament of a sliced plate on a
+    dual-nozzle printer.
+
+    The slicer fixes which extruder prints each filament, so the holder is derived
+    from the plate, never chosen by the caller.  `filament_extruders` (the plate's
+    `filament_maps` in `slice_info.config`) gives each filament's 1-based *logical*
+    extruder, and `physical_extruder_map` (from the plate gcode config block) maps
+    that logical extruder to a physical one, `0` for the main extruder and `1` for
+    the deputy.  On H2D the main extruder is the right one and the map is `1,0`, so
+    logical extruder 1 is the LEFT extruder.
+
+    Parameters
+    ----------
+    * filament_extruders : list[int] - 1-based logical extruder per filament,
+        index `i` is filament id `i + 1`.
+    * physical_extruder_map : list[int] - physical extruder per logical extruder,
+        index `j` is logical extruder `j + 1`.
+    * used_filament_ids : list[int] - 1-based ids of the filaments the plate uses.
+
+    Returns
+    -------
+    A list the length of `filament_extruders`: `VIRTUAL_TRAY_MAIN_ID` (255) or
+    `VIRTUAL_TRAY_DEPUTY_ID` (254) at each used filament's index, `-1` elsewhere.
+
+    Raises
+    ------
+    `ValueError` when the plate carries no extruder assignment or no physical map,
+    or names an extruder or filament id outside them.  A wrong holder prints on the
+    wrong side, so this never guesses.
+    """
+    if not filament_extruders:
+        raise ValueError("plate has no filament extruder assignment (filament_maps)")
+    if not physical_extruder_map:
+        raise ValueError("plate has no physical_extruder_map")
+
+    trays = [-1] * len(filament_extruders)
+    for filament_id in used_filament_ids:
+        index = filament_id - 1
+        if not 0 <= index < len(filament_extruders):
+            raise ValueError(
+                f"filament id [{filament_id}] is outside the plate's filaments"
+            )
+
+        logical = filament_extruders[index]
+        if not 1 <= logical <= len(physical_extruder_map):
+            raise ValueError(
+                f"filament id [{filament_id}] uses logical extruder [{logical}] outside physical_extruder_map"
+            )
+
+        physical = physical_extruder_map[logical - 1]
+        if physical == 0:
+            trays[index] = VIRTUAL_TRAY_MAIN_ID
+        elif physical == 1:
+            trays[index] = VIRTUAL_TRAY_DEPUTY_ID
+        else:
+            raise ValueError(f"physical extruder [{physical}] is neither 0 nor 1")
+
+    return trays
 
 
 def parseRFIDStatus(status):
@@ -893,6 +1067,9 @@ def parseStage(stage_int: int) -> str:
         76: "Cutting",
         77: "Tool switching",
         100: "Printing",
+        245: "Enhanced fan full speed",
+        246: "Enhanced fan half speed",
+        247: "Enhanced fan off",
         255: "Completed",
     }
     return stage_map.get(stage_int, f"Stage [{stage_int}]")

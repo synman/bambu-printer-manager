@@ -15,7 +15,13 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from zipfile import ZipFile
 
-from bpm.bambutools import LoggerName, PlateType, get_file_md5
+from bpm.bambutools import (
+    VIRTUAL_TRAY_MAIN_ID,
+    LoggerName,
+    PlateType,
+    get_file_md5,
+    resolve_external_spool_trays,
+)
 
 if TYPE_CHECKING:
     from bpm.bambuprinter import BambuPrinter
@@ -42,21 +48,33 @@ class ProjectInfo:
 
     The `metadata` dict produced by `get_project_info` has these keys:
 
-    | Key           | Type              | Description                                                  |
-    |---------------|-------------------|--------------------------------------------------------------|
-    | `thumbnail`   | `str`             | `data:image/png;base64,...` — `plate_N.png` as a data URI    |
-    | `topimg`      | `str`             | `data:image/png;base64,...` — `top_N.png` as a data URI      |
-    | `map`         | `dict`            | Full `plate_N.json` content, including `filament_ids`,       |
-    |               |                   | `filament_colors`, and `bbox_objects` (each enriched with    |
-    |               |                   | `id` from `slice_info.config`).                              |
-    | `filament`    | `list[dict]`      | Normalized per-filament list: `{"id": int, "type": str,      |
-    |               |                   | "color": "#RRGGBB"}`. `id` is 1-indexed.                     |
-    | `ams_mapping` | `list[str]`       | Placeholder in the SHAPE of the `print_3mf_file`             |
-    |               |                   | `ams_mapping` param: index `id - 1` holds `str(id)` per      |
-    |               |                   | filament, `"-1"` fills gaps. NOT tray IDs — the 3mf's        |
-    |               |                   | `filament_maps` is the slicer's extruder assignment, so a    |
-    |               |                   | real mapping must be resolved from the spools loaded on the  |
-    |               |                   | printer.                                                     |
+    | Key                     | Type         | Description                                                    |
+    |-------------------------|--------------|----------------------------------------------------------------|
+    | `thumbnail`             | `str`        | `data:image/png;base64,...` — `plate_N.png` as a data URI      |
+    | `topimg`                | `str`        | `data:image/png;base64,...` — `top_N.png` as a data URI        |
+    | `map`                   | `dict`       | Full `plate_N.json` content, including `filament_ids`,         |
+    |                         |              | `filament_colors`, and `bbox_objects` (each enriched with `id` |
+    |                         |              | from `slice_info.config`).                                     |
+    | `filament`              | `list[dict]` | Normalized per-filament list: `{"id": int, "type": str,        |
+    |                         |              | "color": "#RRGGBB"}`. `id` is 1-indexed.                       |
+    | `ams_mapping`           | `list[str]`  | Placeholder in the SHAPE of the `print_3mf_file` `ams_mapping` |
+    |                         |              | param: index `id - 1` holds `str(id)` per filament, `"-1"`     |
+    |                         |              | fills gaps. NOT tray IDs — the 3mf's `filament_maps` is the    |
+    |                         |              | slicer's extruder assignment, so a real mapping must be        |
+    |                         |              | resolved from the spools loaded on the printer.                |
+    | `filament_extruders`    | `list[int]`  | The slicer's 1-based logical extruder per filament, at index   |
+    |                         |              | `id - 1`, from `slice_info.config` `filament_maps`. Empty when |
+    |                         |              | the slicer wrote none.                                         |
+    | `physical_extruder_map` | `list[int]`  | Physical extruder (`0` main, `1` deputy) per logical extruder, |
+    |                         |              | from the plate gcode config block. Empty when absent. On H2D   |
+    |                         |              | it is `[1, 0]`, so logical extruder 1 is LEFT.                 |
+    | `external_spool_trays`  | `list[int]`  | Wire id of the external spool holder feeding each filament, at |
+    |                         |              | index `id - 1`: `255` main (right), `254` deputy (left), `-1`  |
+    |                         |              | unused. Single-nozzle printers report `255` for every used     |
+    |                         |              | filament, although their telemetry calls the one holder tray   |
+    |                         |              | `254`, so do not join this to `BambuSpool.slot_id`. Empty when |
+    |                         |              | a dual-nozzle plate has no extruder map. Derived on every      |
+    |                         |              | read, never cached.                                            |
     """
 
     id: str = ""
@@ -129,8 +147,33 @@ class ProjectInfo:
         |----------|------------------------------------------------------------|
         | `0–103`  | Standard 4-slot AMS: `ams_id * 4 + slot_id`                |
         | `128–135`| Single-slot AMS HT / N3S: `ams_id` (starts at 128)         |
-        | `254`    | External spool                                             |
+        | `255`    | External spool, main (right on H2D) extruder's holder      |
+        | `254`    | External spool, deputy (left on H2D) extruder's holder     |
         | `-1`     | Unmapped — filament not assigned to any AMS slot           |
+
+        Do not pass `254` or `255` for an external-spool print: pass `use_ams=False`
+        and let `print_3mf_file` derive the holder (see `external_spool_trays`).
+
+    **`filament_extruders`** : `list[int]`
+        The slicer's 1-based logical extruder per filament, at index `id - 1`, from
+        `filament_maps` in `Metadata/slice_info.config`.  Empty when absent.
+
+    **`physical_extruder_map`** : `list[int]`
+        Physical extruder per logical extruder, from the config block of
+        `Metadata/plate_N.gcode`: `0` main, `1` deputy.  On H2D it is `[1, 0]`, so
+        logical extruder 1 is the LEFT extruder.  Empty when absent.
+
+    **`external_spool_trays`** : `list[int]`
+        The external spool holder that feeds each filament, at index `id - 1`:
+        `255` for the main (right on H2D) holder, `254` for the deputy (left) holder,
+        `-1` for a filament the plate does not use.  Single-nozzle printers report
+        `255` for every used filament because they have one holder.  Empty when a
+        dual-nozzle plate lacks `filament_extruders` or `physical_extruder_map`, which
+        is also when `print_3mf_file` refuses the print.  These are the ids used in
+        `ams_mapping2`, not telemetry tray ids: a single-nozzle printer's telemetry
+        reports its one holder as tray `254`, so do not join this field to
+        `BambuSpool.slot_id`.  Derived on every read from the printer's capabilities
+        and never written to the metadata cache.
 
     **`slicer_settings`** : `dict`
         Key slicer parameters extracted from `Metadata/project_settings.config`.
@@ -207,8 +250,11 @@ def get_3mf_entry_by_name(node: dict | Any, target_name: str):
 
     Returns
     -------
-    `dict` if a matching node is found, `None` otherwise.
+    `dict` if a matching node is found, `None` otherwise (including when `node` is `None`,
+    which is what `get_sdcard_3mf_files()` returns after a failed listing).
     """
+    if not isinstance(node, dict):
+        return None
     if node.get("name") == target_name:
         return node
     if "children" in node and isinstance(node["children"], list):
@@ -233,8 +279,11 @@ def get_3mf_entry_by_id(node: dict | Any, target_id: str):
 
     Returns
     -------
-    `dict` if a matching node is found, `None` otherwise.
+    `dict` if a matching node is found, `None` otherwise (including when `node` is `None`,
+    which is what `get_sdcard_3mf_files()` returns after a failed listing).
     """
+    if not isinstance(node, dict):
+        return None
     if node.get("id") == target_id:
         return node
     if "children" in node and isinstance(node["children"], list):
@@ -270,21 +319,24 @@ def get_project_info(
 
     **What is extracted per plate**
 
-    | Source in ZIP                        | Metadata key  | Description                            |
-    |--------------------------------------|---------------|----------------------------------------|
-    | `Metadata/plate_N.png`               | `thumbnail`   | Data-URI PNG — slicer preview          |
-    | `Metadata/top_N.png`                 | `topimg`      | Data-URI PNG — top-down view           |
-    | `Metadata/plate_N.json`              | `map`         | Raw plate JSON (bbox_objects,          |
-    |                                      |               | filament_ids, filament_colors)         |
-    | `Metadata/slice_info.config` (XML)   | `filament`    | `[{"id": int, "type": str,             |
-    |                                      |               | "color": "#RRGGBB"}, ...]`             |
-    | `Metadata/slice_info.config` (XML)   | `ams_mapping` | Placeholder shape, NOT tray IDs: index |
-    |                                      |               | `id - 1` holds `str(id)` per filament, |
-    |                                      |               | `"-1"` fills gaps                      |
-    | `Metadata/project_settings.config`   | *(fallback)*  | Filament type + color when slice_info  |
-    |                                      |               | is sparse                              |
-    | `Metadata/plate_N.gcode` header      | *(fallback)*  | Filament type + color when both above  |
-    |                                      |               | are absent                             |
+    | Source in ZIP                         | Metadata key            | Description                                              |
+    |---------------------------------------|-------------------------|----------------------------------------------------------|
+    | `Metadata/plate_N.png`                | `thumbnail`             | Data-URI PNG — slicer preview                            |
+    | `Metadata/top_N.png`                  | `topimg`                | Data-URI PNG — top-down view                             |
+    | `Metadata/plate_N.json`               | `map`                   | Raw plate JSON (bbox_objects, filament_ids,              |
+    |                                       |                         | filament_colors)                                         |
+    | `Metadata/slice_info.config` (XML)    | `filament`              | `[{"id": int, "type": str, "color": "#RRGGBB"}, ...]`    |
+    | `Metadata/slice_info.config` (XML)    | `ams_mapping`           | Placeholder shape, NOT tray IDs: index `id - 1` holds    |
+    |                                       |                         | `str(id)` per filament, `"-1"` fills gaps                |
+    | `Metadata/slice_info.config` (XML)    | `filament_extruders`    | 1-based logical extruder per filament                    |
+    | `Metadata/plate_N.gcode` config block | `physical_extruder_map` | Physical extruder per logical extruder, read up to       |
+    |                                       |                         | `CONFIG_BLOCK_END`                                       |
+    | *(derived)*                           | `external_spool_trays`  | Derived from the two rows above and the printer's nozzle |
+    |                                       |                         | count on every read, never cached                        |
+    | `Metadata/project_settings.config`    | *(fallback)*            | Filament type + color when slice_info is sparse          |
+    | `Metadata/plate_N.gcode` header       | *(fallback)*            | Filament type + color when both above are absent         |
+
+    Metadata cached before `filament_extruders` existed is re-parsed once.
 
     `bbox_objects` entries in `map` are enriched with integer `id` values sourced
     from the `identify_id` attribute in `slice_info.config`.  These `id` values are
@@ -380,6 +432,44 @@ def get_project_info(
                 return _split_config_list(match.group(1))
 
         return []
+
+    def _read_gcode_config_block(zf: ZipFile, plate: int) -> str:
+        # The slicer writes the config block near the top of the plate gcode, so read
+        # only up to its end marker instead of decompressing the whole toolpath.
+        lines: list[str] = []
+        try:
+            with zf.open(f"Metadata/plate_{plate}.gcode") as gcode:
+                for raw_line in gcode:
+                    line = raw_line.decode("utf-8", errors="ignore")
+                    lines.append(line)
+                    if "CONFIG_BLOCK_END" in line or len(lines) >= 5000:
+                        break
+        except KeyError:
+            return ""
+        return "".join(lines)
+
+    def _to_int_list(values: list[str]) -> list[int]:
+        return [int(value) for value in values if value.lstrip("-").isdigit()]
+
+    def _attach_external_spool_trays(metadata: dict[str, Any]) -> None:
+        # Derived on every return and never written to the metadata cache, because it
+        # depends on the printer's live capabilities, not only on the .3mf.
+        used = [int(filament["id"]) for filament in metadata.get("filament", [])]
+        if not printer.config.capabilities.has_dual_extruder:
+            metadata["external_spool_trays"] = [
+                VIRTUAL_TRAY_MAIN_ID if index + 1 in used else -1
+                for index in range(max(used, default=0))
+            ]
+            return
+
+        try:
+            metadata["external_spool_trays"] = resolve_external_spool_trays(
+                metadata.get("filament_extruders", []),
+                metadata.get("physical_extruder_map", []),
+                used,
+            )
+        except ValueError:
+            metadata["external_spool_trays"] = []
 
     def _normalize_hex_color(value: str) -> str:
         color = value.strip().upper()
@@ -496,19 +586,26 @@ def get_project_info(
         with metadata.open("r") as f:
             lmd = json.load(f)
 
-        if (
-            lmd
-            and "plate_num" in lmd
-            and lmd["plate_num"] == plate_num
-            and rmd
-            and rmd["timestamp"] == lmd["timestamp"]
-            and rmd["size"] == lmd["size"]
-        ) or (
-            project_file_md5
-            and "md5" in lmd
-            and lmd["md5"] == project_file_md5.upper()
-            and "plate_num" in lmd
-            and lmd["plate_num"] == plate_num
+        # Metadata cached before extruder assignments were kept lacks these keys, so
+        # it is re-parsed once instead of serving a plate with no holder information.
+        cache_has_extruders = "filament_extruders" in (lmd or {}).get("metadata", {})
+
+        if cache_has_extruders and (
+            (
+                lmd
+                and "plate_num" in lmd
+                and lmd["plate_num"] == plate_num
+                and rmd
+                and rmd["timestamp"] == lmd["timestamp"]
+                and rmd["size"] == lmd["size"]
+            )
+            or (
+                project_file_md5
+                and "md5" in lmd
+                and lmd["md5"] == project_file_md5.upper()
+                and "plate_num" in lmd
+                and lmd["plate_num"] == plate_num
+            )
         ):
             logger.debug(f"get_project_info - using cached 3mf metadata for [{file}]")
 
@@ -523,6 +620,7 @@ def get_project_info(
             pi.size = lmd["size"]
             pi.metadata = lmd["metadata"]
             _ensure_ams_mapping(pi.metadata)
+            _attach_external_spool_trays(pi.metadata)
 
             return pi
 
@@ -707,6 +805,7 @@ def get_project_info(
                 pi.metadata["filament"] = filament_list
 
                 filament_maps = []
+                filament_extruders: list[int] = []
                 slice_info_metadata = get_nodes_by_plate_id(
                     slice_info_cfg, num, "metadata"
                 )
@@ -714,10 +813,12 @@ def get_project_info(
                     if slice_meta.get("key", "") == "filament_maps":
                         # `filament_maps` is the slicer's per-filament EXTRUDER
                         # assignment (1 or 2 on H2D), not tray ids, so it is unusable
-                        # as an ams_mapping. Keep only its length and rebuild the
-                        # value below as a filament-id placeholder; callers resolve
-                        # real tray ids from the spools loaded on the printer.
+                        # as an ams_mapping. Keep it as `filament_extruders`, then
+                        # rebuild the value below as a filament-id placeholder;
+                        # callers resolve real tray ids from the spools loaded on
+                        # the printer.
                         filament_maps = slice_meta.get("value", "").split(" ")
+                        filament_extruders = _to_int_list(filament_maps)
                         for f in range(0, len(filament_maps)):
                             filament_maps[f] = "-1"
                         break
@@ -727,6 +828,13 @@ def get_project_info(
                         if 0 <= map_index < len(filament_maps):
                             filament_maps[map_index] = str(filament["id"])
                     pi.metadata["ams_mapping"] = filament_maps
+
+                pi.metadata["filament_extruders"] = filament_extruders
+                pi.metadata["physical_extruder_map"] = _to_int_list(
+                    _extract_list_from_gcode_header(
+                        _read_gcode_config_block(zf, num), "physical_extruder_map"
+                    )
+                )
 
                 _ensure_ams_mapping(pi.metadata)
 
@@ -789,6 +897,9 @@ def get_project_info(
 
     if not local_file:
         localfile.unlink(missing_ok=True)
+
+    if ret is not None:
+        _attach_external_spool_trays(ret.metadata)
 
     return ret
 

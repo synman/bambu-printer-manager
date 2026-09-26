@@ -46,8 +46,11 @@ BambuConfig (configuration root)
 BambuState (telemetry root)
 ├── gcode_state, active_tool, etc.
 ├── ams_units: list[AMSUnitState]
-│   ├── ams_id, model, temps, humidity
-│   └── heater_state, dry_fan1/2_status, dry_sub_status
+│   ├── ams_id, model, temp_actual, humidity, tray_exists
+│   └── dryer: AMSDryerState | None (AMS 2 Pro and AMS HT only)
+│       ├── state, sub_status, fan1/2_status, remaining_minutes
+│       ├── temp_target, duration_target_hours, filament_target
+│       └── refusals, refusal_message, fail_code/message/count
 ├── extruders: list[ExtruderState]
 │   ├── id, temps, state, status
 │   └── active_tray_id, target_tray_id, tray_state
@@ -147,14 +150,10 @@ Quick alphabetical reference to all documented fields. Fields marked with * appe
 | [slot_id](#slot_id) | BambuSpool | Physical slot number | [Field Definition](#slot_id) · [BambuSpool](reference/bpm/bambuspool.md#bpm.bambuspool.BambuSpool) |
 | [current_layer](#current_layer) | ActiveJobInfo | Current layer index during print | [Field Definition](#current_layer) · [ActiveJobInfo](reference/bpm/bambuproject.md#bpm.bambuproject.ActiveJobInfo) |
 | [sound_enable](#sound_enable) | BambuConfig | Controls the machine's internal speaker for user notifications | [Field Definition](#sound_enable) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
-| [dry_fan1_status](#dry_fan1_status) | AMSUnitState | Primary drying fan state | [Field Definition](#dry_fan1_status) · [AMSUnitState](reference/bpm/bambustate.md#bpm.bambustate.AMSUnitState) |
 | [spools](#spools) | BambuState | All filament spools with properties | [Field Definition](#spools) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
 | [stage_id](#stage_id) | ActiveJobInfo | Current Stage numeric ID | [Field Definition](#stage_id) · [ActiveJobInfo](reference/bpm/bambuproject.md#bpm.bambuproject.ActiveJobInfo) |
-| [dry_fan2_status](#dry_fan2_status) | AMSUnitState | Secondary drying fan state | [Field Definition](#dry_fan2_status) · [AMSUnitState](reference/bpm/bambustate.md#bpm.bambustate.AMSUnitState) |
 | [stage_name](#stage_name) | ActiveJobInfo | Current Stage human-readable name | [Field Definition](#stage_name) · [ActiveJobInfo](reference/bpm/bambuproject.md#bpm.bambuproject.ActiveJobInfo) |
-| [dry_sub_status](#dry_sub_status) | AMSUnitState | Specific drying cycle phase | [Field Definition](#dry_sub_status) · [AMSUnitState](reference/bpm/bambustate.md#bpm.bambustate.AMSUnitState) |
 | [startup_read_option](#startup_read_option) | BambuConfig | Configures whether the AMS unit performs a full RFID scan of all slots upon printer power-on | [Field Definition](#startup_read_option) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
-| [dry_time](#dry_time) | AMSUnitState | Remaining drying time | [Field Definition](#dry_time) · [AMSUnitState](reference/bpm/bambustate.md#bpm.bambustate.AMSUnitState) |
 | [stat](#stat) | BambuState | Raw status bitmask (hex string) - contains chamber door/lid sensor bits | [Field Definition](#stat) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
 | [state](#state) | ExtruderState, BambuSpool | Spool operational state | [Field Definition](#state) · [ExtruderState](reference/bpm/bambustate.md#bpm.bambustate.ExtruderState), [BambuSpool](reference/bpm/bambuspool.md#bpm.bambuspool.BambuSpool) |
 | [drying_temp](#drying_temp) | BambuSpool | Recommended drying temperature | [Field Definition](#drying_temp) · [BambuSpool](reference/bpm/bambuspool.md#bpm.bambuspool.BambuSpool) |
@@ -169,13 +168,26 @@ Quick alphabetical reference to all documented fields. Fields marked with * appe
 | [temp](#temp) | ExtruderState | Current extruder temperature | [Field Definition](#temp) · [ExtruderState](reference/bpm/bambustate.md#bpm.bambustate.ExtruderState) |
 | [extruders](#extruders) | BambuState | State of all physical extruders | [Field Definition](#extruders) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
 | [temp_actual](#temp_actual) | AMSUnitState | Current AMS internal temperature | [Field Definition](#temp_actual) · [AMSUnitState](reference/bpm/bambustate.md#bpm.bambustate.AMSUnitState) |
-| [temp_target](#temp_target) | ExtruderState, AMSUnitState | Target drying temperature | [Field Definition](#temp_target) · [ExtruderState](reference/bpm/bambustate.md#bpm.bambustate.ExtruderState), [AMSUnitState](reference/bpm/bambustate.md#bpm.bambustate.AMSUnitState) |
+| [temp_target](#temp_target) | ExtruderState, AMSDryerState | Target temperature (nozzle; or a dry's ordered temperature) | [Field Definition](#temp_target) · [ExtruderState](reference/bpm/bambustate.md#bpm.bambustate.ExtruderState), [AMSDryerState](reference/bpm/bambustate.md#bpm.bambustate.AMSDryerState) |
+| [dryer](#dryer) | AMSUnitState | The unit's dryer; `None` without one | [Field Definition](#dryer) · [AMSUnitState](reference/bpm/bambustate.md#bpm.bambustate.AMSUnitState) |
 | [filament_tangle_detect](#filament_tangle_detect) | BambuConfig | Master switch for AMS tension-based monitor logic | [Field Definition](#filament_tangle_detect) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
 | [timestamp](#timestamp) | ProjectInfo | The epoch timestamp of this 3MF file | [Field Definition](#timestamp) · [ProjectInfo](reference/bpm/bambuproject.md#bpm.bambuproject.ProjectInfo) |
 | [firmware_version](#firmware_version) | BambuConfig | Semantic version string of the main printer firmware | [Field Definition](#firmware_version) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
 | [total_layers](#total_layers) | ActiveJobInfo | The total number of layers for this job | [Field Definition](#total_layers) · [ActiveJobInfo](reference/bpm/bambuproject.md#bpm.bambuproject.ActiveJobInfo) |
 | [fun](#fun) | BambuState | Raw function bitmask (hex string) - contains capability flags | [Field Definition](#fun) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
 | [total_length](#total_length) | BambuSpool | Total filament length on spool | [Field Definition](#total_length) · [BambuSpool](reference/bpm/bambuspool.md#bpm.bambuspool.BambuSpool) |
+| [state](#amsdryerstate) | AMSDryerState | Dryer heater state | [Field Definition](#amsdryerstate) · [AMSDryerState](reference/bpm/bambustate.md#bpm.bambustate.AMSDryerState) |
+| [sub_status](#amsdryerstate) | AMSDryerState | Drying phase | [Field Definition](#amsdryerstate) · [AMSDryerState](reference/bpm/bambustate.md#bpm.bambustate.AMSDryerState) |
+| [fan1_status](#amsdryerstate) | AMSDryerState | Drying fan 1 state | [Field Definition](#amsdryerstate) · [AMSDryerState](reference/bpm/bambustate.md#bpm.bambustate.AMSDryerState) |
+| [fan2_status](#amsdryerstate) | AMSDryerState | Drying fan 2 state | [Field Definition](#amsdryerstate) · [AMSDryerState](reference/bpm/bambustate.md#bpm.bambustate.AMSDryerState) |
+| [remaining_minutes](#amsdryerstate) | AMSDryerState | Minutes left in the dry | [Field Definition](#amsdryerstate) · [AMSDryerState](reference/bpm/bambustate.md#bpm.bambustate.AMSDryerState) |
+| [duration_target_hours](#amsdryerstate) | AMSDryerState | Running dry's ordered duration | [Field Definition](#amsdryerstate) · [AMSDryerState](reference/bpm/bambustate.md#bpm.bambustate.AMSDryerState) |
+| [filament_target](#amsdryerstate) | AMSDryerState | Running dry's ordered filament | [Field Definition](#amsdryerstate) · [AMSDryerState](reference/bpm/bambustate.md#bpm.bambustate.AMSDryerState) |
+| [refusals](#amsdryerstate) | AMSDryerState | Why a dry cannot start now | [Field Definition](#amsdryerstate) · [AMSDryerState](reference/bpm/bambustate.md#bpm.bambustate.AMSDryerState) |
+| [refusal_message](#amsdryerstate) | AMSDryerState | Studio's text for the refusal | [Field Definition](#amsdryerstate) · [AMSDryerState](reference/bpm/bambustate.md#bpm.bambustate.AMSDryerState) |
+| [fail_code](#amsdryerstate) | AMSDryerState | Last refused drying command reply | [Field Definition](#amsdryerstate) · [AMSDryerState](reference/bpm/bambustate.md#bpm.bambustate.AMSDryerState) |
+| [fail_message](#amsdryerstate) | AMSDryerState | Text for the last refused reply | [Field Definition](#amsdryerstate) · [AMSDryerState](reference/bpm/bambustate.md#bpm.bambustate.AMSDryerState) |
+| [fail_count](#amsdryerstate) | AMSDryerState | Count of refused drying replies | [Field Definition](#amsdryerstate) · [AMSDryerState](reference/bpm/bambustate.md#bpm.bambustate.AMSDryerState) |
 | [tray_exists](#tray_exists) | AMSUnitState | Which tray slots have filament present | [Field Definition](#tray_exists) · [AMSUnitState](reference/bpm/bambustate.md#bpm.bambustate.AMSUnitState) |
 | [gcode_file](#gcode_file) | ActiveJobInfo | The underlying G-code filename from this job feeding the printer | [Field Definition](#gcode_file) · [ActiveJobInfo](reference/bpm/bambuproject.md#bpm.bambuproject.ActiveJobInfo) |
 | [tray_info_idx](#tray_info_idx) | BambuSpool | Filament preset index in Bambu Studio | [Field Definition](#tray_info_idx) · [BambuSpool](reference/bpm/bambuspool.md#bpm.bambuspool.BambuSpool) |
@@ -195,7 +207,6 @@ Quick alphabetical reference to all documented fields. Fields marked with * appe
 | [has_lidar](#has_lidar) | PrinterCapabilities | Confirmed presence of the Micro LiDAR sensor based on `xcam` telemetry existence | [Field Definition](#has_lidar) · [PrinterCapabilities](reference/bpm/bambuconfig.md#bpm.bambuconfig.PrinterCapabilities) |
 | [wifi_signal_strength](#wifi_signal_strength) | BambuState | Wi-Fi signal strength indicator | [Field Definition](#wifi_signal_strength) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
 | [heatbreak_fan_speed_percent](#heatbreak_fan_speed_percent) | BambuClimate | Heatbreak cooling fan speed | [Field Definition](#heatbreak_fan_speed_percent) · [BambuClimate](reference/bpm/bambustate.md#bpm.bambustate.BambuClimate) |
-| [heater_state](#heater_state) | AMSUnitState | AMS drying/heater operational state | [Field Definition](#heater_state) · [AMSUnitState](reference/bpm/bambustate.md#bpm.bambustate.AMSUnitState) |
 | [zone_aux_percent](#zone_aux_percent) | BambuClimate | Auxiliary fan zone control | [Field Definition](#zone_aux_percent) · [BambuClimate](reference/bpm/bambustate.md#bpm.bambustate.BambuClimate) |
 | [hms_errors](#hms_errors) | BambuState | List of active HMS errors | [Field Definition](#hms_errors) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
 | [zone_exhaust_percent](#zone_exhaust_percent) | BambuClimate | Exhaust fan zone control | [Field Definition](#zone_exhaust_percent) · [BambuClimate](reference/bpm/bambustate.md#bpm.bambustate.BambuClimate) |
@@ -308,8 +319,8 @@ Main configuration class for [`BambuPrinter`](reference/bpm/bambuprinter.md#bpm.
 - **Type**: `Path | None`
 - **Default**: `None` (defaults to `~/.bpm` in `__post_init__`)
 - **Purpose**: The underlying directory BPM uses for managing cache/metadata
-- **Auto-Creation**: Creates `metadata/` subdirectory on initialization
-- **Reference**: Project metadata and 3MF caching location
+- **Auto-Creation**: Creates the root on initialization; subdirectories are created lazily on first write
+- **Reference**: Project metadata and 3MF caching location; also holds `elapsed/<job_key>.json` and `<serial>/job/active.json` (the persisted job record, see [project_info](#project_info))
 
 ### Read-Only Attributes
 
@@ -612,7 +623,8 @@ Root state object representing complete printer telemetry.
 | `code` | int | [HMS event/error code](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambustate.py#L589) |
 | `action` | int | [Firmware action indicator for the HMS event](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambustate.py#L589) |
 | `timestamp` | int | [Event timestamp (epoch seconds)](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L1914) |
-- **Purpose**: List of active HMS errors
+- **Purpose**: List of decoded HMS errors. bpm does not split active from historical entries: `severity` and `is_critical` come from the mask byte alone, so a stale code can read `Fatal`. A consumer that needs "active now" must apply its own rule (bambu-mcp keeps a `device_error` plus the first `device_hms` as active and marks the rest Historical).
+- **Update rule**: a `print` frame with no `hms` key (a `gcode_line` ACK, a partial `push_status`) keeps the previous entries. Only an explicit `"hms": []` clears the list. The `print_error` entry (`type: device_error`) is re-derived on every frame.
 - **Reference**: BambuStudio HMS system, ha-bambulab error decoding
 - **MQTT Structure**: [MQTT Protocol Reference](mqtt-protocol-reference.md)
 
@@ -663,6 +675,8 @@ mapped into other attributes, or used as runtime control/diagnostic inputs.
 | `humidity_raw` | string \| int | [Raw humidity value](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambustate.py#L427) |
 | `temp` | string \| float | [AMS temperature](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambustate.py#L218) |
 | `dry_time` | int | [Remaining dry time (minutes)](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambustate.py#L428) |
+| `dry_sf_reason` | list[int] | Why a dry cannot start now (`AMSDryerRefusal`); `[]` when it can, `[6]` while one runs |
+| `dry_setting` | dict | The running dry's order: `dry_temperature` (°C), `dry_duration` (hours), `dry_filament`; -1 / "" when idle |
 | `info` | string | [AMS info bitfield (hex string)](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambustate.py#L208) |
 | `tray` | list[dict] | [Tray list for this AMS unit](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L1717) |
 - **`ams[].tray[]` Schema**:
@@ -1178,13 +1192,6 @@ Individual AMS unit state and drying control.
 - **Purpose**: Current AMS internal temperature
 - **Reference**: BambuStudio thermal monitoring
 
-#### temp_target
-- **Type**: `int`
-- **Telemetry**: `ams[].target_temp` or captured during drying command
-- **Unit**: °C
-- **Purpose**: Target drying temperature
-- **Reference**: BambuStudio drying control
-
 ### Humidity Attributes
 
 #### humidity_index
@@ -1213,53 +1220,10 @@ All attributes below are extracted from the 32-bit `ams[].info` hex value.
 - **Purpose**: Raw AMS info bitmask containing all drying/assignment data
 - **Reference**: BambuStudio AMS telemetry
 
-#### heater_state
-- **Type**: `AMSHeatingState` (IntEnum)
-- **Telemetry**: `ams[].info` bits 4-7
-- **Valid Values**:
-  - `OFF (0)`: No drying active
-  - `CHECKING (1)`: Checking drying status
-  - `DRYING (2)`: Active drying phase
-  - `COOLING (3)`: Cooling after drying
-  - `STOPPING (4)`: Stopping drying process
-  - `ERROR (5)`: Error state
-  - `CANNOT_STOP_HEAT_OOC (6)`: Heat control out of control
-  - `PRODUCT_TEST (7)`: Product testing mode
-- **Purpose**: AMS drying/heater operational state
-- **Reference**: BambuStudio `DryStatus` enum (AMS 2 Pro and AMS HT only)
-
-#### dry_fan1_status
-- **Type**: `AMSDryFanStatus` (IntEnum)
-- **Telemetry**: `ams[].info` bits 18-19
-- **Valid Values**:
-  - `OFF (0)`: Fan off
-  - `ON (1)`: Fan running
-- **Purpose**: Primary drying fan state
-- **Reference**: BambuStudio `DryFanStatus` enum
-
-#### dry_fan2_status
-- **Type**: `AMSDryFanStatus` (IntEnum)
-- **Telemetry**: `ams[].info` bits 20-21
-- **Valid Values**: Same as `dry_fan1_status`
-- **Purpose**: Secondary drying fan state
-- **Reference**: BambuStudio `DryFanStatus` enum
-
-#### dry_sub_status
-- **Type**: `AMSDrySubStatus` (IntEnum)
-- **Telemetry**: `ams[].info` bits 22-25
-- **Valid Values**:
-  - `OFF (0)`: No active drying phase
-  - `HEATING (1)`: Heating phase
-  - `DEHUMIDIFY (2)`: Dehumidification phase
-- **Purpose**: Specific drying cycle phase
-- **Reference**: BambuStudio `DrySubStatus` enum
-
-#### dry_time
-- **Type**: `int`
-- **Telemetry**: `ams[].dry_time`
-- **Unit**: Minutes
-- **Purpose**: Remaining drying time
-- **Reference**: BambuStudio drying timer
+#### dryer
+- **Type**: `AMSDryerState | None`
+- **Purpose**: The unit's filament dryer. Set on an AMS 2 Pro or AMS HT the first time its model is known, from `info.module[].sn` (a version reply alone is enough) or `ams[].info`, before that frame's dryer fields are read. A serial whose prefix bpm does not know leaves an already-known model unchanged. `None` with `model` `UNKNOWN` means the unit has not reported yet; `None` with any other model means the unit has no dryer. Serialized as a nested object, or `null`.
+- **Reference**: see [AMSDryerState](#amsdryerstate)
 
 ### Tray Management
 
@@ -1278,6 +1242,89 @@ All attributes below are extracted from the 32-bit `ams[].info` hex value.
 - **Telemetry**: `ams[].info` bits 8-11 (extruder_id)
 - **Purpose**: Target extruder for H2D dual-extruder systems
 - **Reference**: BambuStudio H2D AMS routing
+
+---
+
+## AMSDryerState
+
+The filament dryer of an AMS 2 Pro or AMS HT, held in `AMSUnitState.dryer`. Measured values are plain; values the printer was ordered to use end in `_target`.
+
+**Source**: `src/bpm/bambustate.py`
+**Telemetry Root**: `print.ams.ams[id]`, and the `ams_filament_drying` command reply
+
+### Heater And Fans
+
+All four are extracted from the 32-bit `ams[].info` hex value (BambuStudio `DevFilaSystem.cpp` `ParseAmsInfo()`).
+
+#### state
+- **Type**: `AMSHeatingState` (IntEnum)
+- **Telemetry**: `ams[].info` bits 4-7
+- **Valid Values**:
+  - `OFF (0)`: No drying active
+  - `CHECKING (1)`: Checking drying status
+  - `DRYING (2)`: Active drying phase
+  - `COOLING (3)`: Cooling after drying
+  - `STOPPING (4)`: Stopping drying process
+  - `ERROR (5)`: Error state
+  - `CANNOT_STOP_HEAT_OOC (6)`: Heat control out of control
+  - `PRODUCT_TEST (7)`: Product testing mode
+- **Purpose**: The dryer's heater state
+- **Reference**: BambuStudio `DryStatus` enum
+
+#### sub_status
+- **Type**: `AMSDryerSubStatus` (IntEnum)
+- **Telemetry**: `ams[].info` bits 22-25
+- **Valid Values**:
+  - `OFF (0)`: No active drying phase
+  - `HEATING (1)`: Heating phase
+  - `DEHUMIDIFY (2)`: Dehumidification phase
+- **Purpose**: Specific drying cycle phase
+- **Reference**: BambuStudio `DrySubStatus` enum
+
+#### fan1_status, fan2_status
+- **Type**: `AMSDryerFanStatus` (IntEnum)
+- **Telemetry**: `ams[].info` bits 18-19 and 20-21
+- **Valid Values**: `OFF (0)`, `ON (1)`
+- **Purpose**: Drying fan states
+- **Reference**: BambuStudio `DryFanStatus` enum
+
+### Time And Order
+
+#### remaining_minutes
+- **Type**: `int`
+- **Telemetry**: `ams[].dry_time`
+- **Unit**: Minutes
+- **Purpose**: Time left in the running dry
+
+#### temp_target, duration_target_hours, filament_target
+- **Type**: `int`, `int`, `str`
+- **Telemetry**: `ams[].dry_setting.dry_temperature` / `.dry_duration` / `.dry_filament`; an accepted `ams_filament_drying` start reply (`mode` 1) also sets `temp_target` from its `temp`, and an accepted stop reply (`mode` 0) sets it to -1
+- **Unit**: °C, hours
+- **Purpose**: The running dry's order; `-1` / `""` when idle. `temp_target` is the order, never a measured temperature (`AMSUnitState.temp_actual` is)
+
+### Refusals
+
+#### refusals
+- **Type**: `list[int]` (values of `AMSDryerRefusal`; unknown values are kept)
+- **Telemetry**: `ams[].dry_sf_reason`
+- **Valid Values**:
+  - `TASK_OCCUPIED (0)`, `INSUFFICIENT_POWER (1)`, `AMS_BUSY (2)` (calibrating, reading RFID, loading or unloading)
+  - `FILAMENT_AT_OUTLET (3)`: filament fed past the AMS outlet; unload before drying
+  - `INITIATING_DRYING (4)`, `NOT_SUPPORTED_IN_2D_MODE (5)`, `DRYING_IN_PROGRESS (6)`, `UPGRADING (7)`
+  - `INSUFFICIENT_POWER_PLUG_IN (8)`, `FILAMENT_AT_OUTLET_MANUAL_UNLOAD (10)`
+- **Purpose**: Why the dryer cannot start now. An empty list means a dry can start; `[6]` alone means one is running. Kept when a frame omits the key.
+- **Reference**: BambuStudio `DevAms::CannotDryReason` (`DevFilaSystem.h`)
+
+#### refusal_message
+- **Type**: `str`
+- **Source**: `dryerRefusalMessage(refusals)`
+- **Purpose**: BambuStudio's explanation, one line per reason shown; empty when a dry can start
+- **Reference**: BambuStudio `AMSDryControl.cpp` `organize_cannot_reasons_text`
+
+#### fail_code, fail_message, fail_count
+- **Type**: `str`, `str`, `int`
+- **Telemetry**: the `ams_filament_drying` command reply with `result: fail` and its `err_code`
+- **Purpose**: Why the printer refused the last drying command (e.g. `HMS_0500-C04B`, filament in AMS outlet), decoded from `HMS_STATUS`. Code and message clear on the next accepted reply; the count only grows, so a consumer can tell a new refusal from an old one.
 
 ---
 
@@ -1514,6 +1561,10 @@ Filament spool properties and state.
 - **Telemetry**: `tray[].tray_info_idx`
 - **Purpose**: Filament preset index in Bambu Studio
 - **Reference**: BambuStudio filament database indexing
+- **Catalog**: `bambucommands.FILAMENT_CATALOG` is keyed by this value. It is generated from Bambu Studio's system filament profiles by `bambu-mqtt/get_filament_data.py`. Each entry carries name, vendor, `filament_type`, nozzle and plate temperatures, and Studio's AMS drying preset:
+  - `drying_temp_idle` / `drying_hours_idle`, `drying_temp_print` / `drying_hours_print`: dicts keyed by `AMSModel` name (`AMS_2_PRO`, `AMS_HT`). Temperatures are °C. Times are **hours**, the unit of the `ams_filament_drying` command's `duration`.
+  - `drying_full_dry`: the AMS models Studio says can dry this filament completely.
+  - `drying_heat_distortion_temp`, `drying_softening_temp`: °C. Studio warns above the first and sends the second as the command's `cooling_temp`.
 
 ### Temperature Settings
 
@@ -1705,7 +1756,8 @@ Details of the currently active job running on the printer, including progress, 
 - **Purpose**: The 3MF details for the active job
 - **Reference**: See [ProjectInfo](#projectinfo) section
 - **Update**: Populated via [`get_project_info()`](reference/bpm/bambuproject.md#bpm.bambuproject.get_project_info) method
-- **Note**: A fallback FTP lookup is attempted once when `gcode_state` transitions to `PREPARE` or `RUNNING`: searches the SD card 3MF file list by `subtask_name` and calls `get_project_info()`. Guarded by `project_info_fetch_attempted` to prevent repeated FTP calls on every MQTT push_status message.
+- **Note**: When `gcode_state` transitions to `PREPARE` or `RUNNING` with `project_info` empty (typically after a process restart), BPM first tries the persisted job record, then a fallback FTP lookup that searches the SD card 3MF file list by `subtask_name` and calls `get_project_info()`. Guarded by `project_info_fetch_attempted` to prevent repeated FTP calls on every MQTT push_status message.
+- **Persisted job record** (GH #59): a job started at the printer's screen reports an empty `subtask_name`, so the name lookup cannot find it. Every successful `project_file` frame therefore clears the previous record and, when bpm can read the file, writes a new one to `<bpm_cache_path>/<serial>/job/active.json` (path, md5, plate). An unreadable path, such as the internal eMMC URL `file:///userdata/…` a touchscreen reprint sends, writes no record. A recovery whose fetch fails still falls through to the `subtask_name` lookup. Once the job is `RUNNING` with a task id and a layer count, the record is sealed with a fingerprint of `task_id`, `gcode_file`, `subtask_name` and `total_layer_num`. After a restart it is used only when that fingerprint matches live telemetry. An unsealed record or any mismatch deletes it and leaves `project_info` empty. It is also deleted when the job reaches `FINISH` or `FAILED`, and when the first status after a start shows `IDLE`, `FINISH` or `FAILED`. Known limit: the A1 reports `task_id` `"0"` for every job, so there the other three fields carry the match.
 
 #### project_info_fetch_attempted
 - **Type**: `bool`
@@ -1911,7 +1963,7 @@ Details of the currently active job running on the printer, including progress, 
 | 6 | CANNOT_STOP_HEAT_OOC | Heat control out of control |
 | 7 | PRODUCT_TEST | Product testing mode |
 
-### AMSDrySubStatus
+### AMSDryerSubStatus
 **Source**: `src/bpm/bambutools.py`
 **Reference**: BambuStudio `DrySubStatus` enum
 
@@ -1921,7 +1973,7 @@ Details of the currently active job running on the printer, including progress, 
 | 1 | HEATING | Heating phase of drying |
 | 2 | DEHUMIDIFY | Dehumidification phase |
 
-### AMSDryFanStatus
+### AMSDryerFanStatus
 **Source**: `src/bpm/bambutools.py`
 **Reference**: BambuStudio `DryFanStatus` enum
 
@@ -2077,9 +2129,9 @@ Extracts 6 bit fields from 32-bit AMS info value:
 | 0-3 | ams_type | AMSModel | Hardware model |
 | 4-7 | heater_state | AMSHeatingState | Drying state |
 | 8-11 | extruder_id | int | H2D toolhead assignment |
-| 18-19 | dry_fan1_status | AMSDryFanStatus | Fan 1 state |
-| 20-21 | dry_fan2_status | AMSDryFanStatus | Fan 2 state |
-| 22-25 | dry_sub_status | AMSDrySubStatus | Drying phase |
+| 18-19 | dry_fan1_status | AMSDryerFanStatus | Fan 1 state |
+| 20-21 | dry_fan2_status | AMSDryerFanStatus | Fan 2 state |
+| 22-25 | dry_sub_status | AMSDryerSubStatus | Drying phase |
 
 ### Extruder Parsing
 
@@ -2193,6 +2245,7 @@ surface area and links each area to its documentation section.
 | [`BambuState`](reference/bpm/bambustate.md#bpm.bambustate.BambuState) | Documented in [BambuState](#bambustate) |
 | [`ExtruderState`](reference/bpm/bambustate.md#bpm.bambustate.ExtruderState) | Documented in [ExtruderState](#extruderstate) |
 | [`AMSUnitState`](reference/bpm/bambustate.md#bpm.bambustate.AMSUnitState) | Documented in [AMSUnitState](#amsunitstate) |
+| [`AMSDryerState`](reference/bpm/bambustate.md#bpm.bambustate.AMSDryerState) | Documented in [AMSDryerState](#amsdryerstate) |
 | [`BambuClimate`](reference/bpm/bambustate.md#bpm.bambustate.BambuClimate) | Documented in [BambuClimate](#bambuclimate) |
 | [`BambuSpool`](reference/bpm/bambuspool.md#bpm.bambuspool.BambuSpool) | Documented in [BambuSpool](#bambuspool) |
 | [`ProjectInfo`](reference/bpm/bambuproject.md#bpm.bambuproject.ProjectInfo) | Documented in [ProjectInfo](#projectinfo) |

@@ -254,7 +254,7 @@ Start a 3MF print job.
 | `platenum` | int | no | `0` | Plate index within the `.3mf` to print (0-based). |
 | `plate` | string | **yes** | — | Plate/surface type. Must be a valid `PlateType` enum name: `AUTO`, `COOL_PLATE`, `ENG_PLATE`, `HOT_PLATE`, `TEXTURED_PLATE`, `NONE`. Omitting or supplying an invalid value causes a `500` error. |
 | `use_ams` | bool | no | `false` | Pass `true` to enable AMS filament feeding. Exact string `"true"` required. |
-| `ams_mapping` | string | no | `null` | JSON-encoded array of absolute tray IDs, one per filament slot. Values: `0–103` (4-slot AMS, `ams_id * 4 + slot_id`), `128–135` (single-slot AMS HT), `254` (external spool), `-1` (unmapped). Example: `"[0,4,-1]"`. |
+| `ams_mapping` | string | no | `null` | JSON-encoded array of absolute tray IDs, one per filament slot. Values: `0–103` (4-slot AMS, `ams_id * 4 + slot_id`), `128–135` (single-slot AMS HT), `-1` (unmapped). Example: `"[0,4,-1]"`. For an external-spool print pass `use_ams=false` and leave this empty: the library derives the holder of each filament from the plate. |
 | `bl` | bool | no | `false` | Pass `true` to enable bed levelling before print. |
 | `flow` | bool | no | `false` | Pass `true` to enable flow-rate calibration before print. |
 | `tl` | bool | no | `false` | Pass `true` to enable timelapse recording. |
@@ -265,6 +265,11 @@ Start a 3MF print job.
 ```
 
 **Response**: `{"status": "success"}`
+
+**Error Response** (`400 Bad Request`), when the library refuses the print, for example a dual-nozzle plate that carries no extruder map:
+```json
+{"status": "error", "message": "plate has no physical_extruder_map"}
+```
 
 ---
 
@@ -436,7 +441,7 @@ All file operations use FTPS to communicate with the printer SD card.
 **Swagger UI**: [`GET /api/get_sdcard_contents`](http://localhost:5000/api/docs#/default/get_sdcard_contents)
 Return the cached SD card file tree (populated by the last `get_sdcard_contents()` call).
 
-**Library method**: `BambuPrinter.get_sdcard_contents()` — performs a live FTPS listing and updates the internal cache.
+**Library method**: `BambuPrinter.get_sdcard_contents()` — performs a live FTPS listing and updates the internal cache. It returns `None` when the listing failed (a timeout, a dropped connection, or a folder that could not be listed) and clears the cache; an empty card is a tree whose `children` is empty. The route answers `502` `{"status": "error", "reason": "SD card listing failed"}` for a failed listing.
 
 **Response**: Alphabetically sorted tree structure:
 ```json
@@ -666,7 +671,10 @@ Returns a `dataclasses.asdict(ProjectInfo)` result.
       {"id": 1, "type": "PLA", "color": "#FF0000"},
       {"id": 2, "type": "PETG", "color": "#0000FF"}
     ],
-    "ams_mapping": ["0", "4", "-1"],
+    "ams_mapping": ["1", "2"],
+    "filament_extruders": [1, 2],
+    "physical_extruder_map": [1, 0],
+    "external_spool_trays": [254, 255],
     "map": {
       "filament_ids": ["..."],
       "filament_colors": ["#FF0000", "#0000FF"],
@@ -679,7 +687,9 @@ Returns a `dataclasses.asdict(ProjectInfo)` result.
 }
 ```
 
-The `metadata.ams_mapping` values use the same encoding as `print_3mf`'s `ams_mapping` parameter: `0–103` for standard AMS slots, `128–135` for single-slot AMS HT units, `254` for external spool, `"-1"` for unmapped. Pass this list (JSON-serialised) directly to `print_3mf` as the `ams_mapping` parameter.
+`metadata.ams_mapping` is a placeholder in the shape of `print_3mf`'s `ams_mapping` parameter, not a tray assignment: index `id - 1` holds `str(id)` for each filament and `"-1"` fills the gaps. The `.3mf` carries no tray ids, so build the real mapping from the spools loaded on the printer.
+
+`metadata.filament_extruders` is the slicer's 1-based logical extruder per filament and `metadata.physical_extruder_map` maps each logical extruder to a physical one (`0` main, `1` deputy; `[1, 0]` on H2D, where logical extruder 1 is the left one). `metadata.external_spool_trays` is the external spool holder that feeds each filament, at index `id - 1`: `255` right/main, `254` left/deputy, `-1` unused. Single-nozzle printers report `255`, the wire id, although their telemetry names the one holder tray `254`. It is an empty list when a dual-nozzle plate has no extruder map, which is also when `print_3mf` refuses the print.
 
 The `metadata.map.bbox_objects[n].id` integer is the `identify_id` required by `skip_objects`.
 

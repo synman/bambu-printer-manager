@@ -248,7 +248,14 @@ class IoTFTPSClient:
         return self.ftps_session.dir(path, print)
 
     def list_files_ex(self, path: str) -> list[FtpListItem] | None:
-        """list files under a path inside the FTPS server"""
+        """
+        list files under a path inside the FTPS server
+
+        Returns a list of entries, which is empty when the folder is empty or the printer
+        refuses or does not have the path, and `None` when the listing itself failed (a
+        timeout, a dropped connection, any other error), so a failed listing is never
+        mistaken for an empty folder.
+        """
         try:
             lines: list[str] = []
             self.ftps_session.dir(path, lines.append)
@@ -258,7 +265,7 @@ class IoTFTPSClient:
             return []
         except Exception:
             logger.exception("Unexpected exception occurred while fetching file list")
-            return []
+            return None
 
         files = []
         for row in s.split("\n"):

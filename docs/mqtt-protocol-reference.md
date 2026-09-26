@@ -546,9 +546,10 @@ printer.set_spool_details(254, "no_filament")  # Clear external spool
     "command": "ams_filament_drying",
     "ams_id": 0,
     "mode": 1,
+    "filament": "PETG",
     "temp": 55,
     "cooling_temp": 45,
-    "duration": 120,
+    "duration": 12,
     "humidity": 20,
     "rotate_tray": true,
     "close_power_conflict": false
@@ -562,24 +563,26 @@ printer.set_spool_details(254, "no_filament")  # Clear external spool
 |-------|------|---------|---------|
 | `ams_id` | integer | 0 | Target AMS unit |
 | `mode` | integer | 0-2 | Drying mode (0=off, 1=dry, 2=cool) |
+| `filament` | string | `"PETG"` | Filament type being dried; Bambu Studio sends the tray's filament type, and the stop command sends `""` |
 | `temp` | integer | 30-70°C | Drying temperature |
 | `cooling_temp` | integer | 30-50°C | Cooling temperature after drying |
-| `duration` | integer | minutes | How long to dry |
+| `duration` | integer | 12 (hours) | How long to dry, in **hours**. Bambu Studio builds this field from its hour input (`CtrlAmsStartDryingHour`, `tag_duration_hour`). The remaining time the printer reports back (`dry_time`) is in minutes. |
 | `humidity` | integer | 0-100% | Target humidity (for compatible sensors) |
 | `rotate_tray` | boolean | `true` | Rotate tray during drying |
 | `close_power_conflict` | boolean | `false` | Handle power conflicts |
 
-**Data Dictionary Reference**: Related attributes in [AMSUnitState](data-dictionary.md#amsunitstate) section for drying operations
+**Data Dictionary Reference**: Related attributes in [AMSDryerState](data-dictionary.md#amsdryerstate) section for drying operations
 
 **Data Dictionary Correlation**:
-- `ams_units[ams_id].dryer_power_on`
-- `ams_units[ams_id].dryer_temp` (for enabled dryers)
+- `ams_units[ams_id].dryer.state` (OFF, CHECKING, DRYING, COOLING, STOPPING, ERROR); `dryer` is `None` on a unit without a dryer
+- `ams_units[ams_id].temp_actual` (measured) and `ams_units[ams_id].dryer.temp_target` (the order)
+- `ams_units[ams_id].dryer.remaining_minutes` (drying time remaining, in minutes)
 
-**Python Method**: `BambuPrinter.turn_on_ams_dryer(target_temp, duration, target_humidity, cooling_temp, rotate_tray, ams_id)`
+**Python Method**: `BambuPrinter.turn_on_ams_dryer(target_temp, duration, target_humidity, cooling_temp, rotate_tray, ams_id, filament_type)`
 
 **Example Usage**:
 ```python
-printer.turn_on_ams_dryer(target_temp=55, duration=120, ams_id=0)  # Dry for 2 hours
+printer.turn_on_ams_dryer(target_temp=55, duration=2, ams_id=0)  # Dry for 2 hours
 ```
 
 ---

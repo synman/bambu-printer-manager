@@ -91,15 +91,28 @@ classDiagram
         +str chip_id
         +AMSModel model
         +float temp_actual
-        +int temp_target
         +int humidity_index
         +int humidity_raw
         +int ams_info
-        +AMSHeatingState heater_state
-        +AMSDrySubStatus dry_sub_status
-        +int dry_time
+        +AMSDryerState dryer
         +list~bool~ tray_exists
         +ActiveTool assigned_to_extruder
+    }
+
+    class AMSDryerState {
+        +AMSHeatingState state
+        +AMSDryerSubStatus sub_status
+        +AMSDryerFanStatus fan1_status
+        +AMSDryerFanStatus fan2_status
+        +int remaining_minutes
+        +int temp_target
+        +int duration_target_hours
+        +str filament_target
+        +list~int~ refusals
+        +str refusal_message
+        +str fail_code
+        +str fail_message
+        +int fail_count
     }
 
     class BambuClimate {
@@ -381,11 +394,17 @@ classDiagram
         PRODUCT_TEST = 7
     }
 
-    class AMSDrySubStatus {
+    class AMSDryerSubStatus {
         <<enumeration>>
         OFF = 0
         HEATING = 1
         DEHUMIDIFY = 2
+    }
+
+    class AMSDryerFanStatus {
+        <<enumeration>>
+        OFF = 0
+        ON = 1
     }
 
     class AMSControlCommand {
@@ -505,8 +524,10 @@ classDiagram
 
     %% AMSUnitState uses
     AMSUnitState ..> AMSModel : uses
-    AMSUnitState ..> AMSHeatingState : uses
-    AMSUnitState ..> AMSDrySubStatus : uses
+    AMSUnitState "1" *-- "0..1" AMSDryerState : dryer
+    AMSDryerState ..> AMSHeatingState : uses
+    AMSDryerState ..> AMSDryerSubStatus : uses
+    AMSDryerState ..> AMSDryerFanStatus : uses
     AMSUnitState ..> ActiveTool : assigned_to_extruder
 
     %% NozzleCharacteristics uses
