@@ -273,16 +273,12 @@ this action. <consequence>"``, ``"Error: Printer '<name>' not connected."``,
 
 **Notes**
 
-```{ .text linenums="0" title="" }
-Sticky preference: before suggesting a speed level, look up the stored value:
-  from user_prefs import get_pref
-  speed_level = get_pref(f"{name}:speed_level", None)
+Sticky preference: before suggesting a speed level, look up the stored value with
+``get_user_pref(name, "speed_level")``.
 If a stored preference exists, present it pre-selected labeled "(your preference)".
-If no preference is stored, show all options without a pre-selection.
-After a successful call, store the confirmed speed level:
-  from user_prefs import set_pref
-  set_pref(f"{name}:speed_level", speed_level)
-```
+If no preference is stored (null), show all options without a pre-selection.
+After a successful call, store the confirmed level with
+``set_user_pref(name, "speed_level", speed_level)``.
 
 ## skip_objects
 

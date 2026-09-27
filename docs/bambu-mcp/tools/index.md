@@ -2,9 +2,9 @@
 
 # MCP Tools
 
-bambu-mcp registers 101 tools. Each carries MCP annotations: a title and a read-only flag, plus destructive, idempotent and open-world hints.
+bambu-mcp registers 104 tools. Each carries MCP annotations: a title and a read-only flag, plus destructive, idempotent and open-world hints.
 
-50 of the 52 write tools refuse to act unless called with `user_permission=True`. Without it they change nothing and return a refusal naming the consequence. The rest need no permission because they change only the local server, not the printer: `start_stream`, `stop_stream`. Tools that disturb a print also refuse while the printer is printing, whatever `user_permission` says.
+50 of the 53 write tools refuse to act unless called with `user_permission=True`. Without it they change nothing and return a refusal naming the consequence. The rest need no permission because they change only the local server, not the printer: `set_user_pref`, `start_stream`, `stop_stream`. Tools that disturb a print also refuse while the printer is printing, whatever `user_permission` says.
 
 Parameters, return shapes and notes below come from the tool docstrings the server sends to MCP clients.
 
@@ -15,12 +15,12 @@ Parameters, return shapes and notes below come from the tool docstrings the serv
 | [Printer State](state.md) | 11 | 0 |
 | [Print Control](print-control.md) | 9 | 9 |
 | [Climate](climate.md) | 7 | 5 |
-| [Filament & AMS](filament.md) | 10 | 8 |
+| [Filament & AMS](filament.md) | 11 | 8 |
 | [Nozzles](nozzle.md) | 4 | 3 |
 | [Detectors](detectors.md) | 7 | 6 |
 | [Printer Management](management.md) | 7 | 5 |
 | [Files](files.md) | 19 | 6 |
-| [System](system.md) | 11 | 7 |
+| [System](system.md) | 13 | 8 |
 | [Discovery](discovery.md) | 1 | 0 |
 | [Raw Commands](commands.md) | 1 | 1 |
 | [Camera](camera.md) | 6 | 2 |
@@ -56,6 +56,7 @@ Parameters, return shapes and notes below come from the tool docstrings the serv
 | [`get_detector_settings`](detectors.md#get_detector_settings) | Get Detector Settings | Detectors | read-only |
 | [`get_external_spool`](filament.md#get_external_spool) | Get External Spool | Filament & AMS | read-only |
 | [`get_fan_speeds`](state.md#get_fan_speeds) | Get Fan Speeds | Printer State | read-only |
+| [`get_filament_catalog`](filament.md#get_filament_catalog) | Get Filament Catalog | Filament & AMS | read-only |
 | [`get_file_info`](files.md#get_file_info) | Get SD Card File Info | Files | read-only |
 | [`get_firmware_version`](system.md#get_firmware_version) | Get Firmware Version | System | read-only |
 | [`get_hms_errors`](state.md#get_hms_errors) | Get HMS Errors | Printer State | read-only |
@@ -78,6 +79,7 @@ Parameters, return shapes and notes below come from the tool docstrings the serv
 | [`get_spool_info`](state.md#get_spool_info) | Get Spool Info | Printer State | read-only |
 | [`get_stream_url`](camera.md#get_stream_url) | Get Camera Stream Info | Camera | read-only |
 | [`get_temperatures`](state.md#get_temperatures) | Get Temperatures | Printer State | read-only |
+| [`get_user_pref`](system.md#get_user_pref) | Get Sticky Preference | System | read-only |
 | [`get_wifi_signal`](state.md#get_wifi_signal) | Get Wi-Fi Signal | Printer State | read-only |
 | [`list_sdcard_files`](files.md#list_sdcard_files) | List SD Card Files | Files | read-only |
 | [`load_filament`](filament.md#load_filament) | Load Filament | Filament & AMS | write |
@@ -119,6 +121,7 @@ Parameters, return shapes and notes below come from the tool docstrings the serv
 | [`set_print_speed`](print-control.md#set_print_speed) | Set Print Speed | Print Control | write |
 | [`set_purge_chute_detection`](detectors.md#set_purge_chute_detection) | Set Purge Chute Detection | Detectors | write |
 | [`set_spaghetti_detection`](detectors.md#set_spaghetti_detection) | Set Spaghetti Detection | Detectors | write |
+| [`set_user_pref`](system.md#set_user_pref) | Set Sticky Preference | System | write |
 | [`skip_objects`](print-control.md#skip_objects) | Skip Print Objects | Print Control | write, destructive |
 | [`start_ams_dryer`](filament.md#start_ams_dryer) | Start AMS Dryer | Filament & AMS | write |
 | [`start_printer`](management.md#start_printer) | Start Printer Session | Printer Management | write |

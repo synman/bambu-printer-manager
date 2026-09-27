@@ -2,7 +2,7 @@
 
 # System
 
-11 tools, defined in [`tools/system.py`](https://github.com/synman/bambu-mcp/blob/main/tools/system.py).
+13 tools, defined in [`tools/system.py`](https://github.com/synman/bambu-mcp/blob/main/tools/system.py).
 
 | Tool | Title | Access |
 |---|---|---|
@@ -11,10 +11,12 @@
 | [`get_firmware_version`](#get_firmware_version) | Get Firmware Version | read-only |
 | [`get_server_info`](#get_server_info) | Get Server Port Info | read-only |
 | [`get_session_status`](#get_session_status) | Get MQTT Session Status | read-only |
+| [`get_user_pref`](#get_user_pref) | Get Sticky Preference | read-only |
 | [`pause_mqtt_session`](#pause_mqtt_session) | Pause MQTT Session | write |
 | [`rename_printer`](#rename_printer) | Rename Printer Device | write |
 | [`resume_mqtt_session`](#resume_mqtt_session) | Resume MQTT Session | write |
 | [`set_print_options`](#set_print_options) | Set Print Options | write |
+| [`set_user_pref`](#set_user_pref) | Set Sticky Preference | write |
 | [`trigger_printer_refresh`](#trigger_printer_refresh) | Trigger Printer Refresh | write |
 | [`truncate_log`](#truncate_log) | Truncate Server Log | write, destructive |
 
@@ -211,6 +213,31 @@ returns the error shape instead. Errors: ``{"error": "Printer '<name>' not conne
 when the printer has no live session, or ``{"error": "Error getting session status:
 <exception>"}`` on failure.
 
+## get_user_pref
+
+**Get Sticky Preference** · read-only
+
+Return a sticky preference stored for a printer.
+
+**WHEN to use:** before presenting a choice the user has made before, such as the
+``print_file`` flags, the ``set_print_speed`` level or the ``start_ams_dryer`` settings,
+so the stored value can be offered as "(your preference)". Those tools' Notes name the
+keys they use.
+
+**Sibling disambiguation:** ``get_user_pref`` reads one stored preference; ``set_user_pref``
+stores one. Neither touches the printer. They are the same store as the REST route
+``/api/user_prefs``.
+
+**Parameters**
+
+- `name` (string, required): Printer name the preference belongs to (see ``get_configured_printers``). It is not checked against the configured printers.
+- `key` (string, required): Preference key, for example ``bed_leveling`` or ``ams0:target_temp``.
+
+**Returns**
+
+``{"key": "<name>:<key>", "value": <stored value or null>}``. ``value`` is null when
+nothing is stored. Error shape: ``{"error": "Error reading preference: <exception>"}``.
+
 ## pause_mqtt_session
 
 **Pause MQTT Session** · write · needs `user_permission=True`
@@ -374,6 +401,33 @@ the publish call returned without raising, not that the printer received anythin
 discards the publish result, and with the MQTT connection down paho drops the message
 without raising while the local config is still updated. Check ``get_session_status``
 first.
+
+## set_user_pref
+
+**Set Sticky Preference** · write
+
+Store a sticky preference for a printer.
+
+**WHEN to use:** after a tool call the user confirmed, to remember the value they chose, as the
+Notes of ``print_file``, ``set_print_speed`` and ``start_ams_dryer`` direct.
+
+**Side effects:** writes the value to the server's local preference file, replacing any value
+stored under the same key. Nothing is sent to the printer, so no ``user_permission`` is
+needed.
+
+**Sibling disambiguation:** ``set_user_pref`` stores one preference; ``get_user_pref`` reads
+one back.
+
+**Parameters**
+
+- `name` (string, required): Printer name the preference belongs to (see ``get_configured_printers``). It is not checked against the configured printers.
+- `key` (string, required): Preference key, for example ``bed_leveling`` or ``ams0:target_temp``.
+- `value` (string or integer or number or boolean or null, required): Value to store: a string, number, boolean or null.
+
+**Returns**
+
+``{"key": "<name>:<key>", "value": <stored value>}`` on success. Error shape:
+``{"error": "Error storing preference: <exception>"}``.
 
 ## trigger_printer_refresh
 

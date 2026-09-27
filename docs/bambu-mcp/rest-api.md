@@ -2,7 +2,7 @@
 
 # REST API Reference
 
-The bambu-mcp daemon serves an HTTP API alongside MCP: 81 routes, 85 route and method pairs. Every route acts on a printer through the same live session the MCP tools use.
+The bambu-mcp daemon serves an HTTP API alongside MCP: 87 routes, 91 route and method pairs. Every route acts on a printer through the same live session the MCP tools use.
 
 **Base URL:** `http://<host>:<api_port>/api`. The port is not fixed. It comes from a shared pool that starts at 49152. Discover it with the `get_server_info` MCP tool, or by probing `GET /api/server_info` from port 49152 upward.
 
@@ -14,12 +14,12 @@ The bambu-mcp daemon serves an HTTP API alongside MCP: 81 routes, 85 route and m
 
 ## Contents
 
-- [System](#system) (32)
+- [System](#system) (33)
 - [Climate](#climate) (8)
 - [Print Control](#print-control) (9)
 - [AMS & Filament](#ams-filament) (10)
 - [Hardware](#hardware) (10)
-- [Files](#files) (12)
+- [Files](#files) (17)
 - [Camera](#camera) (1)
 
 ## System
@@ -445,6 +445,29 @@ streams        — {printer_name: {port, url}} for each active stream
 
 ---
 
+### GET /api/session_status
+
+Return the MQTT session state and connectivity for a printer.
+
+**Parameters**
+
+- `printer` (string, query, required, example `H2D`): Printer name. Omit to use the default printer. Required. Use GET /api/default_printer to resolve the current default.
+
+**Responses**
+
+- `200`: Success
+
+    ```json
+    {
+      "name": "H2D",
+      "connected": true,
+      "service_state": "CONNECTED",
+      "session_active": true
+    }
+    ```
+
+---
+
 ### POST /api/set_bpm_verbose
 
 Toggle raw MQTT payload logging for a live printer session, no restart.
@@ -683,6 +706,11 @@ key     — preference key, e.g. "bed_leveling" (required)
 Returns {"key": "&lt;printer>:&lt;key>", "value": &lt;value>} or {"value": null} if not set.
 No write operation — no user_permission required.
 
+**Parameters**
+
+- `printer` (string, query, required): Printer name the preference belongs to.
+- `key` (string, query, required): Preference key, e.g. bed_leveling or ams0:target_temp.
+
 **Responses**
 
 - `200`: Success
@@ -702,6 +730,12 @@ value   — value to store (required; any JSON-serializable type)
 
 Returns {"success": true}.
 No write operation on the printer — no user_permission required.
+
+**Request body** (`application/x-www-form-urlencoded` or `application/json`)
+
+- `printer` (string, required): Printer name the preference belongs to.
+- `key` (string, required): Preference key, e.g. bed_leveling or ams0:target_temp.
+- `value` (string, required): Value to store. Send a JSON body to keep its type; a form or query value is stored as a string.
 
 **Responses**
 
@@ -1784,7 +1818,7 @@ Return 3MF project properties for a file on SD card. ?file=&lt;path>&plate=&lt;i
 
 - `printer` (string, query, required, example `H2D`): Printer name. Omit to use the default printer. Required. Use GET /api/default_printer to resolve the current default.
 - `file` (string, query, example `/_jobs/myprint.gcode.3mf`): Full SD card path to the .3mf file.
-- `plate` (integer, query, example `1`): Plate number within the .3mf project (1-based). Returns one plate per call — use the get_all_project_info MCP tool to fetch every plate in a single call.
+- `plate` (integer, query, example `1`): Plate number within the .3mf project (1-based). Returns one plate per call — use GET /api/get_all_3mf_props_for_file to fetch every plate in a single call.
 
 **Responses**
 
@@ -1809,6 +1843,38 @@ Return 3MF project properties for a file on SD card. ?file=&lt;path>&plate=&lt;i
 
 ---
 
+### GET /api/get_all_3mf_props_for_file
+
+Return 3MF project properties for every plate of a file on SD card. ?file=&lt;path>
+
+Same data as /api/get_3mf_props_for_file, one entry per plate, in one call. Plate
+thumbnail and top-view images are left out unless include_images=true.
+
+**Parameters**
+
+- `printer` (string, query, required, example `H2D`): Printer name. Omit to use the default printer. Required. Use GET /api/default_printer to resolve the current default.
+- `file` (string, query, required, example `/_jobs/myprint.gcode.3mf`): Full SD card path to the .3mf file.
+- `include_images` (boolean, query, example `false`): true to include each plate's thumbnail and top-view images as data URIs. Default false.
+
+**Responses**
+
+- `200`: Success
+
+    ```json
+    [
+      {
+        "plate_num": 1,
+        "id": "myprint"
+      },
+      {
+        "plate_num": 2,
+        "id": "myprint"
+      }
+    ]
+    ```
+
+---
+
 ### GET /api/get_current_3mf_props
 
 Return 3MF project properties for the currently active print job.
@@ -1828,6 +1894,32 @@ Return 3MF project properties for the currently active print job.
       "plates": [
         1
       ]
+    }
+    ```
+
+---
+
+### GET /api/get_file_info
+
+Return the SD card listing entry for one file or folder. ?file=&lt;path>
+
+**Parameters**
+
+- `printer` (string, query, required, example `H2D`): Printer name. Omit to use the default printer. Required. Use GET /api/default_printer to resolve the current default.
+- `file` (string, query, required, example `/_jobs/myprint.gcode.3mf`): Full SD card path to the file or folder.
+
+**Responses**
+
+- `200`: Success
+
+    ```json
+    {
+      "file": {
+        "id": "/_jobs/myprint.gcode.3mf",
+        "name": "myprint.gcode.3mf",
+        "size": 1048576,
+        "timestamp": 1784080200.0
+      }
     }
     ```
 
@@ -1914,6 +2006,60 @@ cache is a JSON null.
       "status": "success"
     }
     ```
+
+---
+
+### GET /api/plate_thumbnail
+
+Return a plate's slicer thumbnail from a .3mf on SD card as a JPEG image. ?file=&lt;path>&plate=&lt;int>&quality=preview|standard|full
+
+**Parameters**
+
+- `printer` (string, query, required, example `H2D`): Printer name. Omit to use the default printer. Required. Use GET /api/default_printer to resolve the current default.
+- `file` (string, query, required, example `/_jobs/myprint.gcode.3mf`): Full SD card path to the .3mf file.
+- `plate` (integer, query, example `1`): Plate number within the .3mf project (1-based). Default 1.
+- `quality` (one of `"preview"`, `"standard"`, `"full"`, query, example `standard`): Image size tier. Default standard.
+
+**Responses**
+
+- `200`: Success
+
+---
+
+### GET /api/plate_topview
+
+Return a plate's top-down layout image from a .3mf on SD card as a JPEG image. ?file=&lt;path>&plate=&lt;int>&quality=preview|standard|full
+
+**Parameters**
+
+- `printer` (string, query, required, example `H2D`): Printer name. Omit to use the default printer. Required. Use GET /api/default_printer to resolve the current default.
+- `file` (string, query, required, example `/_jobs/myprint.gcode.3mf`): Full SD card path to the .3mf file.
+- `plate` (integer, query, example `1`): Plate number within the .3mf project (1-based). Default 1.
+- `quality` (one of `"preview"`, `"standard"`, `"full"`, query, example `standard`): Image size tier. Default standard.
+
+**Responses**
+
+- `200`: Success
+
+---
+
+### GET /api/preview_ams_mapping
+
+Resolve, without printing, the ams_mapping print_3mf would send. ?file=&lt;path>&plate=&lt;int>
+
+Uses the spools the printer last reported, as print_3mf does when use_ams=true and no
+ams_mapping is given. A payload that carries an "error" key is still a preview: it is
+the reason print_3mf would refuse that plate.
+
+**Parameters**
+
+- `printer` (string, query, required, example `H2D`): Printer name. Omit to use the default printer. Required. Use GET /api/default_printer to resolve the current default.
+- `file` (string, query, required, example `/_jobs/myprint.gcode.3mf`): Full SD card path to the .3mf file.
+- `plate` (integer, query, example `1`): Plate number within the .3mf project (1-based). Default 1.
+
+**Responses**
+
+- `200`: Success
 
 ---
 
