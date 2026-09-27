@@ -3,6 +3,8 @@
 # bambu-printer-manager
 `bambu-printer-manager` is an all in one pure python wrapper for interacting with and managing Bambu Lab printers.
 
+Two projects are built on it: the [Client Container](container.md), a web app and REST API for one printer, and [bambu-mcp](bambu-mcp/index.md), an MCP server that lets AI agents monitor and control printers.
+
 ## Become a Sponsor
 While caffiene and sleepness nights drive the delivery of this project, they unfortunately do not cover the financial expense necessary to further its development.  Please consider becoming a `bambu-printer-manager` sponsor today!
 <iframe src="https://github.com/sponsors/synman/button" title="Sponsor synman" height="32" width="114" style="border: 0; border-radius: 6px;"></iframe>
