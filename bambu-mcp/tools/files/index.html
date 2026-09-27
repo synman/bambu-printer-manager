@@ -2754,46 +2754,38 @@ afterwards, not recalled.</p>
 <p>STEP 0, active-print guard: this tool is BLOCKED when the last reported gcode_state is
 RUNNING or PREPARE (defense-in-depth, read from cached telemetry). Check
 <code>get_print_progress</code> first if unsure.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>STEP 1, gather everything first (no user interaction yet): call ``get_project_info``,
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>``preview_ams_mapping``, ``get_ams_units`` and ``get_spool_info`` to collect all data
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>needed to build the complete summary before asking the user anything.
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>``preview_ams_mapping`` is the mapping print_file will actually send. To show plate
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>visuals to the user, call ``open_plate_viewer(name, file_path)``; do NOT call
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>``get_plate_thumbnail`` or ``get_plate_topview`` and embed the data_uri in the
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>response. Humans cannot see raw base64 in a terminal or chat context. Also look up
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>stored preferences for each sticky field using user_prefs:
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>  from user_prefs import get_pref
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>  bed_leveling     = get_pref(f&quot;{name}:bed_leveling&quot;,     True)
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>  flow_calibration = get_pref(f&quot;{name}:flow_calibration&quot;, False)
-</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>  timelapse        = get_pref(f&quot;{name}:timelapse&quot;,        False)
-</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>Factory defaults: bed_leveling=True, flow_calibration=False, timelapse=False. Label
-</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>each field &quot;(your preference)&quot; if the stored value differs from the factory default,
-</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>or &quot;(default)&quot; if it matches the factory default.
+<p>STEP 1, gather everything first (no user interaction yet): call <code>get_project_info</code>,
+<code>preview_ams_mapping</code>, <code>get_ams_units</code> and <code>get_spool_info</code> to collect all data
+needed to build the complete summary before asking the user anything.
+<code>preview_ams_mapping</code> is the mapping print_file will actually send. To show plate
+visuals to the user, call <code>open_plate_viewer(name, file_path)</code>; do NOT call
+<code>get_plate_thumbnail</code> or <code>get_plate_topview</code> and embed the data_uri in the
+response. Humans cannot see raw base64 in a terminal or chat context. Also look up
+the stored preference for each sticky field with <code>get_user_pref(name, key)</code>, keys
+<code>bed_leveling</code>, <code>flow_calibration</code> and <code>timelapse</code>. A null value means nothing is
+stored: use the factory default.
+Factory defaults: bed_leveling=True, flow_calibration=False, timelapse=False. Label
+each field "(your preference)" if the stored value differs from the factory default,
+or "(default)" if it matches the factory default.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>STEP 2, present ONE complete summary containing ALL of the following:
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  - Part name(s) and filament(s) from the project metadata
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>  - bed_type (from metadata): ask whether it is correct for the plate physically on
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    the bed
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>  - ams_mapping, from ``preview_ams_mapping``: each filament to a tray with its match
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    label; call out any &quot;Type Match&quot; (right material, wrong colour); ask whether it is
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    correct
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>  - flow_calibration: show the stored value with its label; ask whether to run flow
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    calibration before printing
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>  - timelapse: show the stored value with its label; ask whether to record a timelapse
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>  - bed_leveling: show the stored value with its label; ask whether to run bed
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>    leveling or skip it for speed
 </span></code></pre></div>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>STEP 2, present ONE complete summary containing ALL of the following:
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  - Part name(s) and filament(s) from the project metadata
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>  - bed_type (from metadata): ask whether it is correct for the plate physically on
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    the bed
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  - ams_mapping, from ``preview_ams_mapping``: each filament to a tray with its match
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    label; call out any &quot;Type Match&quot; (right material, wrong colour); ask whether it is
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    correct
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>  - flow_calibration: show the stored value with its label; ask whether to run flow
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>    calibration before printing
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>  - timelapse: show the stored value with its label; ask whether to record a timelapse
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>  - bed_leveling: show the stored value with its label; ask whether to run bed
-</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>    leveling or skip it for speed
-</span></code></pre></div>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>STEP 3, wait for explicit go-ahead AFTER the complete summary. Do NOT call print_file
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>after confirming individual parameters across separate turns. Confirming
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>flow_calibration, timelapse, or bed_leveling mid-conversation does NOT satisfy this
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>gate. The go-ahead must come in the turn immediately after the full summary is shown
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>with all six items visible. After print_file is called successfully, update stored
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>preferences:
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>  from user_prefs import set_pref
-</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>  set_pref(f&quot;{name}:bed_leveling&quot;,     bed_leveling)
-</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>  set_pref(f&quot;{name}:flow_calibration&quot;, flow_calibration)
-</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>  set_pref(f&quot;{name}:timelapse&quot;,        timelapse)
-</span></code></pre></div>
+<p>STEP 3, wait for explicit go-ahead AFTER the complete summary. Do NOT call print_file
+after confirming individual parameters across separate turns. Confirming
+flow_calibration, timelapse, or bed_leveling mid-conversation does NOT satisfy this
+gate. The go-ahead must come in the turn immediately after the full summary is shown
+with all six items visible. After print_file is called successfully, store the values
+used with <code>set_user_pref(name, key, value)</code> for each of the three keys.</p>
 <h2 id="refresh_sdcard">refresh_sdcard</h2>
 <p><strong>Refresh SD Card Listing</strong> · read-only</p>
 <p>Force a fresh SD card listing from the printer.</p>
