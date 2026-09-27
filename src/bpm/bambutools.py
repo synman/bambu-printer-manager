@@ -1153,6 +1153,20 @@ def parseExtruderStatus(stat_int: int) -> ExtruderStatus:
 
 
 def parseExtruderTrayState(extruder: int, hotend, slot) -> int:
+    """
+    Decodes an extruder's tray from its `device.extruder.info[]` `hnow`/`snow` (or
+    `htar`/`star`) pair.
+
+    Parameters
+    ----------
+    * extruder : int - the extruder id (0 right, 1 left).
+    * hotend : int - `hnow` or `htar`; 254 means the external holder.
+    * slot : int - `snow` or `star`.
+
+    Returns the extruder's external holder (255 right, 254 left) when `hotend` is 254 or
+    `slot` is 0xFF00 (right) / 0xFE00 (left); -1 when the low byte is 255 (no tray, e.g.
+    0xFFFF right or 0xFEFF left, an unload's target); otherwise the slot's low byte.
+    """
     if (
         hotend == 254
         or (extruder == 0 and slot == 65280)
