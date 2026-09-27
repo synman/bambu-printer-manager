@@ -1,0 +1,2305 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/bambu-mcp/tools/print-control/">
+      
+      
+        <link rel="prev" href="../state/">
+      
+      
+        <link rel="next" href="../climate/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.3">
+    
+    
+      
+        <title>Print Control - bambu-printer-manager</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#print-control" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="bambu-printer-manager" class="md-header__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            bambu-printer-manager
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Print Control
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../data-dictionary/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Data Dictionary
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../mqtt-protocol-reference/" class="md-tabs__link">
+          
+  
+  
+  MQTT & Integration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../api-reference/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  API Reference
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../reference/bpm/__init__/" class="md-tabs__link">
+          
+  
+  
+  Code Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../container/" class="md-tabs__link">
+          
+  
+  
+  Client Container
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../" class="md-tabs__link">
+          
+  
+  
+  bambu-mcp
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../license/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  License
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="bambu-printer-manager" class="md-nav__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    bambu-printer-manager
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../data-dictionary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Dictionary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MQTT & Integration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MQTT & Integration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../mqtt-protocol-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protocol Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Code Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../reference/bpm/__init__/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bpm
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    bpm
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambucommands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambucommands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuconfig/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuconfig
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambudiscovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambudiscovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuprinter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuprinter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuproject/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuproject
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuspool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuspool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambustate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambustate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambutools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambutools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_9" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../reference/bpm/ftpsclient/__init__/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ftpsclient
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_9" id="__nav_5_1_9_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_1_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ftpsclient
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/ftpsclient/ftpsclient/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ftpsclient
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Client Container
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Client Container
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../container/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambu-mcp
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    bambu-mcp
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP Tools
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7_2" id="__nav_7_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MCP Tools
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Printer State
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Print Control
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Print Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#clear_print_error" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clear_print_error
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pause_print" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pause_print
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resume_print" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        resume_print
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#select_extrusion_calibration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        select_extrusion_calibration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#send_gcode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        send_gcode
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#set_print_option" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_print_option
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#set_print_speed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_print_speed
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#skip_objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        skip_objects
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stop_print" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        stop_print
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../climate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Climate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filament & AMS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nozzle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nozzles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../detectors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detectors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Printer Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Raw Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../camera/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Camera
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alerts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../snapshots/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Snapshots & Monitoring Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../charts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Charts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rest-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    REST API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<!-- Generated by bambu-mcp/gen_docs.py. Do not edit here: change the source in bambu-mcp and re-run the generator. -->
+
+<h1 id="print-control">Print Control</h1>
+<p>9 tools, defined in <a href="https://github.com/synman/bambu-mcp/blob/main/tools/print_control.py"><code>tools/print_control.py</code></a>.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Title</th>
+<th>Access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#clear_print_error"><code>clear_print_error</code></a></td>
+<td>Clear Print Error</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#pause_print"><code>pause_print</code></a></td>
+<td>Pause Print</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#resume_print"><code>resume_print</code></a></td>
+<td>Resume Print</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#select_extrusion_calibration"><code>select_extrusion_calibration</code></a></td>
+<td>Select Extrusion Calibration</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#send_gcode"><code>send_gcode</code></a></td>
+<td>Send G-code</td>
+<td>write, destructive</td>
+</tr>
+<tr>
+<td><a href="#set_print_option"><code>set_print_option</code></a></td>
+<td>Set Print Option</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#set_print_speed"><code>set_print_speed</code></a></td>
+<td>Set Print Speed</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#skip_objects"><code>skip_objects</code></a></td>
+<td>Skip Print Objects</td>
+<td>write, destructive</td>
+</tr>
+<tr>
+<td><a href="#stop_print"><code>stop_print</code></a></td>
+<td>Stop Print</td>
+<td>write, destructive</td>
+</tr>
+</tbody>
+</table>
+<h2 id="clear_print_error">clear_print_error</h2>
+<p><strong>Clear Print Error</strong> · write · needs <code>user_permission=True</code></p>
+<p>Clear an active print_error on the named printer.</p>
+<p><strong>WHEN to use:</strong> dismiss a lingering cancellation or fault error (e.g. HMS_0300-400C "task was
+canceled") before starting a new print.</p>
+<p><strong>WRITE GUARD:</strong> sends two MQTT commands that reset the printer's print_error value and
+acknowledge the error dialog. With <code>user_permission</code> unset the tool changes nothing and
+returns the refusal string naming that consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_hms_errors</code> only reads the current HMS errors and the raw
+print_error code and changes nothing; <code>clear_print_error</code> sends the commands that dismiss
+the error. It does not resume or restart a job (see <code>resume_print</code>).</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>print_error</code> (integer, default <code>0</code>): The integer error code to clear. Pass 0 (default) to clear any active error without specifying a code. Use <code>get_hms_errors</code> to find the current print_error value.</li>
+<li><code>subtask_id</code> (string, default <code>""</code>): Optional subtask_id of the failed job. <code>get_job_info</code> does not return this field (its job info carries subtask_name, not subtask_id). Pass an empty string (default) if not known.</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Set to True after the operator approves clearing the error.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A string. Success: <code>"clear_print_error command sent to '&lt;name&gt;' (print_error=&lt;n&gt;)."</code>.
+Errors are strings starting with <code>"Error"</code>: the refusal <code>"Error: user_permission must
+be True to perform this action. &lt;consequence&gt;"</code>, <code>"Error: Printer '&lt;name&gt;' not
+connected."</code>, or <code>"Error clearing print error on '&lt;name&gt;': &lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>The tool sends TWO commands, matching the protocol BambuStudio uses when dismissing an
+error dialog. (1) clean_print_error clears the print_error value on the printer; the
+printer acknowledges by pushing a push_status with print_error reset to 0. (2) uiop (UI
+operation) signals "dialog acknowledged" to the printer. Without this second command the
+printer remains in a UI-acknowledgment pending state, and any open BambuStudio session
+re-raises print_error on every push_status until it receives this signal.</p>
+<h2 id="pause_print">pause_print</h2>
+<p><strong>Pause Print</strong> · write · needs <code>user_permission=True</code></p>
+<p>Pause the current print job on the named printer.</p>
+<p><strong>WHEN to use:</strong> hold a running print so the operator can inspect it, change filament, or clear
+a problem, with the intent to continue the same job afterwards.</p>
+<p><strong>WRITE GUARD:</strong> sends a pause command over MQTT that halts the running print job; the printer
+finishes the current move before stopping. With <code>user_permission</code> unset the tool changes
+nothing and returns the refusal string naming that consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>pause_print</code> is reversible with <code>resume_print</code>; <code>stop_print</code>
+cancels the job and it cannot be resumed. <code>send_ams_control_command</code> with cmd 'PAUSE'
+pauses the AMS feed rather than the print job.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Set to True after the operator approves pausing the print.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A string. Success: <code>"Pause command sent to '&lt;name&gt;'."</code>. Errors are strings starting
+with <code>"Error"</code>: the refusal <code>"Error: user_permission must be True to perform this
+action. &lt;consequence&gt;"</code>, <code>"Error: Printer '&lt;name&gt;' not connected."</code>, or
+<code>"Error pausing '&lt;name&gt;': &lt;exception&gt;"</code>.</p>
+<h2 id="resume_print">resume_print</h2>
+<p><strong>Resume Print</strong> · write · needs <code>user_permission=True</code></p>
+<p>Resume a paused print job on the named printer.</p>
+<p><strong>WHEN to use:</strong> continue a print that was paused by the user (stg_cur=16, "Paused by user"), by an
+M400 GCode pause (stg_cur=5, "M400 pause"), or by a non-AMS sensor pause (cover removed, temp
+malfunction) after the underlying condition is fixed. Has no effect if the printer is not paused.
+The stage names and codes are bpm's; <code>get_job_info</code> lists them under <code>stage_id</code>.</p>
+<p><strong>WRITE GUARD:</strong> sends a resume command over MQTT that restarts the paused job, so the toolhead
+starts moving again. With <code>user_permission</code> unset the tool changes nothing and returns the
+refusal string naming that consequence.</p>
+<p><strong>Sibling disambiguation:</strong> for AMS-triggered pauses (filament runout stg_cur=6, or an active AMS
+HMS error) use <code>send_ams_control_command</code> with cmd 'RESUME' instead; it unblocks the AMS
+feed and resumes the print in one operation. <code>pause_print</code> is the opposite action.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Set to True after the operator approves resuming the print.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A string. Success: <code>"Resume command sent to '&lt;name&gt;'."</code>. Errors are strings starting
+with <code>"Error"</code>: the refusal <code>"Error: user_permission must be True to perform this
+action. &lt;consequence&gt;"</code>, <code>"Error: Printer '&lt;name&gt;' not connected."</code>, or
+<code>"Error resuming '&lt;name&gt;': &lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>See kb_get('bambu-pause-state-recovery') for the full pause-cause decision table.</p>
+<h2 id="select_extrusion_calibration">select_extrusion_calibration</h2>
+<p><strong>Select Extrusion Calibration</strong> · write · needs <code>user_permission=True</code></p>
+<p>Select an extrusion calibration profile for a specific filament spool.</p>
+<p><strong>WHEN to use:</strong> switch which saved extrusion (flow) calibration profile a filament slot uses,
+typically when the printer is idle and a spool has more than one saved profile.</p>
+<p><strong>WRITE GUARD:</strong> sends an MQTT command that selects which saved extrusion (k-factor, flow
+dynamics) calibration profile the printer uses for the chosen tray.
+There is no active-print guard: using this tool while a print is active (gcode_state
+RUNNING/PREPARE) may interfere with the active job's flow settings, so prefer calling it only
+when the printer is idle. With <code>user_permission</code> unset the tool changes nothing and returns
+the refusal string naming that consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>select_extrusion_calibration</code> picks among saved calibration
+profiles only; <code>set_ams_filament_setting</code> changes the slot's filament identity fields, and
+<code>get_spool_info</code> (read-only) lists the loaded filaments and their tray_ids to use here.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>tray_id</code> (integer, required): The absolute tray identifier for the filament slot to calibrate, computed per AMS type from the hardware ams_id read live from <code>get_ams_units</code> (never hardcode): - 4-slot AMS (ams_id &lt; 128): tray_id = ams_id * 4 + slot_id. AMS 2 Pro ams_id=0, slot 1 → 1; a second unit ams_id=1, slot 0 → 4. - AMS HT (ams_id &gt;= 128): tray_id = ams_id + slot_id. ams_id=128, slot 0 → 128. - External spool holder → 254 (the only holder on a single-nozzle printer, the LEFT holder on a dual-nozzle printer); the RIGHT holder is 255. <code>unit_index * 4 + slot_id</code> is wrong for AMS HT. For an AMS HT tray_id the printer library derives the command's ams_id as floor(tray_id / 4) (32 for 128); this is not verified against firmware.</li>
+<li><code>cali_idx</code> (integer, default <code>-1</code>): The index of the saved calibration profile to activate. -1 (default) selects the default profile (bpm: "defaults to -1 (the default profile)"); whether the printer instead auto-selects a best match for the loaded filament is not established by this code. Use <code>get_spool_info</code> to see currently loaded filaments and their tray_ids before calling this.</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Set to True after the operator approves changing the calibration.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A string. Success: <code>"Extrusion calibration profile selected for tray_id &lt;n&gt;
+(cali_idx=&lt;m&gt;) on '&lt;name&gt;'."</code>. Errors are strings starting with <code>"Error"</code>: the refusal
+<code>"Error: user_permission must be True to perform this action. &lt;consequence&gt;"</code>,
+<code>"Error: Printer '&lt;name&gt;' not connected."</code>, or <code>"Error selecting extrusion calibration
+profile on '&lt;name&gt;': &lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>Bambu printers can store multiple extrusion calibration profiles per filament slot.
+Extrusion calibration (also called flow calibration) tunes the amount of filament pushed
+through the nozzle so the printed lines match the intended dimensions. The refusal string
+describes the change as altering the flow rate applied to the filament.</p>
+<h2 id="send_gcode">send_gcode</h2>
+<p><strong>Send G-code</strong> · write, destructive · needs <code>user_permission=True</code></p>
+<p>Send one or more raw G-code commands to the printer.</p>
+<p><strong>WHEN to use:</strong> run a well-understood G-code command (homing, a manual move, heater off) that
+no dedicated tool covers, while the printer is idle. For standard operations (pause, speed,
+fan) prefer the dedicated tools instead.</p>
+<p><strong>WRITE GUARD:</strong> sends raw G-code that the printer applies immediately to the hardware,
+bypassing all print-job safety checks. Incorrect commands can crash the toolhead, damage the
+printer, or trigger a fault. With <code>user_permission</code> unset the tool changes nothing and
+returns the refusal string naming that consequence. It is also blocked during active prints,
+judged from the last telemetry this server received: it blocks only when gcode_state reads
+RUNNING or PREPARE, and does NOT block when the state is empty or unreadable (before the
+first status report, or while the MQTT session is paused and the cached state is stale).
+Every other state, including PAUSE, is allowed through. When the block does not apply, the
+G-code is sent as-is and could crash the toolhead into the print or trigger hardware faults.</p>
+<p><strong>Sibling disambiguation:</strong> <code>send_gcode</code> is the raw escape hatch. <code>set_nozzle_temp</code>,
+<code>set_bed_temp</code>, <code>set_fan_speed</code> and <code>pause_print</code> are the dedicated tools for the
+common cases; <code>send_mqtt_command</code> sends a raw MQTT JSON command instead of G-code and is not
+subject to the active-print block.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>gcode</code> (string, required): A string containing one or more G-code commands separated by newlines. G-code (also written gcode) is the machine instruction language used to control 3D printers. Each command is a short text instruction like 'G28' (home all axes), 'G0 X50 Y50' (move to position), or 'M104 S200' (set nozzle temperature). Examples: 'G28'                      — home all axes 'G91\nG0 X10\nG90'        — relative mode, move 10mm on X, back to absolute 'M104 S0\nM140 S0'         — turn off nozzle and bed heaters</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Set to True after the operator approves sending the G-code.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A string. Success: <code>"G-code sent to '&lt;name&gt;'."</code>. Errors are strings: the refusal
+<code>"Error: user_permission must be True to perform this action. &lt;consequence&gt;"</code>,
+<code>"Error: Printer '&lt;name&gt;' not connected."</code>, the active-print block <code>"Blocked: '&lt;name&gt;'
+is currently &lt;RUNNING|PREPARE&gt;. send_gcode is not safe while a print is active. Wait for
+the print to finish, pause it first, or cancel it."</code>, or <code>"Error sending G-code to
+'&lt;name&gt;': &lt;exception&gt;"</code>.</p>
+<h2 id="set_print_option">set_print_option</h2>
+<p><strong>Set Print Option</strong> · write · needs <code>user_permission=True</code></p>
+<p>Enable or disable a print option on the named printer.</p>
+<p><strong>WHEN to use:</strong> turn one of the printer-level print options on or off by name, for example
+auto recovery after a power loss or the AMS filament tangle detector.</p>
+<p><strong>WRITE GUARD:</strong> sends an MQTT command that changes the named option on the printer, which
+changes how the printer reacts to faults, runouts and events. With <code>user_permission</code> unset
+the tool changes nothing and returns the refusal string naming that consequence. The printer
+library builds the MQTT payload from a shared, accumulating command template, so each call
+also re-sends every print option set earlier in this server process (and, once auto_recovery
+has been set, its <code>option</code> field), possibly re-applying a value since changed at the
+printer. The library updates its local config as soon as the command is published; that is
+not a confirmation from the printer.</p>
+<p><strong>Sibling disambiguation:</strong> <code>set_print_option</code> sets one option by name from the list below and
+returns a string; <code>set_print_options</code> sets only the auto_recovery and sound flags together
+and returns a dict. For the AI-vision nozzle-clump and air-print detectors with sensitivity
+control, use <code>set_nozzle_clumping_detection</code> and <code>set_air_printing_detection</code>.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>option</code> (string, required): One of 'auto_recovery', 'filament_tangle_detect', 'sound_enable', 'auto_switch_filament', 'nozzle_blob_detect', 'air_print_detect' (case-insensitive). The has_&lt;x&gt;_support capability flags named below are preconditions this tool does NOT check: an unsupported option is still published and still returns the success string. 'auto_recovery' = resume print automatically after a power loss or hardware fault. Expects has_auto_recovery_support, which becomes True only once home_flag telemetry has been received. 'filament_tangle_detect' = pause the print if AMS sensors detect a filament tangle. Requires has_filament_tangle_detect_support. Only meaningful when AMS is present and actively feeding: has no effect during external spool or standalone prints. 'sound_enable' = enable audible beep notifications for print events. Requires has_sound_enable_support. 'auto_switch_filament' = automatically switch to another AMS slot when the active spool runs out, provided a slot with the same filament type AND color is available. AMS-hosted spools only: external spool holder spools are not eligible. Requires has_auto_switch_filament_support (True when has_ams is True). 'nozzle_blob_detect' = legacy firmware-level (home_flag) flag that pauses the print if a filament blob accumulates on the nozzle. This is the older control path. On printers that support it, prefer set_nozzle_clumping_detection() (xcam AI detector) which offers sensitivity control. Requires has_nozzle_blob_detect_support. 'air_print_detect' = legacy firmware-level (home_flag) flag that pauses the print if the nozzle is detected extruding into open air (clog or grinding). Older control path. On printers that support it, prefer set_air_printing_detection() (xcam AI detector) which offers sensitivity control. Requires has_air_print_detect_support.</li>
+<li><code>enabled</code> (boolean, required): True to enable the option, False to disable it.</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Set to True after the operator approves changing the option.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A string. Success: <code>"Option '&lt;option&gt;' set to &lt;enabled&gt; on '&lt;name&gt;'."</code>. Errors are
+strings starting with <code>"Error"</code>: the refusal <code>"Error: user_permission must be True to
+perform this action. &lt;consequence&gt;"</code>, <code>"Error: Printer '&lt;name&gt;' not connected."</code>,
+<code>"Error: Unknown option '&lt;option&gt;'. Supported: [...]"</code>, or <code>"Error setting option on
+'&lt;name&gt;': &lt;exception&gt;"</code>.</p>
+<h2 id="set_print_speed">set_print_speed</h2>
+<p><strong>Set Print Speed</strong> · write · needs <code>user_permission=True</code></p>
+<p>Set the print speed profile on the named printer.</p>
+<p><strong>WHEN to use:</strong> change how fast the printer runs, for example a quiet profile for an overnight
+print or a faster one for a draft.</p>
+<p><strong>WRITE GUARD:</strong> sends a print-speed command over MQTT that changes the printer's speed
+profile (toolhead speed, acceleration, noise and vibration). With <code>user_permission</code> unset
+the tool changes nothing and returns the refusal string naming that consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>set_print_speed</code> sets the overall speed profile (firmware codes
+1-4); <code>set_fan_speed</code> changes the speed of a single fan and leaves the speed profile as it
+is.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>speed_level</code> (string, required): One of 'quiet', 'standard', 'sport', 'ludicrous' (case-insensitive), corresponding to firmware speed codes 1-4. Quiet = reduced speed and acceleration (quieter operation, good for overnight prints). Standard = default balanced speed. Sport = faster than standard, slightly louder. Ludicrous = maximum speed, highest vibration and noise.</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Set to True after the operator approves changing the speed profile.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A string. Success: <code>"Speed level set to '&lt;level&gt;' on '&lt;name&gt;'."</code>. Errors are strings
+starting with <code>"Error"</code>: the refusal <code>"Error: user_permission must be True to perform
+this action. &lt;consequence&gt;"</code>, <code>"Error: Printer '&lt;name&gt;' not connected."</code>,
+<code>"Error: Invalid speed_level '&lt;x&gt;'. Choose from: [...]"</code>, or <code>"Error setting speed on
+'&lt;name&gt;': &lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Sticky preference: before suggesting a speed level, look up the stored value:
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  from user_prefs import get_pref
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  speed_level = get_pref(f&quot;{name}:speed_level&quot;, None)
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>If a stored preference exists, present it pre-selected labeled &quot;(your preference)&quot;.
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>If no preference is stored, show all options without a pre-selection.
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>After a successful call, store the confirmed speed level:
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  from user_prefs import set_pref
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  set_pref(f&quot;{name}:speed_level&quot;, speed_level)
+</span></code></pre></div>
+<h2 id="skip_objects">skip_objects</h2>
+<p><strong>Skip Print Objects</strong> · write, destructive · needs <code>user_permission=True</code></p>
+<p>Skip (cancel) one or more objects during the current print job.</p>
+<p><strong>WHEN to use:</strong> drop one or more failed or unwanted parts from a multi-object plate while the
+rest of the plate keeps printing.</p>
+<p><strong>WRITE GUARD:</strong> sends a skip-objects command over MQTT; the printhead physically avoids the
+skipped objects for the remainder of the print, and objects cannot be un-skipped once
+skipped in the current print job. With <code>user_permission</code> unset the tool changes nothing
+and returns the refusal string naming that consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>skip_objects</code> cancels only the listed objects and the job keeps
+running; <code>stop_print</code> cancels the whole job. <code>get_project_info</code> supplies the object ids.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>object_list</code> (array of integer, required): The identify_id values from the 3mf slice metadata, one per object to skip. To get them, call <code>get_project_info</code> for the current file and plate, then read metadata.map.bbox_objects[].id. Filter out entries whose name contains 'wipe_tower' to get the human-readable part list. identify_id values are plate-specific and file-specific: do not reuse them across different prints or different plates in the same file. An empty list is rejected.</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Set to True after the operator approves skipping the objects.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A string. Success: <code>"Skip-objects command sent for IDs &lt;list&gt; on '&lt;name&gt;'."</code>. Errors
+are strings starting with <code>"Error"</code>: the refusal <code>"Error: user_permission must be True
+to perform this action. &lt;consequence&gt;"</code>, <code>"Error: Printer '&lt;name&gt;' not connected."</code>,
+<code>"Error: object_list must not be empty."</code>, or <code>"Error skipping objects on '&lt;name&gt;':
+&lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>Only works while a print is actively running (gcode_state="RUNNING").</p>
+<h2 id="stop_print">stop_print</h2>
+<p><strong>Stop Print</strong> · write, destructive · needs <code>user_permission=True</code></p>
+<p>Stop (cancel) the current print job on the named printer.</p>
+<p><strong>WHEN to use:</strong> abandon a print for good, for example after a failure or a wrong file. It is
+destructive, so use <code>pause_print</code> instead when the job should continue later.</p>
+<p><strong>WRITE GUARD:</strong> sends a stop command over MQTT that cancels the current print job; the print
+cannot be resumed after stopping. With <code>user_permission</code> unset the tool changes nothing
+and returns the refusal string naming that consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>stop_print</code> ends the whole job permanently; <code>pause_print</code> holds
+it and <code>resume_print</code> continues it. <code>skip_objects</code> cancels only chosen objects and lets
+the rest of the job finish.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Set to True after the operator approves cancelling the print.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A string. Success: <code>"Stop command sent to '&lt;name&gt;'."</code>. Errors are strings starting
+with <code>"Error"</code>: the refusal <code>"Error: user_permission must be True to perform this
+action. &lt;consequence&gt;"</code>, <code>"Error: Printer '&lt;name&gt;' not connected."</code>, or
+<code>"Error stopping '&lt;name&gt;': &lt;exception&gt;"</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

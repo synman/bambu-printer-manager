@@ -1,0 +1,2521 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/bambu-mcp/tools/filament/">
+      
+      
+        <link rel="prev" href="../climate/">
+      
+      
+        <link rel="next" href="../nozzle/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.3">
+    
+    
+      
+        <title>Filament & AMS - bambu-printer-manager</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#filament-ams" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="bambu-printer-manager" class="md-header__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            bambu-printer-manager
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Filament & AMS
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../data-dictionary/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Data Dictionary
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../mqtt-protocol-reference/" class="md-tabs__link">
+          
+  
+  
+  MQTT & Integration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../api-reference/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  API Reference
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../reference/bpm/__init__/" class="md-tabs__link">
+          
+  
+  
+  Code Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../container/" class="md-tabs__link">
+          
+  
+  
+  Client Container
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../" class="md-tabs__link">
+          
+  
+  
+  bambu-mcp
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../license/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  License
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="bambu-printer-manager" class="md-nav__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    bambu-printer-manager
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../data-dictionary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Dictionary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MQTT & Integration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MQTT & Integration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../mqtt-protocol-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protocol Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Code Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../reference/bpm/__init__/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bpm
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    bpm
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambucommands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambucommands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuconfig/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuconfig
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambudiscovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambudiscovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuprinter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuprinter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuproject/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuproject
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuspool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuspool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambustate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambustate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambutools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambutools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_9" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../reference/bpm/ftpsclient/__init__/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ftpsclient
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_9" id="__nav_5_1_9_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_1_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ftpsclient
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/ftpsclient/ftpsclient/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ftpsclient
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Client Container
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Client Container
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../container/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambu-mcp
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    bambu-mcp
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP Tools
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7_2" id="__nav_7_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MCP Tools
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Printer State
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../print-control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Print Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../climate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Climate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filament & AMS
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filament & AMS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#calibrate_ams_remaining" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        calibrate_ams_remaining
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_ams_units" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_ams_units
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_external_spool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_external_spool
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#load_filament" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_filament
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#send_ams_control_command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        send_ams_control_command
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#set_ams_filament_setting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_ams_filament_setting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#set_ams_user_setting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_ams_user_setting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#start_ams_dryer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        start_ams_dryer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stop_ams_dryer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        stop_ams_dryer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unload_filament" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        unload_filament
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nozzle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nozzles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../detectors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detectors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Printer Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Raw Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../camera/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Camera
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alerts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../snapshots/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Snapshots & Monitoring Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../charts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Charts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rest-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    REST API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<!-- Generated by bambu-mcp/gen_docs.py. Do not edit here: change the source in bambu-mcp and re-run the generator. -->
+
+<h1 id="filament-ams">Filament &amp; AMS</h1>
+<p>10 tools, defined in <a href="https://github.com/synman/bambu-mcp/blob/main/tools/filament.py"><code>tools/filament.py</code></a>.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Title</th>
+<th>Access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#calibrate_ams_remaining"><code>calibrate_ams_remaining</code></a></td>
+<td>Rescan AMS Spool RFID</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#get_ams_units"><code>get_ams_units</code></a></td>
+<td>Get AMS Units</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_external_spool"><code>get_external_spool</code></a></td>
+<td>Get External Spool</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#load_filament"><code>load_filament</code></a></td>
+<td>Load Filament</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#send_ams_control_command"><code>send_ams_control_command</code></a></td>
+<td>Send AMS Control Command</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#set_ams_filament_setting"><code>set_ams_filament_setting</code></a></td>
+<td>Set AMS Filament Setting</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#set_ams_user_setting"><code>set_ams_user_setting</code></a></td>
+<td>Set AMS User Setting</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#start_ams_dryer"><code>start_ams_dryer</code></a></td>
+<td>Start AMS Dryer</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#stop_ams_dryer"><code>stop_ams_dryer</code></a></td>
+<td>Stop AMS Dryer</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#unload_filament"><code>unload_filament</code></a></td>
+<td>Unload Filament</td>
+<td>write</td>
+</tr>
+</tbody>
+</table>
+<h2 id="calibrate_ams_remaining">calibrate_ams_remaining</h2>
+<p><strong>Rescan AMS Spool RFID</strong> · write · needs <code>user_permission=True</code></p>
+<p>Ask the printer to re-scan the RFID tag on the specified AMS slot.</p>
+<p><strong>WHEN to use:</strong> have the printer re-read one slot's RFID tag so that slot's spool data, such
+as its remaining percentage, may be refreshed.</p>
+<p><strong>WRITE GUARD:</strong> sends an RFID re-read request for the slot to the printer, which is asked to
+rescan the tag. With <code>user_permission</code> False the tool changes nothing and returns the
+refusal string naming that consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>calibrate_ams_remaining</code> triggers a one-time RFID re-scan of a
+single slot. <code>set_ams_user_setting</code> changes the standing RFID-scan and remaining-
+estimation settings, <code>set_ams_filament_setting</code> writes the slot's filament fields by
+hand, and <code>get_spool_info</code> reads the updated spool data.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>unit_id</code> (integer, required): AMS unit index (0-based position in the <code>get_ams_units</code> <code>units</code> list). A value outside that range is matched against the raw hardware ams_id.</li>
+<li><code>slot_id</code> (integer, required): Slot within the unit to scan (0-3).</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Must be True to execute. Default False.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A <code>str</code>. Success: <code>"RFID re-scan triggered for AMS unit &lt;unit_id&gt; slot &lt;slot_id&gt;
+on '&lt;name&gt;'."</code>. Errors are <code>"Error: ..."</code> strings, never a dict: the
+<code>_permission_denied</code> refusal when <code>user_permission</code> is False,
+<code>"Error: Printer '&lt;name&gt;' not connected."</code>, <code>"Error: AMS unit &lt;unit_id&gt; not found
+on '&lt;name&gt;'."</code>, or <code>"Error triggering RFID scan on '&lt;name&gt;': &lt;exception&gt;"</code> when
+the command fails.</p>
+<p><strong>Notes</strong></p>
+<p>This asks the printer to re-read the RFID tag in the specified slot. Updated spool
+telemetry, which may include remaining_percent (see get_spool_info()), arrives later
+in a normal state push. The success string only means the request was published; it
+does not show that any value changed. Only RFID-equipped Bambu Lab spools carry tag
+data, and what the tag itself stores (remaining weight or otherwise) is not
+established by this code.</p>
+<h2 id="get_ams_units">get_ams_units</h2>
+<p><strong>Get AMS Units</strong> · read-only</p>
+<p>Return all AMS units and their slot states for the named printer.</p>
+<p><strong>WHEN to use:</strong> read AMS temperature, humidity, heater and drying state and which slots hold
+a spool, or find the positional <code>unit_id</code> to pass to the AMS write tools in this module.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_ams_units</code> and <code>get_ams_status</code> return the same
+<code>ams_status</code> / <code>ams_count</code> / <code>units</code> payload from the same printer state; this
+tool's description is the field reference for the units list, and the order of that list
+is what <code>unit_id</code> indexes. <code>get_spool_info</code> is filament-centric (spool type, color,
+remaining percentage). <code>get_external_spool</code> reports the external spool holder.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"ams_count": int, "ams_status": str, "units": [dict]}</code>. <code>ams_count</code> is the
+number of connected AMS units, <code>ams_status</code> is the global AMS status text, and
+<code>units</code> is an empty list when the printer reports none. Each unit dict includes
+temperature, humidity, dryer state, and per-slot filament presence, as the fields
+ams_id, chip_id, model, temp_actual, humidity_index, humidity_raw, ams_info, dryer (an
+object, or null; see Notes), tray_exists (see Notes) and assigned_to_extruder; enum
+fields appear as their names. <code>dryer</code> holds state, sub_status, fan1_status,
+fan2_status, remaining_minutes, temp_target, duration_target_hours, filament_target,
+refusals, refusal_message, fail_code, fail_message and fail_count. Error shape:
+<code>{"error": "Printer '&lt;name&gt;' not connected"}</code>.</p>
+<p><strong>Notes</strong></p>
+<p>Field semantics:</p>
+<ul>
+<li>ams_id is the AMS unit id as reported by the printer (for example 0 for the first
+  AMS 2 Pro, 128 for AMS HT). chip_id is a separate field holding the unit's hardware
+  serial string; the two are not synonyms. The 0-based positional unit_id used by
+  load_filament() and other write tools refers to the position of the unit in the
+  ams_units list, not to either value.</li>
+<li>tray_exists has one boolean per slot: four on a standard AMS unit (slots 0–3), one
+  on an AMS HT, which has a single slot.</li>
+<li>dryer is null on a unit that cannot dry. With model UNKNOWN that means the unit has
+  not reported yet; with any other model (AMS_LITE, AMS_1) it has no dryer. Only an
+  AMS 2 Pro or AMS HT carries one, and start_ams_dryer refuses the others.</li>
+<li>The AMS model is identified by the <code>model</code> field (AMSModel enum name, e.g.
+  'AMS_2_PRO', 'AMS_HT'). See the enums knowledge module for all values.</li>
+<li>On H2D: AMS 2 Pro (ams_id=0, first in list) feeds the RIGHT extruder (extruder 0);
+  AMS HT (ams_id=128, second in list) feeds the LEFT extruder (extruder 1).</li>
+<li>humidity_index scale: 1=WET (alert, filament needs drying), 5=DRY (good, no action
+  needed). IMPORTANT: higher numbers mean DRIER — the scale is counterintuitive.
+  Only humidity_index values of 1 or 2 indicate a moisture problem. A value of 5
+  means the filament is completely dry. 0 means the sensor reading is unavailable
+  (uninitialized or not supported by this AMS model — do not treat as wet).</li>
+<li>dryer.state: AMSHeatingState enum name — OFF, CHECKING (transient), DRYING (active),
+  COOLING, STOPPING, ERROR, CANNOT_STOP_HEAT_OOC, PRODUCT_TEST. CHECKING is a brief
+  transition state after issuing a start_ams_dryer() command; DRYING with
+  sub_status=HEATING confirms active heating.</li>
+<li>dryer.remaining_minutes: minutes left in the running dry; 0 when idle.</li>
+<li>dryer.refusals: why a dry cannot start now, as the printer's raw dry_sf_reason ints
+  (bpm AMSDryerRefusal: 2 AMS busy, 3 filament at the AMS outlet, 4 initiating,
+  6 drying in progress, ...). [] means a dry can start; [6] alone means one is
+  running. dryer.refusal_message is Bambu Studio's text for them, "" when a dry can
+  start; start_ams_dryer refuses while it is set.</li>
+<li>dryer.temp_target / duration_target_hours / filament_target: the running dry's
+  order (°C, hours, filament type); -1 / -1 / "" when idle. temp_target is the order,
+  not a measurement; temp_actual is the measured temperature.</li>
+<li>dryer.fail_code / fail_message: the printer's decoded reply to the last refused
+  drying command (e.g. HMS_0500-C04B), "" after an accepted one; fail_count counts
+  refused replies and only grows.</li>
+<li>dryer.sub_status: AMSDryerSubStatus enum name — OFF, HEATING, DEHUMIDIFY. The
+  current phase within an active drying cycle.</li>
+<li>dryer.fan1_status / fan2_status: AMSDryerFanStatus enum name — OFF or ON. The two
+  drying fans (bits 18–19 and 20–21 of ams_info). Only meaningful while
+  state=DRYING.</li>
+</ul>
+<h2 id="get_external_spool">get_external_spool</h2>
+<p><strong>Get External Spool</strong> · read-only</p>
+<p>Return the filament info for the external spool holder.</p>
+<p><strong>WHEN to use:</strong> check what filament sits on the external spool holder (or holders on a
+dual-nozzle printer), for example before <code>load_filament</code> with slot_id 254.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_external_spool</code> returns the external holder trays alone.
+<code>get_spool_info</code> returns every spool on the printer plus the active one, and
+<code>get_ams_units</code> returns the AMS units and their slot states.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"loaded": True, "spool": &lt;dict&gt;, "spools": [&lt;dict&gt;, ...]}</code> when any external tray
+entry exists, or <code>{"loaded": False, "spool": None, "spools": []}</code> when none does.
+<code>loaded</code> True means an entry exists, not that filament is on a holder: when
+telemetry carries <code>vir_slot</code>, the printer library adds a placeholder entry (empty
+<code>type</code>, <code>slot_id</code> -1) for each of 254 and 255 the printer reported no tray for.
+Check each entry's <code>type</code>; an empty string means no filament type is reported for
+that holder. Identify the holder by <code>id</code> (254 or 255), not by <code>slot_id</code>.
+"spool" is the entry that holds a filament type, preferring 254 over 255, and falls
+back to the first entry when none holds one. "spools" lists every external entry so a
+dual-nozzle caller can see both holders. Error shape:
+<code>{"error": "Printer '&lt;name&gt;' not connected"}</code>.</p>
+<p><strong>Notes</strong></p>
+<p>Telemetry names the holders 254 and 255. A single-nozzle printer has one physical
+holder, 254, but <code>spools</code> can still list both whenever <code>vir_slot</code> is reported.
+A dual-nozzle printer has a LEFT holder, 254, and a RIGHT holder, 255.</p>
+<h2 id="load_filament">load_filament</h2>
+<p><strong>Load Filament</strong> · write · needs <code>user_permission=True</code></p>
+<p>Load filament from a specific AMS unit and slot into the extruder.</p>
+<p><strong>WHEN to use:</strong> feed the filament in one AMS slot, or on the external spool holder, into the
+extruder while no print is active.</p>
+<p><strong>WRITE GUARD:</strong> sends a load-filament command to the printer, which starts feeding filament
+from the chosen slot into the extruder. With <code>user_permission</code> False the tool changes
+nothing and returns the refusal string naming that consequence. A second gate blocks the
+call while the printer is printing (see Returns).</p>
+<p><strong>Sibling disambiguation:</strong> <code>load_filament</code> feeds filament into the extruder;
+<code>unload_filament</code> retracts the loaded filament back into the AMS. <code>set_ams_filament_setting</code>
+only changes the filament metadata stored for a slot and moves no filament.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>unit_id</code> (integer, required): AMS index (0-based position in the <code>get_ams_units</code> <code>units</code> list). A value outside that range is matched against the raw hardware ams_id.</li>
+<li><code>slot_id</code> (integer, required): Slot within the unit (0-3). Use 254 to load from the external spool holder. On a dual-nozzle printer 254 is the LEFT holder and 255 is the RIGHT holder. bpm sends a holder load as Bambu Studio does (ams_id 254/255, slot_id 0, target 254/255); on hardware, neither holder load has been observed yet. The external spool holder is a separate filament feeder that attaches to the printer's side, holding one spool outside the AMS unit. get_external_spool() reports what is loaded on it.</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Must be True to execute. Default False.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A <code>str</code>. Success: <code>"Load filament command sent for AMS unit &lt;unit_id&gt; slot
+&lt;slot_id&gt; on '&lt;name&gt;'."</code>, returned after waiting up to 5 seconds for a refusal. A
+refusal the printer sends back (for example while the unit is drying) returns
+<code>"Error: '&lt;name&gt;' refused the load from AMS unit &lt;unit_id&gt; slot &lt;slot_id&gt;: &lt;reason&gt;"</code>
+with the printer's own reason: bpm's <code>command_error</code> entry in <code>hms_errors</code>. Errors
+are strings, never a dict: the
+<code>_permission_denied</code> refusal when <code>user_permission</code> is False,
+<code>"Error: Printer '&lt;name&gt;' not connected."</code>, the active-print block message
+(<code>"Blocked: '&lt;name&gt;' is currently &lt;gcode_state&gt;. load_filament is not safe while
+a print is active. ..."</code>), <code>"Error: AMS unit &lt;unit_id&gt; not found on '&lt;name&gt;'."</code>, or
+<code>"Error loading filament on '&lt;name&gt;': &lt;exception&gt;"</code> when the command fails.</p>
+<p><strong>Notes</strong></p>
+<p>H2D dual-extruder pairing (AMS 2 Pro to the RIGHT extruder, AMS HT to the LEFT) is
+printer behavior that get_ams_units reports per unit as assigned_to_extruder; this
+code does not establish it. The tool sends only the resolved ams_id and slot_id: the
+printer library copies slot_id into the command's target field, which bpm's protocol
+reference describes as the extruder to load into, and it marks multi-unit loading
+unfinished (TODO: refactor to support multiple AMSs). Loading from a unit other than
+the first is therefore unverified.</p>
+<p>To find the correct unit_id: call get_ams_units() and use the positional
+index (0-based) of the desired unit in the returned list. ams_id values are assigned
+by the printer and should not be hardcoded. unit_id must resolve to a
+connected AMS unit even when slot_id is 254; otherwise the tool returns the
+"AMS unit not found" error.</p>
+<p>⛔ BLOCKED during active prints (gcode_state RUNNING or PREPARE), because a filament
+change during a print risks toolhead crashes or failed prints.</p>
+<h2 id="send_ams_control_command">send_ams_control_command</h2>
+<p><strong>Send AMS Control Command</strong> · write · needs <code>user_permission=True</code></p>
+<p>Send an AMS control command: pause, resume, reset, done or abort.</p>
+<p><strong>WHEN to use:</strong> recover from an AMS-triggered pause (filament runout, AMS fault) with
+'RESUME', or pause the AMS feed or reset the AMS with 'PAUSE' or 'RESET'. During a
+filament load, answer the printer's prompt the way Bambu Studio's buttons do: 'RESUME'
+with <code>resume_print=False</code> for "Finished, Continue" and the Retry buttons, 'DONE' for
+"Filament Extruded, Continue", and 'ABORT' to cancel the load or unload. The buttons the
+printer offers are the <code>actions</code> of the <code>device_error</code> entry in <code>get_hms_errors</code>.</p>
+<p><strong>WRITE GUARD:</strong> sends the chosen AMS control command to the printer, which pauses the AMS
+feed, resets the AMS, tells a waiting load to go on, cancels the running load or unload
+('ABORT'), or, for 'RESUME', unblocks the AMS feed and by default resumes the halted
+print job. With <code>user_permission</code> False the tool changes nothing and returns the
+refusal string naming that consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>send_ams_control_command</code> acts on the AMS and, for 'RESUME',
+also resumes the print. <code>pause_print</code> and <code>resume_print</code> act on the print job itself;
+do not call <code>resume_print</code> after 'RESUME', as that would be a duplicate command.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>cmd</code> (string, required): One of 'PAUSE', 'RESUME', 'RESET', 'DONE', 'ABORT' (case-insensitive).</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Must be True to execute. Default False.</li>
+<li><code>resume_print</code> (boolean, default <code>true</code>): With 'RESUME', also resume the print (default True). Pass False to answer a load prompt, which Studio does with the AMS command alone.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A <code>str</code>. Success: <code>"AMS control command &lt;CMD&gt; sent to '&lt;name&gt;'."</code> with CMD in
+upper case. Errors are <code>"Error: ..."</code> strings, never a dict: the
+<code>_permission_denied</code> refusal when <code>user_permission</code> is False,
+<code>"Error: Printer '&lt;name&gt;' not connected."</code>, <code>"Error: Unknown AMS control command
+'&lt;cmd&gt;'. Must be one of: PAUSE, RESUME, RESET, DONE, ABORT."</code>, or <code>"Error sending AMS control
+command to '&lt;name&gt;': &lt;exception&gt;"</code> when the command fails.</p>
+<p><strong>Notes</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>- &#39;PAUSE&#39;  — pause the AMS feed mid-print.
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>- &#39;RESUME&#39; — unblocks the AMS feed AND resumes the halted print job in a
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  single operation. Use this for AMS-triggered pauses (filament runout,
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  AMS fault). Do not also call resume_print() after this — that would be
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  a duplicate command.
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>- &#39;RESET&#39;  — reset the AMS to its idle/ready state.
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>- &#39;DONE&#39;   — the filament is extruded; the waiting load goes on.
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>- &#39;ABORT&#39;  — cancel the running filament load or unload.
+</span></code></pre></div>
+<h2 id="set_ams_filament_setting">set_ams_filament_setting</h2>
+<p><strong>Set AMS Filament Setting</strong> · write · needs <code>user_permission=True</code></p>
+<p>Set filament details for a specific AMS slot on the named printer.</p>
+<p><strong>WHEN to use:</strong> record or correct the filament identity, color, and nozzle temperature range
+of one AMS slot, or clear the slot by passing filament_id 'no_filament'.</p>
+<p><strong>WRITE GUARD:</strong> sends the slot's filament setting (material code, name, type, color, and
+nozzle temperature range) to the printer in a single command, overwriting what the slot
+currently holds; filament_id, filament_name and filament_type left at their defaults are
+sent as empty strings, an empty color is not sent (opaque white is written instead), and
+temperatures left at -1 are sent as -1. With <code>user_permission</code> False the tool changes
+nothing and returns the refusal string naming the overwrite.</p>
+<p><strong>Sibling disambiguation:</strong> <code>set_ams_filament_setting</code> writes the slot's stored filament
+fields and moves no filament. <code>calibrate_ams_remaining</code> asks the printer to re-read the
+slot's RFID tag instead of writing fields, <code>load_filament</code> and <code>unload_filament</code> move
+filament, and <code>get_spool_info</code> reads the resulting spool data.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>unit_id</code> (integer, required): AMS unit index (0-based position in the <code>get_ams_units</code> <code>units</code> list). A value outside that range is matched against the raw hardware ams_id (for example 128 for AMS HT).</li>
+<li><code>slot_id</code> (integer, required): Slot within that unit (0-3).</li>
+<li><code>filament_id</code> (string, default <code>""</code>): Bambu Lab catalog material code (tray_info_idx), e.g. 'GFA00' for Bambu PLA Basic. This is a primary identity field — a lookup key from Bambu's filament database that encodes temperature profiles, drying parameters, and flow characteristics. Pass 'no_filament' to clear the slot and mark it as empty. Default "" (sent as empty).</li>
+<li><code>filament_name</code> (string, default <code>""</code>): Bambu Lab vendor-specific brand label (e.g. 'Bambu PLA Basic'). It is optional, absent on third-party spools, and NOT a reliable spool identifier. The true identity of a spool is color + filament_id (base profile), not this name field. Default "" (sent as empty).</li>
+<li><code>filament_type</code> (string, default <code>""</code>): Short filament type string (e.g. 'PLA', 'PETG', 'ABS'). Default "" (sent as empty).</li>
+<li><code>color</code> (string, default <code>""</code>): CSS color name or RRGGBB hex string. Default "" is NOT sent as empty: the library skips an empty color, so the command keeps its template default FFFFFFFF and the slot color is set to opaque white. Always pass the color you want.</li>
+<li><code>nozzle_temp_min</code> (integer, default <code>-1</code>): Minimum nozzle temperature in °C. The default -1 is sent as-is; whether the printer treats -1 as "leave unchanged" is not established by this code.</li>
+<li><code>nozzle_temp_max</code> (integer, default <code>-1</code>): Maximum nozzle temperature in °C. The default -1 is sent as-is; whether the printer treats -1 as "leave unchanged" is not established by this code.</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Must be True to execute. Default False.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A <code>str</code>. Success: <code>"Filament setting updated for AMS unit &lt;unit_id&gt; slot
+&lt;slot_id&gt; on '&lt;name&gt;'."</code>. Errors are <code>"Error: ..."</code> strings, never a dict: the
+<code>_permission_denied</code> refusal when <code>user_permission</code> is False,
+<code>"Error: Printer '&lt;name&gt;' not connected."</code>, <code>"Error: AMS unit &lt;unit_id&gt; not found
+on '&lt;name&gt;'."</code>, or <code>"Error setting filament on '&lt;name&gt;': &lt;exception&gt;"</code> when the
+command fails.</p>
+<p><strong>Notes</strong></p>
+<p>WARNING: This call sends ALL fields to the printer in a single command. Text fields
+left at their default go out as empty strings and temperatures left at -1 go out as
+-1; whether the printer treats an empty string as "clear this field" is not
+established by this code, and the refusal text's "empty fields clear existing values"
+is likewise unverified. Always pass ALL relevant fields in a single call (filament_id,
+filament_type, color, nozzle_temp_min, nozzle_temp_max) to avoid overwriting existing
+slot metadata.</p>
+<p>To clear a slot, pass filament_id='no_filament': the library then ignores
+filament_name, filament_type, color and both temperatures and writes name "", type "",
+color FFFFFF00 and temperatures 0/0.</p>
+<p>The tool computes the absolute tray id as ams_id + slot_id when the resolved ams_id is
+128 or higher (AMS HT), otherwise ams_id * 4 + slot_id. The printer library then
+re-derives the command's ams_id as tray_id // 4 and slot_id as tray_id % 4 (only
+254/255 are special-cased), so on AMS HT tray_id 128 goes out as ams_id 32, slot_id 0,
+tray_id 128. Whether that reaches an AMS HT slot is unverified against printer
+firmware; do not rely on it.</p>
+<h2 id="set_ams_user_setting">set_ams_user_setting</h2>
+<p><strong>Set AMS User Setting</strong> · write · needs <code>user_permission=True</code></p>
+<p>Enable or disable an AMS user setting on the named printer.</p>
+<p><strong>WHEN to use:</strong> turn on or off spool-weight remaining estimation, the RFID scan at printer
+power-on, or the RFID scan when a spool is inserted.</p>
+<p><strong>WRITE GUARD:</strong> sends the AMS user-setting command to the printer, which changes one of the
+three AMS user settings on the printer. With <code>user_permission</code> False the tool changes
+nothing and returns the refusal string naming that consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>set_ams_user_setting</code> changes a standing AMS behavior setting.
+<code>calibrate_ams_remaining</code> triggers a one-time RFID re-scan of a single slot, and
+<code>set_ams_filament_setting</code> writes one slot's filament fields.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>setting</code> (string, required): One of 'calibrate_remain_flag', 'startup_read_option', 'tray_read_option' (case-insensitive).</li>
+<li><code>value</code> (boolean, required): True to enable the setting, False to disable it.</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Must be True to execute. Default False.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A <code>str</code>. Success: <code>"AMS setting '&lt;setting&gt;' set to &lt;value&gt; on '&lt;name&gt;'."</code>. Errors
+are <code>"Error: ..."</code> strings, never a dict: the <code>_permission_denied</code> refusal when
+<code>user_permission</code> is False, <code>"Error: Printer '&lt;name&gt;' not connected."</code>,
+<code>"Error: Unknown setting '&lt;setting&gt;'. Supported: [...]"</code>, or <code>"Error setting AMS
+user setting on '&lt;name&gt;': &lt;exception&gt;"</code> when the command fails.</p>
+<p><strong>Notes</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Supported settings: &#39;calibrate_remain_flag&#39; (spool-weight based remaining
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>estimation), &#39;startup_read_option&#39; (RFID scan on power-on), &#39;tray_read_option&#39;
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>(RFID scan on spool insert).
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>&#39;calibrate_remain_flag&#39; = estimate remaining filament by tracking spool weight.
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  Requires an AMS unit with built-in weight sensors (AMS 2 Pro only). AMS Lite
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  and AMS HT do not have weight sensors — enabling this on those units has no effect.
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>&#39;startup_read_option&#39; = scan RFID tags on all loaded spools when the printer powers on,
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>  to detect filament changes made while the printer was off.
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>&#39;tray_read_option&#39; = scan the RFID tag when a spool is inserted into an AMS slot,
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>  auto-populating filament type, color, and temperature profile from the tag.
+</span></code></pre></div>
+<p>The tool passes no unit selector: the printer library sends the command with its
+default ams_id (0). The command includes all three settings: the named one is set to
+value and the other two come from the library's last-seen telemetry values, not a
+fresh read from the printer. Those default to False until a status report arrives, so
+calling this early in a session can write False for the other two.</p>
+<h2 id="start_ams_dryer">start_ams_dryer</h2>
+<p><strong>Start AMS Dryer</strong> · write · needs <code>user_permission=True</code></p>
+<p>Start the AMS filament dryer on the specified unit.</p>
+<p><strong>WHEN to use:</strong> dry the filament in one AMS unit at a chosen temperature and duration, for
+example when <code>get_ams_units</code> shows a low <code>humidity_index</code>.</p>
+<p><strong>WRITE GUARD:</strong> sends a start-drying command that turns on the unit's dryer heater at the
+given temperature for the given duration. With <code>user_permission</code> False the tool changes
+nothing and returns the refusal string naming that consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>start_ams_dryer</code> turns the dryer on and waits up to 10
+seconds for the unit to report DRYING; <code>stop_ams_dryer</code> turns it off.
+<code>get_ams_units</code> reads the resulting <code>dryer.state</code> and <code>dryer.sub_status</code>.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>unit_id</code> (integer, required): AMS unit index (0-based position in the <code>get_ams_units</code> <code>units</code> list). A value outside that range is matched against the raw hardware ams_id.</li>
+<li><code>target_temp</code> (integer, default <code>55</code>): Drying temperature in °C. Default 55. Must be 45-65 on an AMS 2 Pro and 45-85 on an AMS HT (Bambu Studio's limits); anything else is refused, not clamped.</li>
+<li><code>duration_hours</code> (integer, default <code>4</code>): Drying time in hours, 1-999, passed unchanged as the command's <code>duration</code> field. Default 4. Hours is settled by Bambu Studio's source and was measured on H2D firmware (72 h and 999 h accepted, 2026-09-26); there is no 24 h cap. The printer reports the time left (<code>dryer.remaining_minutes</code>) in minutes.</li>
+<li><code>rotate_tray</code> (boolean, default <code>false</code>): Passed to the printer as the rotate-tray flag for the drying command. Default False.</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Must be True to execute. Default False.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A <code>str</code>. Success: <code>"AMS dryer started on unit &lt;unit_id&gt; (ams_id=&lt;ams_id&gt;):
+&lt;target_temp&gt;°C for &lt;duration_hours&gt;h on '&lt;name&gt;'. heater_state=DRYING"</code>. Errors are
+<code>"Error: ..."</code> strings, never a dict: the <code>_permission_denied</code> refusal when
+<code>user_permission</code> is False, <code>"Error: Printer '&lt;name&gt;' not connected."</code>,
+<code>"Error: AMS unit &lt;unit_id&gt; not found on '&lt;name&gt;'."</code>, <code>"Error: &lt;reason&gt; Nothing was sent
+to '&lt;name&gt;'."</code> when the unit has no dryer, the temperature or duration is out of
+range, or the AMS reports a reason it cannot dry now (bpm's <code>dryer.refusal_message</code>,
+e.g. filament left in the AMS outlet; checked before anything is published),
+<code>"Error: '&lt;name&gt;' refused the AMS dryer start on unit &lt;unit_id&gt; (ams_id=&lt;ams_id&gt;):
+&lt;printer's reason&gt; (&lt;HMS code&gt;)"</code> as soon as the printer's reply refuses the command,
+<code>"Error: AMS dryer command
+sent to unit &lt;unit_id&gt; (ams_id=&lt;ams_id&gt;) on '&lt;name&gt;' but heater_state did not reach
+DRYING within 10s (final state: &lt;STATE or unknown&gt;). Check get_ams_units for current
+state."</code> (the command WAS sent in that case; it is returned after the full 10s, or
+sooner when heater_state reads ERROR or falls back to OFF after showing another
+state since the command), or <code>"Error starting AMS dryer on '&lt;name&gt;': &lt;exception&gt;"</code>
+when the command fails. One more outcome that is not an error: <code>"AMS dryer command
+sent to unit &lt;unit_id&gt; (ams_id=&lt;ams_id&gt;) on '&lt;name&gt;', but the unit was already DRYING
+before the command and heater_state never changed, so it cannot show whether the
+command was accepted ..."</code>, returned after the full 10s. Drying is in progress; whether
+it follows the new temperature and duration has to be read from <code>get_ams_units</code>.</p>
+<p><strong>Notes</strong></p>
+<p>Only a unit whose <code>dryer</code> is set (an AMS 2 Pro or AMS HT) is sent the command. Any
+other unit (AMS Lite, the original AMS, one not reported yet) is refused before
+publishing, and so is a temperature outside the model's range, which the firmware
+does not clamp. The HTTP route
+<code>/api/turn_on_ams_dryer</code> applies the same checks.</p>
+<p>filament_type is derived from the first spool in the target AMS unit that reports a
+type (spool.type, e.g. "ABS", "PLA") and falls back to "" if there is none. bpm
+documents it only as passed to firmware for validation; what the firmware does with
+an empty value is not established by this code.</p>
+<p>Heater state transition: after the command is sent, <code>dryer.state</code> may briefly read
+CHECKING (a transitional state). Active drying is confirmed by state=DRYING with
+sub_status=HEATING. This tool polls once per second (first reading one second after
+the publish), up to 10 seconds, waiting for DRYING before returning. <code>dryer.state</code>
+is only rewritten when a telemetry frame carrying the AMS info word arrives, so
+until then it still holds whatever it held before the command (OFF, COOLING, DRYING,
+ERROR, anything). The tool records that value just before publishing and ignores every
+read equal to it; the first read that differs shows a post-command frame has landed,
+and every read after that counts. DRYING then means success. The tool stops polling
+early, and returns the "did not reach DRYING" error, when a post-command read is ERROR,
+or is OFF after another post-command state (CHECKING, COOLING and so on). That is what
+the code assumes a rejected command looks like; no such sequence has been observed on
+hardware, so treat it as unmeasured. A first post-command read of OFF (a unit that was
+COOLING, say) is waited out, not treated as a rejection. If the unit was already DRYING
+and never reports anything else, the reads cannot show whether the command was
+accepted, and the tool says so instead of claiming a start. A command the printer
+accepts but whose first frame arrives later than 10 seconds still ends in the timeout
+error with the command in effect; confirm with get_ams_units.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Sticky preferences: before presenting parameters to the user, look up stored values:
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  from user_prefs import get_pref
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  target_temp    = get_pref(f&quot;{name}:ams{unit_id}:target_temp&quot;,    55)
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  duration_hours = get_pref(f&quot;{name}:ams{unit_id}:duration_hours&quot;, 4)
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  rotate_tray    = get_pref(f&quot;{name}:ams{unit_id}:rotate_tray&quot;,    False)
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>Factory defaults: target_temp=55, duration_hours=4, rotate_tray=False.
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>Label each &quot;(your preference)&quot; if stored value differs from factory default, &quot;(default)&quot; otherwise.
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>After a successful call, store the confirmed values:
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>  from user_prefs import set_pref
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>  set_pref(f&quot;{name}:ams{unit_id}:target_temp&quot;,    target_temp)
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>  set_pref(f&quot;{name}:ams{unit_id}:duration_hours&quot;, duration_hours)
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>  set_pref(f&quot;{name}:ams{unit_id}:rotate_tray&quot;,    rotate_tray)
+</span></code></pre></div>
+<h2 id="stop_ams_dryer">stop_ams_dryer</h2>
+<p><strong>Stop AMS Dryer</strong> · write · needs <code>user_permission=True</code></p>
+<p>Stop the AMS filament dryer on the specified unit.</p>
+<p><strong>WHEN to use:</strong> end a drying cycle early on one AMS unit, or make sure its dryer is off.</p>
+<p><strong>WRITE GUARD:</strong> sends a turn-off-drying command that switches the unit's dryer off and ends
+its drying cycle. With <code>user_permission</code> False the tool changes nothing and returns the
+refusal string naming that consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>stop_ams_dryer</code> turns the dryer off; <code>start_ams_dryer</code> turns
+it on. <code>get_ams_units</code> reads the resulting <code>dryer.state</code>.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>unit_id</code> (integer, required): AMS unit index (0-based position in the <code>get_ams_units</code> <code>units</code> list). A value outside that range is matched against the raw hardware ams_id.</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Must be True to execute. Default False.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A <code>str</code>. Success: <code>"AMS dryer stopped on unit &lt;unit_id&gt; (ams_id=&lt;ams_id&gt;) on
+'&lt;name&gt;'."</code>. Errors are <code>"Error: ..."</code> strings, never a dict: the
+<code>_permission_denied</code> refusal when <code>user_permission</code> is False,
+<code>"Error: Printer '&lt;name&gt;' not connected."</code>, <code>"Error: AMS unit &lt;unit_id&gt; not found
+on '&lt;name&gt;'."</code>, <code>"Error: &lt;reason&gt;. Nothing was sent to '&lt;name&gt;'."</code> when bpm refuses
+the unit (it has no dryer), or <code>"Error stopping AMS dryer on '&lt;name&gt;': &lt;exception&gt;"</code>
+when the command fails.</p>
+<h2 id="unload_filament">unload_filament</h2>
+<p><strong>Unload Filament</strong> · write · needs <code>user_permission=True</code></p>
+<p>Unload the currently loaded filament from the extruder back into the AMS.</p>
+<p><strong>WHEN to use:</strong> retract the filament that is currently loaded in the extruder back into the
+AMS while no print is active.</p>
+<p><strong>WRITE GUARD:</strong> sends an unload-filament command to the printer, which starts retracting
+the loaded filament out of the extruder. With <code>user_permission</code> False the tool changes
+nothing and returns the refusal string naming that consequence. A second gate blocks the
+call while the printer is printing (see Returns).</p>
+<p><strong>Sibling disambiguation:</strong> <code>unload_filament</code> retracts the loaded filament back into the
+AMS and takes an optional unit, no slot; <code>load_filament</code> feeds a chosen slot into the extruder.
+<code>get_spool_info</code> shows which spool is currently loaded.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Must be True to execute. Default False.</li>
+<li><code>unit_id</code> (integer or null, default <code>null</code>): AMS unit to unload from, as in <code>load_filament</code> (positional index, or a raw ams_id). Default None: the unit, or external holder (254/255), the active tray is in; unit 0 when nothing is active.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A <code>str</code>. Success: <code>"Unload filament command sent to '&lt;name&gt;'."</code>, returned after
+waiting up to 5 seconds for a refusal. A refusal the printer sends back returns
+<code>"Error: '&lt;name&gt;' refused the unload from AMS unit &lt;ams_id&gt;: &lt;reason&gt;"</code>, and an
+unknown <code>unit_id</code> returns <code>"Error: AMS unit &lt;unit_id&gt; not found on '&lt;name&gt;'."</code>. Errors are
+strings, never a dict: the <code>_permission_denied</code> refusal when <code>user_permission</code> is
+False, <code>"Error: Printer '&lt;name&gt;' not connected."</code>, the active-print block message
+(<code>"Blocked: '&lt;name&gt;' is currently &lt;gcode_state&gt;. unload_filament is not safe
+while a print is active. ..."</code>), or <code>"Error unloading filament on '&lt;name&gt;':
+&lt;exception&gt;"</code> when the command fails.</p>
+<p><strong>Notes</strong></p>
+<p>⛔ BLOCKED during active prints (gcode_state RUNNING or PREPARE), because a filament
+change during a print risks toolhead crashes or failed prints.</p>
+<p>The command names one AMS unit (see <code>unit_id</code>). An unload naming an AMS HT
+(ams_id 128) has not been tried on hardware.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

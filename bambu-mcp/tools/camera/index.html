@@ -1,0 +1,2199 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/bambu-mcp/tools/camera/">
+      
+      
+        <link rel="prev" href="../commands/">
+      
+      
+        <link rel="next" href="../notifications/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.3">
+    
+    
+      
+        <title>Camera - bambu-printer-manager</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#camera" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="bambu-printer-manager" class="md-header__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            bambu-printer-manager
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Camera
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../data-dictionary/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Data Dictionary
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../mqtt-protocol-reference/" class="md-tabs__link">
+          
+  
+  
+  MQTT & Integration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../api-reference/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  API Reference
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../reference/bpm/__init__/" class="md-tabs__link">
+          
+  
+  
+  Code Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../container/" class="md-tabs__link">
+          
+  
+  
+  Client Container
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../" class="md-tabs__link">
+          
+  
+  
+  bambu-mcp
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../license/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  License
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="bambu-printer-manager" class="md-nav__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    bambu-printer-manager
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../data-dictionary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Dictionary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MQTT & Integration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MQTT & Integration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../mqtt-protocol-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protocol Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Code Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../reference/bpm/__init__/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bpm
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    bpm
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambucommands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambucommands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuconfig/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuconfig
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambudiscovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambudiscovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuprinter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuprinter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuproject/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuproject
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuspool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuspool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambustate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambustate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambutools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambutools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_9" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../reference/bpm/ftpsclient/__init__/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ftpsclient
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_9" id="__nav_5_1_9_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_1_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ftpsclient
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/ftpsclient/ftpsclient/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ftpsclient
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Client Container
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Client Container
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../container/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambu-mcp
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    bambu-mcp
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP Tools
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7_2" id="__nav_7_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MCP Tools
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Printer State
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../print-control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Print Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../climate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Climate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filament & AMS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nozzle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nozzles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../detectors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detectors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Printer Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Raw Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Camera
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Camera
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#analyze_active_job" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        analyze_active_job
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_stream_url" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_stream_url
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#open_job_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        open_job_state
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#start_stream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        start_stream
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stop_stream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        stop_stream
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#view_stream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        view_stream
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alerts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../snapshots/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Snapshots & Monitoring Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../charts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Charts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rest-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    REST API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<!-- Generated by bambu-mcp/gen_docs.py. Do not edit here: change the source in bambu-mcp and re-run the generator. -->
+
+<h1 id="camera">Camera</h1>
+<p>6 tools, defined in <a href="https://github.com/synman/bambu-mcp/blob/main/tools/camera.py"><code>tools/camera.py</code></a>.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Title</th>
+<th>Access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#analyze_active_job"><code>analyze_active_job</code></a></td>
+<td>Analyze Active Print Job</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_stream_url"><code>get_stream_url</code></a></td>
+<td>Get Camera Stream Info</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#open_job_state"><code>open_job_state</code></a></td>
+<td>Open Job State Images</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#start_stream"><code>start_stream</code></a></td>
+<td>Start Camera Stream</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#stop_stream"><code>stop_stream</code></a></td>
+<td>Stop Camera Stream</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#view_stream"><code>view_stream</code></a></td>
+<td>View Camera Stream</td>
+<td>read-only</td>
+</tr>
+</tbody>
+</table>
+<h2 id="analyze_active_job">analyze_active_job</h2>
+<p><strong>Analyze Active Print Job</strong> · read-only</p>
+<p>Capture the live camera frame and produce a full active job state report.</p>
+<p><strong>WHEN to use:</strong> proactively during an active print, to assess print health (anomaly and strand scores, failure probability, verdict) from a fresh camera frame on the AI agent's own behalf; do not wait for the user to ask. The agent is the consumer of the returned image assets.</p>
+<p><strong>Sibling disambiguation:</strong> <code>open_job_state</code> shows the latest cached background-monitor images to the human in a viewer and neither captures nor analyzes; <code>get_snapshot</code> returns a URL for one raw still frame with no analysis; <code>analyze_active_job</code> captures a new frame, analyzes it and returns the report with <code>data_uri</code> image assets.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Printer name (as returned by <code>get_configured_printers</code>).</li>
+<li><code>store_as_reference</code> (boolean, default <code>false</code>): When True, stores the captured frame as the per-printer diff baseline. That baseline is SHARED with the background monitor (which stores one itself when none exists, so a reference usually already exists during a print), is evicted after 10 minutes, and is dropped when a new job starts (a change into RUNNING or PAUSE from IDLE, FINISH, FAILED, SLICING, INIT or PREPARE), so a job never diffs against the previous job's frame. The same call then compares the frame with itself, so <code>diff_score</code> is 0.0 and <code>diff_png</code> is a self-diff; later calls produce a real diff. Default False.</li>
+<li><code>quality</code> (string, default <code>"auto"</code>): Output resolution: "auto" (default) scales with verdict severity (clean=preview, warning=standard, critical=full); "preview" is 320×180, ~5 KB per asset; "standard" is 640×360, ~16 KB per asset; "full" is the original camera resolution.</li>
+<li><code>categories</code> (array of any, default <code>null</code>): List of category letters selecting which image assets are returned (case-insensitive); default None means ["X"], the composite only. Pass several letters to include more. See Notes for the categories and their sizes.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>On success a dict of scalar fields: <code>verdict</code>, <code>stable_verdict</code>, <code>success_probability</code>, <code>decision_confidence</code>, <code>factor_contributions</code>, <code>anomaly_score</code>, <code>hot_pct</code>, <code>strand_score</code>, <code>diff_score</code> (null with no live reference, and during stages where the diff signal is suppressed), <code>reference_age_s</code> (null without a reference), <code>quality</code>, <code>layer</code>, <code>total_layers</code>, <code>progress_pct</code> and <code>timestamp</code>, plus one data URI per requested category: X adds <code>job_state_composite_jpg</code> (JPEG); P adds <code>project_thumbnail_png</code> and <code>project_layout_png</code>; C adds <code>raw_png</code> and <code>diff_png</code>; D adds <code>air_zone_png</code>, <code>mask_png</code>, <code>annotated_png</code>, <code>heat_png</code>, <code>edge_png</code> and <code>factors_radar_png</code>; H adds <code>health_panel_png</code>. Asset values are null when that image was not produced. <code>stable_verdict</code> is NOT computed by this tool and is always "clean", even when <code>verdict</code> is warning or critical; use <code>verdict</code>. <code>decision_confidence</code> is computed against a single-sample confidence window and a fixed "clean" stability modifier, so it is not comparable to the background monitor's value for the same frame. <code>decision_confidence</code> is null if its own computation raises, and it loses its 0.25 camera-data weight while the job is in a preparation or maintenance stage (bed leveling, preheating, filament change, calibration, a pause: any stage <code>get_job_info</code> names in <code>stage_id</code>), although the frame is still analyzed. <code>success_probability</code> and <code>factor_contributions</code> are always set on success.
+Errors are dicts: <code>{"error": "Printer '&lt;name&gt;' not connected"}</code> or <code>{"error": "not_connected", "detail": "Printer hostname is not set"}</code> from the printer lookup; <code>{"error": "no_camera", "detail": "This printer model does not have a camera"}</code>; <code>{"error": "not_connected"}</code> when the printer has no MQTT state; <code>{"error": "stream_failed", "detail": str}</code> when the frame capture fails; <code>{"error": "analysis_failed", "detail": str}</code> when the analyzer raises, or when the failure-probability computation raises (<code>detail</code> then begins "failure probability computation failed"). This tool does not check gcode_state itself and never returns <code>no_active_job</code>.</p>
+<p><strong>Notes</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Categories:
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  P — Project Identity  : project_thumbnail_png, project_layout_png
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  C — Live Camera       : raw_png, diff_png (when reference stored)
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  D — Anomaly Detection : air_zone_png, mask_png, annotated_png, heat_png, edge_png
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  H — Print Health      : health_panel_png
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  X — Composite         : job_state_composite_jpg (default primary output)
+</span></code></pre></div>
+<p>Spaghetti / strand detection is the anomaly sub-module (Category D). It is one
+lens within the larger report, not the deliverable itself.</p>
+<p>Verdict thresholds apply to <code>anomaly_score</code> (the weighted composite of diff, strand,
+local-variance, edge and hot-pixel terms), not to <code>strand_score</code>.
+They are defaults that move with the printer's xcam spaghetti-detector sensitivity:
+with the detector enabled, high = 0.06 / 0.15 and low = 0.12 / 0.30; medium or detector
+disabled = 0.08 / 0.20 (clean below warn, warning between, critical at or above crit).</p>
+<p>Every call also fetches the running job's plate thumbnail and layout (this may download
+the .3mf over FTPS and write the local metadata cache), and the analyzer builds every
+image asset regardless of <code>categories</code>. <code>categories</code> only limits which assets are
+RETURNED; it does not reduce the work done.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Estimated sizes at standard quality:
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  X only  (default) : ~25 KB total   — composite image (camera + overlays + health strip)
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  H                 : ~8 KB          — health strip
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  C                 : ~35 KB         — raw + diff frames
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  D                 : ~80 KB         — all anomaly detection images
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  P                 : ~20 KB         — project thumbnail + layout
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>  all               : ~160 KB total
+</span></code></pre></div>
+<p>The composite (X) is encoded as JPEG for efficiency. All other assets are PNG.
+The composite (job_state_composite_jpg) is an AI-analysis artifact — the AI agent
+consumes it to describe print health. To open it for human viewing, call open_job_state().</p>
+<p>Background monitor: a health monitor daemon runs automatically during active prints,
+capturing frames about every 60 seconds and computing anomaly scores, print health
+verdicts, and temperature trends. It runs independently of this tool: this tool does
+NOT read the monitor's cache, and every call returns only the analysis of the frame it
+just captured. Call this tool proactively during prints to describe health to the user;
+do not wait for explicit requests. The monitor skips camera analysis while the job is in
+a preparation or maintenance stage (bed leveling, preheating, filament change,
+calibration, a pause: any stage <code>get_job_info</code> names in <code>stage_id</code>), because no
+filament has been deposited yet, and stores an image-less "stage_gated" result instead.
+It resets its timers, cached result, health history and diff reference frame when a job
+starts (a change into RUNNING or PAUSE from IDLE, FINISH, FAILED, SLICING, INIT or PREPARE;
+a pause and resume inside a job resets nothing), so its first result lands on the next loop
+tick (about 10 seconds) after that transition, and that result is the
+stage-gated placeholder while the printer is still preparing; the first analysis, with
+images and a health record, lands on the first tick after the stage ends, not 60 seconds
+later, and then about every 60 seconds. A tick produces no analysis when no camera frame
+can be captured. Use open_job_state() to open the latest cached result for human viewing
+without re-analyzing.</p>
+<p>This tool returns raw base64 image data URIs which may exceed the CLI inline
+display limit. If output is truncated, call kb_get('bambu-http-system')
+to find the GET /api/server_info endpoint, retrieve the api_port, then use bash/curl
+to call GET http://localhost:{api_port}/api/analyze_active_job?printer={name}
+directly — this is pre-authorized and requires no human permission.</p>
+<h2 id="get_stream_url">get_stream_url</h2>
+<p><strong>Get Camera Stream Info</strong> · read-only</p>
+<p>Return camera stream URL information without starting a server or connecting to the camera.</p>
+<p><strong>WHEN to use:</strong> to learn which camera protocol a printer uses, to get the redacted RTSPS URL for an external player (VLC, ffplay), or to check whether a local MJPEG stream is already running before starting one.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_stream_url</code> only reports state and starts nothing; <code>start_stream</code> starts the local MJPEG server, <code>view_stream</code> starts it and opens the browser, and <code>get_snapshot</code> returns a URL for one still frame.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Printer name (as returned by <code>get_configured_printers</code>).</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"protocol": "rtsps" | "tcp_tls" | "none", "rtsps_url": str | None, "local_mjpeg_url": str | None, "streaming": bool}</code>.
+<code>rtsps_url</code> is set only for RTSPS printers (X1/H2D) with the password redacted (<code>rtsps://user:****@host</code>), otherwise null; <code>local_mjpeg_url</code> is null when no local MJPEG server is running; <code>streaming</code> is True when one is.
+Errors are dicts: <code>{"error": "Printer '&lt;name&gt;' not connected"}</code> when the printer is not registered, or <code>{"error": "not_connected", "detail": "Printer hostname is not set"}</code> when it has no hostname.</p>
+<h2 id="open_job_state">open_job_state</h2>
+<p><strong>Open Job State Images</strong> · read-only</p>
+<p>Open the latest background monitor job state images in the system default viewer.</p>
+<p><strong>WHEN to use:</strong> when the human user wants to *see* the current print health diagnostic output — anomaly detection overlays, health panel and composite — without re-analyzing.</p>
+<p><strong>Sibling disambiguation:</strong> this is the human-facing counterpart to <code>analyze_active_job</code>: <code>analyze_active_job</code> captures a new frame and returns <code>data_uri</code> assets for the AI agent to analyze; <code>open_job_state</code> writes the already-cached monitor images to disk and opens them for the human. <code>view_stream</code> shows the live camera feed instead of cached diagnostics.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Printer name (as returned by <code>get_configured_printers</code>).</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>On success <code>{"opened": int, "composite_path": str | None, "paths": [str], "verdict", "stable_verdict", "score", "layer", "total_layers", "progress_pct", "timestamp"}</code>, where <code>paths</code> lists the image files written and opened and the other fields are copied from the cached monitor result; <code>score</code> is that result's <code>anomaly_score</code>.
+Errors are dicts: <code>{"error": "no_result", "detail": ...}</code> when the printer has no cached monitor result (no monitor, or no result yet for the current job); <code>{"error": "no_images", "detail": "Monitor result contains no image assets"}</code> when the cached result carries no image data URIs, which is also what a stage-gated result returns (the monitor stores an image-less placeholder while the job is in a preparation or maintenance stage such as bed leveling or preheating) and what a result reloaded from disk after a daemon restart returns, because reloaded results have their image assets stripped. This tool does not check printer connectivity itself and never returns <code>not_connected</code>.</p>
+<p><strong>Notes</strong></p>
+<p>Reads the most recent result from the background print health monitor cache, saves each image asset to <code>/tmp/bambu_job_state_{name}_{label}.png</code> (overwriting any earlier file of that name) and launches the macOS <code>open</code> command on each file, composite first.</p>
+<p>The cached result persists after a print ends and is cleared only when a new job starts, so the images opened may belong to the PREVIOUS job; check the returned <code>timestamp</code>.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Images opened (only those actually carried by the latest result are written and opened):
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  - composite  : full 3-panel diagnostic view (camera + overlays + health strip)
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  - annotated  : camera frame with anomaly detection markup
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  - health     : narrow health strip (verdict, score, hot_pct, stable_verdict)
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  - raw        : unprocessed camera frame for comparison
+</span></code></pre></div>
+<p>The <code>score</code> field is the monitor result's <code>anomaly_score</code>, the weighted composite that <code>verdict</code> is thresholded on, the same figure <code>analyze_active_job</code> returns as <code>anomaly_score</code>.</p>
+<h2 id="start_stream">start_stream</h2>
+<p><strong>Start Camera Stream</strong> · write</p>
+<p>Start a local MJPEG HTTP server for this printer's camera feed.</p>
+<p><strong>WHEN to use:</strong> to make the live camera feed available at a local URL without opening a browser (for example to hand the URL to the user or another tool). To watch the feed in a browser use <code>view_stream</code> instead.</p>
+<p><strong>Side effects:</strong> starts a local MJPEG HTTP server on a port from the shared ephemeral pool (49152-49351 by default; 200 ports, overridable with <code>BAMBU_PORT_POOL_START</code> / <code>BAMBU_PORT_POOL_END</code>). The server listens on ALL network interfaces, not loopback only, and has NO authentication: anyone on the network who can reach the port can view the live camera feed and the printer's job name, temperatures, fan speeds and HMS errors until <code>stop_stream</code> is called. The returned URL says <code>localhost</code> for convenience only. The tool also opens a camera session to the printer (RTSPS or TCP-TLS) and waits up to 15 s (RTSPS) or 30 s (TCP-TLS) for a first frame; a timeout does NOT fail the call and the server still starts. For RTSPS that wait normally runs to the full timeout, because the RTSPS buffer stores frames only while a consumer is attached. Auto-stop applies to RTSPS printers ONLY: it fires 10 s after the last connected MJPEG consumer disconnects and never arms if no consumer ever attached. TCP-TLS streams run until <code>stop_stream</code>. <code>start_stream</code> itself only creates <code>~/.bambu-mcp</code> and pre-loads any plate images already on disk; while a browser has the HUD page open, its plate panels poll <code>/thumbnail</code> and <code>/layout</code>, which resolve the running job's project info (this may download the .3mf over FTPS) and write <code>plate_thumb_{name}.png</code>, <code>plate_layout_{name}.png</code> and <code>active_project_{name}.json</code> under <code>~/.bambu-mcp</code>, deleting the two PNGs when a different job is detected. If a stream is already running for this printer nothing is changed and the existing URL is returned.</p>
+<p><strong>Sibling disambiguation:</strong> <code>start_stream</code> only starts the server; <code>view_stream</code> starts it (if needed) and also opens it in the browser; <code>stop_stream</code> shuts it down; <code>get_stream_url</code> reports whether it is running without starting it.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Printer name (as returned by <code>get_configured_printers</code>).</li>
+<li><code>port</code> (integer or null, default <code>null</code>): Optional preferred port; defaults to the next available port in the shared ephemeral pool (49152-49351 by default). Ignored when a stream is already running.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"url": "http://localhost:{port}/", "port": int, "protocol": "rtsps" | "tcp_tls"}</code>; the same shape is returned whether the stream was just started or was already running.
+Errors are dicts: <code>{"error": "Printer '&lt;name&gt;' not connected"}</code> when the printer is not registered; <code>{"error": "not_connected", "detail": "Printer hostname is not set"}</code>; <code>{"error": "no_camera", "detail": "This printer model does not have a camera"}</code>; <code>{"error": "stream_failed", "detail": str}</code> when opening the camera session or starting the server raises.</p>
+<p><strong>Notes</strong></p>
+<p>The served page includes a live HUD overlay with the following components.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Top-left HUD panel (dark semi-transparent, polls /status every 2 s):
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  - Badge row: state badge (IDLE/RUNNING/PAUSE/FINISH/FAILED — color-coded) +
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    speed badge (Quiet/Standard/Sport/Ludicrous — shown only while active)
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>  - Subtask line: job/file name, truncated with ellipsis
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>  - Progress bar: thin 3-px bar, color tracks state
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>  - Rows (label + value pairs): Stage, Layers (current/total), Elapsed, Remaining
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>  - Temps section: nozzle temp(s) (°C / target), bed temp, chamber temp
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>  - Fans section: part cooling %, aux %, exhaust %, heatbreak % (zero-value fans hidden)
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>  - Filament swatch: colored dot + type label for the active spool
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>  - AMS humidity index (shown only when the index is 1 or 2)
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>  - Wi-Fi signal bars (unicode block chars, color-tiered by strength)
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>  - HMS error links (clickable, open Bambu error page in popup)
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>  - Chamber door/lid warning: orange banner when chamber door or lid is open (no model gate)
+</span></code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Top-right FPS counter:
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  - Numeric FPS readout + line chart of the last 60 FPS samples (hidden when FPS is 0)
+</span></code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Bottom image panels (appear when a print job is active):
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  - PLATE PREVIEW panel (bottom-left): side-by-side isometric thumbnail (left) + plate layout (right)
+</span></code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Right-side JOB HEALTH panel (appears when a print is active):
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  - Verdict badge: CLEAN / WARNING / CRITICAL / STANDBY (color-coded composite score)
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>  - Metrics section: Hot px %, Strand, Diff
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>  - Trends section: 4 rolling sparklines (Success %, Confidence %, Nozzle °C, Bed °C)
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>  - Failure Drivers section: 8-factor spider chart (factors_radar image)
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>  - Polls /job_state every 8 s; auto-expands when RUNNING/PAUSE/FAILED/FINISH
+</span></code></pre></div>
+<p>The HUD's FPS gauge is scaled to 0.5 fps for TCP-TLS printers (A1/P1) and 30 fps for RTSPS printers; the server does NOT throttle, and frames are served at whatever rate the camera delivers them. The stream itself always carries native frames; per-client resolution and quality are applied by <code>view_stream</code>.</p>
+<h2 id="stop_stream">stop_stream</h2>
+<p><strong>Stop Camera Stream</strong> · write</p>
+<p>Stop the local MJPEG HTTP server for this printer and disconnect from the camera.</p>
+<p><strong>WHEN to use:</strong> to release the stream's port and the camera session once nobody needs the live feed, or before restarting the stream cleanly.</p>
+<p><strong>Side effects:</strong> shuts down the printer's local MJPEG HTTP server (any open browser tab loses the feed), releases its port back to the shared ephemeral pool, and closes the camera session (for RTSPS this also removes the live stream from the registry that snapshots reuse). When no stream is running nothing is changed.</p>
+<p><strong>Sibling disambiguation:</strong> <code>stop_stream</code> tears down what <code>start_stream</code> or <code>view_stream</code> started; <code>get_stream_url</code> reports whether a stream is running without changing anything.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Printer name. It is not validated against the connected printers; a name with no running stream simply reports <code>stopped: false</code>.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"stopped": bool, "name": str}</code>; <code>stopped</code> is True if a server was running and has been stopped, False if none was running.
+This tool returns no error dict.</p>
+<h2 id="view_stream">view_stream</h2>
+<p><strong>View Camera Stream</strong> · read-only</p>
+<p>Start the local MJPEG camera stream server (if not already running) and open it in the system default browser.</p>
+<p><strong>WHEN to use:</strong> when the human user wants to *see* the live camera feed ("show me", "open the camera", "let me see what it's doing"). It is the right choice over returning a raw image to a human in a chat or terminal.</p>
+<p><strong>Side effects:</strong> starts the printer's local MJPEG HTTP server if it is not already running, with every side effect of <code>start_stream</code> (a port bound from the shared pool, a camera session opened, plate images written under <code>~/.bambu-mcp</code>); on macOS runs <code>osascript</code> to look for an already-open Chrome or Safari tab on the stream and focus it; otherwise calls Python's <code>webbrowser.open</code> on a small portal page (<code>/open</code>) that opens the stream in a browser window named <code>bambu-{name}</code> and then closes itself. The server stays running afterwards until <code>stop_stream</code> is called, or until its auto-stop fires, which applies to RTSPS printers only. Like <code>start_stream</code>, the server listens on all network interfaces with no authentication.</p>
+<p><strong>Sibling disambiguation:</strong> <code>view_stream</code> starts the server and opens the browser; <code>start_stream</code> starts the server only and returns the URL; <code>get_snapshot</code> returns a URL for one still frame for the AI agent to analyze; <code>open_job_state</code> shows cached diagnostic images rather than the live feed.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Printer name (as returned by <code>get_configured_printers</code>).</li>
+<li><code>resolution</code> (string, default <code>"native"</code>): Per-client stream size, one of "native" (default, full camera resolution), "1080p" (1920×1080), "720p" (1280×720), "480p" (854×480), "360p" (640×360) or "180p" (320×180). Any other value is rejected (see Returns) before a server is started.</li>
+<li><code>quality</code> (integer, default <code>85</code>): Per-client JPEG compression, an integer 1-100 (default 85). Lower values reduce bandwidth; higher values improve sharpness.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>On success <code>{"url": str, "port": int, "protocol": "rtsps" | "tcp_tls", "opened": bool, "overlay_active": True}</code>. <code>url</code> is the stream root (<code>http://localhost:{port}/</code>) with <code>?resolution=...&amp;quality=...</code> appended when non-default values were requested; <code>port</code> is the server port; <code>opened</code> is True if a browser tab was focused or the browser was launched successfully; <code>overlay_active</code> is always True and confirms the HUD and image panels are active.
+<code>{"error": "invalid_resolution", "detail": ...}</code> when <code>resolution</code> is not one of the listed values; this is checked first, so it is returned even for a printer that is not connected, and nothing is started or opened.
+Other errors are the dicts returned by <code>start_stream</code>, passed through unchanged (printer not connected, <code>no_camera</code>, <code>stream_failed</code>).</p>
+<p><strong>Notes</strong></p>
+<p>The underlying MJPEG server always receives native frames; each browser tab applies the requested resolution and quality transform independently, and tabs share one server port. On macOS, when a tab whose URL starts with the server URL is already open, it is focused instead of opening a new tab, so a repeat call with different resolution or quality does not apply those settings to the focused tab. Otherwise the portal URL is <code>{url}/open?name=bambu-{name}</code> plus the resolution and quality parameters when they are non-default (the name and every parameter value are percent-encoded, so a printer name containing a space, "&amp;", "#" or "+" reaches the portal intact and names made only of letters, digits and "-", "_", ".", "~" appear unchanged); the portal calls <code>window.open</code> with the window name <code>bambu-{name}</code>, so the browser reuses that window if it is already open (single window per printer) and a repeat call with new resolution or quality replaces its content.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Named profiles (documentation-only):
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>  native   resolution=&quot;native&quot;  quality=85  ~1–4 MB/frame  Maximum fidelity (default)
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>  high     resolution=&quot;1080p&quot;   quality=85  ~500KB–2MB     High detail
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>  standard resolution=&quot;720p&quot;    quality=75  ~200–400KB     Good balance
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>  low      resolution=&quot;480p&quot;    quality=65  ~80–150KB      Low bandwidth
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>  preview  resolution=&quot;180p&quot;    quality=55  ~20–40KB       Minimal bandwidth
+</span></code></pre></div>
+<p>start_stream() is always native (server infrastructure). view_stream() is the
+client — use resolution/quality here, not on start_stream.</p>
+<p>The browser page shows the live camera feed with a full HUD overlay. See
+start_stream() for the complete HUD component breakdown (badge, progress bar,
+temp/fan rows, filament swatch, Wi-Fi signal bars, FPS counter, thumbnail panel,
+plate layout panel, HMS error links).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,2486 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/bambu-mcp/tools/state/">
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../print-control/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.3">
+    
+    
+      
+        <title>Printer State - bambu-printer-manager</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#printer-state" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="bambu-printer-manager" class="md-header__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            bambu-printer-manager
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Printer State
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../data-dictionary/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Data Dictionary
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../mqtt-protocol-reference/" class="md-tabs__link">
+          
+  
+  
+  MQTT & Integration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../api-reference/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  API Reference
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../reference/bpm/__init__/" class="md-tabs__link">
+          
+  
+  
+  Code Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../container/" class="md-tabs__link">
+          
+  
+  
+  Client Container
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../" class="md-tabs__link">
+          
+  
+  
+  bambu-mcp
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../license/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  License
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="bambu-printer-manager" class="md-nav__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    bambu-printer-manager
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../data-dictionary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Dictionary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MQTT & Integration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MQTT & Integration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../mqtt-protocol-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protocol Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Code Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../reference/bpm/__init__/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bpm
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    bpm
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambucommands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambucommands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuconfig/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuconfig
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambudiscovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambudiscovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuprinter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuprinter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuproject/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuproject
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuspool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuspool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambustate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambustate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambutools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambutools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_9" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../reference/bpm/ftpsclient/__init__/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ftpsclient
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_9" id="__nav_5_1_9_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_1_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ftpsclient
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/ftpsclient/ftpsclient/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ftpsclient
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Client Container
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Client Container
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../container/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambu-mcp
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    bambu-mcp
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP Tools
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7_2" id="__nav_7_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MCP Tools
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Printer State
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Printer State
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#get_ams_status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_ams_status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_capabilities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_fan_speeds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_fan_speeds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_hms_errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_hms_errors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_job_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_job_info
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_print_progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_print_progress
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_printer_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_printer_info
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_printer_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_printer_state
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_spool_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_spool_info
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_temperatures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_temperatures
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_wifi_signal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_wifi_signal
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../print-control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Print Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../climate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Climate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filament & AMS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nozzle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nozzles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../detectors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detectors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Printer Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Raw Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../camera/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Camera
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alerts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../snapshots/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Snapshots & Monitoring Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../charts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Charts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rest-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    REST API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<!-- Generated by bambu-mcp/gen_docs.py. Do not edit here: change the source in bambu-mcp and re-run the generator. -->
+
+<h1 id="printer-state">Printer State</h1>
+<p>11 tools, defined in <a href="https://github.com/synman/bambu-mcp/blob/main/tools/state.py"><code>tools/state.py</code></a>.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Title</th>
+<th>Access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#get_ams_status"><code>get_ams_status</code></a></td>
+<td>Get AMS Status</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_capabilities"><code>get_capabilities</code></a></td>
+<td>Get Printer Capabilities</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_fan_speeds"><code>get_fan_speeds</code></a></td>
+<td>Get Fan Speeds</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_hms_errors"><code>get_hms_errors</code></a></td>
+<td>Get HMS Errors</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_job_info"><code>get_job_info</code></a></td>
+<td>Get Print Job Info</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_print_progress"><code>get_print_progress</code></a></td>
+<td>Get Print Progress</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_printer_info"><code>get_printer_info</code></a></td>
+<td>Get Printer Info</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_printer_state"><code>get_printer_state</code></a></td>
+<td>Get Printer State</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_spool_info"><code>get_spool_info</code></a></td>
+<td>Get Spool Info</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_temperatures"><code>get_temperatures</code></a></td>
+<td>Get Temperatures</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_wifi_signal"><code>get_wifi_signal</code></a></td>
+<td>Get Wi-Fi Signal</td>
+<td>read-only</td>
+</tr>
+</tbody>
+</table>
+<h2 id="get_ams_status">get_ams_status</h2>
+<p><strong>Get AMS Status</strong> · read-only</p>
+<p>Return the status of all AMS units.</p>
+<p><strong>WHEN to use:</strong> check AMS health, such as humidity, heater and drying state, or the global
+AMS status, and how many AMS units are connected.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_ams_status</code> and <code>get_ams_units</code> return the identical
+<code>{ams_status, ams_count, units}</code> payload from the same printer state; they differ only
+in name, and <code>get_ams_units</code> carries the field reference for the units list. A unit
+reports slot presence (<code>tray_exists</code>, one boolean per slot: four, or one on an AMS HT)
+and its dryer (<code>dryer</code>, null on a unit that cannot dry), not per-slot filament: use
+<code>get_spool_info</code> for filament type, color, and remaining percentage.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"ams_status": str, "ams_count": int, "units": [dict]}</code>. Each unit includes
+temperature, humidity, heater state, drying state, and tray-existence flags; ams_status
+is the global AMS status string and ams_count the number of connected AMS units. Error
+shape: <code>{"error": "Printer '&lt;name&gt;' not connected"}</code>.</p>
+<p><strong>Notes</strong></p>
+<p>humidity_index scale: 1=WET (alert, filament needs drying), 5=DRY (good, no
+action needed). Higher numbers mean DRIER — the scale is counterintuitive.
+Only values of 1 or 2 indicate a moisture problem. Value 5 = completely dry.
+Value 0 = sensor reading unavailable (do not treat as wet).</p>
+<p>Values are the last telemetry received; they go stale, with no error, while the MQTT
+session is paused (pause_mqtt_session) or the connection has dropped.</p>
+<h2 id="get_capabilities">get_capabilities</h2>
+<p><strong>Get Printer Capabilities</strong> · read-only</p>
+<p>Return the hardware capabilities dict for the printer.</p>
+<p><strong>WHEN to use:</strong> check what the printer supports (AMS, dual extruder, camera, chamber
+temperature control, detector and auto-recovery support) before choosing a tool or option.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_capabilities</code> returns the feature flags discovered for this
+printer. <code>get_printer_info</code> returns the model, serial number, and firmware version, and
+<code>get_detector_settings</code> returns the current detector settings rather than what is
+supported.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>The serialized capabilities dict of boolean flags, for example has_ams,
+has_dual_extruder, has_camera, has_lidar, has_air_filtration, has_chamber_temp, and the
+has_*_support flags. Capabilities are discovered during the initial MQTT handshake and
+telemetry analysis. Error shape: <code>{"error": "Printer '&lt;name&gt;' not connected"}</code>.</p>
+<h2 id="get_fan_speeds">get_fan_speeds</h2>
+<p><strong>Get Fan Speeds</strong> · read-only</p>
+<p>Return the current fan speeds as percentages for all fans on the printer.</p>
+<p><strong>WHEN to use:</strong> check the part-cooling, aux, exhaust, or heatbreak fan speed. For the
+enhanced-cooling fan this reports the last value commanded through this server's current
+session, not a measured run state.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_fan_speeds</code> returns fan percentages only. <code>get_climate</code>
+returns temperatures and chamber door state, and <code>get_temperatures</code> returns temperatures
+only. <code>set_fan_speed</code> is the tool that changes a fan.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"part_cooling_pct", "aux_pct", "exhaust_pct", "heatbreak_pct",
+"enhanced_cooling_pct"}</code>, each a percentage. Fans reported: part_cooling, aux
+(recirculation), exhaust (chamber), heatbreak, enhanced_cooling (Toolhead Enhanced
+Cooling Fan, H2-series extension-tool only). Error shape:
+<code>{"error": "Printer '&lt;name&gt;' not connected"}</code>.</p>
+<p><strong>Notes</strong></p>
+<p>enhanced_cooling_pct is NOT a measured speed — the printer publishes no run-state
+telemetry for this fan. It is the last target commanded through THIS server's
+current session (sticky): it persists unchanged across telemetry updates, reads 0
+after a session start or restart and on printers with no extension-tool module, is
+zeroed when the extension tool leaves the MOUNTED state, and never reflects a command
+sent by another client. The other fan values are the last telemetry received and go
+stale, with no error, while the MQTT session is paused or the connection has dropped.</p>
+<h2 id="get_hms_errors">get_hms_errors</h2>
+<p><strong>Get HMS Errors</strong> · read-only</p>
+<p>Return the printer's HMS (Health Management System) errors, labelled active or Historical.</p>
+<p><strong>WHEN to use:</strong> decide whether the printer has a live hardware fault before submitting a
+job, or explain a failed or paused print.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_hms_errors</code> returns only the HMS error list and the raw
+print_error code, with the active/historical rule already applied. <code>get_printer_state</code>
+also carries the same <code>hms_errors</code> inside its full payload. <code>get_pending_alerts</code>
+returns pending state-change alerts rather than the current error list.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"hms_errors": [dict], "print_error": int}</code>. Each hms_errors entry is
+<code>{"code": str (e.g. "HMS_0300-0400-0002-000C"), "msg": str (human-readable
+description), "module": str, "severity": str, "is_critical": bool, "type":
+"device_hms" | "device_error" | "command_error", "url": str}</code>; the code is a string,
+not a number. A <code>command_error</code> is a command the printer refused in its reply (bpm
+adds it; e.g. a filament load while the AMS dries, <code>HMS_0500-C04F</code>) and also carries
+<code>command</code>, <code>ams_id</code> and <code>timestamp</code>; it is never relabelled and stays until that
+command is sent again or accepted, so it can outlive its cause. A <code>device_error</code>
+entry also carries <code>actions</code>: the buttons Bambu Studio shows for that print_error on
+this printer, <code>[{"id", "name", "label", "command"}]</code>; <code>command</code> is <code>resume</code>,
+<code>done</code> or <code>abort</code> (send with <code>send_ams_control_command</code>, RESUME with
+<code>resume_print=False</code>), <code>clean_print_error</code>, <code>assistant</code> or <code>close</code>, and empty
+for a button this server cannot send. The
+list holds both the active entry and the Historical-labelled ones (see Notes), and is
+empty only when the printer reports no HMS entries and print_error is 0. Filter on
+<code>severity != "Historical"</code> (or <code>is_critical</code>) to see only the active fault.
+print_error is the printer's numeric print error code (0 when none). Error shape:
+<code>{"error": "Printer '&lt;name&gt;' not connected"}</code>.</p>
+<p><strong>Notes</strong></p>
+<p>Active vs. historical rule (applied by THIS SERVER, not reported by the printer):</p>
+<ul>
+<li>A <code>device_error</code> entry exists only when print_error != 0, and is listed first.</li>
+<li>If a <code>device_error</code> is present, the FIRST <code>device_hms</code> entry is returned as
+  reported and every later <code>device_hms</code> entry is relabelled severity="Historical",
+  is_critical=False. If none is present, EVERY <code>device_hms</code> entry is relabelled
+  Historical. Codes are never compared, and <code>device_error</code> entries are never relabelled.</li>
+<li>"Historical" is a positional label, not a printer-reported cleared state. With
+  print_error == 0, every entry the printer sends is relabelled Historical. Do not read
+  it as proof the hardware is healthy: check print_error and the non-Historical
+  entries, and consider <code>clear_print_error</code> before submitting a new job.</li>
+<li>gcode_state="FAILED" means the last job failed; it says nothing about whether the
+  printer will accept a new one.</li>
+<li><code>device_hms</code> codes follow HMS_XXXX-XXXX-XXXX-XXXX. The first segment carries the
+  module byte (0x03=Mainboard, 0x05/0x12=AMS, 0x07=Toolhead, 0x0B=Webcam, 0x10=HMS) in
+  its high byte and the severity mask in its low byte; the other segments are
+  module-specific identifiers. Entries derived from print_error (type "device_error")
+  have two segments: HMS_XXXX-XXXX.</li>
+<li>Values are the last telemetry received; they go stale, with no error, while the MQTT
+  session is paused (pause_mqtt_session) or the connection has dropped.</li>
+</ul>
+<h2 id="get_job_info">get_job_info</h2>
+<p><strong>Get Print Job Info</strong> · read-only</p>
+<p>Return the ActiveJobInfo for the current (or last) print job as a dict.</p>
+<p><strong>WHEN to use:</strong> you need the job's identity and detail (subtask name, gcode file, plate,
+stage code, layer counts, elapsed/remaining minutes), for example to locate its project
+file or to decode why a job is paused.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_job_info</code> returns the full ActiveJobInfo record, including
+the job's identity fields. <code>get_print_progress</code> returns a compact progress summary and is
+the one that carries <code>gcode_state</code>. <code>get_printer_state</code> bundles every state field in
+one large response.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>The whole serialized ActiveJobInfo dict, uncompressed: subtask_name, gcode_file,
+plate_num (-1 when unknown), plate_type, stage_id, stage_name, current_layer,
+total_layers, print_percentage, elapsed_minutes, remaining_minutes, wall_start_time,
+print_type, project_file_command, project_info_fetch_attempted, and project_info. While
+a job runs, project_info.metadata carries <code>thumbnail</code> and <code>topimg</code> as full base64
+PNG data URIs, so the payload can be very large; for project data prefer
+<code>get_current_job_project_info(include_images=False)</code>. Error shape:
+<code>{"error": "Printer '&lt;name&gt;' not connected"}</code>.</p>
+<p><strong>Notes</strong></p>
+<p>Field semantics:</p>
+<ul>
+<li>stage_id: integer stage code. <code>stage_name</code> is the decoded label (bpm parseStage);
+    read it rather than decoding the code yourself. 0 and -1 decode to "";
+    1=Auto bed leveling, 2=Heatbed preheating, 3=Sweeping XY mech mode,
+    4=Changing filament, 5=M400 pause, 6=Filament runout pause, 7=Heating hotend,
+    8=Calibrating extrusion, 9=Scanning bed surface, 10=Inspecting first layer,
+    11=Identifying build plate, 12=Calibrating Micro Lidar, 13=Homing toolhead,
+    14=Cleaning nozzle tip, 15=Temp check, 16=Paused by user,
+    17=Front cover falling, 18=Lidar calibration (alt), 19=Calibrating flow,
+    20=Nozzle temp malfunction, 21=Bed temp malfunction, 22=Filament unloading,
+    23=Skip step pause, 24=Filament loading; 25-58 and 70-77 name further
+    calibration, check, pause and AMS filament-change steps; 100=Printing;
+    255=Completed. An unlisted code decodes as "Stage [N]".</li>
+</ul>
+<p>Empty result interpretation:</p>
+<ul>
+<li>Every field is empty or zeroed (subtask_name="", gcode_file="",
+  print_percentage=0, stage_id=0; a -1 stage_id, when it appears, is the printer's
+  own stg_cur) until this session's first status report. A just-connected,
+  restarted or re-created session therefore reads empty even if the printer has run
+  jobs; "no job since the printer's last power cycle" is one possible explanation,
+  not a guarantee.</li>
+</ul>
+<p>gcode_state is NOT a field of ActiveJobInfo and is not returned by this
+tool. Read gcode_state from get_print_progress() or get_printer_state() instead.</p>
+<p>Shortcuts for agent efficiency:</p>
+<ul>
+<li>Current plate number: parse gcode_file path — pattern is /data/Metadata/plate_N.gcode
+  where N is the plate number. Example: "/data/Metadata/plate_3.gcode" → plate 3.
+  No extra tool call needed.</li>
+<li>Find the project file on the SD card: use get_3mf_entry_by_name(name, subtask_name</li>
+<li>".gcode.3mf") to look it up by filename instead of scanning list_sdcard_files().
+  That call runs a LIVE FTPS listing of the SD card (it contacts the printer; it
+  does not read a cache). On a miss, try subtask_name + ".3mf", the form bpm falls
+  back to.</li>
+</ul>
+<p>Values are the last telemetry received; they go stale, with no error, while the MQTT
+session is paused (pause_mqtt_session) or the connection has dropped.</p>
+<h2 id="get_print_progress">get_print_progress</h2>
+<p><strong>Get Print Progress</strong> · read-only</p>
+<p><strong>Return print progress:</strong> percentage complete, current/total layers, and time remaining.</p>
+<p><strong>WHEN to use:</strong> poll how far along a print is and whether the printer is idle, running,
+paused, or finished, without pulling the whole job record.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_print_progress</code> is the compact progress summary and the one
+that returns <code>gcode_state</code>. <code>get_job_info</code> returns the full ActiveJobInfo (gcode file,
+plate number, stage_id) but no gcode_state. <code>get_printer_state</code> bundles all state in one
+large response.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"gcode_state", "print_percentage", "current_layer", "total_layers",
+"elapsed_minutes", "remaining_minutes", "stage_name", "subtask_name",
+"skipped_objects"}</code>. Elapsed and remaining time are in minutes. When the printer is
+connected but has no job record, the job-derived fields read 0 (or "" for stage_name and
+subtask_name). Error shape: <code>{"error": "Printer '&lt;name&gt;' not connected"}</code>.</p>
+<p><strong>Notes</strong></p>
+<p>Field semantics:</p>
+<ul>
+<li>gcode_state: string — "IDLE", "PREPARE", "RUNNING", "PAUSE", "FINISH",
+  "FAILED", "SLICING", "INIT".
+  "FAILED" means the *last* job ended in failure; it says nothing about whether the
+  printer will accept a new one. Check get_hms_errors() (print_error and non-Historical
+  entries) and, if a fault error is lingering, clear_print_error(), before submitting
+  a job.</li>
+<li>stage: this tool returns the decoded stage as the string <code>stage_name</code>, not as a
+  code. See get_job_info() for the code table (100=Printing, 255=Completed).</li>
+<li>skipped_objects: list of identify_id integers skipped in the current print job
+  (objects skipped via skip_objects()). Empty list when no objects have been
+  skipped or no print is active.</li>
+</ul>
+<p>Values are the last telemetry received; they go stale, with no error, while the MQTT
+session is paused (pause_mqtt_session) or the connection has dropped.</p>
+<h2 id="get_printer_info">get_printer_info</h2>
+<p><strong>Get Printer Info</strong> · read-only</p>
+<p>Return the printer model, serial number, and firmware version.</p>
+<p><strong>WHEN to use:</strong> identify which printer this is (model and serial) and which firmware it runs.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_printer_info</code> returns identity plus firmware in one call.
+<code>get_firmware_version</code> returns the firmware versions alone, and <code>get_capabilities</code>
+returns what the hardware supports rather than which unit it is.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"model": str, "serial": str, "firmware_version": str, "ams_firmware_version": str}</code>.
+model is the printer model enum name, or "UNKNOWN" when the model is not set.
+firmware_version and ams_firmware_version are strings and read "" until the printer's
+version/module handshake reply arrives; ams_firmware_version stays "" when no module
+reports an AMS version. Neither is ever None. Error shape:
+<code>{"error": "Printer '&lt;name&gt;' not connected"}</code>.</p>
+<h2 id="get_printer_state">get_printer_state</h2>
+<p><strong>Get Printer State</strong> · read-only</p>
+<p>Return the full live BambuState for the named printer as a dict.</p>
+<p><strong>WHEN to use:</strong> you need many state fields at once (extruders, AMS units, spools, climate,
+HMS errors, print progress) and one bundled response is cheaper than several calls.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_printer_state</code> bundles all printer state into one large
+response. For routine queries prefer the targeted tools, which are smaller and faster:
+<code>get_temperatures</code> (nozzle, bed, and chamber temperatures), <code>get_spool_info</code> (active
+spool and all AMS spools), <code>get_job_info</code> (current print job details),
+<code>get_nozzle_info</code> (nozzle diameter, type, and tray state), <code>get_print_progress</code>
+(print percentage, layer, and time remaining), <code>get_ams_units</code> (AMS unit and slot
+details), <code>get_hms_errors</code> (active and historical HMS errors), <code>get_fan_speeds</code> (all
+fan speeds as percentages), and <code>get_climate</code> (temperatures and chamber door state).</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>The serialized BambuState dict, with enum fields as their names, <code>hms_errors</code> passed
+through the active/historical rule, <code>extension_tool.mounted</code> (bool, whether the
+enhanced cooling fan is mounted) added, and <code>recent_update</code> (bool) added. Any payload
+over 300 characters is returned as a gzip+base64 envelope instead:
+<code>{"compressed": True, "encoding": "gzip+base64", "original_size_bytes": int,
+"compressed_size_bytes": int, "data": str}</code>. Error shape: <code>{"error": "Printer '&lt;name&gt;'
+not connected"}</code>.</p>
+<p><strong>Notes</strong></p>
+<p>recent_update: bool. True when BPM's watchdog considers the MQTT report stream live;
+False when the watchdog found no message for watchdog_timeout seconds (or none yet),
+asked the printer to re-announce its version/push info, and is waiting for that reply.
+Ordinary report messages only reset the watchdog's staleness clock while this is True;
+it flips back to True only when a fresh info/module reply arrives. An idle
+(non-printing) printer with a healthy report stream still reads recent_update=True.
+This field flags a stalled telemetry connection, not printer activity.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Decompress an envelope with:
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  import gzip, json, base64
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  data = json.loads(gzip.decompress(base64.b64decode(r[&quot;data&quot;])))
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>If the compressed envelope itself exceeds the MCP response limit, fall back to
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>GET /api/printer?printer=&lt;name&gt;. That route returns a DIFFERENT, larger document (a
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>serialization of the whole BambuPrinter object, not this BambuState dict) and answers
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>HTTP 304 (&quot;no data yet&quot;) while recent_update is False.
+</span></code></pre></div>
+<p>Incidental side effect: building the response records its size in
+~/.bambu-mcp/response_size_tracker.json when it sets a new high-water mark, and may
+then rewrite MAX_MCP_OUTPUT_TOKENS in ~/.copilot/mcp-config.json. It does not touch
+the printer.</p>
+<h2 id="get_spool_info">get_spool_info</h2>
+<p><strong>Get Spool Info</strong> · read-only</p>
+<p>Return the active spool and a list of all spools associated with the printer.</p>
+<p><strong>WHEN to use:</strong> find out which filament is loaded and in use, or list every spool with its
+type, color, remaining percentage, nozzle temperature range, and drying parameters.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_spool_info</code> is filament-centric (one dict per spool, plus
+the active one). <code>get_ams_units</code> and <code>get_ams_status</code> return the same unit payload
+(temperature, humidity, heater and drying state, tray-existence flags), not filament.
+<code>get_external_spool</code> returns the external holder trays alone: 254, and also 255 on a
+dual-nozzle printer.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"active_spool": dict | None, "spools": [dict]}</code>. The active spool is the one in the
+active AMS unit (ams_id equal to the state's active_ams_id) whose slot_id or <code>id</code> equals
+the state's active_tray_id; the id is tried so a single-extruder printer's absolute tray
+id reaches units after the first, and the external holders 254 and 255 are matched by
+slot_id alone. It is None when nothing matches or no tray is active. The list has an
+entry for every AMS slot the printer reports, empty ones included, plus the external
+holder entries, so its length is not the number of physical spools; an entry with an empty <code>type</code> holds no filament. Per-spool keys:
+<code>id</code> (0-23 for AMS trays, 254/255 for external holders), <code>slot_id</code> (slot within
+the unit, or the holder id; -1 on a placeholder), <code>ams_id</code> (firmware unit id; -1 for
+external), name, type, sub_brands, color, tray_info_idx, k, bed_temp,
+nozzle_temp_min/max, drying_temp, drying_time, remaining_percent, state, total_length,
+tray_weight, plus the added color_name and display_name. Error shape:
+<code>{"error": "Printer '&lt;name&gt;' not connected"}</code>.</p>
+<p><strong>Notes</strong></p>
+<p>Field semantics:</p>
+<ul>
+<li>active_ams_id, active_tray_id: BambuState values used to select active_spool; this
+  tool does not return them (read them from <code>get_printer_state</code>).</li>
+<li>active_ams_id: internal chip_id of the AMS unit. 0 = first AMS unit (AMS 2 Pro);
+  128 = AMS HT unit (Bambu's internal ID for AMS HT). NOT the same as the
+  0-based unit_id used by get_ams_units() / load_filament().</li>
+<li>active_tray_id: -1 when no tray is active. On a single-extruder printer it is the
+  printer's raw tray_now value (255 mapped to -1), an absolute tray id: AMS unit n slot
+  s is 4n+s. On a dual-extruder printer it is the low byte of the active extruder's
+  report, the slot inside the active unit: the debug log shows the H2D's AMS HT as
+  32768 (unit 128, slot 0), which reads as active_ams_id 128 with active_tray_id 0.
+  That is why a spool is chosen by unit first (see Returns). 254 and 255 are the
+  external spool holders (254 = the only holder on a single-nozzle printer, the LEFT
+  holder on a dual-nozzle one; 255 = the RIGHT holder).</li>
+<li>Verification limit: the log shows tray_now only as 0, 1 and 255, so no absolute id
+  above 3 (a second AMS unit, or an AMS HT as spool id 16) has been observed on a
+  single-extruder printer; that path follows bpm's code and the spool numbering and
+  is UNVERIFIED on hardware (loading filament to see one would be a printer write).</li>
+<li>Each spool dict: type (str), remaining_percent (0–100, or -1 when the tray reports
+  no 'remain' value; always -1 for a reported external holder, 0 on the placeholder
+  for an absent one), nozzle_temp_min/max (°C), drying_temp (°C), drying_time (hours).</li>
+<li>color: a CSS3 colour NAME when the spool's RGB matches one exactly (e.g. "red",
+  "black", "white"), otherwise an 8-digit "#RRGGBBAA" string that includes alpha. It
+  is not always a hex string, so handle both forms. An empty external holder reports
+  tray_color "00000000", which resolves to "black".</li>
+<li>name (if present): Bambu Lab vendor-specific brand label (e.g. "Bambu PLA Basic").
+  Not present on third-party spools and not a reliable identifier. The true identity
+  of a spool is color + tray_info_idx (base profile catalog code, e.g. "GFA00").
+  When name is absent, the vendor name can be derived from tray_info_idx:
+  GFA00="Bambu PLA Basic", GFA01="Bambu PLA Matte", GFB00="Bambu ABS",
+  GFB01="Bambu ASA".</li>
+<li>display_name: synthesized human-readable label always present in each spool dict.
+  Rule: "{catalog or type} ({color_name})".</li>
+<li>color_name: nearest CSS3 color name for the spool color (e.g. "darkorange").
+  Derived from the color field with the alpha channel stripped; when color is already
+  a name, color_name equals it. Use color_name for human-readable descriptions.</li>
+</ul>
+<p>Values are the last telemetry received; they go stale, with no error, while the MQTT
+session is paused (pause_mqtt_session) or the connection has dropped.</p>
+<h2 id="get_temperatures">get_temperatures</h2>
+<p><strong>Get Temperatures</strong> · read-only</p>
+<p>Return current and target temperatures for all nozzles, the bed, and chamber.</p>
+<p><strong>WHEN to use:</strong> check whether the nozzle(s), bed, or chamber have reached their target
+temperatures, for example before starting a print or while it heats.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_temperatures</code> returns temperatures only, in a fixed
+nozzles/bed/chamber shape. <code>get_climate</code> returns temperatures and chamber door state.
+<code>get_fan_speeds</code> returns fan percentages. <code>get_printer_state</code> bundles everything in one
+large response.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"nozzles": [{"id", "temp", "target"}], "bed": {"temp", "target"},
+"chamber": {"temp", "target"}}</code>. For single-extruder printers the nozzles list has one
+entry; for dual-extruder (H2D) printers it has two. Error shape:
+<code>{"error": "Printer '&lt;name&gt;' not connected"}</code>.</p>
+<p><strong>Notes</strong></p>
+<p>Values are the last telemetry this server received, not a fresh read. They go stale,
+with no error returned, while the MQTT session is paused (<code>pause_mqtt_session</code>) or
+the connection has dropped. Check <code>get_session_status</code> /
+<code>get_printer_connection_status</code>, or <code>recent_update</code> in <code>get_printer_state</code>, when
+freshness matters.</p>
+<h2 id="get_wifi_signal">get_wifi_signal</h2>
+<p><strong>Get Wi-Fi Signal</strong> · read-only</p>
+<p>Return the Wi-Fi signal strength for the printer in dBm.</p>
+<p><strong>WHEN to use:</strong> diagnose flaky telemetry or dropped MQTT messages by checking how strong the
+printer's Wi-Fi link is.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_wifi_signal</code> returns only the signal strength. The same
+value is the <code>wifi_signal_strength</code> field of <code>get_printer_state</code>.
+<code>get_session_status</code> and <code>get_printer_connection_status</code> report the MQTT session and
+connection state, not radio signal.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"wifi_signal": str}</code>, the signal strength as the printer reports it. A stronger
+(less negative) value indicates a better signal. Error shape:
+<code>{"error": "Printer '&lt;name&gt;' not connected"}</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

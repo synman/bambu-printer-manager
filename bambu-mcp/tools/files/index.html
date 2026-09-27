@@ -1,0 +1,2952 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/bambu-mcp/tools/files/">
+      
+      
+        <link rel="prev" href="../management/">
+      
+      
+        <link rel="next" href="../system/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.3">
+    
+    
+      
+        <title>Files - bambu-printer-manager</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#files" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="bambu-printer-manager" class="md-header__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            bambu-printer-manager
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Files
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../data-dictionary/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Data Dictionary
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../mqtt-protocol-reference/" class="md-tabs__link">
+          
+  
+  
+  MQTT & Integration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../api-reference/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  API Reference
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../reference/bpm/__init__/" class="md-tabs__link">
+          
+  
+  
+  Code Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../container/" class="md-tabs__link">
+          
+  
+  
+  Client Container
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../" class="md-tabs__link">
+          
+  
+  
+  bambu-mcp
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../license/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  License
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="bambu-printer-manager" class="md-nav__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    bambu-printer-manager
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../data-dictionary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Dictionary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MQTT & Integration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MQTT & Integration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../mqtt-protocol-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protocol Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Code Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../reference/bpm/__init__/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bpm
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    bpm
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambucommands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambucommands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuconfig/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuconfig
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambudiscovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambudiscovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuprinter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuprinter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuproject/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuproject
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuspool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuspool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambustate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambustate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambutools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambutools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_9" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../reference/bpm/ftpsclient/__init__/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ftpsclient
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_9" id="__nav_5_1_9_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_1_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ftpsclient
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/ftpsclient/ftpsclient/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ftpsclient
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Client Container
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Client Container
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../container/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambu-mcp
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    bambu-mcp
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP Tools
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7_2" id="__nav_7_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MCP Tools
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Printer State
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../print-control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Print Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../climate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Climate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filament & AMS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nozzle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nozzles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../detectors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detectors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Printer Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#create_folder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        create_folder
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#delete_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        delete_file
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#download_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        download_file
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_3mf_entry_by_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_3mf_entry_by_id
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_3mf_entry_by_name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_3mf_entry_by_name
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_all_project_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_all_project_info
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_current_job_project_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_current_job_project_info
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_file_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_file_info
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_plate_thumbnail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_plate_thumbnail
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_plate_topview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_plate_topview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_project_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_project_info
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#list_sdcard_files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        list_sdcard_files
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#open_plate_layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        open_plate_layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#open_plate_viewer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        open_plate_viewer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#preview_ams_mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        preview_ams_mapping
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#print_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        print_file
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#refresh_sdcard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        refresh_sdcard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rename_sdcard_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        rename_sdcard_file
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#upload_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        upload_file
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Raw Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../camera/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Camera
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alerts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../snapshots/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Snapshots & Monitoring Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../charts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Charts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rest-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    REST API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<!-- Generated by bambu-mcp/gen_docs.py. Do not edit here: change the source in bambu-mcp and re-run the generator. -->
+
+<h1 id="files">Files</h1>
+<p>19 tools, defined in <a href="https://github.com/synman/bambu-mcp/blob/main/tools/files.py"><code>tools/files.py</code></a>.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Title</th>
+<th>Access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#create_folder"><code>create_folder</code></a></td>
+<td>Create SD Card Folder</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#delete_file"><code>delete_file</code></a></td>
+<td>Delete SD Card File</td>
+<td>write, destructive</td>
+</tr>
+<tr>
+<td><a href="#download_file"><code>download_file</code></a></td>
+<td>Download SD Card File</td>
+<td>write, destructive</td>
+</tr>
+<tr>
+<td><a href="#get_3mf_entry_by_id"><code>get_3mf_entry_by_id</code></a></td>
+<td>Find 3MF Entry By Path</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_3mf_entry_by_name"><code>get_3mf_entry_by_name</code></a></td>
+<td>Find 3MF Entry By Name</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_all_project_info"><code>get_all_project_info</code></a></td>
+<td>Get All Plate Info</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_current_job_project_info"><code>get_current_job_project_info</code></a></td>
+<td>Get Current Job Project Info</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_file_info"><code>get_file_info</code></a></td>
+<td>Get SD Card File Info</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_plate_thumbnail"><code>get_plate_thumbnail</code></a></td>
+<td>Get Plate Thumbnail</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_plate_topview"><code>get_plate_topview</code></a></td>
+<td>Get Plate Top View</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_project_info"><code>get_project_info</code></a></td>
+<td>Get Project Plate Info</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#list_sdcard_files"><code>list_sdcard_files</code></a></td>
+<td>List SD Card Files</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#open_plate_layout"><code>open_plate_layout</code></a></td>
+<td>Open Plate Layout Image</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#open_plate_viewer"><code>open_plate_viewer</code></a></td>
+<td>Open Plate Viewer</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#preview_ams_mapping"><code>preview_ams_mapping</code></a></td>
+<td>Preview AMS Mapping</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#print_file"><code>print_file</code></a></td>
+<td>Start Print From SD Card</td>
+<td>write, destructive</td>
+</tr>
+<tr>
+<td><a href="#refresh_sdcard"><code>refresh_sdcard</code></a></td>
+<td>Refresh SD Card Listing</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#rename_sdcard_file"><code>rename_sdcard_file</code></a></td>
+<td>Rename SD Card File</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#upload_file"><code>upload_file</code></a></td>
+<td>Upload File To SD Card</td>
+<td>write, destructive</td>
+</tr>
+</tbody>
+</table>
+<h2 id="create_folder">create_folder</h2>
+<p><strong>Create SD Card Folder</strong> · write · needs <code>user_permission=True</code></p>
+<p>Create a directory on the printer's SD card.</p>
+<p><strong>WHEN to use:</strong> make a new folder on the printer's SD card, for example to organise uploads.</p>
+<p><strong>WRITE GUARD:</strong> creates a new directory on the printer's SD card over FTPS (an FTPS mkdir).
+With <code>user_permission</code> False the tool changes nothing and returns the <code>{"error": ...}</code>
+refusal naming that consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>create_folder</code> makes an empty directory; <code>upload_file</code> puts a
+file on the card, and <code>delete_file</code> (with a trailing <code>/</code>) removes a directory.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>path</code> (string, required): Full path of the directory to create on the SD card.</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Must be True to execute. Default False.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"success": True, "path": &lt;path&gt;, "contents": &lt;refreshed SD card tree&gt;}</code> on
+success; <code>contents</code> is the printer library's SD card listing taken after the
+creation. It is null when that listing failed; the folder itself was created either
+way, so the tool still returns success. Errors are <code>{"error": str}</code>:
+the <code>_permission_denied</code> refusal when <code>user_permission</code> is False,
+<code>"Printer '&lt;name&gt;' not connected"</code>, or <code>"Error creating folder: &lt;exception&gt;"</code>.</p>
+<h2 id="delete_file">delete_file</h2>
+<p><strong>Delete SD Card File</strong> · write, destructive · needs <code>user_permission=True</code></p>
+<p>Delete a file or folder from the printer's SD card.</p>
+<p><strong>WHEN to use:</strong> remove a file, or a whole folder, from the printer's SD card, for example to
+free space or clear out old jobs.</p>
+<p><strong>WRITE GUARD:</strong> permanently deletes the file from the printer's SD card; a path ending in
+<code>/</code> deletes the folder and everything inside it, recursively. With <code>user_permission</code>
+False the tool changes nothing and returns the <code>{"error": ...}</code> refusal naming that
+consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>delete_file</code> removes the data from the card;
+<code>rename_sdcard_file</code> only moves or renames a file, keeping its contents. <code>create_folder</code>
+is the opposite operation for directories.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>remote_path</code> (string, required): Full path on the SD card. A path ending in <code>/</code> is treated as a folder (<code>delete_sdcard_folder</code>, recursive); any other path is treated as a file (<code>delete_sdcard_file</code>).</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Must be True to execute. Default False.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"success": True, "remote_path": &lt;remote_path&gt;, "contents": &lt;SD card tree&gt;}</code> on
+success; <code>contents</code> is the printer library's cached SD card tree with the deleted
+entry removed (null if the cache is empty: never populated, or cleared by a listing the
+library reported as failed). Errors are <code>{"error": str}</code>:
+the <code>_permission_denied</code> refusal when <code>user_permission</code> is False,
+<code>"Printer '&lt;name&gt;' not connected"</code>, or <code>"Error deleting file: &lt;exception&gt;"</code>.</p>
+<h2 id="download_file">download_file</h2>
+<p><strong>Download SD Card File</strong> · write, destructive · needs <code>user_permission=True</code></p>
+<p>Download a file from the printer's SD card to the local filesystem.</p>
+<p><strong>WHEN to use:</strong> copy a file off the printer's SD card onto this host, for example to inspect
+or back up a .3mf.</p>
+<p><strong>WRITE GUARD:</strong> writes the downloaded file to <code>local_path</code> on this host, creating it or
+truncating and overwriting whatever file is already there. The file is created or
+truncated BEFORE the transfer begins, so a failed download (missing remote file, dropped
+connection) leaves <code>local_path</code> emptied or partly written even though the tool returns
+an error. <code>local_path</code> is not constrained to any directory on this tool. With
+<code>user_permission</code> False the tool changes nothing and returns the <code>{"error": ...}</code>
+refusal naming that consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>download_file</code> copies from the printer to this host;
+<code>upload_file</code> copies the other way, from this host to the printer's SD card.
+<code>list_sdcard_files</code> and <code>get_file_info</code> only read the card's listing and do not
+transfer any file.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>remote_path</code> (string, required): Full path of the file on the printer's SD card.</li>
+<li><code>local_path</code> (string, required): Destination path on this host.</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Must be True to execute. Default False.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"success": True, "remote_path": &lt;remote_path&gt;, "local_path": &lt;local_path&gt;}</code> on
+success. Errors are <code>{"error": str}</code>: the <code>_permission_denied</code> refusal when
+<code>user_permission</code> is False, <code>"Printer '&lt;name&gt;' not connected"</code>, or
+<code>"Error downloading file: &lt;exception&gt;"</code>.</p>
+<h2 id="get_3mf_entry_by_id">get_3mf_entry_by_id</h2>
+<p><strong>Find 3MF Entry By Path</strong> · read-only</p>
+<p>Search the SD card 3MF file tree for the entry with a given full path.</p>
+<p><strong>WHEN to use:</strong> you already have a full SD card path (for example from
+<code>list_sdcard_files</code>) and need that entry's size and timestamp, or need to confirm it
+is a .3mf on the card.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_3mf_entry_by_id</code> matches on the full SD card path;
+<code>get_3mf_entry_by_name</code> matches on the filename alone. <code>get_file_info</code> does an
+exact-path lookup over the full tree rather than the .3mf-only tree.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>target_id</code> (string, required): Full SD card path as returned by <code>list_sdcard_files</code>, for example <code>"/cache/my_project.gcode.3mf"</code> or <code>"/model/part.3mf"</code>. Directory entries have a trailing slash: <code>"/cache/"</code>. Matching is case-sensitive and exact.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"entry": &lt;node&gt;}</code> on success, where the node has <code>id</code> (full SD card path),
+<code>name</code>, <code>size</code> (bytes), <code>timestamp</code> (epoch) and <code>children</code> (directories
+only). Errors are <code>{"error": str}</code>: <code>"Printer '&lt;name&gt;' not connected"</code>,
+<code>"Failed to retrieve SD card contents"</code>, <code>"Not found: &lt;target_id&gt;"</code> when no entry
+matches, or <code>"Error searching SD card: &lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>The search is a depth-first walk of the tree returned by <code>get_sdcard_3mf_files()</code>,
+which runs a live FTPS listing and refreshes the printer library's cache before
+filtering. That tree holds only directories and files whose path ends in <code>.3mf</code>.</p>
+<h2 id="get_3mf_entry_by_name">get_3mf_entry_by_name</h2>
+<p><strong>Find 3MF Entry By Name</strong> · read-only</p>
+<p>Search the SD card 3MF file tree for the entry with a given filename.</p>
+<p><strong>WHEN to use:</strong> you know a .3mf filename but not its full SD card path, and need the path
+(the <code>id</code> field) or the file's size and timestamp.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_3mf_entry_by_name</code> matches on the filename;
+<code>get_3mf_entry_by_id</code> matches on the full SD card path. <code>list_sdcard_files</code> returns
+the whole tree of every file, not just .3mf files.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>target_name</code> (string, required): Filename only, not a full path, for example <code>"my_project.gcode.3mf"</code> or <code>"part.3mf"</code>. Matching is case-sensitive and exact: no wildcards or partial matches.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"entry": &lt;node&gt;}</code> on success, where the node has <code>id</code> (full SD card path),
+<code>name</code>, <code>size</code> (bytes), <code>timestamp</code> (epoch) and <code>children</code> (directories
+only). Errors are <code>{"error": str}</code>: <code>"Printer '&lt;name&gt;' not connected"</code>,
+<code>"Failed to retrieve SD card contents"</code>, <code>"Not found: &lt;target_name&gt;"</code> when no
+entry matches, or <code>"Error searching SD card: &lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>The search is a depth-first walk of the tree returned by <code>get_sdcard_3mf_files()</code>,
+which runs a live FTPS listing and refreshes the printer library's cache before
+filtering. That tree holds only directories and files whose path ends in <code>.3mf</code>.
+The first match wins.</p>
+<h2 id="get_all_project_info">get_all_project_info</h2>
+<p><strong>Get All Plate Info</strong> · read-only</p>
+<p>Return 3MF metadata for every plate in a project file, in a single call.</p>
+<p><strong>WHEN to use:</strong> you need all plates of a multi-plate project at once, for example to survey
+the file or build a plate picker, instead of one round trip per plate.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_all_project_info</code> is the batch counterpart of
+<code>get_project_info</code>, which returns one plate per call. Use <code>get_plate_thumbnail</code> or
+<code>get_plate_topview</code> to fetch a single plate's image on demand.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>file_path</code> (string, required): Full SD card path of the .3mf file.</li>
+<li><code>include_images</code> (boolean, default <code>false</code>): Behaves exactly as in <code>get_project_info</code>. False (default) omits the <code>metadata.topimg</code> and <code>metadata.thumbnail</code> fields per plate to keep the response small; True includes both data URIs for every plate (large).</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A list of per-plate dicts on success, each shaped exactly like a single
+<code>get_project_info</code> response, ordered by plate number. Errors are a dict, not a
+list: <code>{"error": "Printer '&lt;name&gt;' not connected"}</code>,
+<code>{"error": "Could not retrieve project info for '&lt;file_path&gt;'"}</code>, or
+<code>{"error": "Error getting all project info: &lt;exception&gt;"}</code>.</p>
+<p><strong>Notes</strong></p>
+<p>The tool fetches the .3mf's actual plate set. Plate numbers are not assumed to be
+contiguous: a .3mf may contain a sparse set of plates (e.g. [1,5,6,7,8,12,15]) if
+plates were deleted in the slicer, and only plates that genuinely exist are returned.
+The plate set is bounded by the library's <code>max_plates</code> safety ceiling of 30: a plate
+numbered above 30 is ignored and does not appear in the result. The .3mf may be
+downloaded over FTPS once and its metadata cache written. Each plate's <code>metadata</code>
+carries <code>filament_extruders</code>, <code>physical_extruder_map</code> and <code>external_spool_trays</code>
+exactly as <code>get_project_info</code> describes them.</p>
+<h2 id="get_current_job_project_info">get_current_job_project_info</h2>
+<p><strong>Get Current Job Project Info</strong> · read-only</p>
+<p>Return 3MF project properties for the currently active print job.</p>
+<p><strong>WHEN to use:</strong> intended to find out which plate and parts the running (or just-finished) job
+is printing without knowing the file path in advance. CURRENTLY IT ALWAYS RETURNS THE
+<code>no_active_job</code> ERROR (see Returns), so use <code>get_job_info</code> plus
+<code>get_3mf_entry_by_name</code> and <code>get_project_info</code> instead, or the HTTP route
+<code>GET /api/get_current_3mf_props</code>.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_current_job_project_info</code> is meant to read the active job's
+gcode_file and plate from the printer's live job state and return what <code>get_project_info</code>
+returns for them. <code>get_project_info</code> needs you to supply the file path and plate;
+<code>get_job_info</code> returns the job's own record (subtask name, gcode file, plate, layer
+counts, times), not the project's metadata.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>include_images</code> (boolean, default <code>false</code>): True embeds the base64 thumbnail and top-view data URIs in the response (large). Default False. See <code>get_project_info</code> for the full field documentation.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>In practice <code>{"error": "no_active_job", "gcode_state": "", "note": "No print is
+currently running or paused."}</code> on every call, even mid-print: the tool reads
+<code>gcode_state</code> from the job record, which has no such field, so the state is always
+empty and the no-job branch is always taken. The other errors are <code>{"error": str}</code>:
+<code>"Printer '&lt;name&gt;' not connected"</code> and <code>"Error retrieving current job project info
+for '&lt;name&gt;': &lt;exception&gt;"</code>. The intended (currently unreachable) success value is the
+<code>get_project_info</code> result for the active job's file and plate plus a <code>"gcode_state"</code>
+key.</p>
+<p><strong>Notes</strong></p>
+<p>Code defect for the owner: <code>gcode_state</code> should come from the printer state, the .3mf
+should be resolved from the job's <code>subtask_name</code> (<code>&lt;subtask_name&gt;.gcode.3mf</code>) or
+its <code>project_info</code> rather than from <code>gcode_file</code> (which is the printer-internal
+<code>/data/Metadata/plate_N.gcode</code> path, not an SD card path), and a <code>plate_num</code> of -1
+means unknown. When <code>include_images=True</code> the intended response carries raw base64
+data URIs which may exceed the CLI inline display limit. The HTTP route
+<code>GET http://localhost:{api_port}/api/get_current_3mf_props?printer={name}</code> returns the
+active job's cached project info. Call <code>kb_get('bambu-http-files')</code> for full route
+docs. Pre-authorized, no human permission needed.</p>
+<h2 id="get_file_info">get_file_info</h2>
+<p><strong>Get SD Card File Info</strong> · read-only</p>
+<p>Return metadata for a specific file on the printer's SD card.</p>
+<p><strong>WHEN to use:</strong> check whether one known file or folder exists on the SD card and read its
+size and timestamp, without pulling the whole tree into your context.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_file_info</code> returns the one entry for a path you already
+know; <code>list_sdcard_files</code> returns a directory tree. <code>get_3mf_entry_by_id</code> does the
+same exact-path lookup but only over the .3mf-only tree.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>file_path</code> (string, required): Full SD card path of the file or folder (for example <code>"/cache/part.gcode.3mf"</code>). The first depth-first node whose <code>id</code> or <code>name</code> equals this value exactly is returned, so a bare filename also matches. A folder's <code>id</code> ends with a trailing slash, so pass <code>"/cache/"</code> or the bare name <code>"cache"</code>; <code>"/cache"</code> matches nothing.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"file": &lt;entry&gt;}</code> on success, where the entry carries the file attributes
+<code>id</code> (full SD card path), <code>name</code>, <code>size</code> and <code>timestamp</code>; a directory entry
+also carries <code>children</code>. Errors are <code>{"error": str}</code>:
+<code>"Printer '&lt;name&gt;' not connected"</code>, <code>"Failed to retrieve SD card contents"</code>
+(the library reported the listing as failed, see Notes), <code>"File not found:
+&lt;file_path&gt;"</code>, or <code>"Error getting file info: &lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>Every call retrieves the full SD card listing live over FTPS (which also repopulates
+the printer library's cached tree) and then searches it. A listing that failed (a
+timeout, a dropped connection, or a folder that could not be listed) gives the
+<code>Failed to retrieve</code> error, so <code>File not found</code> means the file is not on the card.</p>
+<h2 id="get_plate_thumbnail">get_plate_thumbnail</h2>
+<p><strong>Get Plate Thumbnail</strong> · read-only</p>
+<p>Return the isometric thumbnail image for a single plate in a 3MF project file.</p>
+<p><strong>WHEN to use:</strong> the AI agent itself is the consumer of the image, either to describe or
+analyze the plate on the human's behalf ("what does it look like?", "describe the plate",
+"is there anything on it?") or to process the raw bytes directly (vision model input,
+pixel comparison, local image library). It is the separated visual sub-call of
+<code>get_project_info</code> and returns only the thumbnail, without metadata or bbox objects.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_plate_thumbnail</code> returns the isometric view and
+<code>get_plate_topview</code> returns the top-down view of the same plate. When the human is the
+intended viewer ("show me", "open it", "let me see it") call <code>open_plate_viewer</code> for all
+plates or <code>open_plate_layout</code> for an annotated single-plate view; returning a raw
+<code>data_uri</code> to a human in a chat or terminal is never the right choice. For
+<code>print_file</code> pre-flight and print job prep, always use <code>open_plate_viewer</code>, never
+this tool (see the confirmation gate in <code>print_file</code>).</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>file_path</code> (string, required): Full SD card path of the .3mf file.</li>
+<li><code>plate_num</code> (integer, default <code>1</code>): Plate number (default 1). An absent plate silently yields the file's first available plate; check <code>plates</code> from <code>get_project_info</code> first.</li>
+<li><code>quality</code> (string, default <code>"standard"</code>): Image size and JPEG compression tier, default <code>"standard"</code>. The dimensions are a MAXIMUM bounding box with aspect ratio preserved and no upscaling, so the returned <code>width</code>/<code>height</code> are usually smaller: <code>"preview"</code> = max 320x180 at JPEG q=65, <code>"standard"</code> = max 640x360 at q=75, <code>"full"</code> = original dimensions at q=85. An unknown tier falls back to <code>"standard"</code>. Read <code>width</code> and <code>height</code> from the result.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"data_uri": &lt;complete data:image/jpeg;base64,... string, embed directly as an img
+src&gt;, "plate_num": &lt;the plate_num you PASSED, not necessarily the plate rendered&gt;,
+"quality": &lt;tier as passed&gt;, "width": &lt;int&gt;, "height": &lt;int&gt;}</code> on success. Errors
+are <code>{"error": str}</code>: <code>"Printer '&lt;name&gt;' not connected"</code>,
+<code>"Could not retrieve project info for '&lt;file_path&gt;'"</code>,
+<code>"No thumbnail image available for plate &lt;plate_num&gt;"</code>, or
+<code>"Error retrieving plate image: &lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>The result is a raw base64 data URI, which may exceed the CLI inline display limit.
+If output is truncated, call <code>kb_get('bambu-http-files')</code> for the equivalent HTTP
+endpoints, then use bash/curl to retrieve the data directly; this is pre-authorized
+and requires no human permission. The .3mf may be downloaded over FTPS and its
+metadata cache written as a side effect.</p>
+<h2 id="get_plate_topview">get_plate_topview</h2>
+<p><strong>Get Plate Top View</strong> · read-only</p>
+<p>Return the top-down view image for a single plate in a 3MF project file.</p>
+<p><strong>WHEN to use:</strong> the AI agent itself is the consumer of the image, either to describe or
+analyze the plate on the human's behalf ("what does it look like?", "describe the
+plate", "is there anything on it?") or to process the raw bytes directly (vision model
+input, pixel comparison, local image library). It is the separated visual sub-call of
+<code>get_project_info</code> and returns only the top-down view, without metadata or bbox
+objects.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_plate_topview</code> returns the top-down view and
+<code>get_plate_thumbnail</code> returns the isometric view of the same plate. When the human is
+the intended viewer ("show me", "open it", "let me see it") call <code>open_plate_viewer</code>
+for all plates or <code>open_plate_layout</code> for an annotated single-plate view; returning a
+raw <code>data_uri</code> to a human in a chat or terminal is never the right choice. For
+<code>print_file</code> pre-flight and print job prep, always use <code>open_plate_viewer</code>, never
+this tool (see the confirmation gate in <code>print_file</code>).</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>file_path</code> (string, required): Full SD card path of the .3mf file.</li>
+<li><code>plate_num</code> (integer, default <code>1</code>): Plate number (default 1). An absent plate silently yields the file's first available plate; check <code>plates</code> from <code>get_project_info</code> first.</li>
+<li><code>quality</code> (string, default <code>"standard"</code>): Image size and JPEG compression tier, default <code>"standard"</code>. The dimensions are a MAXIMUM bounding box with aspect ratio preserved and no upscaling, so the returned <code>width</code>/<code>height</code> are usually smaller: <code>"preview"</code> = max 320x180 at JPEG q=65, <code>"standard"</code> = max 640x360 at q=75, <code>"full"</code> = original dimensions at q=85. An unknown tier falls back to <code>"standard"</code>. Read <code>width</code> and <code>height</code> from the result.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"data_uri": &lt;complete data:image/jpeg;base64,... string, embed directly as an img
+src&gt;, "plate_num": &lt;the plate_num you PASSED, not necessarily the plate rendered&gt;,
+"quality": &lt;tier as passed&gt;, "width": &lt;int&gt;, "height": &lt;int&gt;}</code> on success. Errors
+are <code>{"error": str}</code>: <code>"Printer '&lt;name&gt;' not connected"</code>,
+<code>"Could not retrieve project info for '&lt;file_path&gt;'"</code>,
+<code>"No topimg image available for plate &lt;plate_num&gt;"</code>, or
+<code>"Error retrieving plate image: &lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>The result is a raw base64 data URI, which may exceed the CLI inline display limit.
+If output is truncated, call <code>kb_get('bambu-http-files')</code> for the equivalent HTTP
+endpoints, then use bash/curl to retrieve the data directly; this is pre-authorized
+and requires no human permission. The .3mf may be downloaded over FTPS and its
+metadata cache written as a side effect.</p>
+<h2 id="get_project_info">get_project_info</h2>
+<p><strong>Get Project Plate Info</strong> · read-only</p>
+<p>Return 3MF metadata and thumbnail info for one plate of a project file on the SD card.</p>
+<p><strong>WHEN to use:</strong> read a .3mf plate's filaments, AMS mapping placeholder and object bounding
+boxes before choosing a plate, building a print summary, or calling <code>print_file</code>.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_project_info</code> returns one plate per call;
+<code>get_all_project_info</code> returns every plate in the file in one call. The image tools
+<code>get_plate_thumbnail</code> and <code>get_plate_topview</code> fetch a single plate's picture, and
+<code>get_current_job_project_info</code> resolves the file and plate of the active job for you.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>file_path</code> (string, required): Full SD card path of the .3mf file.</li>
+<li><code>plate_num</code> (integer, default <code>1</code>): Plate to parse (default 1). If the requested plate does not exist in the .3mf, the library SILENTLY falls back to the file's first available plate: compare the returned <code>plate_num</code> with the one you asked for, and read <code>plates</code> to see which plates exist.</li>
+<li><code>include_images</code> (boolean, default <code>false</code>): False (default) omits the <code>metadata.topimg</code> and <code>metadata.thumbnail</code> image fields to keep the response small. True includes both as raw base64 data URIs (large). Use True only when the AI agent needs to process the image bytes directly (vision analysis, comparison) or is describing the image on the human's behalf; a human cannot see raw base64 in a chat or terminal, so to let the human *view* the plates call <code>open_plate_viewer</code>.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>The serialized project info for the plate: <code>id</code>, <code>name</code>, <code>size</code>, <code>timestamp</code>,
+<code>md5</code>, <code>plate_num</code>, <code>plates</code> and <code>metadata</code> (see Notes for the key fields).
+Errors are <code>{"error": str}</code>: <code>"Printer '&lt;name&gt;' not connected"</code>,
+<code>"Could not retrieve project info for '&lt;file_path&gt;'"</code>, or
+<code>"Error getting project info: &lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>The .3mf file is created by BambuStudio or OrcaSlicer, the slicing applications that
+turn .STL/.3MF model files into printable G-code and package everything into a .3mf
+project file. The tool parses the requested plate using a local metadata cache. A
+cache HIT still performs a live FTPS listing of the whole SD card to validate the cache
+(the printer must be reachable) and repopulates the printer library's cached trees;
+only the .3mf download is skipped. On a miss the .3mf is downloaded over FTPS and the
+cache is written. The same applies to every tool that reads project info.
+<code>get_all_project_info</code> and <code>open_plate_viewer</code> pay for that listing once per call,
+because the plates after the first are served from the cached listing.</p>
+<p>Three <code>metadata</code> keys say which external spool holder each filament prints from
+(bpm 1.0.4 and later; a daemon running an older bpm omits them). All are lists indexed
+by <code>filament id - 1</code>. <code>filament_extruders</code> is the slicer's 1-based logical extruder
+per filament, from <code>slice_info.config</code>; it is empty when the slicer wrote none.
+<code>physical_extruder_map</code> is the physical extruder (0 main, 1 deputy) per logical
+extruder, from the plate gcode config block; it is empty when absent, and is <code>[1, 0]</code>
+on an H2D, so logical extruder 1 is the LEFT one. <code>external_spool_trays</code> is the wire
+id of the external holder feeding each filament: 255 main (right), 254 deputy (left),
+-1 unused; a single-nozzle printer reports 255 for every used filament although its
+telemetry calls its one holder tray 254, so do not match this list to a spool's
+<code>slot_id</code>. It is empty when a dual-nozzle plate has no extruder map, and it is
+derived on every read, never cached. <code>print_file</code> with <code>use_ams=False</code> uses the
+same derivation, so a caller passes no holder.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Multi-level call hierarchy:
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  Level 1: ``get_project_info(name, file, 1)`` returns ``{plates: [...], ...}`` (index):
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  the file&#39;s real plate numbers, which may be sparse, such as [1,5,6,12].
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  Level 2: ``get_project_info(name, file, N)`` for one of those numbers returns
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  per-plate metadata and bbox_objects.
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  Level 3: ``get_plate_thumbnail(name, file, N)`` returns just the isometric image;
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  ``get_plate_topview(name, file, N)`` returns just the top-down image.
+</span></code></pre></div>
+<p>Key fields in the returned dict:</p>
+<ul>
+<li><code>plates</code>: list of all plate numbers in the file. They are not necessarily
+  contiguous or 1-based (e.g. [1,5,6,12] or [10]). Iterate over that list, never
+  over <code>range(1, len(plates) + 1)</code>, and call <code>get_project_info</code> once per listed
+  plate to retrieve all plates (or use <code>get_all_project_info</code>).</li>
+<li><code>metadata.filament</code>: list of <code>{"id": int (1-based), "type": str, "color": str}</code>
+  for the plate's filaments, the colour being a hex string such as "#RRGGBB". These ids index the <code>ams_mapping</code> array
+  that <code>print_file</code> and <code>preview_ams_mapping</code> use.</li>
+<li><code>metadata.ams_mapping</code>: a filament-id PLACEHOLDER only, never a real slot
+  assignment; do not pass it to <code>print_file</code>.</li>
+<li><code>metadata.map.bbox_objects</code>: list of <code>{name, ...}</code> dicts for objects on this
+  plate. Filter out entries whose name contains <code>wipe_tower</code> to get the
+  human-readable part list.</li>
+<li><code>metadata.topimg</code>: present only when <code>include_images=True</code>. Complete base64
+  data URI (<code>data:image/png;base64,...</code>). Use DIRECTLY as an img src.</li>
+<li><code>metadata.thumbnail</code>: present only when <code>include_images=True</code>. Isometric
+  thumbnail data URI. Use DIRECTLY as an img src.</li>
+<li>With <code>include_images=False</code> those two fields are replaced by an omission marker
+  string naming the tool to fetch them.</li>
+</ul>
+<p>Coordinate system for bbox fields:</p>
+<ul>
+<li>bbox values are [x_min, y_min, x_max, y_max] in millimetres, absolute bed position.</li>
+<li>Origin (0,0) is the BOTTOM-LEFT of the build plate (slicer convention).</li>
+<li>To map to image pixel coords (origin top-left): flip Y, pixel_y = img_height -
+  (y_mm / bed_h * img_height).</li>
+<li>Apply uniform scale: scale = min(img_w / bed_w, img_h / bed_h); add centring offsets.</li>
+<li>Bed dimensions by model (mm, W x H): H2D/H2S=350x320,
+  X1C/X1/X1E/P1S/P1P/P2S/A1=256x256, A1_MINI=180x180.</li>
+<li>Use <code>printer.config.printer_model.value</code> to get the model string for dimension lookup.</li>
+</ul>
+<p>Cross-tool link: <code>bbox_objects[].id</code> values are the identify_id integers required by
+<code>skip_objects</code>. Filter bbox_objects to exclude entries whose name contains
+<code>wipe_tower</code> to get human-readable part names.</p>
+<p>When <code>include_images=True</code> the response carries raw base64 data URIs which may
+exceed the CLI inline display limit. If output is truncated, use the HTTP fallback:
+<code>GET http://localhost:{api_port}/api/get_3mf_props_for_file?printer={name}&amp;file={file_path}&amp;plate={plate_num}</code>.
+Call <code>kb_get('bambu-http-files')</code> for full route docs. Pre-authorized, no human
+permission needed.</p>
+<h2 id="list_sdcard_files">list_sdcard_files</h2>
+<p><strong>List SD Card Files</strong> · read-only</p>
+<p>Return the SD card directory listing for the named printer, whole or one subtree.</p>
+<p><strong>WHEN to use:</strong> see what files and folders are on the printer's SD card, or narrow the
+listing to one folder such as <code>/cache/</code> or <code>/model/</code> to keep the response small.</p>
+<p><strong>Sibling disambiguation:</strong> <code>list_sdcard_files</code> returns a directory tree, while
+<code>get_file_info</code> returns the single entry for one known path. <code>refresh_sdcard</code> only
+re-reads the card into the cache and returns no listing; it matters when you then call
+this tool with <code>cached=True</code>. <code>get_3mf_entry_by_name</code> and <code>get_3mf_entry_by_id</code>
+search the .3mf-only tree for one entry.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>path</code> (string, default <code>"/"</code>): <code>"/"</code> (default) returns the full top-level tree. A subdirectory returns only that subtree, which is much smaller. The subtree is the first depth-first node whose <code>id</code> or <code>name</code> equals <code>path</code> exactly. Directory ids carry a TRAILING SLASH, so use <code>"/cache/"</code> or the bare name <code>"cache"</code>; <code>"/cache"</code> matches nothing and returns <code>Path not found</code>.</li>
+<li><code>cached</code> (boolean, default <code>false</code>): False (default) performs a live FTPS fetch from the printer: guaranteed current, but it needs an active connection and takes a moment. True returns the in-memory cached copy immediately without contacting the printer, for when stale data is acceptable and low latency matters. The cache is populated by the most recent live listing (this tool with <code>cached=False</code>, or <code>refresh_sdcard</code>). If the cache has never been populated, or the last listing was reported as failed (the library then clears it), the call returns the <code>Failed to retrieve SD card contents</code> error. A live listing returns the same error when the listing failed (a timeout, a dropped connection, or any folder that could not be listed): a failed listing is never returned as an empty tree. An EMPTY <code>children</code> list therefore means the card, or that folder, really is empty; a folder the printer refuses to list also reads as empty.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"path": &lt;path&gt;, "contents": &lt;node&gt;}</code> on success, where a node is
+<code>{"id": &lt;full SD card path&gt;, "name", "size" (bytes), "timestamp", "children"
+(directories only)}</code>. A response whose JSON exceeds 300 characters (in practice
+almost every real listing) comes back instead as the gzip envelope
+<code>{"compressed": True, "encoding": "gzip+base64", "original_size_bytes",
+"compressed_size_bytes", "data"}</code>. Errors are <code>{"error": str}</code>:
+<code>"Printer '&lt;name&gt;' not connected"</code>, <code>"Failed to retrieve SD card contents"</code>,
+<code>{"error": "Path not found: &lt;path&gt;", "path": &lt;path&gt;}</code>, or
+<code>"Error listing SD card: &lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>Use it as a hierarchy: <code>list_sdcard_files(name)</code> for the full top-level tree,
+<code>list_sdcard_files(name, "/cache/")</code> for only the /cache subtree,
+<code>list_sdcard_files(name, "/model/")</code> for only the /model subtree.
+A live listing (<code>cached=False</code>) also repopulates the printer library's cached tree.
+To decompress the gzip envelope:
+<code>import gzip, json, base64; data = json.loads(gzip.decompress(base64.b64decode(r["data"])))</code>.
+If the compressed envelope itself exceeds the MCP response limit, use the HTTP
+fallback <code>GET /api/get_sdcard_contents?printer=&lt;name&gt;</code>, or reduce scope by listing a
+specific subdirectory (for example <code>path="/cache/"</code>).</p>
+<h2 id="open_plate_layout">open_plate_layout</h2>
+<p><strong>Open Plate Layout Image</strong> · read-only</p>
+<p>Generate and open an annotated top-down image for a single plate, with each object's
+bounding box overlaid on the top-view image.</p>
+<p><strong>WHEN to use:</strong> the human should see where each part sits on one plate's build surface, with
+a colour legend of part names, for example to confirm object placement before printing.</p>
+<p><strong>Sibling disambiguation:</strong> <code>open_plate_layout</code> produces one annotated PNG for a single
+plate; <code>open_plate_viewer</code> opens an HTML page showing all plates of the file.
+<code>get_plate_topview</code> returns the plain top-down image data for the AI agent without
+annotation or opening anything.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>file_path</code> (string, required): Full SD card path of the .3mf file.</li>
+<li><code>plate_num</code> (integer, default <code>1</code>): Plate to render (default 1). An absent plate silently renders another available plate; check <code>plates</code> from <code>get_project_info</code> first.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"success": True, "path": &lt;PNG path under /tmp&gt;, "plate": &lt;the plate_num you
+PASSED, not necessarily the plate rendered&gt;, "objects": &lt;bounding-box object count&gt;,
+"unique_parts": &lt;distinct part name count&gt;, "bed_mm": "&lt;W&gt;x&lt;H&gt;"}</code> on success.
+<code>objects</code> and <code>unique_parts</code> COUNT wipe-tower entries, and the wipe tower is drawn
+on the image and listed in the legend; unlike <code>open_plate_viewer</code> this tool applies
+no wipe_tower filter, so subtract entries whose name contains <code>wipe_tower</code> when
+reporting a part count. Errors are <code>{"error": str}</code>: <code>"Printer '&lt;name&gt;' not
+connected"</code>, <code>"Could not retrieve project info for plate &lt;plate_num&gt;"</code>,
+<code>"No top-down image available for this plate"</code>, <code>"No bounding-box objects found for
+this plate"</code>, or <code>"Error building plate layout: &lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>The PNG is saved to <code>/tmp/plate_layout_&lt;name&gt;_p&lt;plate_num&gt;.png</code> (overwriting any
+earlier one) and opened in the default viewer. Reading the project info may download
+the .3mf over FTPS and write the local metadata cache.</p>
+<p>Bed dimensions are selected by printer model (mm, W x H): H2D/H2S=350x320,
+X1C/X1/X1E/P1S/P1P/P2S/A1=256x256, A1_MINI=180x180.</p>
+<p>Coordinate mapping applied internally:</p>
+<ul>
+<li>Slicer bbox coordinates use a bottom-left origin (mm); the image uses a top-left origin.</li>
+<li>scale = min(img_w / bed_w, img_h / bed_h): uniform scale, no distortion.</li>
+<li>x_off = (img_w - bed_w * scale) / 2; y_off = (img_h - bed_h * scale) / 2: centring.</li>
+<li>pixel_x = x_off + x_mm * scale; pixel_y = img_h - y_off - y_mm * scale: Y flip.</li>
+</ul>
+<p>Each unique part name is assigned a distinct colour; a legend with part names and
+colours is appended below the annotated image.</p>
+<h2 id="open_plate_viewer">open_plate_viewer</h2>
+<p><strong>Open Plate Viewer</strong> · read-only</p>
+<p>Build and open an HTML viewer of the isometric and top-down images for the plates of a
+3MF project file on the printer's SD card.</p>
+<p><strong>WHEN to use:</strong> the human should see the plates, for example to visually confirm which plate
+to print before calling <code>print_file</code>, or to jump to the plate a finished job printed.</p>
+<p><strong>Sibling disambiguation:</strong> <code>open_plate_viewer</code> shows every plate the file really contains
+(isometric, top-down and, when objects are known, a layout image per plate) in a browser
+page, headed with each plate's own number even when the numbers are sparse;
+<code>open_plate_layout</code> shows one plate as a single annotated top-down PNG. The
+<code>get_plate_thumbnail</code> and <code>get_plate_topview</code> tools return raw image data for the AI
+agent rather than opening anything for the human.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>file_path</code> (string, required): Full SD card path of the .3mf file.</li>
+<li><code>target_plate</code> (integer, default <code>null</code>): Optional plate number to scroll straight to on open. If set, the browser opens with the URL fragment <code>#plate-{target_plate}</code>. Useful after a job completes: pass the plate number from <code>get_job_info</code> to jump to the printed plate. The anchors are the file's real plate numbers, so a number the file does not contain scrolls nowhere.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"success": True, "path": &lt;path of the HTML file written under /tmp&gt;, "plates":
+&lt;number of plates shown&gt;}</code> on success. Errors are <code>{"error": str}</code>:
+<code>"Printer '&lt;name&gt;' not connected"</code>, <code>"Could not retrieve project info for '&lt;file_path&gt;'"</code>, or
+<code>"Error building plate viewer: &lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>Fetches project info for the plates via the local cache (the .3mf may be downloaded
+over FTPS and the cache written on a miss), embeds the base64 images directly in the
+HTML, writes it to <code>/tmp/plate_viewer_&lt;name&gt;.html</code> (overwriting any earlier viewer
+for that printer), and opens it in the default browser. The plate set is the one
+<code>get_all_project_info</code> returns: plate numbers are not assumed to be contiguous or to
+start at 1, so a file with plates [1,5,6,12] shows exactly those four, each under its
+own number. Only plates that genuinely exist are fetched, and the library's ceiling of
+30 applies: a plate numbered above 30 is not shown. The .3mf is downloaded at most
+once, and the listing of the SD card is refreshed once for the whole batch.</p>
+<h2 id="preview_ams_mapping">preview_ams_mapping</h2>
+<p><strong>Preview AMS Mapping</strong> · read-only</p>
+<p>Resolve, WITHOUT printing, the ams_mapping that print_file would send for a .3mf plate,
+from the spools the printer last reported loaded.</p>
+<p><strong>WHEN to use:</strong> STEP 1 of the <code>print_file</code> confirmation gate. Call it, then show the
+result in the summary: each filament to its tray_id with the spool it matched, its colour
+distance, and a BPA match label (Excellent Match / Good Match / Type Match / Color Match
+Only / Poor Match).</p>
+<p><strong>Sibling disambiguation:</strong> <code>preview_ams_mapping</code> is read-only and never prints;
+<code>print_file</code> runs the same resolution and then starts the physical print.
+<code>get_project_info</code> reports the plate's filaments but its <code>ams_mapping</code> is only a
+filament-id placeholder, and <code>get_spool_info</code> reports the loaded spools.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>file_path</code> (string, required): Full SD card path of the .3mf file.</li>
+<li><code>plate_num</code> (integer, default <code>1</code>): Plate to resolve the mapping for (default 1). An absent plate silently resolves against the file's first available plate; check <code>plates</code> from <code>get_project_info</code> first.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A resolution payload dict: <code>file_path</code>, <code>plate_num</code> (the value you PASSED, not
+necessarily the plate resolved), <code>filaments</code>,
+<code>resolved_ams_mapping</code> (list indexed by 1-based filament id, -1 for an unused id),
+<code>ams_mapping_json</code> (the exact string <code>print_file</code> sends), <code>matches</code>,
+<code>unmatched</code>, <code>loaded_spools</code> (the AMS spools that could be printed from) and
+<code>external_spools</code>. When <code>"error"</code> is present in the payload <code>print_file</code> would
+refuse with the same message; pass <code>ams_mapping</code> explicitly or use <code>use_ams=False</code>.
+The payload may then hold only <code>{"error": str}</code>, for a metadata read failure or a plate
+with no filament metadata. If the printer is not connected the result is
+<code>{"error": "Printer '&lt;name&gt;' not connected"}</code>.</p>
+<p><strong>Notes</strong></p>
+<p>Read-only in purpose: it changes nothing on the printer, though reading the project
+metadata may download the .3mf over FTPS and write the local metadata cache.
+"Type Match" means the material matches but the colour is off: <code>print_file</code> WILL
+print on it, so surface it to the user. "Color Match Only" means the MATERIAL DOES NOT
+MATCH (for example the project wants PLA and only PETG is loaded) and the spool was
+accepted purely because its colour is close: <code>print_file</code> WILL print on it too. Call
+this out explicitly for any <code>"quality": "poor"</code> match; it is a stronger warning than
+a colour mismatch.</p>
+<h2 id="print_file">print_file</h2>
+<p><strong>Start Print From SD Card</strong> · write, destructive · needs <code>user_permission=True</code></p>
+<p>Send the command to start printing a .3mf file already stored on the printer's SD card.</p>
+<p><strong>WHEN to use:</strong> only as the last step, after the confirmation gate in Notes (STEP 0 to
+STEP 3) has been completed in a single turn and the user has given an explicit go-ahead
+after seeing the complete summary. Never call it on a partial confirmation.</p>
+<p><strong>WRITE GUARD:</strong> starts a physical print on the named printer, which heats, moves and
+extrudes immediately. Once started the job can only be paused (<code>pause_print</code>) or
+cancelled (<code>stop_print</code>); it cannot be recalled. With <code>user_permission</code> False the tool
+changes nothing and returns the <code>{"error": ...}</code> refusal naming that consequence.
+Separately from the guard, the tool is BLOCKED while the printer's LAST REPORTED
+gcode_state is RUNNING or PREPARE (an active-print guard that <code>user_permission=True</code>
+cannot override). That block reads cached telemetry and does not fire when the state is
+empty or unreadable, as it is until the first status report after a session or daemon
+restart.</p>
+<p><strong>Sibling disambiguation:</strong> <code>print_file</code> starts the print; <code>preview_ams_mapping</code> resolves
+the same ams_mapping without printing and is the read-only step before it.
+<code>get_project_info</code> reads the plate's filaments, and <code>open_plate_viewer</code> shows the
+plates to the human.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>file_path</code> (string, required): Full SD card path of the .3mf file to print.</li>
+<li><code>plate_num</code> (integer, default <code>1</code>): Plate to print (default 1).</li>
+<li><code>bed_type</code> (string, default <code>"auto"</code>): One of <code>auto</code>, <code>cool_plate</code>, <code>eng_plate</code>, <code>hot_plate</code>, <code>textured_plate</code> (case-insensitive); any other value silently falls back to <code>auto</code>. <code>cool_plate</code> = smooth cold plate (PLA, TPU at low temp); <code>eng_plate</code> = smooth engineering plate (PETG, PA, ABS); <code>hot_plate</code> = smooth high-temp plate (ASA, PC); <code>textured_plate</code> = textured PEI surface (good general-purpose adhesion); <code>auto</code> = let the printer decide based on the sliced settings in the file. Default <code>"auto"</code>.</li>
+<li><code>use_ams</code> (boolean, default <code>true</code>): True (default) loads filament from AMS slots, with the mapping resolved as described under <code>ams_mapping</code>. False prints using only the external spool holder (single-colour prints without AMS): leave <code>ams_mapping</code> empty, and bpm derives the holder for each filament from the plate's own extruder assignment (right holder for a filament sliced for the right extruder, left holder for the left) and refuses the print with an error when the plate has no extruder map. The holder cannot be chosen.</li>
+<li><code>ams_mapping</code> (array of any or string or null, default <code>null</code>): Optional override, default None. When empty (None, <code>""</code> or <code>[]</code>) and <code>use_ams</code> is True, the mapping is resolved from the spools the printer last reported loaded: each project filament is matched to an AMS spool by exact type then closest colour (bambu-printer-app's print-dialog scoring; exact pairs are assigned first, then best unused, then reuse). A same-material spool of the WRONG colour is accepted ("Type Match"). A WRONG-MATERIAL spool is ALSO accepted if its colour is close enough ("Color Match Only", no material check at all), so call <code>preview_ams_mapping</code> first and show the user every match label, "Color Match Only" especially. The 3mf carries no usable tray ids: <code>get_project_info</code>'s ams_mapping is a filament-id placeholder, never a slot assignment. If any filament finds no loaded match, or the plate carries no filament metadata, the print is REFUSED with the unmatched filaments and the loaded spools listed. To override, provide a JSON array string or a list of integers indexed by 1-based filament id (index 0 = filament 1), each element an absolute tray_id, -1 for a filament id the plate does not use. When <code>ams_mapping</code> is provided, <code>use_ams</code> is automatically set to True. See Notes for the tray_id encoding.</li>
+<li><code>timelapse</code> (boolean, default <code>false</code>): Record a timelapse (default False).</li>
+<li><code>bed_leveling</code> (boolean, default <code>true</code>): Run bed leveling before printing (default True).</li>
+<li><code>flow_calibration</code> (boolean, default <code>false</code>): Run flow calibration before printing (default False).</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Must be True to execute. Default False.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"success": True, ...}</code> means the print command was PUBLISHED; the printer's
+acceptance and the job's start are not confirmed. Follow up with <code>get_print_progress</code>
+or <code>get_job_info</code>, and <code>get_hms_errors</code> if nothing starts. The full success shape
+is <code>{"success": True, "file_path": &lt;file_path&gt;, "plate_num": &lt;plate_num&gt;,
+"bed_type": &lt;resolved bed type name&gt;, "use_ams": &lt;bool&gt;, "ams_mapping": &lt;JSON string
+sent, empty when none&gt;, "matches": &lt;list of per-filament match dicts from the
+live-spool resolution, empty when</code>ams_mapping<code>was provided or</code>use_ams<code>is
+False&gt;}</code>. Errors are <code>{"error": str}</code>: the <code>_permission_denied</code> refusal when
+<code>user_permission</code> is False, <code>"Printer '&lt;name&gt;' not connected"</code>, the active-print
+block <code>"Blocked: '&lt;name&gt;' is currently &lt;state&gt;. ..."</code>, or
+<code>"Error starting print: &lt;exception&gt;"</code>. When the live-spool resolution fails, the
+return is the resolution payload of <code>preview_ams_mapping</code> (<code>file_path</code>,
+<code>plate_num</code>, <code>filaments</code>, <code>resolved_ams_mapping</code>, <code>ams_mapping_json</code>,
+<code>matches</code>, <code>unmatched</code>, <code>loaded_spools</code>, <code>external_spools</code>) plus an
+<code>"error"</code> message, or only <code>{"error": str}</code> when the project metadata could not be
+read.</p>
+<p><strong>Notes</strong></p>
+<p>Calls <code>printer.print_3mf_file()</code> with the given parameters.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>tray_id encoding for ``ams_mapping``: ALWAYS derive from live telemetry (the spool&#39;s
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>ams_id is the hardware chip_id from ``get_ams_units`` / ``get_spool_info``), NEVER
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>hardcode:
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  4-slot AMS (ams_id 0..127):  tray_id = ams_id * 4 + slot_id   -&gt; 0..103
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  AMS HT / N3S (ams_id &gt;= 128): tray_id = ams_id + slot_id      -&gt; 128..
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  Unused filament id = -1. External spool: not part of this array, use use_ams=False.
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>NEVER use the 0-based unit_index in place of ams_id, and NEVER apply the 4-slot formula
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>to an AMS HT (ams_id 128 -&gt; 512 is wrong; 128 is right).
+</span></code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Correct workflow when overriding:
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  1. Call ``preview_ams_mapping`` to see what the tool would resolve, then
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>     ``get_spool_info`` for each spool&#39;s ams_id and slot_id.
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  2. Encode each chosen spool with the formula above.
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  3. Build the array indexed by 1-based filament id from ``get_project_info``.
+</span></code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Example: if AMS 2 Pro has ams_id=0, slot 1 -&gt; tray_id=1.
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>         if AMS HT has ams_id=128, slot 0 -&gt; tray_id=128.
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>Always call ``get_project_info`` first to see which filaments the .3mf plate uses.
+</span></code></pre></div>
+<p>CONFIRMATION REQUIRED. DO NOT CALL THIS TOOL until all steps below are done IN A
+SINGLE TURN. This tool starts a physical print that can only be paused or cancelled
+afterwards, not recalled.</p>
+<p>STEP 0, active-print guard: this tool is BLOCKED when the last reported gcode_state is
+RUNNING or PREPARE (defense-in-depth, read from cached telemetry). Check
+<code>get_print_progress</code> first if unsure.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>STEP 1, gather everything first (no user interaction yet): call ``get_project_info``,
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>``preview_ams_mapping``, ``get_ams_units`` and ``get_spool_info`` to collect all data
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>needed to build the complete summary before asking the user anything.
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>``preview_ams_mapping`` is the mapping print_file will actually send. To show plate
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>visuals to the user, call ``open_plate_viewer(name, file_path)``; do NOT call
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>``get_plate_thumbnail`` or ``get_plate_topview`` and embed the data_uri in the
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>response. Humans cannot see raw base64 in a terminal or chat context. Also look up
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>stored preferences for each sticky field using user_prefs:
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>  from user_prefs import get_pref
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>  bed_leveling     = get_pref(f&quot;{name}:bed_leveling&quot;,     True)
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>  flow_calibration = get_pref(f&quot;{name}:flow_calibration&quot;, False)
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>  timelapse        = get_pref(f&quot;{name}:timelapse&quot;,        False)
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>Factory defaults: bed_leveling=True, flow_calibration=False, timelapse=False. Label
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>each field &quot;(your preference)&quot; if the stored value differs from the factory default,
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>or &quot;(default)&quot; if it matches the factory default.
+</span></code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>STEP 2, present ONE complete summary containing ALL of the following:
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  - Part name(s) and filament(s) from the project metadata
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>  - bed_type (from metadata): ask whether it is correct for the plate physically on
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    the bed
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  - ams_mapping, from ``preview_ams_mapping``: each filament to a tray with its match
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    label; call out any &quot;Type Match&quot; (right material, wrong colour); ask whether it is
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    correct
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>  - flow_calibration: show the stored value with its label; ask whether to run flow
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>    calibration before printing
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>  - timelapse: show the stored value with its label; ask whether to record a timelapse
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>  - bed_leveling: show the stored value with its label; ask whether to run bed
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>    leveling or skip it for speed
+</span></code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>STEP 3, wait for explicit go-ahead AFTER the complete summary. Do NOT call print_file
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>after confirming individual parameters across separate turns. Confirming
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>flow_calibration, timelapse, or bed_leveling mid-conversation does NOT satisfy this
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>gate. The go-ahead must come in the turn immediately after the full summary is shown
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>with all six items visible. After print_file is called successfully, update stored
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>preferences:
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>  from user_prefs import set_pref
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>  set_pref(f&quot;{name}:bed_leveling&quot;,     bed_leveling)
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>  set_pref(f&quot;{name}:flow_calibration&quot;, flow_calibration)
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>  set_pref(f&quot;{name}:timelapse&quot;,        timelapse)
+</span></code></pre></div>
+<h2 id="refresh_sdcard">refresh_sdcard</h2>
+<p><strong>Refresh SD Card Listing</strong> · read-only</p>
+<p>Force a fresh SD card listing from the printer.</p>
+<p><strong>WHEN to use:</strong> you need up-to-date cached SD card data, for example after uploading a file or
+after a print completes, before reading it with <code>list_sdcard_files(cached=True)</code>.</p>
+<p><strong>Sibling disambiguation:</strong> <code>refresh_sdcard</code> re-reads the card and returns no listing;
+<code>list_sdcard_files</code> returns the listing itself, and with its default <code>cached=False</code> it
+already does a live FTPS fetch of its own.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>mode</code> (string, default <code>"full"</code>): <code>'full'</code> (default) and <code>'3mf'</code> both perform ONE full live FTPS listing of the whole SD card and repopulate BOTH cached trees (the .3mf tree is derived by filtering the full one). The mode only selects whether the tool calls <code>printer.get_sdcard_contents()</code> or <code>printer.get_sdcard_3mf_files()</code> and checks that call's return value; there is no cost or scope difference. Case-insensitive.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"success": True, "mode": &lt;'full' or '3mf'&gt;, "printer": &lt;name&gt;}</code> on success. Errors
+are <code>{"error": str}</code>: <code>"Printer '&lt;name&gt;' not connected"</code>,
+<code>"Unknown mode '&lt;mode&gt;'. Must be 'full' or '3mf'."</code>,
+<code>"Failed to retrieve SD card contents"</code> (the printer library reported the listing as
+failed, which it does by returning None and clearing both cached trees, so the cache
+is empty, not merely stale), or <code>"Error refreshing SD card on '&lt;name&gt;': &lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>The refresh is synchronous: the updated data is available immediately. It triggers an
+explicit re-read of the SD card contents over FTPS and repopulates the printer library's
+cache; it changes nothing on the printer. Success means the library returned a
+listing tree, and an empty card is a success with no <code>children</code>. A listing that
+failed (a timeout, a dropped connection, a folder that could not be listed) is the
+<code>Failed to retrieve SD card contents</code> error, never a success. A folder the printer
+refuses to list is treated as empty. If the call raises instead (for example the FTPS
+connection cannot be opened), the error names the exception and the previous cached
+trees are left in place.</p>
+<h2 id="rename_sdcard_file">rename_sdcard_file</h2>
+<p><strong>Rename SD Card File</strong> · write · needs <code>user_permission=True</code></p>
+<p>Rename or move a file on the printer's SD card.</p>
+<p><strong>WHEN to use:</strong> change a file's name, or move it to another folder on the card, without
+re-uploading it.</p>
+<p><strong>WRITE GUARD:</strong> renames or moves the file on the printer's SD card over FTPS, so it no longer
+exists at its old path. With <code>user_permission</code> False the tool changes nothing and returns
+the <code>{"error": ...}</code> refusal naming that consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>rename_sdcard_file</code> moves or renames a file that is already on
+the card; <code>upload_file</code> copies a new file from this host, and <code>delete_file</code> removes a
+file's data.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>src_path</code> (string, required): Full SD card path of the existing file, for example <code>'/cache/my_old_name.gcode.3mf'</code>.</li>
+<li><code>dest_path</code> (string, required): Full SD card path to move it to. Both paths must be on the SD card.</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Must be True to execute. Default False.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"success": True, "src_path": &lt;src_path&gt;, "dest_path": &lt;dest_path&gt;}</code> on success (no
+listing is returned). Errors are <code>{"error": str}</code>: the <code>_permission_denied</code> refusal
+when <code>user_permission</code> is False, <code>"Printer '&lt;name&gt;' not connected"</code>, or
+<code>"Error renaming file on '&lt;name&gt;': &lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>This is an FTPS rename operation, not a copy: the file is moved or renamed in place and
+no data is re-uploaded. Each call then performs a FULL live FTPS listing of the card
+and repopulates the printer library's cached trees; a listing that raises surfaces as a
+rename error even though the rename succeeded, while a listing the library reports as
+failed is not surfaced, because the rename it followed did succeed. Cached plate
+metadata keyed to the old path is not renamed.</p>
+<h2 id="upload_file">upload_file</h2>
+<p><strong>Upload File To SD Card</strong> · write, destructive · needs <code>user_permission=True</code></p>
+<p>Upload a local file to the printer's SD card.</p>
+<p><strong>WHEN to use:</strong> put a file from this host onto the printer's SD card, for example a sliced
+.3mf you want to print, or to replace a file already on the card.</p>
+<p><strong>WRITE GUARD:</strong> writes the file to the printer's SD card over FTPS, replacing any existing
+file at that remote path. With <code>user_permission</code> False the tool changes nothing and
+returns the <code>{"error": ...}</code> refusal naming that consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>upload_file</code> copies a file from this host to the printer;
+<code>download_file</code> copies the other way, from the printer to this host.
+<code>rename_sdcard_file</code> moves a file that is already on the card without re-uploading it.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>local_path</code> (string, required): Full path of the file on this host to upload. It is not constrained to any directory: any file readable by this host can be copied to the printer's SD card.</li>
+<li><code>remote_path</code> (string, required): Full destination path on the printer's SD card.</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Must be True to execute. Default False.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"success": True, "remote_path": &lt;remote_path&gt;, "contents": &lt;refreshed SD card
+tree&gt;}</code> on success; <code>contents</code> is the printer library's SD card listing taken after
+the upload. It is null when that listing failed; the upload itself succeeded either
+way, so the tool still returns success. Errors are <code>{"error": str}</code>: the
+<code>_permission_denied</code> refusal when <code>user_permission</code> is False,
+<code>"Printer '&lt;name&gt;' not connected"</code>, or <code>"Error uploading file: &lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>If <code>local_path</code> ends in <code>.3mf</code>, the project metadata is parsed and cached after the
+transfer, and the SD card is then re-listed. A failure in either step (for example an
+unsliced .3mf lacking <code>Metadata/slice_info.config</code>) surfaces as <code>"Error uploading
+file: ..."</code> even though the file is ALREADY on the card; check with <code>get_file_info</code>
+before retrying.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

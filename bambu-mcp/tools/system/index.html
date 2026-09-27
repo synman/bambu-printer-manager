@@ -1,0 +1,2404 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/bambu-mcp/tools/system/">
+      
+      
+        <link rel="prev" href="../files/">
+      
+      
+        <link rel="next" href="../discovery/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.3">
+    
+    
+      
+        <title>System - bambu-printer-manager</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#system" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="bambu-printer-manager" class="md-header__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            bambu-printer-manager
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              System
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../data-dictionary/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Data Dictionary
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../mqtt-protocol-reference/" class="md-tabs__link">
+          
+  
+  
+  MQTT & Integration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../api-reference/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  API Reference
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../reference/bpm/__init__/" class="md-tabs__link">
+          
+  
+  
+  Code Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../container/" class="md-tabs__link">
+          
+  
+  
+  Client Container
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../" class="md-tabs__link">
+          
+  
+  
+  bambu-mcp
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../license/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  License
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="bambu-printer-manager" class="md-nav__button md-logo" aria-label="bambu-printer-manager" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    bambu-printer-manager
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../data-dictionary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Dictionary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MQTT & Integration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MQTT & Integration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../mqtt-protocol-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protocol Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Code Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../reference/bpm/__init__/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bpm
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    bpm
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambucommands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambucommands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuconfig/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuconfig
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambudiscovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambudiscovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuprinter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuprinter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuproject/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuproject
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambuspool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambuspool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambustate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambustate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/bambutools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambutools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_9" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../reference/bpm/ftpsclient/__init__/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ftpsclient
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_9" id="__nav_5_1_9_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_1_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ftpsclient
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/bpm/ftpsclient/ftpsclient/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ftpsclient
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Client Container
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Client Container
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../container/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bambu-mcp
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    bambu-mcp
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP Tools
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7_2" id="__nav_7_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MCP Tools
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Printer State
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../print-control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Print Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../climate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Climate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filament & AMS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nozzle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nozzles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../detectors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detectors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Printer Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#dump_log" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dump_log
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#force_state_refresh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        force_state_refresh
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_firmware_version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_firmware_version
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_server_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_server_info
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_session_status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_session_status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pause_mqtt_session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pause_mqtt_session
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rename_printer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        rename_printer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resume_mqtt_session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        resume_mqtt_session
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#set_print_options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_print_options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trigger_printer_refresh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        trigger_printer_refresh
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#truncate_log" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        truncate_log
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Raw Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../camera/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Camera
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alerts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../snapshots/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Snapshots & Monitoring Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../charts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Charts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rest-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    REST API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<!-- Generated by bambu-mcp/gen_docs.py. Do not edit here: change the source in bambu-mcp and re-run the generator. -->
+
+<h1 id="system">System</h1>
+<p>11 tools, defined in <a href="https://github.com/synman/bambu-mcp/blob/main/tools/system.py"><code>tools/system.py</code></a>.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Title</th>
+<th>Access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#dump_log"><code>dump_log</code></a></td>
+<td>Read Server Log</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#force_state_refresh"><code>force_state_refresh</code></a></td>
+<td>Force Printer State Refresh</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#get_firmware_version"><code>get_firmware_version</code></a></td>
+<td>Get Firmware Version</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_server_info"><code>get_server_info</code></a></td>
+<td>Get Server Port Info</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#get_session_status"><code>get_session_status</code></a></td>
+<td>Get MQTT Session Status</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td><a href="#pause_mqtt_session"><code>pause_mqtt_session</code></a></td>
+<td>Pause MQTT Session</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#rename_printer"><code>rename_printer</code></a></td>
+<td>Rename Printer Device</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#resume_mqtt_session"><code>resume_mqtt_session</code></a></td>
+<td>Resume MQTT Session</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#set_print_options"><code>set_print_options</code></a></td>
+<td>Set Print Options</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#trigger_printer_refresh"><code>trigger_printer_refresh</code></a></td>
+<td>Trigger Printer Refresh</td>
+<td>write</td>
+</tr>
+<tr>
+<td><a href="#truncate_log"><code>truncate_log</code></a></td>
+<td>Truncate Server Log</td>
+<td>write, destructive</td>
+</tr>
+</tbody>
+</table>
+<h2 id="dump_log">dump_log</h2>
+<p><strong>Read Server Log</strong> · read-only</p>
+<p>Return the bambu-mcp server log.</p>
+<p><strong>WHEN to use:</strong> diagnose connection issues, tool errors, or unexpected printer behavior by
+reading the last lines of the server log. It is a server-level operation and takes no
+printer parameter.</p>
+<p><strong>Sibling disambiguation:</strong> <code>dump_log</code> reads the server log file and changes nothing.
+<code>truncate_log</code> empties that same file, so read what you need with <code>dump_log</code> first.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>tail_lines</code> (integer, default <code>200</code>): Number of lines to return from the end of the log (default 200). Reduce it to shrink the response. The value is not validated: 0 returns the whole file.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"lines": [str], "total_lines": int, "log_path": str}</code> on success: <code>lines</code> holds the
+last <code>tail_lines</code> log lines (newest last), <code>total_lines</code> is the number of lines
+returned (not the size of the whole file), and <code>log_path</code> is the absolute path to the
+log file. When the log file does not exist yet, the same three keys are returned with an
+empty <code>lines</code>, <code>total_lines</code> 0, and an added <code>note</code> string. Error:
+<code>{"error": "Error reading log file: &lt;exception&gt;"}</code>.</p>
+<p><strong>Notes</strong></p>
+<p>The log file is <code>bambu-mcp.log</code> in the bambu-mcp install directory (the repository
+root); <code>log_path</code> in the result gives its absolute path.</p>
+<p>The log file captures entries at the current runtime log level (both root and bpm boot
+fixed at ERROR; no env var sets this). Use POST /api/set_log_level?level=DEBUG&amp;bpm_level=DEBUG
+for full debug output, then POST /api/set_bpm_verbose?printer=&lt;name&gt;&amp;verbose=true to also
+capture raw MQTT message payloads from bpm — see docs/operators-guide.md Debug-logging SOP.</p>
+<p>This tool returns its dict as-is and does not itself gzip+base64 compress the response.
+If a very large <code>tail_lines</code> produces a response the MCP limit rejects, lower
+<code>tail_lines</code>. The REST fallback <code>GET /api/dump_log</code> returns the whole log file as
+text/plain and ignores <code>tail_lines</code>.</p>
+<h2 id="force_state_refresh">force_state_refresh</h2>
+<p><strong>Force Printer State Refresh</strong> · write · needs <code>user_permission=True</code></p>
+<p>Send a push_all / ANNOUNCE_PUSH request to force the printer to re-broadcast its full state.</p>
+<p><strong>WHEN to use:</strong> printer state appears stale or fields are missing and you want the result as a
+dict.</p>
+<p><strong>WRITE GUARD:</strong> publishes ANNOUNCE_VERSION and ANNOUNCE_PUSH requests to the printer's MQTT
+request topic so it re-sends its full state. It changes no printer setting. With
+<code>user_permission</code> unset the tool changes nothing, does not call printer.refresh(), and
+returns the refusal naming that consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>force_state_refresh</code> and <code>trigger_printer_refresh</code> make the same
+<code>printer.refresh()</code> call and differ only in return shape: this one returns a dict,
+<code>trigger_printer_refresh</code> returns a string.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Set to True only after the operator approves sending the refresh requests to the printer.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A dict. Success: <code>{"success": True, "message": "State refresh request sent to
+'&lt;name&gt;'."}</code>. Errors are <code>{"error": str}</code>: the refusal <code>"Error: user_permission must
+be True to perform this action. &lt;consequence&gt;"</code>, <code>"Printer '&lt;name&gt;' not connected"</code>, or
+<code>"Error sending state refresh for '&lt;name&gt;': &lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>The tool calls printer.refresh(), which publishes ANNOUNCE_VERSION and ANNOUNCE_PUSH via
+MQTT, but only while the BPM service state is CONNECTED. In any other state (for example
+PAUSED) it sends nothing, and the tool still returns the success dict. Check
+<code>get_session_status</code> if state does not update.</p>
+<h2 id="get_firmware_version">get_firmware_version</h2>
+<p><strong>Get Firmware Version</strong> · read-only</p>
+<p>Return the current firmware version for the named printer.</p>
+<p><strong>WHEN to use:</strong> check which firmware a printer (and its AMS, when reported) is running, for
+example before deciding whether a firmware-dependent feature is available.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_firmware_version</code> returns the firmware versions alone.
+<code>get_printer_info</code> returns the model and serial number together with the firmware version.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"firmware_version": str, "ams_firmware_version": str}</code> on success. Both are strings
+and read <code>""</code> (never None) until the printer reports them: <code>firmware_version</code> until
+the version handshake reply arrives, and <code>ams_firmware_version</code> also on a printer with
+no AMS. To detect a missing value test for the empty string, not None; call
+<code>trigger_printer_refresh</code> if <code>firmware_version</code> stays <code>""</code>. Error: <code>{"error":
+"Printer '&lt;name&gt;' not connected"}</code> when the printer has no live session.</p>
+<h2 id="get_server_info">get_server_info</h2>
+<p><strong>Get Server Port Info</strong> · read-only</p>
+<p>Return runtime port pool state for the bambu-mcp server.</p>
+<p><strong>WHEN to use:</strong> discover the actual REST API port at runtime before constructing an HTTP request
+URL (the REST API base URL is http://localhost:{api_port}/api), or to see which ports the
+shared pool has claimed.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_server_info</code> reports server-wide port usage, including every
+active MJPEG camera stream. <code>get_stream_url</code> returns the camera stream details for one
+named printer.</p>
+<p><strong>Args:</strong> none.</p>
+<p><strong>Parameters:</strong> none.</p>
+<p><strong>Returns</strong></p>
+<p>A dict on success:</p>
+<ul>
+<li><code>api_port</code>: TCP port the REST API is currently bound to (0 if not running).</li>
+<li><code>api_url</code>: convenience base URL, <code>http://localhost:{api_port}/api</code>.</li>
+<li><code>pool_start</code>: first port in the shared ephemeral pool (default 49152).</li>
+<li><code>pool_end</code>: last port in the shared ephemeral pool, inclusive (default 49351).</li>
+<li><code>pool_size</code>: total number of ports in the pool (<code>pool_end - pool_start + 1</code>; 200 with
+  the default range).</li>
+<li><code>pool_available</code>: <code>pool_size</code> minus the number of claimed ports. It is understated
+  when a claimed port lies outside the pool range (for example an out-of-range
+  <code>BAMBU_API_PORT</code>).</li>
+<li><code>pool_claimed</code>: sorted list of all currently claimed port numbers (the REST API port
+  plus all active MJPEG stream ports).</li>
+<li><code>stream_count</code>: number of active MJPEG camera streams.</li>
+<li><code>streams</code>: dict of <code>{printer_name: {port, url}}</code> for each active stream.</li>
+</ul>
+<p>On failure: <code>{"error": "Error retrieving server info: &lt;exception&gt;"}</code>.</p>
+<p><strong>Notes</strong></p>
+<p>The bambu-mcp HTTP REST API and all MJPEG camera stream servers draw ports from a shared
+ephemeral pool anchored at port 49152 (IANA RFC 6335 Dynamic/Private range 49152-65535).
+Ports are allocated on demand and released when listeners stop.</p>
+<p>The server also registers a Zeroconf/mDNS service (<code>_bambu-mcp._tcp.local.</code>) at startup
+so non-MCP clients can discover the port without calling this tool. See
+kb_get('bambu-http-system') for the TXT record schema.</p>
+<p>Environment variables that control the pool:</p>
+<ul>
+<li><code>BAMBU_PORT_POOL_START</code>: override pool start (default 49152).</li>
+<li><code>BAMBU_PORT_POOL_END</code>: override pool end (default 49351).</li>
+<li><code>BAMBU_API_PORT</code>: preferred port for the REST API. It is tried first and is honoured
+  even when it lies outside the pool; otherwise the pool is rescanned from <code>pool_start</code>
+  (the scan does not continue from the preferred port).</li>
+</ul>
+<p>Example, construct the REST API base URL::</p>
+<p>info = get_server_info()
+base_url = f"http://localhost:{info['api_port']}/api"</p>
+<h2 id="get_session_status">get_session_status</h2>
+<p><strong>Get MQTT Session Status</strong> · read-only</p>
+<p>Return the current MQTT session state and connectivity info for the named printer.</p>
+<p><strong>WHEN to use:</strong> check whether a printer's MQTT session is connected or paused, for example
+after <code>pause_mqtt_session</code> or <code>resume_mqtt_session</code>, or when live state looks stale.</p>
+<p><strong>Sibling disambiguation:</strong> <code>get_session_status</code> reports on a printer that has a live session
+object and returns an error dict for one that does not. <code>get_printer_connection_status</code>
+inspects one printer by name and reports configured=False for an unknown name instead of an
+error.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"name": str, "connected": bool, "service_state": str, "session_active": True}</code> on
+success. <code>connected</code> is True only when the service state is CONNECTED;
+<code>service_state</code> is the BPM service state enum name (NO_STATE, CONNECTED, DISCONNECTED,
+PAUSED or QUIT);
+<code>session_active</code> is always True on success, because a printer without a live session
+returns the error shape instead. Errors: <code>{"error": "Printer '&lt;name&gt;' not connected"}</code>
+when the printer has no live session, or <code>{"error": "Error getting session status:
+&lt;exception&gt;"}</code> on failure.</p>
+<h2 id="pause_mqtt_session">pause_mqtt_session</h2>
+<p><strong>Pause MQTT Session</strong> · write · needs <code>user_permission=True</code></p>
+<p>Pause the MQTT session for the named printer, stopping telemetry updates.</p>
+<p><strong>WHEN to use:</strong> stop live telemetry from a printer without removing it, for example to quiet a
+session you are debugging. Undo it with <code>resume_mqtt_session</code>.</p>
+<p><strong>WRITE GUARD:</strong> unsubscribes from the printer's MQTT report topic and sets the session state to
+PAUSED, so live state stops updating. The printer configuration is retained. With
+<code>user_permission</code> unset the tool changes nothing and returns the refusal string naming that
+consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>pause_mqtt_session</code> only stops the incoming telemetry and keeps
+the configuration; <code>resume_mqtt_session</code> reverses it. <code>disconnect_printer</code> tears down the
+camera stream and the MQTT session while keeping the printer configured.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Set to True only after the operator approves pausing this printer's telemetry.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A string. Success: <code>"MQTT session paused for '&lt;name&gt;'."</code>. Errors are strings starting
+with <code>"Error"</code>: the refusal <code>"Error: user_permission must be True to perform this
+action. &lt;consequence&gt;"</code>, <code>"Error: Printer '&lt;name&gt;' not connected."</code> (the printer has no
+live session), or <code>"Error pausing session for '&lt;name&gt;': &lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>Telemetry is the continuous stream of printer state updates (temperatures, fan speeds,
+print progress) received over MQTT. While paused, tools that read live state
+(get_printer_state, get_temperatures, etc.) will return stale data. Pausing an
+already-paused session is a no-op that still returns the success string.</p>
+<h2 id="rename_printer">rename_printer</h2>
+<p><strong>Rename Printer Device</strong> · write · needs <code>user_permission=True</code></p>
+<p>Rename the printer device by sending it a RENAME_PRINTER command.</p>
+<p><strong>WHEN to use:</strong> change the device name the printer itself holds, as opposed to the local
+identifier this MCP uses.</p>
+<p><strong>WRITE GUARD:</strong> publishes a RENAME_PRINTER command (<code>update.name</code>) to the printer. It does not
+change the local identifier this MCP uses for the printer. Where the new name becomes visible
+(the printer's touchscreen, Bambu Studio) is expected behaviour that this code does not
+establish. With <code>user_permission</code> unset the tool changes nothing and returns the refusal
+string naming that consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>rename_printer</code> renames the printer device itself. The local
+identifier used by this MCP is determined by the name passed to <code>add_printer</code> and is not
+changed here. <code>rename_sdcard_file</code> renames a file on the printer's SD card, not the
+printer.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (the local identifier, see <code>get_configured_printers</code>).</li>
+<li><code>new_name</code> (string, required): New device name to send to the printer.</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Set to True only after the operator approves renaming the printer device.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A string on success: <code>"Rename command sent to '&lt;name&gt;': printer display name set to
+'&lt;new_name&gt;'."</code> (the publish call returned; delivery is not checked, since with the MQTT
+connection down the message is dropped silently, and the printer's acceptance is not
+confirmed). String errors: the refusal <code>"Error: user_permission must be True to perform this
+action. &lt;consequence&gt;"</code> and <code>"Error renaming printer '&lt;name&gt;': &lt;exception&gt;"</code>. A printer
+with no live session returns a dict instead of a string:
+<code>{"error": "Printer '&lt;name&gt;' not connected"}</code>.</p>
+<h2 id="resume_mqtt_session">resume_mqtt_session</h2>
+<p><strong>Resume MQTT Session</strong> · write · needs <code>user_permission=True</code></p>
+<p>Resume a paused MQTT session for the named printer.</p>
+<p><strong>WHEN to use:</strong> restart telemetry after <code>pause_mqtt_session</code>, or when a session has dropped
+and live state has stopped updating.</p>
+<p><strong>WRITE GUARD:</strong> re-subscribes to the printer's MQTT report topic to restart telemetry, and if the
+MQTT session thread has exited it opens a new MQTT session to the printer. With
+<code>user_permission</code> unset the tool changes nothing and returns the refusal string naming that
+consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>resume_mqtt_session</code> restarts telemetry for a printer that already
+has a session object; <code>pause_mqtt_session</code> is its opposite. <code>get_session_status</code> reads the
+resulting state without changing it.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Set to True only after the operator approves resuming or reconnecting this printer's MQTT session.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A string. Success: <code>"MQTT session resumed for '&lt;name&gt;'."</code>. Errors are strings starting
+with <code>"Error"</code>: the refusal <code>"Error: user_permission must be True to perform this
+action. &lt;consequence&gt;"</code>, <code>"Error: Printer '&lt;name&gt;' not connected."</code> (the printer has no
+live session), or <code>"Error resuming session for '&lt;name&gt;': &lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>The success string is returned once the resume call completes without raising; it does not
+confirm that the session reached CONNECTED. Call <code>get_session_status</code> to check. If the
+session is not paused and its session thread is still alive, the call does nothing and
+still returns the success string; if that thread has exited, it starts a new session.
+If the session is paused but its MQTT connection has dropped while the session thread is
+still alive, the library leaves the state at QUIT and relies on paho's own reconnect: no
+new session is opened, and <code>get_session_status</code> reads QUIT until that reconnect
+completes.</p>
+<h2 id="set_print_options">set_print_options</h2>
+<p><strong>Set Print Options</strong> · write · needs <code>user_permission=True</code></p>
+<p>Set one or more print option flags on the printer via MQTT.</p>
+<p><strong>WHEN to use:</strong> turn auto recovery and printer sound notifications on or off in one call.</p>
+<p><strong>WRITE GUARD:</strong> sends an MQTT print-option command to the printer for each flag you pass
+(auto_recovery, sound), which changes whether the printer resumes a print after a power loss
+and whether it beeps, and updates the local BPM config to match. With <code>user_permission</code> unset
+the tool changes nothing and returns the refusal naming that consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>set_print_options</code> sets only the auto_recovery and sound flags
+together and returns a dict. <code>set_print_option</code> (singular) sets one option by name from a
+wider list (including the filament tangle, nozzle blob and air print flags) and returns a
+string.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>auto_recovery</code> (boolean or null, default <code>null</code>): If True, resume the print after a power loss (bpm also describes it as step-loss recovery); False disables that. None leaves the option unchanged.</li>
+<li><code>sound</code> (boolean or null, default <code>null</code>): If True, the printer beeps for notifications; False silences them. None leaves the option unchanged.</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Set to True only after the operator approves changing these printer options.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A dict. Success: <code>{"success": True, "options_set": {"auto_recovery": bool, "sound":
+bool}}</code> listing only the options that were passed. Errors are <code>{"error": str}</code>: the
+refusal <code>"Error: user_permission must be True to perform this action. &lt;consequence&gt;"</code>,
+<code>"Printer '&lt;name&gt;' not connected"</code>, <code>"No options specified. Provide at least one of:
+auto_recovery, sound"</code> (both passed as None), or <code>"Error setting print options:
+&lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>Calls printer.set_print_option(PrintOption, bool) once per option provided, auto_recovery
+first and then sound. If the second call raises, only the error dict is returned: the
+first option has already been published and its local config updated, and the result does
+not say which succeeded.</p>
+<p>Each command carries the option keys accumulated by earlier print-option calls in this
+server process (bpm builds it from one shared module-level dict), so options you did not
+pass may be re-sent with their last-set values, possibly re-applying a value changed at
+the printer since. The same applies to <code>set_print_option</code>. <code>{"success": True}</code> means
+the publish call returned without raising, not that the printer received anything: bpm
+discards the publish result, and with the MQTT connection down paho drops the message
+without raising while the local config is still updated. Check <code>get_session_status</code>
+first.</p>
+<h2 id="trigger_printer_refresh">trigger_printer_refresh</h2>
+<p><strong>Trigger Printer Refresh</strong> · write · needs <code>user_permission=True</code></p>
+<p>Trigger a full data refresh by sending ANNOUNCE_VERSION and ANNOUNCE_PUSH via MQTT.</p>
+<p><strong>WHEN to use:</strong> printer state looks stale or fields are missing and the session reads as
+connected. Use sparingly, since frequent calls indicate a session issue.</p>
+<p><strong>WRITE GUARD:</strong> publishes ANNOUNCE_VERSION and ANNOUNCE_PUSH requests to the printer's MQTT
+request topic so it re-sends its full state. It changes no printer setting. With
+<code>user_permission</code> unset the tool changes nothing and returns the refusal string naming that
+consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>trigger_printer_refresh</code> and <code>force_state_refresh</code> make the
+same <code>printer.refresh()</code> call and differ only in return shape: this one returns a string,
+<code>force_state_refresh</code> returns a dict. <code>refresh_nozzles</code> refreshes nozzle information
+only.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>name</code> (string, required): Configured printer name (see <code>get_configured_printers</code>).</li>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Set to True only after the operator approves sending the refresh requests to the printer.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p>A string. Success: <code>"Refresh triggered for '&lt;name&gt;'."</code>. Errors are strings starting
+with <code>"Error"</code>: the refusal <code>"Error: user_permission must be True to perform this
+action. &lt;consequence&gt;"</code>, <code>"Error: Printer '&lt;name&gt;' not connected."</code> (the printer has no
+live session), or <code>"Error triggering refresh for '&lt;name&gt;': &lt;exception&gt;"</code>.</p>
+<p><strong>Notes</strong></p>
+<p>The tool calls printer.refresh(), which re-requests all state from the printer, but
+printer.refresh() publishes only while the BPM service state is CONNECTED. In any other
+state (for example PAUSED) it sends nothing, and the tool still returns the success
+string. Check <code>get_session_status</code> if state does not update.</p>
+<h2 id="truncate_log">truncate_log</h2>
+<p><strong>Truncate Server Log</strong> · write, destructive · needs <code>user_permission=True</code></p>
+<p>Truncate the bambu-mcp server log.</p>
+<p><strong>WHEN to use:</strong> start with a clean log after a debugging session. It is a server-level
+operation and takes no printer parameter.</p>
+<p><strong>WRITE GUARD:</strong> empties the server log file (<code>bambu-mcp.log</code> in the bambu-mcp install
+directory) to 0 bytes, permanently discarding every line it holds. With <code>user_permission</code>
+unset the tool changes nothing and returns the refusal naming that consequence.</p>
+<p><strong>Sibling disambiguation:</strong> <code>truncate_log</code> destroys the log contents; <code>dump_log</code> only reads
+the same file, so use it first to keep what you need.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>user_permission</code> (boolean, default <code>false</code>): Set to True only after the operator approves permanently erasing the server log.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<p><code>{"success": True, "log_path": str}</code> on success, where <code>log_path</code> is the absolute path
+of the truncated file. Errors are <code>{"error": str}</code>: the refusal <code>"Error:
+user_permission must be True to perform this action. &lt;consequence&gt;"</code>, or <code>"Error
+truncating log file: &lt;exception&gt;"</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
