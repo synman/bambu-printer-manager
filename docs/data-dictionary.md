@@ -34,7 +34,8 @@ BambuPrinter (runtime root / orchestration)
 
 BambuConfig (configuration root)
 ├── hostname, access_code, serial_number
-├── mqtt_port, client_id, username
+├── mqtt_port, mqtt_client_id, mqtt_username
+├── mqtt_connection_timeout, ftps_connection_timeout
 ├── watchdog_timeout, external_chamber
 ├── bpm_cache_path, printer_model
 ├── firmware_version, ams_firmware_version
@@ -45,6 +46,7 @@ BambuConfig (configuration root)
 
 BambuState (telemetry root)
 ├── gcode_state, active_tool, etc.
+├── active_nozzle: NozzleCharacteristics (the active extruder's nozzle)
 ├── ams_units: list[AMSUnitState]
 │   ├── ams_id, model, temp_actual, humidity, tray_exists
 │   └── dryer: AMSDryerState | None (AMS 2 Pro and AMS HT only)
@@ -52,13 +54,15 @@ BambuState (telemetry root)
 │       ├── temp_target, duration_target_hours, filament_target
 │       └── refusals, refusal_message, fail_code/message/count
 ├── extruders: list[ExtruderState]
-│   ├── id, temps, state, status
+│   ├── id, temps, state, status, nozzle: NozzleCharacteristics
 │   └── active_tray_id, target_tray_id, tray_state
 ├── spools: list[BambuSpool]
 │   └── Filament properties, color, temps, remaining
+├── extension_tool: ExtensionToolState (H2-series toolhead accessory)
+│   └── tool_type, mount_state, calibration_raw, type_raw
 └── climate: BambuClimate
-    ├── bed_temp, chamber_temp, nozzle_temp
-    ├── fans: part_cooling, aux, exhaust, heatbreak
+    ├── bed_temp, chamber_temp
+    ├── fans: part_cooling, aux, exhaust, heatbreak, enhanced_cooling_fan_target
     └── doors: chamber_door, lid, top_vent
 
 ActiveJobInfo (project root)
@@ -114,6 +118,8 @@ Quick alphabetical reference to all documented fields. Fields marked with * appe
 | [ams_status_raw](#ams_status_raw) | BambuState | Raw AMS status bitmask | [Field Definition](#ams_status_raw) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
 | [nozzle_temp_max](#nozzle_temp_max) | BambuSpool | Maximum safe nozzle temperature | [Field Definition](#nozzle_temp_max) · [BambuSpool](reference/bpm/bambuspool.md#bpm.bambuspool.BambuSpool) |
 | [ams_status_text](#ams_status_text) | BambuState | Human-readable AMS status | [Field Definition](#ams_status_text) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
+| [filament_step](#filament_step) | BambuState | The running load or unload step, as Bambu Studio names it | [Field Definition](#filament_step) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
+| [hw_switch_state](#hw_switch_state) | BambuState | Filament-at-extruder switch | [Field Definition](#hw_switch_state) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
 | [nozzle_temp_min](#nozzle_temp_min) | BambuSpool | Minimum safe nozzle temperature | [Field Definition](#nozzle_temp_min) · [BambuSpool](reference/bpm/bambuspool.md#bpm.bambuspool.BambuSpool) |
 | [ams_units](#ams_units) | BambuState | Complete state of all connected AMS units | [Field Definition](#ams_units) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
 | [assigned_to_ams_id](#assigned_to_ams_id) | ExtruderState | AMS unit assigned to this extruder | [Field Definition](#assigned_to_ams_id) · [ExtruderState](reference/bpm/bambustate.md#bpm.bambustate.ExtruderState) |
@@ -242,6 +248,43 @@ Quick alphabetical reference to all documented fields. Fields marked with * appe
 | [stg](#stg) | BambuState (raw print field) | Firmware stage sequence/state vector | [Field Definition](#stg) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
 | [s_obj](#s_obj) | BambuState (raw print field) | Skipped-object payload list consumed by runtime skipped-object cache | [Field Definition](#s_obj) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
 | [filam_bak](#filam_bak) | BambuState (raw print field) | Firmware filament backup/alternate list block | [Field Definition](#filam_bak) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
+| [active_nozzle](#active_nozzle) | BambuState | Normalized characteristics of the currently active nozzle | [Field Definition](#active_nozzle) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
+| [nozzle](#nozzle) | ExtruderState | Normalized nozzle characteristics for this extruder | [Field Definition](#nozzle) · [ExtruderState](reference/bpm/bambustate.md#bpm.bambustate.ExtruderState) |
+| [material](#material) | NozzleCharacteristics | Canonical nozzle material | [Field Definition](#material) · [NozzleCharacteristics](reference/bpm/bambustate.md#bpm.bambustate.NozzleCharacteristics) |
+| [diameter_mm](#diameter_mm) | NozzleCharacteristics | Nozzle diameter in millimeters | [Field Definition](#diameter_mm) · [NozzleCharacteristics](reference/bpm/bambustate.md#bpm.bambustate.NozzleCharacteristics) |
+| [flow](#flow) | NozzleCharacteristics | Nozzle flow family | [Field Definition](#flow) · [NozzleCharacteristics](reference/bpm/bambustate.md#bpm.bambustate.NozzleCharacteristics) |
+| [encoded_id](#encoded_id) | NozzleCharacteristics | Raw encoded nozzle identifier | [Field Definition](#encoded_id) · [NozzleCharacteristics](reference/bpm/bambustate.md#bpm.bambustate.NozzleCharacteristics) |
+| [telemetry_type_raw](#telemetry_type_raw) | NozzleCharacteristics | Raw `nozzle_type` telemetry string | [Field Definition](#telemetry_type_raw) · [NozzleCharacteristics](reference/bpm/bambustate.md#bpm.bambustate.NozzleCharacteristics) |
+| [extension_tool](#extension_tool) | BambuState | Toolhead extension-tool interface state | [Field Definition](#extension_tool) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
+| [tool_type](#tool_type) | ExtensionToolState | Attached extension tool type | [Field Definition](#tool_type) · [ExtensionToolState](reference/bpm/bambustate.md#bpm.bambustate.ExtensionToolState) |
+| [mount_state](#mount_state) | ExtensionToolState | Extension tool mount state | [Field Definition](#mount_state) · [ExtensionToolState](reference/bpm/bambustate.md#bpm.bambustate.ExtensionToolState) |
+| [calibration_raw](#calibration_raw) | ExtensionToolState | Raw extension tool calibration value | [Field Definition](#calibration_raw) · [ExtensionToolState](reference/bpm/bambustate.md#bpm.bambustate.ExtensionToolState) |
+| [type_raw](#type_raw) | ExtensionToolState | Raw extension tool type code | [Field Definition](#type_raw) · [ExtensionToolState](reference/bpm/bambustate.md#bpm.bambustate.ExtensionToolState) |
+| [is_enhanced_cooling_fan_mounted](#is_enhanced_cooling_fan_mounted) | ExtensionToolState | Whether the Enhanced Cooling Fan is mounted and connected | [Field Definition](#is_enhanced_cooling_fan_mounted) · [ExtensionToolState](reference/bpm/bambustate.md#bpm.bambustate.ExtensionToolState) |
+| [enhanced_cooling_fan_target_percent](#enhanced_cooling_fan_target_percent) | BambuClimate | Commanded Toolhead Enhanced Cooling Fan speed | [Field Definition](#enhanced_cooling_fan_target_percent) · [BambuClimate](reference/bpm/bambustate.md#bpm.bambustate.BambuClimate) |
+| [mqtt_connection_timeout](#mqtt_connection_timeout) | BambuConfig | MQTT connection timeout | [Field Definition](#mqtt_connection_timeout) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
+| [ftps_connection_timeout](#ftps_connection_timeout) | BambuConfig | FTPS connection timeout | [Field Definition](#ftps_connection_timeout) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
+| [spaghetti_detector](#spaghetti_detector) | BambuConfig | Toggles the spaghetti detector | [Field Definition](#spaghetti_detector) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
+| [spaghetti_detector_sensitivity](#spaghetti_detector_sensitivity) | BambuConfig | Spaghetti detector sensitivity | [Field Definition](#spaghetti_detector_sensitivity) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
+| [purgechutepileup_detector](#purgechutepileup_detector) | BambuConfig | Toggles the purge-chute pile-up detector | [Field Definition](#purgechutepileup_detector) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
+| [purgechutepileup_detector_sensitivity](#purgechutepileup_detector_sensitivity) | BambuConfig | Purge-chute pile-up detector sensitivity | [Field Definition](#purgechutepileup_detector_sensitivity) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
+| [nozzleclumping_detector](#nozzleclumping_detector) | BambuConfig | Toggles the nozzle clumping detector | [Field Definition](#nozzleclumping_detector) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
+| [nozzleclumping_detector_sensitivity](#nozzleclumping_detector_sensitivity) | BambuConfig | Nozzle clumping detector sensitivity | [Field Definition](#nozzleclumping_detector_sensitivity) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
+| [airprinting_detector](#airprinting_detector) | BambuConfig | Toggles the air-printing detector | [Field Definition](#airprinting_detector) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
+| [airprinting_detector_sensitivity](#airprinting_detector_sensitivity) | BambuConfig | Air-printing detector sensitivity | [Field Definition](#airprinting_detector_sensitivity) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
+| [nozzle_blob_detect](#nozzle_blob_detect) | BambuConfig | Legacy firmware nozzle blob detection | [Field Definition](#nozzle_blob_detect) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
+| [air_print_detect](#air_print_detect) | BambuConfig | Legacy firmware air-print detection | [Field Definition](#air_print_detect) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
+| [has_sound_enable_support](#has_sound_enable_support) | PrinterCapabilities | Sound control support flag | [Field Definition](#has_sound_enable_support) · [PrinterCapabilities](reference/bpm/bambuconfig.md#bpm.bambuconfig.PrinterCapabilities) |
+| [has_auto_recovery_support](#has_auto_recovery_support) | PrinterCapabilities | Auto-recovery support flag | [Field Definition](#has_auto_recovery_support) · [PrinterCapabilities](reference/bpm/bambuconfig.md#bpm.bambuconfig.PrinterCapabilities) |
+| [has_auto_switch_filament_support](#has_auto_switch_filament_support) | PrinterCapabilities | AMS auto-switch support flag | [Field Definition](#has_auto_switch_filament_support) · [PrinterCapabilities](reference/bpm/bambuconfig.md#bpm.bambuconfig.PrinterCapabilities) |
+| [has_filament_tangle_detect_support](#has_filament_tangle_detect_support) | PrinterCapabilities | Filament tangle detect support flag | [Field Definition](#has_filament_tangle_detect_support) · [PrinterCapabilities](reference/bpm/bambuconfig.md#bpm.bambuconfig.PrinterCapabilities) |
+| [has_nozzle_blob_detect_support](#has_nozzle_blob_detect_support) | PrinterCapabilities | Nozzle blob detect support flag | [Field Definition](#has_nozzle_blob_detect_support) · [PrinterCapabilities](reference/bpm/bambuconfig.md#bpm.bambuconfig.PrinterCapabilities) |
+| [has_air_print_detect_support](#has_air_print_detect_support) | PrinterCapabilities | Air-print detect support flag | [Field Definition](#has_air_print_detect_support) · [PrinterCapabilities](reference/bpm/bambuconfig.md#bpm.bambuconfig.PrinterCapabilities) |
+| [has_buildplate_marker_detector_support](#has_buildplate_marker_detector_support) | PrinterCapabilities | Buildplate marker detector support flag | [Field Definition](#has_buildplate_marker_detector_support) · [PrinterCapabilities](reference/bpm/bambuconfig.md#bpm.bambuconfig.PrinterCapabilities) |
+| [has_spaghetti_detector_support](#has_spaghetti_detector_support) | PrinterCapabilities | Spaghetti detector support flag | [Field Definition](#has_spaghetti_detector_support) · [PrinterCapabilities](reference/bpm/bambuconfig.md#bpm.bambuconfig.PrinterCapabilities) |
+| [has_purgechutepileup_detector_support](#has_purgechutepileup_detector_support) | PrinterCapabilities | Purge-chute pile-up detector support flag | [Field Definition](#has_purgechutepileup_detector_support) · [PrinterCapabilities](reference/bpm/bambuconfig.md#bpm.bambuconfig.PrinterCapabilities) |
+| [has_nozzleclumping_detector_support](#has_nozzleclumping_detector_support) | PrinterCapabilities | Nozzle clumping detector support flag | [Field Definition](#has_nozzleclumping_detector_support) · [PrinterCapabilities](reference/bpm/bambuconfig.md#bpm.bambuconfig.PrinterCapabilities) |
+| [has_airprinting_detector_support](#has_airprinting_detector_support) | PrinterCapabilities | Air-printing detector support flag | [Field Definition](#has_airprinting_detector_support) · [PrinterCapabilities](reference/bpm/bambuconfig.md#bpm.bambuconfig.PrinterCapabilities) |
 
 ---
 
@@ -293,6 +336,20 @@ Main configuration class for [`BambuPrinter`](reference/bpm/bambuprinter.md#bpm.
 - **Purpose**: Authentication username for the local MQTT broker
 - **Reference**: Bambu Lab Printer username constant
 
+#### mqtt_connection_timeout
+- **Type**: `int`
+- **Default**: `10`
+- **Unit**: seconds
+- **Purpose**: Duration to wait for the MQTT connection to be established before timing out
+- **Reference**: MQTT connection handshake
+
+#### ftps_connection_timeout
+- **Type**: `int`
+- **Default**: `15`
+- **Unit**: seconds
+- **Purpose**: Duration to wait for the FTPS control connection to be established before timing out
+- **Reference**: `BambuPrinter.ftp_connection()` passes this as the `IoTFTPSClient` timeout
+
 ### Operational Settings
 
 #### watchdog_timeout
@@ -310,8 +367,8 @@ Main configuration class for [`BambuPrinter`](reference/bpm/bambuprinter.md#bpm.
 - **Reference**: CTC (Chamber Thermal Controller) override
 
 #### capabilities
-- **Type**: `PrinterCapabilities | None`
-- **Default**: `None` (auto-creates default instance in `__post_init__`)
+- **Type**: `PrinterCapabilities`
+- **Default**: `field(default_factory=PrinterCapabilities)` — a fresh default-valued instance; **not** `None`, and `__post_init__` never touches it (it only sets `printer_model` and creates `bpm_cache_path`)
 - **Purpose**: Pre-defined or discovered hardware feature set
 - **Reference**: See [PrinterCapabilities](#printercapabilities) section
 
@@ -320,7 +377,7 @@ Main configuration class for [`BambuPrinter`](reference/bpm/bambuprinter.md#bpm.
 - **Default**: `None` (defaults to `~/.bpm` in `__post_init__`)
 - **Purpose**: The underlying directory BPM uses for managing cache/metadata
 - **Auto-Creation**: Creates the root on initialization; subdirectories are created lazily on first write
-- **Reference**: Project metadata and 3MF caching location; also holds `elapsed/<job_key>.json` and `<serial>/job/active.json` (the persisted job record, see [project_info](#project_info))
+- **Reference**: Project metadata and 3MF caching location; also holds `<serial>/elapsed/<job_key>.json` and `<serial>/job/active.json` (the persisted job record, see [project_info](#project_info))
 
 ### Read-Only Attributes
 
@@ -403,6 +460,72 @@ Main configuration class for [`BambuPrinter`](reference/bpm/bambuprinter.md#bpm.
 - **MQTT Control**: [Buildplate Marker Detection](mqtt-protocol-reference.md#buildplate-marker-detection)
 - **Reference**: Camera-based plate detection feature
 
+#### spaghetti_detector
+- **Type**: `bool`
+- **Default**: `False`
+- **Purpose**: Toggles the X-Cam AI spaghetti / failed-print detector; halts the print on a detected anomaly
+- **MQTT Control**: `BambuPrinter.set_spaghetti_detector(enabled, sensitivity)`
+- **Reference**: Guarded by `PrinterCapabilities.has_spaghetti_detector_support`
+
+#### spaghetti_detector_sensitivity
+- **Type**: `str`
+- **Default**: `"medium"`
+- **Purpose**: Sensitivity level for spaghetti detection pause behavior (`low`|`medium`|`high`)
+- **Reference**: See [DetectorSensitivity](#detectorsensitivity)
+
+#### purgechutepileup_detector
+- **Type**: `bool`
+- **Default**: `False`
+- **Purpose**: Toggles the X-Cam AI purge-chute pile-up detector; halts the print to prevent purge waste blocking the toolhead
+- **MQTT Control**: `BambuPrinter.set_purgechutepileup_detector(enabled, sensitivity)`
+- **Reference**: Guarded by `PrinterCapabilities.has_purgechutepileup_detector_support`
+
+#### purgechutepileup_detector_sensitivity
+- **Type**: `str`
+- **Default**: `"medium"`
+- **Purpose**: Sensitivity level for purge-chute pile-up pause behavior (`low`|`medium`|`high`)
+- **Reference**: See [DetectorSensitivity](#detectorsensitivity)
+
+#### nozzleclumping_detector
+- **Type**: `bool`
+- **Default**: `False`
+- **Purpose**: Toggles the X-Cam AI nozzle clumping detector; halts the print to prevent damage from filament build-up on the nozzle
+- **MQTT Control**: `BambuPrinter.set_nozzleclumping_detector(enabled, sensitivity)`
+- **Reference**: Guarded by `PrinterCapabilities.has_nozzleclumping_detector_support`
+
+#### nozzleclumping_detector_sensitivity
+- **Type**: `str`
+- **Default**: `"medium"`
+- **Purpose**: Sensitivity level for nozzle clumping pause behavior (`low`|`medium`|`high`)
+- **Reference**: See [DetectorSensitivity](#detectorsensitivity)
+
+#### airprinting_detector
+- **Type**: `bool`
+- **Default**: `False`
+- **Purpose**: Toggles the X-Cam AI air-printing / no-extrusion detector; halts the print when the nozzle is detected extruding into open air
+- **MQTT Control**: `BambuPrinter.set_airprinting_detector(enabled, sensitivity)`
+- **Reference**: Guarded by `PrinterCapabilities.has_airprinting_detector_support`
+
+#### airprinting_detector_sensitivity
+- **Type**: `str`
+- **Default**: `"medium"`
+- **Purpose**: Sensitivity level for air-printing pause behavior (`low`|`medium`|`high`)
+- **Reference**: See [DetectorSensitivity](#detectorsensitivity)
+
+#### nozzle_blob_detect
+- **Type**: `bool`
+- **Default**: `False`
+- **Purpose**: Legacy firmware-level (`home_flag`) nozzle blob/clump detection. On supported printers, prefer the X-Cam AI `set_nozzleclumping_detector()` (adds sensitivity control)
+- **MQTT Control**: `PrintOption.NOZZLE_BLOB_DETECT` via `BambuPrinter.set_print_option()`
+- **Reference**: Guarded by `PrinterCapabilities.has_nozzle_blob_detect_support`
+
+#### air_print_detect
+- **Type**: `bool`
+- **Default**: `False`
+- **Purpose**: Legacy firmware-level (`home_flag`) air-printing / no-extrusion detection. On supported printers, prefer the X-Cam AI `set_airprinting_detector()` (adds sensitivity control)
+- **MQTT Control**: `PrintOption.AIR_PRINT_DETECT` via `BambuPrinter.set_print_option()`
+- **Reference**: Guarded by `PrinterCapabilities.has_air_print_detect_support`
+
 #### verbose
 - **Type**: `bool`
 - **Default**: `False`
@@ -431,35 +554,35 @@ Hardware capabilities discovered during the initial handshake or telemetry analy
 - **Type**: `bool`
 - **Default**: `False`
 - **Purpose**: Confirmed presence of the Micro LiDAR sensor based on `xcam` telemetry existence
-- **Detection**: `xcam` status in telemetry
+- **Detection**: `print.xcam.first_layer_inspector` when an `xcam` block is present; otherwise the previous value is kept
 - **Reference**: First-layer inspection and spaghetti detection feature
 
 #### has_camera
 - **Type**: `bool`
 - **Default**: `False`
 - **Purpose**: Verified availability of the onboard AI camera module
-- **Detection**: Camera telemetry streams or status
+- **Detection**: Set unconditionally to `True` on every parsed frame — bpm assumes every supported printer has a camera
 - **Reference**: Time-lapse and monitoring capabilities
 
 #### has_dual_extruder
 - **Type**: `bool`
 - **Default**: `False`
 - **Purpose**: Identifies the H2D dual-path architecture where independent hotend monitoring is required
-- **Detection**: Printer model is H2D or dual extruder telemetry present
+- **Detection**: `len(print.device.extruder.info) > 1` — more than one entry in the extruder telemetry list; not derived from the printer model
 - **Reference**: Multi-material printing support
 
 #### has_air_filtration
 - **Type**: `bool`
 - **Default**: `False`
 - **Purpose**: Indicates the motorized airduct and filtration subsystem is physically installed
-- **Detection**: Exhaust fan control availability
+- **Detection**: Presence of a `print.device.airduct` block
 - **Reference**: Active carbon filter and VOC management
 
 #### has_chamber_temp
 - **Type**: `bool`
 - **Default**: `False`
 - **Purpose**: Confirmed presence of the Chamber Thermal Controller (CTC) ambient sensor
-- **Detection**: `chamber_temper` telemetry field existence
+- **Detection**: Presence of a `print.device.ctc` block. `chamber_temper` is the *fallback* telemetry field read when there is no CTC (and `BambuConfig.external_chamber` is not set), not the detection signal itself
 - **Reference**: Enclosed chamber temperature monitoring
 - **Override**: Can be ignored if [`BambuConfig.external_chamber`](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig.external_chamber) is True
 
@@ -467,8 +590,85 @@ Hardware capabilities discovered during the initial handshake or telemetry analy
 - **Type**: `bool`
 - **Default**: `False`
 - **Purpose**: Verification that the front glass enclosure is equipped with a hall-effect sensor
-- **Detection**: Chamber door status in telemetry
-- **Reference**: Safety interlock and environmental control
+- **Detection**: Bit 12 of the `print.fun` capability bitmask
+- **Reference**: Safety interlock and environmental control; see [is_chamber_door_open](#is_chamber_door_open) for the sensor reading itself
+
+#### has_sound_enable_support
+- **Type**: `bool`
+- **Default**: `False`
+- **Purpose**: Indicates whether prompt sound control is supported by firmware telemetry flags
+- **Detection**: Bit 18 of `print.home_flag`
+- **Reference**: Guards `BambuConfig.sound_enable` / `PrintOption.SOUND_ENABLE`
+
+#### has_auto_recovery_support
+- **Type**: `bool`
+- **Default**: `False`
+- **Purpose**: Indicates whether auto-recovery control is supported by explicit support telemetry keys
+- **Detection**: Set `True` whenever `print.home_flag` is present
+- **Reference**: Guards `BambuConfig.auto_recovery` / `PrintOption.AUTO_RECOVERY`
+
+#### has_auto_switch_filament_support
+- **Type**: `bool`
+- **Default**: `False`
+- **Purpose**: Indicates whether AMS auto-switch control is supported by explicit support telemetry keys
+- **Detection**: Mirrors `has_ams` — set `True` whenever `print.ams`/`print.ams.ams` telemetry is present
+- **Reference**: Guards `BambuConfig.auto_switch_filament` / `PrintOption.AUTO_SWITCH_FILAMENT`
+
+#### has_filament_tangle_detect_support
+- **Type**: `bool`
+- **Default**: `False`
+- **Purpose**: Indicates whether filament tangle detection control is supported by firmware telemetry flags
+- **Detection**: Bit 19 of `print.home_flag`
+- **Reference**: Guards `BambuConfig.filament_tangle_detect` / `PrintOption.FILAMENT_TANGLE_DETECT`
+
+#### has_nozzle_blob_detect_support
+- **Type**: `bool`
+- **Default**: `False`
+- **Purpose**: Indicates whether nozzle blob detection control is supported by firmware telemetry flags
+- **Detection**: Bit 25 of `print.home_flag`
+- **Reference**: Guards `BambuConfig.nozzle_blob_detect` / `PrintOption.NOZZLE_BLOB_DETECT`
+
+#### has_air_print_detect_support
+- **Type**: `bool`
+- **Default**: `False`
+- **Purpose**: Indicates whether air-print detection control is supported by firmware telemetry flags
+- **Detection**: Bit 29 of `print.home_flag`
+- **Reference**: Guards `BambuConfig.air_print_detect` / `PrintOption.AIR_PRINT_DETECT`
+
+#### has_buildplate_marker_detector_support
+- **Type**: `bool`
+- **Default**: `False`
+- **Purpose**: Indicates whether buildplate marker detector control is supported by xcam telemetry
+- **Detection**: Set `True` the first time `print.xcam.buildplate_marker_detector` is reported
+- **Reference**: Guards `BambuConfig.buildplate_marker_detector`
+
+#### has_spaghetti_detector_support
+- **Type**: `bool`
+- **Default**: `False`
+- **Purpose**: Indicates whether spaghetti detector control is supported by xcam telemetry
+- **Detection**: Bit 42 of `print.fun` (older firmware without `fun`: set `True` on the legacy `print.xcam.spaghetti_detector` key or the packed `print.xcam.cfg` form)
+- **Reference**: Guards `BambuConfig.spaghetti_detector`
+
+#### has_purgechutepileup_detector_support
+- **Type**: `bool`
+- **Default**: `False`
+- **Purpose**: Indicates whether purge-chute pile-up detector control is supported by xcam telemetry
+- **Detection**: Bit 43 of `print.fun` (older firmware: legacy `print.xcam.pileup_detector` key or packed `print.xcam.cfg`)
+- **Reference**: Guards `BambuConfig.purgechutepileup_detector`
+
+#### has_nozzleclumping_detector_support
+- **Type**: `bool`
+- **Default**: `False`
+- **Purpose**: Indicates whether nozzle-clumping detector control is supported by xcam telemetry
+- **Detection**: Bit 44 of `print.fun` (older firmware: legacy `print.xcam.clump_detector` key or packed `print.xcam.cfg`)
+- **Reference**: Guards `BambuConfig.nozzleclumping_detector`
+
+#### has_airprinting_detector_support
+- **Type**: `bool`
+- **Default**: `False`
+- **Purpose**: Indicates whether air-printing detector control is supported by xcam telemetry
+- **Detection**: Bit 45 of `print.fun` (older firmware: legacy `print.xcam.airprint_detector` key or packed `print.xcam.cfg`)
+- **Reference**: Guards `BambuConfig.airprinting_detector`
 
 ---
 
@@ -572,6 +772,12 @@ Root state object representing complete printer telemetry.
 - **MQTT Control**: [Set Nozzle Temperature Target](mqtt-protocol-reference.md#set-nozzle-temperature-target)
 - **MQTT Structure**: [MQTT Protocol Reference](mqtt-protocol-reference.md)
 
+#### active_nozzle
+- **Type**: `NozzleCharacteristics`
+- **Telemetry**: The active extruder's `nozzle` (multi-extruder), or built from `print.nozzle_type` / `print.nozzle_diameter` / `print.nozzle_id` (single-extruder)
+- **Purpose**: Normalized characteristics (material, diameter, flow family) of the currently active nozzle
+- **Reference**: See [NozzleCharacteristics](#nozzlecharacteristics) section. The deprecated `BambuPrinter.nozzle_diameter` / `.nozzle_type` properties are superseded by `active_nozzle.diameter_mm` / `.material`
+
 ### AMS Status Attributes
 
 #### ams_status_raw
@@ -587,6 +793,19 @@ Root state object representing complete printer telemetry.
 - **Valid Values**: `Idle`, `Filament Changing`, `RFID Identifying`, `Assist/Engaged`, `Calibration`, `Self Check`, `Debug`, `Unknown`
 - **Purpose**: Human-readable AMS status
 - **Reference**: BambuStudio AMS state machine
+
+#### filament_step
+- **Type**: `FilamentStep` (IntEnum), with `filament_step_type: FilamentStepType`, `filament_step_name: str` and `filament_step_text: str`
+- **Telemetry**: Derived from `ams_status_raw`, `target_tray_id` and `hw_switch_state` by `parseFilamentStep`
+- **Rule**: only while the `ams_status` high byte is 1 (filament change); otherwise `IDLE`. The low byte is the step code. A target of 254 or 255 is an external-holder load (`VT_LOAD`: 0x02 heat, 0x05 push, 0x06 confirm extruded, 0x07 purge, anything else `IDLE`). A target of -1 is an unload. Otherwise it is an AMS load (0x02 heat, 0x03 cut, 0x04 pull back, 0x05 and 0x06 push, 0x07 purge, 0x08 and 0x0B check position). Code 0x09 is a wait and keeps the step before. With `hw_switch_state` 0 an AMS load names 0x05 "Cut filament" and 0x07 "Pull back current filament", as Studio does.
+- **Text**: Studio's labels, e.g. "Heat the nozzle", "Push new filament into extruder", "Confirm extruded"; empty when `IDLE`
+- **Reference**: BambuStudio `StatusPanel.cpp` (the filament step update) and `Widgets/FilamentLoad.cpp`
+
+#### hw_switch_state
+- **Type**: `int`
+- **Telemetry**: `print.hw_switch_state`
+- **Valid Values**: 1 filament at the extruder, 0 none, -1 not reported (read as filament present, Studio's default)
+- **Purpose**: Chooses Studio's step names for an AMS load (`filament_step`)
 
 #### ams_exist_bits
 - **Type**: `int`
@@ -614,7 +833,7 @@ Root state object representing complete printer telemetry.
 #### hms_errors
 - **Type**: `list[dict]`
 - **Telemetry**: `print.hms` + decoded `print_error`
-- **Structure**: Each error contains `code`, `msg`, `module`, `severity`, `is_critical`, `type`, `url`
+- **Structure**: Each error contains `code`, `msg`, `module`, `severity`, `is_critical`, `type`, `url`. `type` is `device_error` (from `print_error`), `device_hms` (from `print.hms`) or `command_error` (a refused command reply, which also carries `command`, `ams_id` and `timestamp`, the epoch second bpm received it). `url`: a `device_hms` entry links `https://e.bambulab.com/?e=<16 hex>`, which redirects to that code's wiki page; a `device_error` (8-digit) entry links Bambu's table of those codes, `https://wiki.bambulab.com/en/hms/error-code`, since the redirector has no page for them.
 - **Schema** (`print.hms[]`):
 
 | Field | Type | Description |
@@ -625,6 +844,8 @@ Root state object representing complete printer telemetry.
 | `timestamp` | int | [Event timestamp (epoch seconds)](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L1914) |
 - **Purpose**: List of decoded HMS errors. bpm does not split active from historical entries: `severity` and `is_critical` come from the mask byte alone, so a stale code can read `Fatal`. A consumer that needs "active now" must apply its own rule (bambu-mcp keeps a `device_error` plus the first `device_hms` as active and marks the rest Historical).
 - **Update rule**: a `print` frame with no `hms` key (a `gcode_line` ACK, a partial `push_status`) keeps the previous entries. Only an explicit `"hms": []` clears the list. The `print_error` entry (`type: device_error`) is re-derived on every frame.
+- **Refused commands**: the printer refuses a load or unload in its `ams_change_filament` reply (`result: fail`, `err_code`), not in `print_error` or `hms`. bpm decodes the `err_code` with `decodeError` into a `command_error` entry, e.g. `HMS_0500-C04F` "The AMS is drying and cannot perform this operation at the moment." It survives the frames that rebuild the list, and goes when `load_filament` / `unload_filament` sends that command again, when the printer replies `result: success` to it (an accepted reply has not been captured yet), or when `clear_command_errors()` is called (BPA calls it when the user dismisses the alert). A reply with no `err_code` gives an entry with an empty `code` and the message "The printer refused the filament change."
+- **Buttons**: the `device_error` entry also carries `actions`, the buttons Bambu Studio shows for that `print_error` on this printer, in order: `[{"id", "name", "label", "command"}]` (`bambutools.hmsActions`). They come from `HMS_ACTIONS` in `bambucommands.py`, Studio's per-printer table (`hms_action_<first 3 of serial>.json`, e.g. H2D `094` ver `202604230018`, A1 `039` ver `202603041659`). A printer with no table gets `[]`. Studio's retry codes (`HMS_RETRY_CODES`: `0701-8004`, `0701-8005`, `0701-8007`, `0701-8012`, `0702-8012`, `0703-8012`, `07FF-8012`, `07FF-8013`) get Retry (`resume`) and Confirm (`clean_print_error`) on any printer instead of the table, and `0300-8002`/`8003`/`800A` add View Liveview. Ids Studio does not know are dropped. `command` is `resume`, `done` or `abort` (an `ams_control` param), `clean_print_error`, `assistant` (open the error's `url`) or `close` (send nothing), and empty for a button whose command bpm does not send (e.g. `RESUME_PRINTING_PROBELM_SOLVED`, which Studio sends as `command_hms_resume`). Press one with `BambuPrinter.send_hms_action(id)`. Examples: `07FFC006` gives `CONTINUE`; `07FF8007` gives `FILAMENT_EXTRUDED` and `RETRY_FILAMENT_EXTRUDED`.
 - **Reference**: BambuStudio HMS system, ha-bambulab error decoding
 - **MQTT Structure**: [MQTT Protocol Reference](mqtt-protocol-reference.md)
 
@@ -637,6 +858,14 @@ Root state object representing complete printer telemetry.
 - **Purpose**: Wi-Fi signal strength indicator
 - **Reference**: BambuStudio network monitoring
 - **MQTT Structure**: [MQTT Protocol Reference](mqtt-protocol-reference.md)
+
+### Extension Tool Attributes
+
+#### extension_tool
+- **Type**: `ExtensionToolState`
+- **Telemetry**: `print.device.ext_tool`
+- **Purpose**: Toolhead extension-tool interface state — the Toolhead Enhanced Cooling Fan, cutting module, and laser module all report through this one block (H2-series only)
+- **Reference**: See [ExtensionToolState](#extensiontoolstate) section
 
 ### Top-Level MQTT Fields (Raw)
 
@@ -704,6 +933,8 @@ mapped into other attributes, or used as runtime control/diagnostic inputs.
 | `bed_temp` | string | [Recommended bed temperature](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L957) |
 | `nozzle_temp_min` | string | [Recommended minimum nozzle temperature](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L1015) |
 | `nozzle_temp_max` | string | [Recommended maximum nozzle temperature](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L1016) |
+| `drying_temp` | string | Recommended drying temperature — maps to [`BambuSpool.drying_temp`](#drying_temp) (`src/bpm/bambuprinter.py` spool construction) |
+| `drying_time` | string | Recommended drying duration — maps to [`BambuSpool.drying_time`](#drying_time) (`src/bpm/bambuprinter.py` spool construction) |
 | `xcam_info` | string | [Camera/inspection metadata blob](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L1717) |
 | `tray_uuid` | string | [Tray UUID](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L1717) |
 | `ctype` | int | [Color type indicator](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L1717) |
@@ -834,6 +1065,8 @@ mapped into other attributes, or used as runtime control/diagnostic inputs.
 | `bed_temp` | string | [Recommended bed temperature](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L957) |
 | `nozzle_temp_min` | string | [Recommended minimum nozzle temperature](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L1015) |
 | `nozzle_temp_max` | string | [Recommended maximum nozzle temperature](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L1016) |
+| `drying_temp` | string | Recommended drying temperature — maps to [`BambuSpool.drying_temp`](#drying_temp) (`src/bpm/bambuprinter.py` spool construction) |
+| `drying_time` | string | Recommended drying duration — maps to [`BambuSpool.drying_time`](#drying_time) (`src/bpm/bambuprinter.py` spool construction) |
 | `xcam_info` | string | [Camera/inspection metadata blob](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L1757) |
 | `tray_uuid` | string | [Tray UUID](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L1757) |
 
@@ -867,6 +1100,8 @@ mapped into other attributes, or used as runtime control/diagnostic inputs.
 | `bed_temp` | string | [Recommended bed temperature](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L957) |
 | `nozzle_temp_min` | string | [Recommended minimum nozzle temperature](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L1015) |
 | `nozzle_temp_max` | string | [Recommended maximum nozzle temperature](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L1016) |
+| `drying_temp` | string | Recommended drying temperature — maps to [`BambuSpool.drying_temp`](#drying_temp) (`src/bpm/bambuprinter.py` spool construction) |
+| `drying_time` | string | Recommended drying duration — maps to [`BambuSpool.drying_time`](#drying_time) (`src/bpm/bambuprinter.py` spool construction) |
 | `xcam_info` | string | [Camera/inspection metadata blob](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L1798) |
 | `tray_uuid` | string | [Tray UUID](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L1798) |
 | `ctype` | int | [Color type indicator](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L1798) |
@@ -1053,7 +1288,7 @@ Physical extruder/toolhead state.
 #### id
 - **Type**: `int`
 - **Telemetry**: `extruder.info[].id`
-- **Valid Values**: `0` (right/primary), `1` (left/secondary)
+- **Valid Values**: `0` (right/primary), `1` (left/secondary); `-1` (`ActiveTool.SINGLE_EXTRUDER`) on the single-extruder placeholder built for X1/P1/A1 printers, which carry no `extruder.info[]` block at all
 - **Purpose**: Physical extruder identifier
 - **Reference**: BambuStudio extruder indexing
 
@@ -1094,6 +1329,7 @@ Physical extruder/toolhead state.
   - `EMPTY (1)`: Nozzle present, no filament
   - `BUFFER_LOADED (2)`: Filament in buffer
   - `LOADED (3)`: Filament fully loaded
+  - `NOT_AVAILABLE (4)`: Single-extruder printer placeholder — no `extruder.info[]` block exists to parse
 - **Purpose**: Filament presence state
 - **Reference**: BambuStudio `parseExtruderInfo()`
 
@@ -1105,8 +1341,17 @@ Physical extruder/toolhead state.
   - `HEATING (1)`: Heating in progress
   - `ACTIVE (2)`: Actively extruding
   - `SUCCESS (3)`: Operation completed
+  - `NOT_AVAILABLE (4)`: Single-extruder printer placeholder — no `extruder.info[]` block exists to parse
 - **Purpose**: Operational extruder state
 - **Reference**: BambuStudio `BBL_EXTRUDER_STATE` enum
+
+### Nozzle Attributes
+
+#### nozzle
+- **Type**: `NozzleCharacteristics`
+- **Telemetry**: `device.nozzle.info[]`, matched to this extruder by `hnow`/id (multi-extruder), or `print.nozzle_type` / `print.nozzle_diameter` / `print.nozzle_id` (single-extruder)
+- **Purpose**: Normalized nozzle characteristics (material, diameter, flow family) for this extruder
+- **Reference**: See [NozzleCharacteristics](#nozzlecharacteristics) section
 
 ### Tray Assignment Attributes
 
@@ -1131,7 +1376,7 @@ Physical extruder/toolhead state.
 #### tray_state
 - **Type**: `TrayState` (IntEnum)
 - **Telemetry**:
-  - Multi-extruder (H2D): Computed from `state` + `status` combination
+  - Multi-extruder (H2D): Computed from `state` + `status` combination. An idle extruder keeps the previous state of the extruder with the same `id`, and a fresh default when there is none, so the single-extruder placeholder a partial first frame builds is never inherited.
   - Single-extruder (id == SINGLE_EXTRUDER): Computed from `stage_id` — stage 24 → `LOADING`, stage 22 → `UNLOADING`, valid tray → `LOADED`, no tray → `UNLOADED`
 - **Purpose**: Loading state for this extruder's tray
 - **Reference**: State machine derived from BambuStudio
@@ -1144,6 +1389,99 @@ Physical extruder/toolhead state.
 - **Valid Range**: `-1`, `0-3`, `128-131`
 - **Purpose**: AMS unit assigned to this extruder
 - **Reference**: BambuStudio dual-extruder AMS routing
+
+---
+
+## NozzleCharacteristics
+
+Normalized nozzle material, diameter, and flow-family metadata, built from either raw telemetry fields or an encoded nozzle identifier (e.g. `HS00-0.4`). Held in [`ExtruderState.nozzle`](#nozzle) (per-extruder) and [`BambuState.active_nozzle`](#active_nozzle) (the currently active extruder's nozzle). Frozen dataclass — built fresh each frame via `NozzleCharacteristics.from_telemetry()`.
+
+**Source**: `src/bpm/bambustate.py`
+**Telemetry Root**: `print.device.nozzle.info[]` (matched to an extruder by `hnow`/id), or `print.nozzle_type` / `print.nozzle_diameter` / `print.nozzle_id` on single-extruder printers
+
+### Identification
+
+#### material
+- **Type**: `NozzleType` (Enum)
+- **Default**: `NozzleType.UNKNOWN`
+- **Telemetry**: `nozzle.info[].type` (e.g. `"hardened_steel"`), or parsed from an encoded identifier's material code when the telemetry string is absent or unrecognized
+- **Purpose**: Canonical nozzle material
+- **Reference**: See [NozzleType](#nozzletype)
+
+#### diameter_mm
+- **Type**: `float`
+- **Default**: `0.0`
+- **Telemetry**: `nozzle.info[].diameter`
+- **Unit**: mm
+- **Purpose**: Nozzle diameter
+
+#### flow
+- **Type**: `NozzleFlowType` (Enum)
+- **Default**: `NozzleFlowType.UNKNOWN`
+- **Telemetry**: Parsed from the encoded nozzle identifier's second character (`nozzle.info[].id`, e.g. `HS00-0.4`), or forced to `NozzleFlowType.STANDARD` on the single-extruder fallback path
+- **Purpose**: Nozzle flow family (standard / high-flow / TPU high-flow)
+- **Reference**: See [NozzleFlowType](#nozzleflowtype)
+
+#### encoded_id
+- **Type**: `str`
+- **Default**: `""`
+- **Telemetry**: `nozzle.info[].id` (e.g. `"HS00-0.4"`), or `print.nozzle_id` on single-extruder printers
+- **Purpose**: Raw encoded nozzle identifier, when the printer reports one
+
+#### telemetry_type_raw
+- **Type**: `str`
+- **Default**: `""`
+- **Telemetry**: `nozzle.info[].type` / `print.nozzle_type`, verbatim
+- **Purpose**: The original raw `nozzle_type` telemetry string, preserved even when it does not map to a known `NozzleType`
+
+### Methods
+
+- **`from_telemetry(nozzle_type, nozzle_diameter, nozzle_id=None, flow_type=NozzleFlowType.UNKNOWN)`**: builds an instance from raw telemetry fields, resolving `material`/`flow` from `nozzle_type` first and, when still unknown, from a parseable `nozzle_id`.
+- **`to_identifier()`**: returns `encoded_id` when present; otherwise builds one from `material`/`flow`/`diameter_mm` via [`build_nozzle_identifier()`](reference/bpm/bambutools.md#bpm.bambutools.build_nozzle_identifier). Returns `""` when `flow` is `UNKNOWN`.
+
+---
+
+## ExtensionToolState
+
+State of the toolhead extension-tool interface (H2-series only): the Toolhead Enhanced Cooling Fan, the cutting module, and the laser module all report through this one block. Held in [`BambuState.extension_tool`](#extension_tool). Frozen dataclass.
+
+**Source**: `src/bpm/bambustate.py`
+**Telemetry Root**: `print.device.ext_tool`
+
+### Fields
+
+#### tool_type
+- **Type**: `ExtensionToolType` (Enum)
+- **Default**: `ExtensionToolType.NONE`
+- **Telemetry**: `device.ext_tool.type`
+- **Purpose**: Attached tool type
+- **Note**: On cable loss the printer reports `type` as `""` (`NONE`) with `mount_state` `NO_CABLE` — key presence checks use `mount_state`, not `tool_type` alone
+- **Reference**: See [ExtensionToolType](#extensiontooltype)
+
+#### mount_state
+- **Type**: `ExtensionToolMountState` (IntEnum)
+- **Default**: `ExtensionToolMountState.UNKNOWN`
+- **Telemetry**: `device.ext_tool.mount_3d`
+- **Purpose**: Mount state; `MOUNTED` is the only healthy attached state
+- **Reference**: See [ExtensionToolMountState](#extensiontoolmountstate)
+
+#### calibration_raw
+- **Type**: `int`
+- **Default**: `-1`
+- **Telemetry**: `device.ext_tool.calib`
+- **Purpose**: Raw calibration value (`0`=none, `1`=first, `2`=mount, per BambuStudio's `CalibState`)
+
+#### type_raw
+- **Type**: `str`
+- **Default**: `""`
+- **Telemetry**: `device.ext_tool.type`, verbatim
+- **Purpose**: Raw type code from telemetry, preserved for unrecognized tools
+
+### Computed Properties
+
+#### is_enhanced_cooling_fan_mounted
+- **Type**: `bool` (property)
+- **Purpose**: `True` when the Toolhead Enhanced Cooling Fan is mounted with its cable connected (`tool_type == ENHANCED_COOLING_FAN and mount_state == MOUNTED`)
 
 ---
 
@@ -1441,6 +1779,14 @@ All fan speeds are scaled 0-100%.
 - **Purpose**: Heatbreak cooling fan speed
 - **Reference**: BambuStudio fan control
 
+#### enhanced_cooling_fan_target_percent
+- **Type**: `int`
+- **Default**: `0`
+- **Valid Range**: `0-100`
+- **Unit**: %
+- **Purpose**: Commanded speed for the Toolhead Enhanced Cooling Fan (`M106 P9`), set by [`BambuPrinter.set_enhanced_cooling_fan_speed_target_percent()`](reference/bpm/bambuprinter.md#bpm.bambuprinter.BambuPrinter.set_enhanced_cooling_fan_speed_target_percent)
+- **Reference**: Unlike every other fan field, this is **never** updated from telemetry — the printer publishes no run-state for this fan (verified fw 01.03.00.00), so the last commanded value is the only state that exists. Reset to `0` by the parser only when [`extension_tool`](#extension_tool)'s `mount_state` leaves `MOUNTED` (unplugged/removed), since the commanded value no longer describes reality.
+
 ### Zone Control Attributes
 
 #### zone_intake_open
@@ -1508,8 +1854,8 @@ Filament spool properties and state.
 
 #### id
 - **Type**: `int`
-- **Telemetry**: Computed from AMS/tray combination
-- **Valid Range**: `0-23` (AMS slots), `254-255` (external)
+- **Telemetry**: Computed from AMS/tray combination — standard AMS: `ams_id * 4 + slot_id`; AMS HT: `int(ams_id / 128 + 15)`; external: the raw `vt_tray`/`vir_slot` tray id
+- **Valid Range**: `0-15` (standard AMS: `ams_id` 0-3 × 4 slots), `16+` (AMS HT — integer division collapses every AMS HT unit's single tray toward the same low value), `254-255` (external)
 - **Purpose**: Global spool identifier
 - **Reference**: BambuStudio spool indexing
 
@@ -1531,9 +1877,9 @@ Filament spool properties and state.
 
 #### name
 - **Type**: `str`
-- **Telemetry**: `tray[].tray_info_idx` (mapped) or RFID tag data
+- **Telemetry**: `tray[].tray_id_name`
 - **Purpose**: Filament product name
-- **Reference**: BambuStudio filament database
+- **Reference**: BambuStudio filament database. Do not confuse with [`tray_info_idx`](#tray_info_idx), a separate field carrying the filament preset index
 
 #### type
 - **Type**: `str`
@@ -1633,7 +1979,7 @@ Filament spool properties and state.
 
 #### total_length
 - **Type**: `int`
-- **Telemetry**: Computed from spool capacity
+- **Telemetry**: `tray[].total_len`
 - **Unit**: mm
 - **Purpose**: Total filament length on spool
 - **Reference**: BambuStudio filament tracking
@@ -1703,41 +2049,40 @@ Details of the associated project (3MF file) including metadata and identificati
 #### metadata
 - **Type**: `dict`
 - **Default**: `{}` (empty dict)
-- **Purpose**: The associated metadata of this 3MF file
-- **Content**: Extracted from 3MF files including:
-  - Model information (map, bed_type, nozzle_diameter, layer_height) from `Metadata/plate_*.json`
-  - Print settings and estimates (first_layer_time, is_seq_print) from `Metadata/plate_*.json`
-  - Filament requirements and colors (filament array with color, id, type) from `Metadata/slice_info.config`
-  - AMS mapping (ams_mapping array) from `Metadata/slice_info.config`
-  - Object hierarchy with bounding boxes (bbox_objects array) populated from both sources
-  - Thumbnail images (base64 encoded) from `Metadata/plate_*.png` and `Metadata/top_*.png`
+- **Purpose**: The associated metadata of this 3MF file for `plate_num`, populated by `get_project_info()`
+- **Content**: Extracted from 3MF files:
+  - `map` — full `Metadata/plate_N.json` content (bounding boxes, filament ids/colors per plate)
+  - `filament` — normalized per-filament list from `Metadata/slice_info.config` (falls back to `Metadata/project_settings.config`, then the plate gcode header, when `slice_info.config` is sparse)
+  - `thumbnail` / `topimg` — base64 `data:image/png;base64,...` URIs from `Metadata/plate_N.png` / `Metadata/top_N.png`
+  - `ams_mapping`, `filament_extruders`, `physical_extruder_map`, `external_spool_trays` — AMS/extruder assignment data derived from `slice_info.config` and the plate gcode's config block (see Key Subfields below)
+  - `slicer_settings` — key slicer parameters from `Metadata/project_settings.config`; keys always present, each falling back to a hard-coded default when the file is absent or lacks that key
 - **Key Subfields**:
-  - `map.bbox_objects` - Array of objects in the model; each object has `id` (from XML identify_id), `name`, `area`, `bbox`. Used with [Skip Objects During Print](mqtt-protocol-reference.md#skip-objects-during-print). The `id` values are extracted from `slice_info.config` identify_id and matched by array index.
+  - `thumbnail` (`str`) — `data:image/png;base64,...`, from `Metadata/plate_N.png`
+  - `topimg` (`str`) — `data:image/png;base64,...`, from `Metadata/top_N.png`
+  - `map` (`dict`) — full `Metadata/plate_N.json` content, including `filament_ids`, `filament_colors`, and `bbox_objects` (each enriched with an integer `id` from `slice_info.config`'s `identify_id`)
+  - `map.bbox_objects` - Array of objects in the model; each entry carries the slicer's own keys plus `id` (`int`, `identify_id` from `slice_info.config`, added by `get_project_info`), `name` (`str`, slicer object name) and `val` (`list`, bounding-box extents `[x_min, y_min, x_max, y_max]`). Used with [Skip Objects During Print](mqtt-protocol-reference.md#skip-objects-during-print) — the `id` values are passed directly to `BambuPrinter.skip_objects`.
   - `map.bed_type` - Type of print bed (e.g., "textured_plate")
-  - `filament` - Array of filaments with `id` (1-indexed), `type`, `color`. Filament IDs are used to correlate with ams_mapping positions.
-  - `ams_mapping` - Variable-length array where each position (0-indexed) corresponds to a filament id (1-indexed). Values are absolute tray IDs: 0-103 for standard 4-slot units (formula: ams_id * 4 + slot_id), 128-135 for single-slot units (N3S/AMS HT), -1 for unmapped filaments. Generated by slicer color-distance matching. Used by print_3mf_file to determine spool assignments.
-- **AMS Mapping Correlation**:
+  - `filament` (`list[dict]`) - Array of filaments with `id` (1-indexed), `type`, `color` (`#RRGGBB`). Filament IDs correlate with `ams_mapping` / `filament_extruders` / `external_spool_trays` positions.
+  - `ams_mapping` (`list[str]`) — **NOT tray IDs.** A placeholder in the SHAPE of `BambuPrinter.print_3mf_file`'s `ams_mapping` parameter: index `id - 1` holds `str(id)` for every filament in `filament`, `"-1"` fills the gaps. The 3mf carries no tray ids — its `filament_maps` value (kept separately as `filament_extruders`) is the slicer's per-filament *extruder* choice, not an AMS slot — so a real tray-id mapping must be resolved against the spools currently loaded on the printer before being passed to `print_3mf_file`.
+  - `filament_extruders` (`list[int]`) — the slicer's 1-based logical extruder per filament, at index `id - 1`, from `filament_maps` in `slice_info.config`. Empty when absent.
+  - `physical_extruder_map` (`list[int]`) — physical extruder per logical extruder, from the plate gcode's config block: `0` main, `1` deputy. Empty when absent. On H2D it is `[1, 0]`, so logical extruder 1 is the LEFT extruder.
+  - `external_spool_trays` (`list[int]`) — the external spool holder feeding each filament, at index `id - 1`: `255` main (right on H2D), `254` deputy (left on H2D), `-1` unused/unmapped. Derived on every read from the printer's live capabilities via `resolve_external_spool_trays()`; never written to the metadata cache.
+  - `slicer_settings` (`dict`) — `enable_support`, `support_type`, `brim_type`, `brim_width`, `raft_layers`, `sparse_infill_density`, `wall_loops`, `layer_height`, `initial_layer_height`, from `Metadata/project_settings.config`. Every key is always present: each falls back to a hard-coded default (`enable_support`/`raft_layers`/`brim_width`: `"0"`, `support_type`: `"normal"`, `brim_type`: `"no_brim"`, `sparse_infill_density`: `"15%"`, `wall_loops`: `"2"`, `layer_height`/`initial_layer_height`: `"0.2"`) when that file is absent from the 3mf or lacks that key.
+- **AMS Mapping Correlation** (`ams_mapping` is a filament-id placeholder, not a tray id — see above):
 
-  | Filament ID | Array Index | Example Value | Assignment |
-  |-------------|-------------|---------------|------------|
-  | 1 | `ams_mapping[0]` | `0` | AMS 0, slot 0 |
-  | 2 | `ams_mapping[1]` | `-1` | Unmapped |
+  | Filament ID | Array Index | Placeholder Value | Note |
+  |-------------|-------------|--------------------|------|
+  | 1 | `ams_mapping[0]` | `"1"` | Used |
+  | 2 | `ams_mapping[1]` | `"-1"` | Gap / unused filament id |
+  | 3 | `ams_mapping[2]` | `"3"` | Used |
 
 #### plates
 - **Type**: `list[int]`
 - **Default**: `[]`
 - **Purpose**: The set of plate numbers discovered in the 3MF package
-- **Valid Values**: Positive plate indices (typically `1..N`)
-- **Usage**: Drives UI plate selection and validation for multi-plate projects
-- **Reference**: Parsed from `Metadata/plate_*.gcode` and related metadata artifacts
-  | 3 | `ams_mapping[2]` | `2` | AMS 0, slot 2 |
-  | 4 | `ams_mapping[3]` | `-1` | Unmapped |
-- **Extraction Details**:
-  - `bbox_objects` structural data (name, area, bbox) from `Metadata/plate_*.json`
-  - Object `id` field populated from `identify_id` attribute in `Metadata/slice_info.config` XML, matched by index
-  - `filament` array extracted from `slice_info.config` filament elements, ordered as they appear in slicer
-  - `ams_mapping` built from `filament_maps` metadata in `slice_info.config`, with filament id-based index assignment
-- **Print Command Usage**: [print_3mf command implementation](https://github.com/synman/bambu-printer-manager/blob/devel/src/bpm/bambuprinter.py#L535) uses `ams_mapping` to determine which AMS trays/spools to load for each slicer filament
+- **Valid Values**: Positive plate indices (typically `1..N`); not assumed to be contiguous or to start at 1
+- **Usage**: Drives UI plate selection and validation for multi-plate projects; `get_all_project_info()` iterates it to fetch every plate in one call
+- **Reference**: Parsed from the `Metadata/plate_*.json` entries present in the 3mf zip
 
 ---
 
@@ -1757,7 +2102,7 @@ Details of the currently active job running on the printer, including progress, 
 - **Reference**: See [ProjectInfo](#projectinfo) section
 - **Update**: Populated via [`get_project_info()`](reference/bpm/bambuproject.md#bpm.bambuproject.get_project_info) method
 - **Note**: When `gcode_state` transitions to `PREPARE` or `RUNNING` with `project_info` empty (typically after a process restart), BPM first tries the persisted job record, then a fallback FTP lookup that searches the SD card 3MF file list by `subtask_name` and calls `get_project_info()`. Guarded by `project_info_fetch_attempted` to prevent repeated FTP calls on every MQTT push_status message.
-- **Persisted job record** (GH #59): a job started at the printer's screen reports an empty `subtask_name`, so the name lookup cannot find it. Every successful `project_file` frame therefore clears the previous record and the previous job's `project_info` (and resets `project_info_fetch_attempted`, so the new job gets its own name lookup), and, when bpm can read the file, writes a new one to `<bpm_cache_path>/<serial>/job/active.json` (path, md5, plate). An unreadable path, such as the internal eMMC URL `file:///userdata/…` a touchscreen reprint sends, writes no record. A recovery whose fetch fails still falls through to the `subtask_name` lookup. Once the job is `RUNNING` with a task id and a layer count, the record is sealed with a fingerprint of `task_id`, `gcode_file`, `subtask_name` and `total_layer_num`. After a restart it is used only when that fingerprint matches live telemetry. An unsealed record or any mismatch deletes it and leaves `project_info` empty. It is also deleted when the job reaches `FINISH` or `FAILED`, and when the first status after a start shows `IDLE`, `FINISH` or `FAILED`. Known limit: the A1 reports `task_id` `"0"` for every job, so there the other three fields carry the match.
+- **Persisted job record** (GH #59): a job started at the printer's screen reports an empty `subtask_name`, so the name lookup cannot find it. Every successful `project_file` frame therefore clears the previous record and the previous job's `project_info` (and resets `project_info_fetch_attempted`, so the new job gets its own name lookup), and, when bpm can read the file, writes a new one to `<bpm_cache_path>/<serial>/job/active.json` (path, md5, plate). An unreadable path, such as the internal eMMC URL `file:///userdata/…` a touchscreen reprint sends, writes no record. A recovery whose fetch fails still falls through to the name lookup. That lookup searches the SD/USB tree by file name: first the file name of the `project_file` `url` (a touchscreen history start sends `file:///userdata/model/history/<file>` and the project title as `subtask_name`, while the same `<file>` often sits on the card), then `subtask_name` itself when it already ends in `.3mf` (an A1 touchscreen start sends no `project_file` and names the file, extension included, as `subtask_name`), then `<subtask_name>.gcode.3mf` and `<subtask_name>.3mf`. The fixed staging name `project_file.gcode.3mf` is never looked up. Once the job is `RUNNING` with a task id and a layer count, the record is sealed with a fingerprint of `task_id`, `gcode_file`, `subtask_name` and `total_layer_num`. After a restart it is used only when that fingerprint matches live telemetry. An unsealed record or any mismatch deletes it and leaves `project_info` empty. It is also deleted when the job reaches `FINISH` or `FAILED`, and when the first status after a start shows `IDLE`, `FINISH` or `FAILED`. Known limit: the A1 reports `task_id` `"0"` for every job, so there the other three fields carry the match.
 
 #### project_info_fetch_attempted
 - **Type**: `bool`
@@ -1776,18 +2121,18 @@ Details of the currently active job running on the printer, including progress, 
 #### stage_id
 - **Type**: `int`
 - **Default**: `0`
-- **Telemetry**: `print.mc_print_stage`
+- **Telemetry**: `print.stg_cur`
 - **Purpose**: Current Stage numeric ID
-- **Valid Values**: See `Stage` enum (0=Printing, 1=Auto Bed Leveling, etc.)
-- **Reference**: BambuStudio `Stage` enumeration
+- **Valid Values**: Raw firmware stage code, named by the `stage_map` dict inside [`parseStage()`](reference/bpm/bambutools.md#bpm.bambutools.parseStage) — **not** a formal enum (no `Stage` class exists in bpm). `0` and `-1` both map to `""` (no stage name); `100` is `"Printing"`. See `parseStage()` for the full 60+ entry map (e.g. `1`="Auto bed leveling", `24`="Filament loading", `255`="Completed")
+- **Reference**: BambuStudio print-stage codes, decoded by `parseStage()`
 
 #### stage_name
 - **Type**: `str`
 - **Default**: `""`
-- **Telemetry**: Computed from `stage_id` via `Stage` enum
+- **Telemetry**: Computed from `stage_id` via `parseStage()`
 - **Purpose**: Current Stage human-readable name
-- **Examples**: `"Printing"`, `"Auto Bed Leveling"`, `"Heatbed Preheating"`
-- **Reference**: BambuStudio stage naming
+- **Examples**: `"Printing"` (stage `100`), `"Auto bed leveling"` (stage `1`), `"Heatbed preheating"` (stage `2`)
+- **Reference**: BambuStudio stage naming, `parseStage()`
 
 ### Progress Tracking
 
@@ -1824,8 +2169,9 @@ Details of the currently active job running on the printer, including progress, 
 - **Unit**: minutes
 - **Purpose**: The elapsed time in minutes for this (or the last) job
 - **Reference**: Calculated as `max(0, time.time() - wall_start_time) / 60`. `wall_start_time` is
-  persisted to `~/.bpm/elapsed/<job_key>.json` so elapsed survives process restarts. The `max(0, …)`
-  guard prevents negative values if the system clock steps backward (e.g. NTP correction).
+  persisted to `{bpm_cache_path}/<serial>/elapsed/<job_key>.json` (default `~/.bpm/<serial>/elapsed/<job_key>.json`)
+  so elapsed survives process restarts. The `max(0, …)` guard prevents negative values if the
+  system clock steps backward (e.g. NTP correction).
 
 #### remaining_minutes
 - **Type**: `int`
@@ -1839,9 +2185,10 @@ Details of the currently active job running on the printer, including progress, 
 - **Type**: `float`
 - **Default**: `-1.0` (unset)
 - **Purpose**: Wall-clock timestamp (`time.time()`) of when this job started
-- **Reference**: Set on PREPARE/RUNNING state transition; loaded from `~/.bpm/elapsed/<job_key>.json`
-  on restart so the anchor survives process restarts. Use `max(0, time.time() - wall_start_time)`
-  when computing elapsed — guards against NTP clock steps backward.
+- **Reference**: Set on PREPARE/RUNNING state transition; loaded from
+  `{bpm_cache_path}/<serial>/elapsed/<job_key>.json` (default `~/.bpm/<serial>/elapsed/<job_key>.json`) on restart so
+  the anchor survives process restarts. Use `max(0, time.time() - wall_start_time)` when computing
+  elapsed — guards against NTP clock steps backward.
 - **Replaces**: `monotonic_start_time` (removed — `time.monotonic()` is process-relative and resets
   on every restart, making elapsed incorrect after any process restart)
 
@@ -1874,13 +2221,13 @@ Details of the currently active job running on the printer, including progress, 
 #### plate_num
 - **Type**: `int`
 - **Default**: `-1`
-- **Telemetry**: `print.profile_id` or `print.task_id`
+- **Telemetry**: Parsed from a `plate_(\d{1,2})` match on the `project_file` command's `param` (defaults to `1` when the command carries no plate number), or the same pattern against `active_job_info.gcode_file` during the fallback name-lookup path
 - **Valid Range**: `1-N` or `-1` (unknown)
 - **Purpose**: The plate number this job is targeting
-- **Reference**: Multi-plate print job identification
+- **Reference**: `BambuPrinter._on_message` `project_file` command handling
 
 #### plate_type
-- **Type**: `PlateType` (IntEnum)
+- **Type**: `PlateType` (Enum)
 - **Default**: `PlateType.NONE`
 - **Telemetry**: `print.bed_type`
 - **Valid Values**: See `PlateType` enum (Cool Plate, Engineering Plate, etc.)
@@ -1929,6 +2276,18 @@ Details of the currently active job running on the printer, including progress, 
 | 0 | PAUSE | Pause AMS action |
 | 1 | RESUME | Resume AMS action |
 | 2 | RESET | Reset AMS subsystem state |
+| 3 | DONE | Filament extruded, the load may continue (Studio's "Filament Extruded, Continue") |
+| 4 | ABORT | Cancel the running load or unload (Studio's "Abort" and the load view's "Stop") |
+
+### FilamentStep / FilamentStepType
+**Source**: `src/bpm/bambutools.py`
+
+`FilamentStep`: 0 IDLE, 1 HEAT_NOZZLE, 2 CUT_FILAMENT, 3 PULL_CURR_FILAMENT, 4 PUSH_NEW_FILAMENT, 5 PURGE_OLD_FILAMENT, 6 CONFIRM_EXTRUDED, 7 CHECK_POSITION. Labels in `FILAMENT_STEP_TEXT`. `FilamentStepType`: 0 LOAD, 1 UNLOAD, 2 VT_LOAD. See [filament_step](#filament_step).
+
+### HMSAction
+**Source**: `src/bpm/bambutools.py`
+
+Bambu Studio's dialog button ids (`DeviceErrorDialog.hpp` `ActionButton`), with Studio's text in `HMS_ACTION_LABEL` and what bpm sends in `HMS_ACTION_COMMAND`. See [hms_errors](#hms_errors).
 
 ### AMSSeries
 **Source**: `src/bpm/bambutools.py`
@@ -1991,6 +2350,7 @@ Details of the currently active job running on the printer, including progress, 
 | 1 | EMPTY | Nozzle present, no filament |
 | 2 | BUFFER_LOADED | Filament in buffer |
 | 3 | LOADED | Filament fully loaded |
+| 4 | NOT_AVAILABLE | Single-extruder printer placeholder — no `extruder.info[]` block exists to parse |
 
 ### ExtruderStatus
 **Source**: `src/bpm/bambutools.py`
@@ -2002,6 +2362,7 @@ Details of the currently active job running on the printer, including progress, 
 | 1 | HEATING | Heating in progress |
 | 2 | ACTIVE | Actively extruding |
 | 3 | SUCCESS | Operation completed |
+| 4 | NOT_AVAILABLE | Single-extruder printer placeholder — no `extruder.info[]` block exists to parse |
 
 ### NozzleDiameter
 **Source**: `src/bpm/bambutools.py`
@@ -2026,6 +2387,100 @@ Details of the currently active job running on the printer, including progress, 
 | 4 | BRASS | Brass nozzle |
 | 5 | E3D | E3D nozzle |
 
+### NozzleFlowType
+**Source**: `src/bpm/bambutools.py`
+
+| Value | Name | Description |
+|-------|------|-------------|
+| `?` | UNKNOWN | Unrecognized flow family |
+| `S` | STANDARD | Standard flow |
+| `H` | HIGH_FLOW | High flow |
+| `U` | TPU_HIGH_FLOW | TPU high flow |
+
+Encoded as the second character of a nozzle identifier such as `HS00-0.4`. See [NozzleCharacteristics](#nozzlecharacteristics).
+
+### NozzleMaterialCode
+**Source**: `src/bpm/bambutools.py`
+
+| Value | Name | Description |
+|-------|------|-------------|
+| `??` | UNKNOWN | Unrecognized material code |
+| `00` | STAINLESS_STEEL | Stainless steel |
+| `01` | HARDENED_STEEL | Hardened steel |
+| `05` | TUNGSTEN_CARBIDE | Tungsten carbide |
+
+Encoded as characters 3-4 of a nozzle identifier such as `HS00-0.4`. `BRASS` and `E3D` have no encoded-identifier code. See [NozzleCharacteristics](#nozzlecharacteristics).
+
+### ExtensionToolType
+**Source**: `src/bpm/bambutools.py`
+**Reference**: BambuStudio `DevExtensionTool` (`TOOL_TYPE_*`)
+
+| Value | Name | Description |
+|-------|------|-------------|
+| `""` | NONE | No extension tool attached (or the attached tool is unpowered) |
+| `CP00` | CUTTING_MODULE | Blade cutting module |
+| `LB00` | LASER_MODULE | Laser module |
+| `F000` | ENHANCED_COOLING_FAN | Toolhead Enhanced Cooling Fan |
+| `?` | UNKNOWN | Unrecognized type code (future extension tool) |
+
+See [ExtensionToolState](#extensiontoolstate).
+
+### ExtensionToolMountState
+**Source**: `src/bpm/bambutools.py`
+**Reference**: BambuStudio `DevExtensionTool` `MountState`
+
+| Value | Name | Description |
+|-------|------|-------------|
+| -1 | UNKNOWN | No telemetry received yet, or unrecognized value |
+| 0 | NOT_MOUNTED | No extension tool mounted |
+| 1 | MOUNTED | Extension tool mounted and communicating |
+| 2 | NO_MODULE | Mount detected but no module present |
+| 3 | NO_CABLE | Module mounted but its cable is not connected |
+
+See [ExtensionToolState](#extensiontoolstate).
+
+### AMSDryerRefusal
+**Source**: `src/bpm/bambutools.py`
+**Reference**: BambuStudio `DevAms::CannotDryReason`
+
+| Value | Name | Description |
+|-------|------|-------------|
+| 0 | TASK_OCCUPIED | Task occupied |
+| 1 | INSUFFICIENT_POWER | Insufficient power |
+| 2 | AMS_BUSY | Calibrating, reading RFID, loading or unloading |
+| 3 | FILAMENT_AT_OUTLET | Filament fed past the AMS outlet |
+| 4 | INITIATING_DRYING | Initiating AMS drying |
+| 5 | NOT_SUPPORTED_IN_2D_MODE | Not supported in 2D mode |
+| 6 | DRYING_IN_PROGRESS | A dry is already running |
+| 7 | UPGRADING | Firmware update in progress |
+| 8 | INSUFFICIENT_POWER_PLUG_IN | Insufficient power; plug in required |
+| 10 | FILAMENT_AT_OUTLET_MANUAL_UNLOAD | Filament in AMS outlet; manual unload required |
+
+See [refusals](#refusals) (`AMSDryerState`).
+
+### DetectorSensitivity
+**Source**: `src/bpm/bambutools.py`
+
+| Value | Name | Description |
+|-------|------|-------------|
+| `low` | LOW | Low sensitivity |
+| `medium` | MEDIUM | Medium sensitivity |
+| `high` | HIGH | High sensitivity |
+
+Sent directly in the `halt_print_sensitivity` MQTT field for the spaghetti, purge-chute pile-up, nozzle-clumping, and air-printing X-Cam detectors.
+
+### SpeedLevel
+**Source**: `src/bpm/bambutools.py`
+
+| Value | Name | Description |
+|-------|------|-------------|
+| 1 | QUIET | Quiet speed profile |
+| 2 | STANDARD | Standard speed profile |
+| 3 | SPORT | Sport speed profile |
+| 4 | LUDICROUS | Ludicrous speed profile |
+
+Maps human-readable names to the firmware integer codes sent in the `print_speed` MQTT command's `param` field, and reported back in `spd_lvl`. Used by `BambuPrinter.speed_level` (getter/setter).
+
 ### PlateType
 **Source**: `src/bpm/bambutools.py`
 
@@ -2041,19 +2496,23 @@ Details of the currently active job running on the printer, including progress, 
 ### PrinterModel
 **Source**: `src/bpm/bambutools.py`
 
-| Value | Name | Description |
-|-------|------|-------------|
-| 0 | UNKNOWN | Unknown printer model |
-| 1 | X1C | X1 Carbon |
-| 2 | X1 | X1 |
-| 3 | X1E | X1E |
-| 4 | P1P | P1P |
-| 5 | P1S | P1S |
-| 6 | A1_MINI | A1 Mini |
-| 7 | A1 | A1 |
-| 8 | P2S | P2S |
-| 9 | H2S | H2S |
-| 10 | H2D | H2D |
+`PrinterModel` is a plain `Enum` with **string** values (not sequential integers):
+
+| Value | Name | Serial Prefix | Description |
+|-------|------|----------------|-------------|
+| `"unknown"` | UNKNOWN | (none matched) | Unknown printer model |
+| `"x1c"` | X1C | `00M` | X1 Carbon |
+| `"x1"` | X1 | `00W` | X1 |
+| `"x1e"` | X1E | `03W` | X1E |
+| `"p1p"` | P1P | `01S` | P1P |
+| `"p1s"` | P1S | `01P` | P1S |
+| `"a1_mini"` | A1_MINI | `030` | A1 Mini |
+| `"a1"` | A1 | `039` | A1 |
+| `"p2s"` | P2S | `22E` | P2S |
+| `"h2s"` | H2S | `093` | H2S |
+| `"h2d"` | H2D | `094` | H2D |
+
+Serial prefix mapping via [`getPrinterModelBySerial()`](reference/bpm/bambutools.md#bpm.bambutools.getPrinterModelBySerial).
 
 ### PrinterSeries
 **Source**: `src/bpm/bambutools.py`
@@ -2195,14 +2654,24 @@ state population or metadata derivation.
 | [`getPrinterModelBySerial(serial: str)`](reference/bpm/bambutools.md#bpm.bambutools.getPrinterModelBySerial) | `bambutools.py` | Infer printer model from serial prefix |
 | [`getPrinterSeriesByModel(model: PrinterModel)`](reference/bpm/bambutools.md#bpm.bambutools.getPrinterSeriesByModel) | `bambutools.py` | Convert model to printer family |
 | [`parseAMSStatus(status_int: int)`](reference/bpm/bambutools.md#bpm.bambutools.parseAMSStatus) | `bambutools.py` | Convert AMS status integer to readable state |
-| [`parseExtruderTrayState(extruder: int, idx, status)`](reference/bpm/bambutools.md#bpm.bambutools) | `bambutools.py` | Convert extruder tray bits to tray ID |
+| [`parseExtruderTrayState(extruder: int, hotend, slot)`](reference/bpm/bambutools.md#bpm.bambutools.parseExtruderTrayState) | `bambutools.py` | Convert extruder tray bits to tray ID |
+| [`parseFilamentStep(ams_status, target_tray_id, filament_at_extruder, previous)`](reference/bpm/bambutools.md#bpm.bambutools.parseFilamentStep) | `bambutools.py` | Name the running filament load/unload step, as Bambu Studio's `StatusPanel` does. See [filament_step](#filament_step) |
+| [`dryerRefusalMessage(reasons: list[int])`](reference/bpm/bambutools.md#bpm.bambutools.dryerRefusalMessage) | `bambutools.py` | Build BambuStudio's dry-refusal explanation text. See [refusal_message](#refusal_message) |
+| [`hmsActions(serial_number, print_error)`](reference/bpm/bambutools.md#bpm.bambutools.hmsActions) | `bambutools.py` | The dialog buttons Bambu Studio shows for a `print_error`. See [hms_errors](#hms_errors) |
+| [`parse_nozzle_identifier(nozzle_id: str)`](reference/bpm/bambutools.md#bpm.bambutools.parse_nozzle_identifier) | `bambutools.py` | Parse an encoded nozzle id (e.g. `HS00-0.4`) into flow/material/diameter |
+| [`build_nozzle_identifier(flow_type, nozzle_type, diameter)`](reference/bpm/bambutools.md#bpm.bambutools.build_nozzle_identifier) | `bambutools.py` | Build a canonical encoded nozzle id |
+| [`parse_nozzle_type(value: str \| None)`](reference/bpm/bambutools.md#bpm.bambutools.parse_nozzle_type) | `bambutools.py` | Resolve a `NozzleType` from telemetry strings or encoded ids |
+| [`nozzle_type_to_telemetry(value: NozzleType)`](reference/bpm/bambutools.md#bpm.bambutools.nozzle_type_to_telemetry) | `bambutools.py` | Convert a canonical `NozzleType` back to its telemetry string |
+| [`resolve_external_spool_trays(filament_extruders, physical_extruder_map, used_filament_ids)`](reference/bpm/bambutools.md#bpm.bambutools.resolve_external_spool_trays) | `bambutools.py` | Name the external spool holder feeding each filament of a dual-nozzle plate |
 | [`parseRFIDStatus(status)`](reference/bpm/bambutools.md#bpm.bambutools.parseRFIDStatus) | `bambutools.py` | Convert RFID state code to readable status |
 | [`parseStage(stage_int: int)`](reference/bpm/bambutools.md#bpm.bambutools.parseStage) | `bambutools.py` | Convert print stage ID to stage name |
 | [`sortFileTreeAlphabetically(source)`](reference/bpm/bambutools.md#bpm.bambutools.sortFileTreeAlphabetically) | `bambutools.py` | Stable sort for SD-card tree output |
 | [`get_file_md5(file_path: str \| Path)`](reference/bpm/bambutools.md#bpm.bambutools.get_file_md5) | `bambutools.py` | Compute file checksum for cache integrity |
+| [`jsonSerializer(obj)`](reference/bpm/bambutools.md#bpm.bambutools.jsonSerializer) | `bambutools.py` | Module-level `json.dumps(default=...)` serializer for dataclasses / non-JSON-native objects |
 | [`get_3mf_entry_by_name(node, target_name)`](reference/bpm/bambuproject.md#bpm.bambuproject) | `bambuproject.py` | Locate 3MF tree node by filename |
 | [`get_3mf_entry_by_id(node, target_id)`](reference/bpm/bambuproject.md#bpm.bambuproject) | `bambuproject.py` | Locate 3MF tree node by identifier |
 | [`get_project_info(...)`](reference/bpm/bambuproject.md#bpm.bambuproject.get_project_info) | `bambuproject.py` | Build [`ProjectInfo`](reference/bpm/bambuproject.md#bpm.bambuproject.ProjectInfo) from printer or local 3MF source |
+| [`get_all_project_info(...)`](reference/bpm/bambuproject.md#bpm.bambuproject.get_all_project_info) | `bambuproject.py` | Build one `ProjectInfo` per plate in a 3MF in a single call |
 | [`BambuState.fromJson(data, printer)`](reference/bpm/bambustate.md#bpm.bambustate.BambuState.fromJson) | `bambustate.py` | Primary state parser mapping MQTT payloads to dataclasses |
 
 ### Disk-Persistence Framework (`bambutools.py`)
@@ -2248,6 +2717,8 @@ surface area and links each area to its documentation section.
 | [`AMSDryerState`](reference/bpm/bambustate.md#bpm.bambustate.AMSDryerState) | Documented in [AMSDryerState](#amsdryerstate) |
 | [`BambuClimate`](reference/bpm/bambustate.md#bpm.bambustate.BambuClimate) | Documented in [BambuClimate](#bambuclimate) |
 | [`BambuSpool`](reference/bpm/bambuspool.md#bpm.bambuspool.BambuSpool) | Documented in [BambuSpool](#bambuspool) |
+| [`NozzleCharacteristics`](reference/bpm/bambustate.md#bpm.bambustate.NozzleCharacteristics) | Documented in [NozzleCharacteristics](#nozzlecharacteristics) |
+| [`ExtensionToolState`](reference/bpm/bambustate.md#bpm.bambustate.ExtensionToolState) | Documented in [ExtensionToolState](#extensiontoolstate) |
 | [`ProjectInfo`](reference/bpm/bambuproject.md#bpm.bambuproject.ProjectInfo) | Documented in [ProjectInfo](#projectinfo) |
 | [`ActiveJobInfo`](reference/bpm/bambuproject.md#bpm.bambuproject.ActiveJobInfo) | Documented in [ActiveJobInfo](#activejobinfo) |
 | [`BambuPrinter`](reference/bpm/bambuprinter.md#bpm.bambuprinter.BambuPrinter) | Method/property coverage indexed below; command payloads documented in [MQTT Protocol Reference](mqtt-protocol-reference.md) |
@@ -2261,20 +2732,22 @@ surface area and links each area to its documentation section.
 |----------------|---------|
 | [`BambuConfig`](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) | [`__post_init__`](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig.__post_init__), [`set_new_bpm_cache_path`](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig.set_new_bpm_cache_path) |
 | [`BambuState`](reference/bpm/bambustate.md#bpm.bambustate.BambuState) | [`fromJson`](reference/bpm/bambustate.md#bpm.bambustate.BambuState.fromJson) |
-| `bambuproject` | `get_3mf_entry_by_name`, `get_3mf_entry_by_id`, [`get_project_info`](reference/bpm/bambuproject.md#bpm.bambuproject.get_project_info) |
-| [`get_project_info`](reference/bpm/bambuproject.md#bpm.bambuproject.get_project_info) internal helpers | `get_nodes_by_plate_id`, `_split_config_list`, `_extract_list_from_config`, `_extract_list_from_gcode_header`, `_normalize_hex_color`, `_ensure_ams_mapping` |
+| [`NozzleCharacteristics`](reference/bpm/bambustate.md#bpm.bambustate.NozzleCharacteristics) | `from_telemetry` (classmethod), `to_identifier` |
+| `bambuproject` | `get_3mf_entry_by_name`, `get_3mf_entry_by_id`, [`get_project_info`](reference/bpm/bambuproject.md#bpm.bambuproject.get_project_info), [`get_all_project_info`](reference/bpm/bambuproject.md#bpm.bambuproject.get_all_project_info) |
+| [`get_project_info`](reference/bpm/bambuproject.md#bpm.bambuproject.get_project_info) internal helpers | `get_nodes_by_plate_id`, `_split_config_list`, `_extract_list_from_config`, `_extract_list_from_gcode_header`, `_read_gcode_config_block`, `_to_int_list`, `_attach_external_spool_trays`, `_normalize_hex_color`, `_ensure_ams_mapping` |
 
 ### [`BambuPrinter`](reference/bpm/bambuprinter.md#bpm.bambuprinter.BambuPrinter) Public Methods
 
 | Category | Methods |
 |----------|---------|
-| Session lifecycle | `start_session`, `pause_session`, `resume_session`, `quit`, `refresh` |
-| Temperature/fans | `set_bed_temp_target`, `set_nozzle_temp_target`, `set_chamber_temp`, `set_chamber_temp_target`, `set_part_cooling_fan_speed_target_percent`, `set_aux_fan_speed_target_percent`, `set_exhaust_fan_speed_target_percent` |
-| Filament / AMS | `unload_filament`, `load_filament`, `set_ams_user_setting`, `set_spool_k_factor`, `set_spool_details`, `send_ams_control_command`, `turn_on_ams_dryer`, `turn_off_ams_dryer`, `refresh_spool_rfid`, `select_extrusion_calibration_profile`, `get_current_bind_list` |
-| Print control | `print_3mf_file`, `stop_printing`, `pause_printing`, `resume_printing`, `set_print_option`, `set_active_tool`, `set_nozzle_details`, `set_buildplate_marker_detector`, `skip_objects` |
+| Session lifecycle | `start_session`, `pause_session`, `resume_session`, `quit`, `refresh`, `rename_printer` |
+| Temperature/fans | `set_bed_temp_target`, `set_nozzle_temp_target`, `set_chamber_temp`, `set_chamber_temp_target`, `set_part_cooling_fan_speed_target_percent`, `set_aux_fan_speed_target_percent`, `set_exhaust_fan_speed_target_percent`, `set_enhanced_cooling_fan_speed_target_percent` |
+| Filament / AMS | `unload_filament`, `load_filament`, `set_ams_user_setting`, `set_spool_k_factor`, `set_spool_details`, `send_ams_control_command`, `turn_on_ams_dryer`, `turn_off_ams_dryer`, `refresh_spool_rfid`, `select_extrusion_calibration_profile`, `get_current_bind_list`, `refresh_nozzles` |
+| Print control | `print_3mf_file`, `stop_printing`, `pause_printing`, `resume_printing`, `set_print_option`, `set_active_tool`, `set_nozzle_details`, `set_buildplate_marker_detector`, `set_spaghetti_detector`, `set_purgechutepileup_detector`, `set_nozzleclumping_detector`, `set_airprinting_detector`, `skip_objects` |
+| Error handling | `clean_print_error`, `clean_print_error_uiop`, `clear_command_errors`, `send_hms_action` |
 | Raw/send helpers | `send_gcode`, `send_anything` |
 | SD card / FTPS | `ftp_connection`, `get_sdcard_contents`, `get_sdcard_3mf_files`, `delete_sdcard_file`, `delete_sdcard_folder`, `upload_sdcard_file`, `download_sdcard_file`, `make_sdcard_directory`, `rename_sdcard_file`, `sdcard_file_exists` |
-| Serialization/introspection | `toJson`, `jsonSerializer` |
+| Serialization/introspection | `toJson`, `jsonSerializer` (`bambutools.py` module function, used as `json.dumps`'s `default=`) |
 
 ### [`BambuPrinter`](reference/bpm/bambuprinter.md#bpm.bambuprinter.BambuPrinter) Properties / Accessors
 
@@ -2286,14 +2759,14 @@ surface area and links each area to its documentation section.
 | `on_update` | Update callback getter/setter |
 | `recent_update` | Read-only recent update marker |
 | `bed_temp_target_time`, `tool_temp_target_time`, `chamber_temp_target_time`, `fan_speed_target_time` | Read-only target-change timestamps |
-| `light_state` | Light mode getter/setter |
-| `speed_level` | Speed profile getter/setter |
+| `light_state` | Light mode getter/setter (`bool`, from `lights_report[0].mode`) |
+| `speed_level` | Speed profile getter/setter (`SpeedLevel \| int`) |
 | `printer_state` | Current parsed [`BambuState`](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
 | `active_job_info` | Current parsed [`ActiveJobInfo`](reference/bpm/bambuproject.md#bpm.bambuproject.ActiveJobInfo) |
 | `internalException` | Last internal exception getter |
 | `cached_sd_card_contents`, `cached_sd_card_3mf_files` | SD card cache getters |
-| `skipped_objects` | Last skipped object list |
-| `nozzle_diameter`, `nozzle_type` | Normalized nozzle metadata getters |
+| `skipped_objects` | Last skipped object list — **deprecated** (v1.0.0), no replacement yet |
+| `nozzle_diameter`, `nozzle_type` | Normalized nozzle metadata getters — **deprecated** (v1.0.0); use [`active_nozzle`](#active_nozzle)'s `diameter_mm` / `material` instead |
 
 ### FTPS Classes & Methods
 
@@ -2392,6 +2865,7 @@ surface area and links each area to its documentation section.
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.3 | 2026-09-27 | Full code-vs-doc reconciliation pass. Added `NozzleCharacteristics` and `ExtensionToolState` classes (previously undocumented entirely, including `BambuState.active_nozzle`/`.extension_tool` and `ExtruderState.nozzle`); added `BambuClimate.enhanced_cooling_fan_target_percent`; added `BambuConfig.mqtt_connection_timeout`/`.ftps_connection_timeout` and the 10 detector feature-flag fields; added the 11 missing `PrinterCapabilities.has_*_support` flags with their actual bit/telemetry detection sources; added `NozzleFlowType`, `NozzleMaterialCode`, `ExtensionToolType`, `ExtensionToolMountState`, `AMSDryerRefusal`, `DetectorSensitivity`, `SpeedLevel` to the Enumerations Reference; corrected `ActiveJobInfo.stage_id`/`.plate_num` telemetry sources (no `Stage` enum exists; `stage_id` is `stg_cur` not `mc_print_stage`), `ExtruderInfoState`/`ExtruderStatus` missing `NOT_AVAILABLE(4)`, `BambuConfig.capabilities`'s type/default, several `PrinterCapabilities` detection-mechanism claims, `BambuSpool.name`/`.total_length` telemetry sources, `ProjectInfo.metadata.ams_mapping` (corrected from "absolute tray IDs" to the actual filament-id placeholder; NOT tray IDs), `ProjectInfo.plates`'s source file and its table placement, and `PrinterModel`'s enum values (string, not sequential int). Synced `bpm-class-diagram.mmd`/`.svg` to match (fixed stale `monotonic_start_time`, added the same missing fields/classes, fixed the `FtpListItem`/`IoTFTPSClient` field lists and a wrong `ImplicitTLS` inheritance relationship) |
 | 1.2 | 2026-02-25 | Added missing `ProjectInfo.plates`, expanded enum coverage (all current enums), added utility/parsing function index, and added class/method/property coverage index including `BambuPrinter` |
 | 1.1 | 2026-02-25 | Added BambuConfig, PrinterCapabilities, ProjectInfo, ActiveJobInfo dataclasses; comprehensive MQTT Control references; field-level consistency |
 | 1.0 | 2026-02-23 | Initial comprehensive data dictionary |

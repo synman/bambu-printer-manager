@@ -5,12 +5,14 @@ operational state, synchronized via MQTT telemetry.
 
 # region imports
 import logging
+import time
 from dataclasses import asdict, dataclass, field, replace
 from typing import TYPE_CHECKING, Any, Self
 
 from bpm.bambuconfig import PrinterCapabilities
 from bpm.bambuspool import BambuSpool
 from bpm.bambutools import (
+    FILAMENT_STEP_TEXT,
     ActiveTool,
     AirConditioningMode,
     AMSDryerFanStatus,
@@ -21,6 +23,8 @@ from bpm.bambutools import (
     ExtensionToolType,
     ExtruderInfoState,
     ExtruderStatus,
+    FilamentStep,
+    FilamentStepType,
     LoggerName,
     NozzleFlowType,
     NozzleType,
@@ -30,6 +34,7 @@ from bpm.bambutools import (
     decodeHMS,
     dryerRefusalMessage,
     getAMSModelBySerial,
+    hmsActions,
     parse_nozzle_identifier,
     parse_nozzle_type,
     parseAMSInfo,
@@ -37,6 +42,7 @@ from bpm.bambutools import (
     parseExtruderInfo,
     parseExtruderStatus,
     parseExtruderTrayState,
+    parseFilamentStep,
     scaleFanSpeed,
     unpackTemperature,
 )
@@ -364,6 +370,16 @@ class BambuState:
     """Raw AMS status."""
     ams_status_text: str = ""
     """Human AMS status."""
+    filament_step: FilamentStep = FilamentStep.IDLE
+    """The running load or unload step (`parseFilamentStep`); `IDLE` when none runs."""
+    filament_step_type: FilamentStepType = FilamentStepType.LOAD
+    """Whether the running change is an AMS load, an unload or an external-holder load."""
+    filament_step_name: str = FilamentStep.IDLE.name
+    """`filament_step` as a string."""
+    filament_step_text: str = ""
+    """Bambu Studio's label for `filament_step`; empty when idle."""
+    hw_switch_state: int = -1
+    """The printer's filament-at-extruder switch: 1 filament, 0 none, -1 not reported."""
     ams_exist_bits: int = 0
     """AMS mask."""
     ams_connected_count: int = 0
@@ -417,6 +433,32 @@ class BambuState:
                     err.get("msg", "") or "The printer refused the drying command."
                 )
                 dryer.fail_count += 1
+
+        # A refused command reply (e.g. a load while the AMS dries) is an error like any HMS
+        # entry: it joins hms_errors as a `command_error` and stays there until that command
+        # is sent again or the printer replies that it accepted it. `timestamp` tells a
+        # repeat refusal of the same code from the one before it.
+        command_errors = [e for e in base.hms_errors if e.get("type") == "command_error"]
+        if p.get("command", "") == "ams_change_filament":
+            command_errors = [
+                e for e in command_errors if e.get("command") != "ams_change_filament"
+            ]
+            if str(p.get("result", "")).lower() == "fail":
+                err_code = int(p.get("err_code", 0) or 0)
+                err = decodeError(err_code) if err_code else {}
+                command_errors.append(
+                    {
+                        **err,
+                        "code": err.get("code", ""),
+                        "msg": err.get("msg", "")
+                        or "The printer refused the filament change.",
+                        "url": err.get("url", ""),
+                        "type": "command_error",
+                        "command": "ams_change_filament",
+                        "ams_id": p.get("ams_id", -1),
+                        "timestamp": int(time.time()),
+                    }
+                )
 
         ams_root = p.get("ams", {})
         device = p.get("device", {})
@@ -623,8 +665,11 @@ class BambuState:
                 ext.active_tray_id = parseExtruderTrayState(ext.id, hn, sn)
                 ext.target_tray_id = parseExtruderTrayState(ext.id, ht, st)
 
-                if base.extruders and len(base.extruders) > ext.id:
-                    base_tray_state = base.extruders[ext.id].tray_state
+                # only an extruder with the same id carries its state over: a partial
+                # first frame leaves a single-extruder placeholder (id -1, UNLOADED)
+                prev_ext = next((e for e in base.extruders if e.id == ext.id), None)
+                if prev_ext is not None:
+                    base_tray_state = prev_ext.tray_state
                 else:
                     base_tray_state = (
                         TrayState.LOADED
@@ -868,6 +913,17 @@ class BambuState:
         updates["ams_connected_count"] = bin(updates["ams_exist_bits"]).count("1")
         updates["ams_status_raw"] = int(p.get("ams_status", base.ams_status_raw))
         updates["ams_status_text"] = parseAMSStatus(updates["ams_status_raw"])
+        updates["hw_switch_state"] = int(p.get("hw_switch_state", base.hw_switch_state))
+        step, step_type = parseFilamentStep(
+            updates["ams_status_raw"],
+            updates.get("target_tray_id", base.target_tray_id),
+            updates["hw_switch_state"] != 0,
+            base.filament_step,
+        )
+        updates["filament_step"] = step
+        updates["filament_step_type"] = step_type
+        updates["filament_step_name"] = step.name
+        updates["filament_step_text"] = FILAMENT_STEP_TEXT[step]
 
         part_cooling_fan_speed_percent = -1
 
@@ -920,6 +976,9 @@ class BambuState:
 
         if updates["print_error"] != 0:
             decoded_error = decodeError(updates["print_error"])
+            decoded_error["actions"] = hmsActions(
+                config.serial_number, updates["print_error"]
+            )
         else:
             decoded_error = {}
 
@@ -928,10 +987,15 @@ class BambuState:
         if "hms" in p:
             raw_hms = p["hms"]
         else:
-            raw_hms = [e for e in base.hms_errors if e.get("type") != "device_error"]
+            raw_hms = [
+                e
+                for e in base.hms_errors
+                if e.get("type") not in ("device_error", "command_error")
+            ]
         updates["hms_errors"] = decodeHMS(raw_hms)
         if decoded_error and decoded_error not in updates["hms_errors"]:
             updates["hms_errors"].insert(0, decoded_error)
+        updates["hms_errors"].extend(command_errors)
 
         # capabilities mapped to BambuConfig
         config.capabilities = new_caps

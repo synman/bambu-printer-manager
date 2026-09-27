@@ -33,6 +33,8 @@ classDiagram
         +int mqtt_port
         +str mqtt_client_id
         +str mqtt_username
+        +int mqtt_connection_timeout
+        +int ftps_connection_timeout
         +int watchdog_timeout
         +bool external_chamber
         +PrinterCapabilities capabilities
@@ -70,6 +72,15 @@ classDiagram
         +NozzleFlowType flow
         +str encoded_id
         +str telemetry_type_raw
+    }
+
+    class ExtensionToolState {
+        <<frozen dataclass>>
+        +ExtensionToolType tool_type
+        +ExtensionToolMountState mount_state
+        +int calibration_raw
+        +str type_raw
+        +is_enhanced_cooling_fan_mounted() bool
     }
 
     class ExtruderState {
@@ -135,6 +146,7 @@ classDiagram
         +bool zone_top_vent_open
         +bool is_chamber_door_open
         +bool is_chamber_lid_open
+        +int enhanced_cooling_fan_target_percent
     }
 
     class BambuState {
@@ -151,6 +163,11 @@ classDiagram
         +NozzleCharacteristics active_nozzle
         +int ams_status_raw
         +str ams_status_text
+        +FilamentStep filament_step
+        +FilamentStepType filament_step_type
+        +str filament_step_name
+        +str filament_step_text
+        +int hw_switch_state
         +int ams_exist_bits
         +int ams_connected_count
         +list~AMSUnitState~ ams_units
@@ -160,6 +177,7 @@ classDiagram
         +list~dict~ hms_errors
         +str wifi_signal_strength
         +BambuClimate climate
+        +ExtensionToolState extension_tool
         +str stat
         +str fun
     }
@@ -208,7 +226,7 @@ classDiagram
         +int print_percentage
         +int elapsed_minutes
         +int remaining_minutes
-        +float monotonic_start_time
+        +float wall_start_time
         +str subtask_name
         +str gcode_file
         +str print_type
@@ -228,6 +246,10 @@ classDiagram
         +resume_session()
         +quit()
         +refresh()
+        +rename_printer(new_name)
+        +clean_print_error(subtask_id, print_error)
+        +clean_print_error_uiop(print_error)
+        +clear_command_errors()
         +set_bed_temp_target(value)
         +set_nozzle_temp_target(value, tool_num)
         +set_chamber_temp(value)
@@ -235,6 +257,7 @@ classDiagram
         +set_part_cooling_fan_speed_target_percent(value)
         +set_aux_fan_speed_target_percent(value)
         +set_exhaust_fan_speed_target_percent(value)
+        +set_enhanced_cooling_fan_speed_target_percent(value)
         +unload_filament(ams_id)
         +load_filament(slot_id, ams_id)
         +send_gcode(gcode)
@@ -255,7 +278,8 @@ classDiagram
         +set_ams_user_setting(...)
         +set_spool_k_factor(...)
         +set_spool_details(...)
-        +send_ams_control_command(cmd)
+        +send_ams_control_command(cmd, resume_print)
+        +send_hms_action(action)
         +skip_objects(objects)
         +set_buildplate_marker_detector(enabled)
         +set_spaghetti_detector(enabled, sensitivity)
@@ -288,20 +312,32 @@ classDiagram
 
     %% ─── ftpsclient ─────────────────────────────────────────────────
     class FtpListItem {
+        +str path
         +str name
         +int size
-        +str timestamp
+        +bool is_dir
+        +datetime timestamp
+        +str owner
+        +str group
+        +str permissions
     }
 
     class ImplicitTLS {
         <<internal>>
+        +sock
         +ntransfercmd(cmd, rest)
     }
 
     class IoTFTPSClient {
-        +str hostname
-        +str access_code
-        +int port
+        +str ftps_host
+        +int ftps_port
+        +str ftps_user
+        +str ftps_pass
+        +bool ssl_implicit
+        +float timeout
+        +ftps_session
+        +str welcome
+        +str last_error
         +instantiate_ftps_session()
         +disconnect()
         +download_file(source, dest)
@@ -331,6 +367,38 @@ classDiagram
         DISCONNECTED = 2
         PAUSED = 3
         QUIT = 4
+    }
+
+    class FilamentStep {
+        <<enumeration>>
+        IDLE = 0
+        HEAT_NOZZLE = 1
+        CUT_FILAMENT = 2
+        PULL_CURR_FILAMENT = 3
+        PUSH_NEW_FILAMENT = 4
+        PURGE_OLD_FILAMENT = 5
+        CONFIRM_EXTRUDED = 6
+        CHECK_POSITION = 7
+    }
+
+    class FilamentStepType {
+        <<enumeration>>
+        LOAD = 0
+        UNLOAD = 1
+        VT_LOAD = 2
+    }
+
+    class HMSAction {
+        <<enumeration>>
+        CHECK_ASSISTANT = 6
+        FILAMENT_EXTRUDED = 7
+        RETRY_FILAMENT_EXTRUDED = 8
+        CONTINUE = 9
+        OK_BUTTON = 11
+        RETRY_PROBLEM_SOLVED = 34
+        CANCLE = 37
+        ABORT = 51
+        ...Studio ActionButton ids
     }
 
     class TrayState {
@@ -407,11 +475,27 @@ classDiagram
         ON = 1
     }
 
+    class AMSDryerRefusal {
+        <<enumeration>>
+        TASK_OCCUPIED = 0
+        INSUFFICIENT_POWER = 1
+        AMS_BUSY = 2
+        FILAMENT_AT_OUTLET = 3
+        INITIATING_DRYING = 4
+        NOT_SUPPORTED_IN_2D_MODE = 5
+        DRYING_IN_PROGRESS = 6
+        UPGRADING = 7
+        INSUFFICIENT_POWER_PLUG_IN = 8
+        FILAMENT_AT_OUTLET_MANUAL_UNLOAD = 10
+    }
+
     class AMSControlCommand {
         <<enumeration>>
         PAUSE = 0
         RESUME = 1
         RESET = 2
+        DONE = 3
+        ABORT = 4
     }
 
     class AMSUserSetting {
@@ -437,6 +521,14 @@ classDiagram
         STANDARD
         HIGH_FLOW
         TPU_HIGH_FLOW
+    }
+
+    class NozzleMaterialCode {
+        <<enumeration>>
+        UNKNOWN = "??"
+        STAINLESS_STEEL = "00"
+        HARDENED_STEEL = "01"
+        TUNGSTEN_CARBIDE = "05"
     }
 
     class NozzleDiameter {
@@ -468,6 +560,21 @@ classDiagram
         AIR_PRINT_DETECT = 5
     }
 
+    class DetectorSensitivity {
+        <<enumeration>>
+        LOW = "low"
+        MEDIUM = "medium"
+        HIGH = "high"
+    }
+
+    class SpeedLevel {
+        <<enumeration>>
+        QUIET = 1
+        STANDARD = 2
+        SPORT = 3
+        LUDICROUS = 4
+    }
+
     class ExtruderInfoState {
         <<enumeration>>
         NO_NOZZLE = 0
@@ -493,6 +600,24 @@ classDiagram
         HEAT_MODE = 1
     }
 
+    class ExtensionToolType {
+        <<enumeration>>
+        NONE = ""
+        CUTTING_MODULE = "CP00"
+        LASER_MODULE = "LB00"
+        ENHANCED_COOLING_FAN = "F000"
+        UNKNOWN = "?"
+    }
+
+    class ExtensionToolMountState {
+        <<enumeration>>
+        UNKNOWN = -1
+        NOT_MOUNTED = 0
+        MOUNTED = 1
+        NO_MODULE = 2
+        NO_CABLE = 3
+    }
+
     %% ─── Relationships ──────────────────────────────────────────────
 
     %% BambuPrinter owns/uses
@@ -510,11 +635,17 @@ classDiagram
     %% BambuState composes
     BambuState "1" *-- "1" BambuClimate : has
     BambuState "1" *-- "1" NozzleCharacteristics : active_nozzle
+    BambuState "1" *-- "1" ExtensionToolState : extension_tool
     BambuState "1" *-- "*" AMSUnitState : ams_units
     BambuState "1" *-- "*" ExtruderState : extruders
     BambuState "1" *-- "*" BambuSpool : spools
     BambuState ..> ActiveTool : uses
     BambuState ..> TrayState : uses
+    BambuState ..> FilamentStep : uses
+    BambuState ..> FilamentStepType : uses
+    BambuPrinter ..> HMSAction : uses
+    BambuPrinter ..> SpeedLevel : speed_level
+    BambuPrinter ..> DetectorSensitivity : uses
 
     %% ExtruderState composes
     ExtruderState "1" *-- "1" NozzleCharacteristics : nozzle
@@ -528,11 +659,16 @@ classDiagram
     AMSDryerState ..> AMSHeatingState : uses
     AMSDryerState ..> AMSDryerSubStatus : uses
     AMSDryerState ..> AMSDryerFanStatus : uses
+    AMSDryerState ..> AMSDryerRefusal : refusals (list~int~)
     AMSUnitState ..> ActiveTool : assigned_to_extruder
 
     %% NozzleCharacteristics uses
     NozzleCharacteristics ..> NozzleType : uses
     NozzleCharacteristics ..> NozzleFlowType : uses
+
+    %% ExtensionToolState uses
+    ExtensionToolState ..> ExtensionToolType : uses
+    ExtensionToolState ..> ExtensionToolMountState : uses
 
     %% BambuClimate uses
     BambuClimate ..> AirConditioningMode : uses
@@ -542,9 +678,8 @@ classDiagram
     ActiveJobInfo ..> PlateType : uses
 
     %% FTP hierarchy
-    ImplicitTLS --|> FtpListItem : produces
-    IoTFTPSClient ..> FtpListItem : produces
-    IoTFTPSClient ..> ImplicitTLS : uses internally
+    IoTFTPSClient ..> FtpListItem : produces (list_files_ex)
+    IoTFTPSClient ..> ImplicitTLS : uses internally (ssl_implicit=True)
 
     %% AMSModel → AMSSeries
     AMSModel ..> AMSSeries : classified by

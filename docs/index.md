@@ -20,7 +20,7 @@ While caffiene and sleepness nights drive the delivery of this project, they unf
         bambutools.py          # contains a collection of methods used as tools (mostly internal)
 
         ftpsclient/
-            _client.py         # internal class used for performing `FTPS` operations
+            ftpsclient.py      # internal class used for performing `FTPS` operations
 
 Code Reference links for the classes above:
 - [`BambuConfig`](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig)
@@ -34,7 +34,8 @@ Code Reference links for the classes above:
 ```
 Python 3.11+
 
-* mkdocstrings, webcolors, and paho-mqtt install automatically as predefined dependencies
+* webcolors, paho-mqtt, and mkdocstrings-python install automatically as predefined dependencies
+* typing-extensions is an additional dependency on Python < 3.13
 ```
 ### Installation
 ```
@@ -170,7 +171,7 @@ import os
 
 from bpm.bambuconfig import BambuConfig
 from bpm.bambuprinter import BambuPrinter
-from bpm.bambutools import parseStage
+from bpm.bambutools import ServiceState, parseStage
 
 hostname = os.getenv('BAMBU_HOSTNAME')
 access_code = os.getenv('BAMBU_ACCESS_CODE')
@@ -190,7 +191,7 @@ printer.start_session()
 while printer.service_state != ServiceState.CONNECTED:
     print("waiting for bpm to connect to printer", flush=True)
     if printer.internalException:
-        print(f"retrying connection - reason: {printer.internalException if not printer.internalException is None else "no internal exception"}")
+        print(f"retrying connection - reason: {printer.internalException if not printer.internalException is None else 'no internal exception'}")
         printer.start_session()
     time.sleep(1)
 
@@ -374,7 +375,9 @@ while True:
         print("   ~ = toggle subscription\n\r")
 
     if key == "d":
-        print(json.dumps(printer, default=printer.jsonSerializer, indent=4, sort_keys=True).replace("\n", "\r\n"))
+        # printer.jsonSerializer does not exist (jsonSerializer is a module-level
+        # function in bpm.bambutools); printer.toJson() already applies it internally.
+        print(json.dumps(printer.toJson(), indent=4, sort_keys=True).replace("\n", "\r\n"))
 
     if key == "w":
         print(f"\r\nwifi signal strength: [{printer.printer_state.wifi_signal_strength}]")
@@ -437,7 +440,7 @@ while True:
         printer.pause_session()
         name = input("\r\n3MF filename to print: ")
         if len(name) > 0:
-            bed = input("\rBed type (1=High Temp Plate, 2=Textured PEI Plate): ")
+            bed = input("\rBed type (1=Cool Plate, 2=Engineering Plate, 3=Hot Plate, 4=Textured Plate): ")
             if len(bed) > 0 and bed.isnumeric():
                 ams = input("\rAMS mapping as JSON (e.g., '[0,1,2,3]' or '[0,-1,4]' for unmapped): ")
                 if len(ams) > 0:
@@ -494,5 +497,6 @@ pre-commit install
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.2 | 2026-09-27 | Verification pass against current source: fixed the `ftpsclient.py` filename, a missing `ServiceState` import, a nested-quote f-string that is a `SyntaxError` before Python 3.12, a broken `printer.jsonSerializer` reference, and the `PlateType` prompt labels in the example code; corrected the dependency list |
 | 1.1 | 2026-02-25 | Updated documentation with comprehensive examples and reference implementations |
 | 1.0 | 2026-02-23 | Initial project documentation and getting started guide |

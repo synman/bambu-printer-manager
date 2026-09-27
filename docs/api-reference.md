@@ -32,6 +32,7 @@ This REST API provides complete control over Bambu Lab printers via HTTP request
 - [Socket.IO Events](#socketio-events)
 - [build\_all\_data() Response Schema](#build_all_data-response-schema)
 - [Error Handling](#error-handling)
+- [Library-Only Methods (no HTTP route)](#library-only-methods-no-http-route)
 - [Environment Variables](#environment-variables)
 - [Examples](#examples)
 - [Related Resources](#related-resources)
@@ -67,13 +68,23 @@ Serves Swagger UI configured to load `/api/openapi.json`.
 
 ## Printer Status & Information
 
+### GET /api/ping
+
+
+**Swagger UI**: [`GET /api/ping`](http://localhost:5000/api/docs#/default/ping)
+Liveness probe: `200` whenever the gunicorn worker is alive and serving, independent of printer connection state. This is what the container's `HEALTHCHECK` polls — unlike `/api/health_check` below, it never reports unhealthy just because the printer is powered off.
+
+**Response**: `{"status": "alive"}`
+
+---
+
 ### GET /api/printer
 
 
 **Swagger UI**: [`GET /api/printer`](http://localhost:5000/api/docs#/default/get_printer_info)
 Returns the complete serialised `BambuPrinter` object via `BambuPrinter.toJson()`.
 
-**Condition**: Both `printer.recent_update` and `printer.printer_state.spools` must be truthy (i.e. a healthy MQTT data stream has been established and at least one spool entry is present).
+**Condition**: `printer.recent_update` must be truthy (i.e. a healthy MQTT data stream has been established). `/api/health_check` below is more permissive: it also succeeds when `printer.printer_state.spools` is non-empty, even without `recent_update`.
 
 **Success Response** (`200 OK`): Full JSON document produced by `BambuPrinter.toJson()`, which recursively serialises all public attributes — `_config`, `_service_state`, `_printer_state`, `_active_job_info`, `_sdcard_contents`, `_sdcard_3mf_files`, etc.
 
@@ -90,7 +101,7 @@ Returns the complete serialised `BambuPrinter` object via `BambuPrinter.toJson()
 **Swagger UI**: [`GET /api/health_check`](http://localhost:5000/api/docs#/default/health_check)
 Health check that always attempts to return printer JSON regardless of connection state.
 
-**Logic**: If `not printer.recent_update and not printer.printer_state.spools` (both false at once), the response is assembled as a `500` error tuple; otherwise `200` success. In both cases `printer.toJson()` is appended to the response.
+**Logic**: If `not printer.recent_update and not printer.printer_state.spools` (both false at once), the response is assembled as a `500` error tuple; otherwise `200` success.
 
 **Success Response** (`200 OK`):
 ```json
@@ -101,7 +112,11 @@ Health check that always attempts to return printer JSON regardless of connectio
 ```
 `printer` contains the full `BambuPrinter.toJson()` result.
 
-**Error Response** (`500 Internal Server Error`) when no live data is available.
+**Error Response** (`500 Internal Server Error`) when no live data is available:
+```json
+{"status": "error", "reason": "no data to send", "printer": {}}
+```
+`printer` is an empty dict here — only the success response calls `toJson()`.
 
 ---
 
@@ -236,6 +251,28 @@ Set exhaust/chamber fan speed.
 
 ---
 
+### GET /api/set_enhanced_cooling_fan_speed_target
+
+
+**Swagger UI**: [`GET /api/set_enhanced_cooling_fan_speed_target`](http://localhost:5000/api/docs#/default/set_enhanced_cooling_fan_speed_target)
+Set the toolhead's Enhanced Cooling Fan (extension-tool accessory) speed. Sends `M106 P9`.
+
+**Library method**: `BambuPrinter.set_enhanced_cooling_fan_speed_target_percent(value)`
+
+The printer publishes no telemetry for this fan, so the commanded value is recorded as sticky state (`BambuClimate.enhanced_cooling_fan_target_percent`) and resets only when the extension tool leaves the `MOUNTED` state. Observed firmware behavior is effectively on/off (stock slicer G-code only issues `S255` or `S0`); commands sent while the fan is unplugged are acknowledged and are harmless no-ops.
+
+**Parameters**:
+
+| Name | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `percent` | int | yes | `0` | Target speed as a percentage (0–100). |
+
+**Example**: `/api/set_enhanced_cooling_fan_speed_target?percent=100`
+
+**Response**: `{"status": "success"}`
+
+---
+
 ## Print Job Control
 
 ### GET /api/print_3mf
@@ -339,15 +376,16 @@ The `objects` list is split on commas and passed directly to the library. The in
 **Swagger UI**: [`GET /api/load_filament`](http://localhost:5000/api/docs#/default/load_filament)
 Load filament from the specified AMS slot or external spool.
 
-**Library method**: `BambuPrinter.load_filament(slot_id)`
+**Library method**: `BambuPrinter.load_filament(slot_id, ams_id=0)`
 
 **Parameters**:
 
 | Name | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
-| `slot` | int | yes | `0` | AMS slot index (`0`–`3` within a unit) or `254` for external spool. Passed as `slot_id` to the library. |
+| `slot` | int | yes | `0` | AMS slot index (`0`–`3` within a unit) or `254`/`255` for an external spool holder. Passed as `slot_id` to the library. |
+| `ams_id` | int | no | `0` | AMS unit (`0`–`3`, `128`+ for AMS HT). Passed as `ams_id` to the library. |
 
-**Example**: `/api/load_filament?slot=2`
+**Example**: `/api/load_filament?slot=2&ams_id=0`
 
 **Response**: `{"status": "success"}`
 
@@ -359,7 +397,15 @@ Load filament from the specified AMS slot or external spool.
 **Swagger UI**: [`GET /api/unload_filament`](http://localhost:5000/api/docs#/default/unload_filament)
 Unload the currently loaded filament.
 
-**Library method**: `BambuPrinter.unload_filament()`
+**Library method**: `BambuPrinter.unload_filament(ams_id=0)`
+
+**Parameters**:
+
+| Name | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `ams_id` | int | no | `0` | The AMS unit, or external holder (`254`/`255`), to unload from. |
+
+**Example**: `/api/unload_filament?ams_id=0`
 
 **Response**: `{"status": "success"}`
 
@@ -394,7 +440,7 @@ Only RFID-equipped Bambu Lab spools carry tag data. The printer pushes updated t
 **Swagger UI**: [`GET /api/set_spool_details`](http://localhost:5000/api/docs#/default/set_spool_details)
 Set custom filament details for an AMS tray.
 
-**Library method**: `BambuPrinter.set_spool_details(tray_id, tray_info_idx, tray_id_name, tray_type, tray_color, nozzle_temp_min, nozzle_temp_max)`
+**Library method**: `BambuPrinter.set_spool_details(tray_id, tray_info_idx, tray_id_name, tray_type, tray_color, nozzle_temp_min, nozzle_temp_max, ams_id=0)` — the route never passes `ams_id`; the library derives it from `tray_id` regardless (the parameter is unused).
 
 The endpoint sleeps 2 seconds after issuing the command to allow the printer to process the update before responding.
 
@@ -425,9 +471,70 @@ The endpoint sleeps 2 seconds after issuing the command to allow the printer to 
 **Swagger UI**: [`GET /api/set_spool_k_factor`](http://localhost:5000/api/docs#/default/set_spool_k_factor)
 Stub endpoint — no operation is currently performed.
 
-The implementation body is commented out in source. The endpoint accepts `tray_id` but ignores it and immediately returns success.
+The implementation body is commented out in source. The endpoint accepts `tray_id` but ignores it and immediately returns success. The underlying library method, `BambuPrinter.set_spool_k_factor()`, is itself deprecated (broken in recent Bambu firmware) and is not called by this route — see [Library-Only Methods](#library-only-methods-no-http-route).
 
 **Response**: `{"status": "success"}`
+
+---
+
+### GET /api/filament_catalog
+
+
+**Swagger UI**: [`GET /api/filament_catalog`](http://localhost:5000/api/docs#/default/filament_catalog)
+Return bpm's built-in filament catalog: one entry per Bambu-recognised `tray_info_idx` (e.g. `GFL99`), carrying the printer-database defaults for that filament (nozzle temperature range, drying softening/cooling temperature, bed type, etc). Used by the frontend to populate filament pickers and by `/api/start_ams_dryer` to derive a safe default `cooling_temp`.
+
+**Response** (`200 OK`): JSON array of catalog entry objects (`bpm.bambucommands.FILAMENT_CATALOG`).
+
+---
+
+### GET /api/start_ams_dryer
+
+
+**Swagger UI**: [`GET /api/start_ams_dryer`](http://localhost:5000/api/docs#/default/start_ams_dryer)
+Start the dryer on an AMS unit that has one (AMS 2 Pro, AMS HT).
+
+**Library method**: `BambuPrinter.turn_on_ams_dryer(target_temp, duration, cooling_temp, rotate_tray, ams_id, filament_type)`
+
+The route validates before publishing anything: `ams_id` must name a connected AMS unit that reports a `dryer` (an AMS Lite has none); `temp` must fall within the model's drying range (`AMS_2_PRO`: 45–65 °C, `AMS_HT`: 45–85 °C — limits mirrored from Bambu Studio's `AMSDryControl.cpp`, enforced only here, not by bpm or the firmware); `hours` must be `1`–`999` (the longest dry an H2D was measured to accept; Studio's 24 h cap is UI-only). `cooling_temp` is derived automatically, mirroring Bambu Studio: the lowest `drying_softening_temp` among the unit's loaded spools' catalog entries (from `/api/filament_catalog`), or `50` °C when none is known. `filament_type` is taken from the first loaded spool that reports one.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `ams_id` | int | yes | The AMS unit to dry. |
+| `temp` | int | yes | Target drying temperature in °C (see per-model range above). |
+| `hours` | int | yes | Drying duration, `1`–`999` hours. |
+| `rotate` | bool | no | Exact string `"true"` rotates the tray during drying; anything else (default) does not. |
+
+**Example**: `/api/start_ams_dryer?ams_id=0&temp=55&hours=4&rotate=true`
+
+**Response**: `{"status": "success"}`
+
+**Error Response** (`400 Bad Request`) — `{"status": "error", "reason": "<reason>"}` — for a missing/non-integer `ams_id`, `temp`, or `hours`; an `ams_id` with no matching AMS unit, or one that has not reported yet, or one with no dryer; a `temp` outside the model's range; or `hours` outside `1`–`999`.
+
+---
+
+### GET /api/stop_ams_dryer
+
+
+**Swagger UI**: [`GET /api/stop_ams_dryer`](http://localhost:5000/api/docs#/default/stop_ams_dryer)
+Stop the dryer on an AMS unit.
+
+**Library method**: `BambuPrinter.turn_off_ams_dryer(ams_id)`
+
+Same `ams_id` validation as `/api/start_ams_dryer` (must name a connected, dryer-capable AMS unit).
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `ams_id` | int | yes | The AMS unit whose dryer should stop. |
+
+**Example**: `/api/stop_ams_dryer?ams_id=0`
+
+**Response**: `{"status": "success"}`
+
+**Error Response** (`400 Bad Request`): `{"status": "error", "reason": "<reason>"}` for a missing/non-integer `ams_id`, or one naming no connected dryer-capable unit.
 
 ---
 
@@ -576,17 +683,28 @@ Rename or move a file/folder on the SD card via FTPS.
 
 
 **Swagger UI**: [`POST /api/upload_file_to_host`](http://localhost:5000/api/docs#/default/upload_file_to_host)
-Upload a file to the API server's local `./uploads/` directory.
+Upload a file to the API server's local staging directory, `./uploads/{BAMBU_SERIAL_NUMBER}/`. Each container serves exactly one printer, and staging under the printer's own serial keeps two containers sharing the same host `uploads/` mount from colliding on identically-named files.
 
-Accepts both `GET` and `POST` methods; multipart form data is required in practice.
+**Method**: `POST` only.
 
 **Form Data**:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `myFile` | file | yes | File to upload. Saved as `./uploads/{original filename}`. |
+| `myFile` | file | yes | File to upload. |
 
-**Response**: `{"status": "success"}`
+The uploaded filename is sanitised by `staged_filename()` (Werkzeug's `secure_filename()`); when sanitisation changes the name (e.g. it contains `+`, `&`, or other characters outside `[A-Za-z0-9_.-]`), an 8-character digest of the *original* filename is appended before the extension so two different original names can never collide on the same staged name. The response reports the staged name — pass it, not the original filename, to `/api/upload_file_to_printer`'s `src` parameter.
+
+**Success Response** (`200 OK`):
+```json
+{"status": "success", "filename": "model-3f2a9c1b.3mf"}
+```
+
+**Error Response** (`400 Bad Request`):
+```json
+{"status": "error", "reason": "no file provided"}
+```
+Also returned (same status) as `{"status": "error", "reason": "invalid filename"}` when sanitisation yields no usable name, or `{"status": "error", "reason": "invalid path"}` on the (normally unreachable) traversal-containment check.
 
 ---
 
@@ -594,9 +712,9 @@ Accepts both `GET` and `POST` methods; multipart form data is required in practi
 
 
 **Swagger UI**: [`GET /api/upload_file_to_printer`](http://localhost:5000/api/docs#/default/upload_file_to_printer)
-Transfer a file from the server's `./uploads/` directory to the printer SD card via FTPS.
+Transfer a file from the server's per-printer staging directory (`./uploads/{BAMBU_SERIAL_NUMBER}/`) to the printer SD card via FTPS.
 
-**Library method**: `BambuPrinter.upload_sdcard_file(f"uploads/{src}", dest)` — uploads the file, then if it is a `.3mf` file runs `get_project_info` to cache its metadata, then calls `get_sdcard_contents()` to refresh the file tree.
+**Library method**: `BambuPrinter.upload_sdcard_file(src, dest)` — uploads the file, then if it is a `.3mf` file runs `get_project_info` to cache its metadata, then calls `get_sdcard_contents()` to refresh the file tree. `src` is resolved by the route against this container's own staging directory before being passed to the library, and is rejected before any FTPS call if it would resolve outside that directory.
 
 Accepts both `GET` and `POST` methods.
 
@@ -604,12 +722,14 @@ Accepts both `GET` and `POST` methods.
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `src` | string | yes | Filename in the `./uploads/` directory (basename only). |
+| `src` | string | yes | Filename in this container's `./uploads/{BAMBU_SERIAL_NUMBER}/` directory (the staged name returned by `/api/upload_file_to_host`) — never a path that escapes it. |
 | `dest` | string | yes | Full destination path on SD card (e.g. `/prints/model.3mf`). |
 
-**Example**: `/api/upload_file_to_printer?src=model.3mf&dest=/prints/model.3mf`
+**Example**: `/api/upload_file_to_printer?src=model-3f2a9c1b.3mf&dest=/prints/model.3mf`
 
 **Response**: Updated SD card file tree (same structure as `get_sdcard_contents`).
+
+**Error Response** (`400 Bad Request`): `{"status": "error", "reason": "invalid src path"}` when `src` would resolve outside the staging directory (e.g. a `../` traversal).
 
 ---
 
@@ -617,9 +737,9 @@ Accepts both `GET` and `POST` methods.
 
 
 **Swagger UI**: [`GET /api/download_file_from_printer`](http://localhost:5000/api/docs#/default/download_file_from_printer)
-Download a file from the printer SD card. The file is saved to `./uploads/` and then streamed to the client.
+Download a file from the printer SD card. The file is saved to this container's per-printer staging directory, `./uploads/{BAMBU_SERIAL_NUMBER}/`, and then streamed to the client.
 
-**Library method**: `BambuPrinter.download_sdcard_file(src, f"uploads/{filename}")`
+**Library method**: `BambuPrinter.download_sdcard_file(src, dest)` — `dest` is built by the route from the filename portion of `src`, resolved against the staging directory.
 
 Accepts both `GET` and `POST` methods.
 
@@ -632,6 +752,8 @@ Accepts both `GET` and `POST` methods.
 **Example**: `/api/download_file_from_printer?src=/test.3mf`
 
 **Response**: Binary file download (content-type determined by Flask's `send_from_directory`).
+
+**Error Response** (`400 Bad Request`): `{"status": "error", "reason": "invalid filename"}` when `src` ends in `/`, `/.`, or `/..` (an empty, `.`, or `..` filename), or when the resolved destination would escape the staging directory.
 
 ---
 
@@ -650,7 +772,7 @@ Returns a `dataclasses.asdict(ProjectInfo)` result.
 | Name | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
 | `file` | string | yes | `""` | Full SD card path to the `.3mf` file. |
-| `plate` | int | no | `1` | Plate number to retrieve metadata for (1-based). |
+| `plate` | int | no | `0` | Plate number to retrieve metadata for (1-based). `0` (the route's own default when omitted, distinct from the library's own default of `1`) is not a valid plate number in any `.3mf`. When a cached `<file>-N.json` metadata file already exists for the file, `get_project_info` first substitutes whichever cached plate sorts first lexicographically (not necessarily the lowest or first-in-file plate number) as the requested plate number; if that cache entry is still valid (matching timestamp/size, or matching md5) it is served straight from cache without opening the `.3mf`, otherwise the `.3mf` is re-parsed and the first plate number found in the file is used. |
 
 **Example**: `/api/get_3mf_props_for_file?file=/test.3mf&plate=1`
 
@@ -682,10 +804,23 @@ Returns a `dataclasses.asdict(ProjectInfo)` result.
         {"id": 1, "name": "Part_1", "val": [0.0, 0.0, 50.0, 50.0]},
         {"id": 2, "name": "Support_1", "val": [0.0, 0.0, 50.0, 50.0]}
       ]
+    },
+    "slicer_settings": {
+      "enable_support": "1",
+      "support_type": "normal",
+      "brim_type": "no_brim",
+      "brim_width": "5",
+      "raft_layers": "0",
+      "sparse_infill_density": "15%",
+      "wall_loops": "2",
+      "layer_height": "0.2",
+      "initial_layer_height": "0.2"
     }
   }
 }
 ```
+
+`metadata.slicer_settings` keys are always present. Each falls back to a hard-coded default (`enable_support`/`raft_layers`/`brim_width`: `"0"`, `support_type`: `"normal"`, `brim_type`: `"no_brim"`, `sparse_infill_density`: `"15%"`, `wall_loops`: `"2"`, `layer_height`/`initial_layer_height`: `"0.2"`) when `Metadata/project_settings.config` is absent from the `.3mf` (older BambuStudio exports may lack it) or lacks that key.
 
 `metadata.ams_mapping` is a placeholder in the shape of `print_3mf`'s `ams_mapping` parameter, not a tray assignment: index `id - 1` holds `str(id)` for each filament and `"-1"` fills the gaps. The `.3mf` carries no tray ids, so build the real mapping from the spools loaded on the printer.
 
@@ -717,6 +852,18 @@ Checks `printer.active_job_info.project_info` and returns it if `project_info.id
 
 ---
 
+### GET /api/retry_project_info
+
+
+**Swagger UI**: [`GET /api/retry_project_info`](http://localhost:5000/api/docs#/default/retry_project_info)
+Reset the project-info fetch flag so bpm's fallback re-runs on the next MQTT update. Useful when `/api/get_current_3mf_props` keeps returning `404` for a job that was already running when the API server started (bpm's normal fetch-on-job-start path was missed).
+
+**Implementation**: directly clears `printer._active_job_info.project_info_fetch_attempted` and `printer._active_job_info.project_info` — not a `BambuPrinter` public method.
+
+**Response**: `{"status": "success"}`
+
+---
+
 ## Tool Control (Dual Extruder)
 
 These endpoints are only meaningful on H2D / H2D Pro printers with dual extruders.
@@ -744,11 +891,13 @@ Computes the target tool as `abs(active_tool.value - 1)`:
 **Swagger UI**: [`GET /api/set_nozzle_details`](http://localhost:5000/api/docs#/default/set_nozzle_details)
 Set the nozzle diameter and material type for the active extruder.
 
-**Library method**: `BambuPrinter.set_nozzle_details(nozzle_diameter, nozzle_type)`
+**Library method**: `BambuPrinter.set_nozzle_details(nozzle_diameter, nozzle_type, nozzle_flow, extruder_id)`
 
 The endpoint sleeps 1 second after issuing the command before responding.
 
-`nozzle_diameter` is parsed via `NozzleDiameter(float(...))` and `nozzle_type` via `NozzleType[...]`. Supplying an invalid value for either raises a `ValueError` / `KeyError` which is caught by the `500` error handler.
+`nozzle_diameter` is parsed via `NozzleDiameter(float(...))`, `nozzle_type` via `NozzleType[...]`, and `nozzle_flow` via `NozzleFlowType[...]`. Supplying an invalid value for any of the three raises a `ValueError` / `KeyError` which is caught by the `500` error handler — including omitting `nozzle_flow` entirely, since the route does not default it (`NozzleFlowType[""]` raises `KeyError`).
+
+For a single-extruder printer (`not capabilities.has_dual_extruder`) the library sends `SET_ACCESSORIES` and `nozzle_flow`/`extruder_id` are accepted but unused. For a dual-extruder printer (H2D / H2D Pro) it sends `SET_NOZZLE` instead, which encodes `nozzle_flow` + `nozzle_type` + `nozzle_diameter` into a single identifier string (e.g. `HH01`) and targets `extruder_id` (or the currently active tool when `extruder_id` is `-1`).
 
 **Parameters**:
 
@@ -756,8 +905,10 @@ The endpoint sleeps 1 second after issuing the command before responding.
 |------|------|----------|----------------|-------------|
 | `nozzle_diameter` | float | yes | `0.2`, `0.4`, `0.6`, `0.8` | Nozzle diameter in mm (`NozzleDiameter` enum values). |
 | `nozzle_type` | string | yes | `STAINLESS_STEEL`, `HARDENED_STEEL`, `TUNGSTEN_CARBIDE`, `BRASS`, `E3D` | Nozzle material (`NozzleType` enum name). |
+| `nozzle_flow` | string | yes | `STANDARD`, `HIGH_FLOW`, `TPU_HIGH_FLOW` | Nozzle flow family (`NozzleFlowType` enum name). Only meaningful on dual-extruder printers, but the route requires a valid value regardless. |
+| `extruder_id` | int | no | `-1` | Dual-extruder printers only: which extruder the nozzle is installed in. `-1` (default) targets the currently active tool. |
 
-**Example**: `/api/set_nozzle_details?nozzle_diameter=0.4&nozzle_type=HARDENED_STEEL`
+**Example**: `/api/set_nozzle_details?nozzle_diameter=0.4&nozzle_type=HARDENED_STEEL&nozzle_flow=STANDARD&extruder_id=-1`
 
 **Response** (after 1-second delay): `{"status": "success"}`
 
@@ -816,7 +967,9 @@ Enable or disable the spaghetti / failed-print detector. Detects loose filament 
 
 **Example**: `/api/set_spaghetti_detector?enabled=true&sensitivity=high`
 
-**Response**: `{"status": "success"}`
+**Currently broken**: the route passes `sensitivity` straight through as the raw query string (`request.args.get("sensitivity", "medium")`), but `BambuPrinter.set_spaghetti_detector` reads `sensitivity.value` — a `str` has no `.value`. Every call raises `AttributeError: 'str' object has no attribute 'value'`, which the `500` error handler reports instead of the success response below.
+
+**Response**: `{"status": "success"}` (never actually returned — see above)
 
 ---
 
@@ -837,7 +990,9 @@ Enable or disable the purge-chute pile-up detector.
 
 **Example**: `/api/set_purgechutepileup_detector?enabled=true&sensitivity=medium`
 
-**Response**: `{"status": "success"}`
+**Currently broken**: same defect as `/api/set_spaghetti_detector` above — the route passes `sensitivity` as a raw string, but `BambuPrinter.set_purgechutepileup_detector` calls `sensitivity.value` on it, raising `AttributeError: 'str' object has no attribute 'value'` on every call.
+
+**Response**: `{"status": "success"}` (never actually returned — see above)
 
 ---
 
@@ -858,7 +1013,9 @@ Enable or disable the nozzle-clumping detector (X-Cam AI vision). Detects filame
 
 **Example**: `/api/set_nozzleclumping_detector?enabled=true&sensitivity=low`
 
-**Response**: `{"status": "success"}`
+**Currently broken**: same defect as `/api/set_spaghetti_detector` above — the route passes `sensitivity` as a raw string, but `BambuPrinter.set_nozzleclumping_detector` calls `sensitivity.value` on it, raising `AttributeError: 'str' object has no attribute 'value'` on every call.
+
+**Response**: `{"status": "success"}` (never actually returned — see above)
 
 ---
 
@@ -879,7 +1036,9 @@ Enable or disable the air-printing / no-extrusion detector (X-Cam AI vision). De
 
 **Example**: `/api/set_airprinting_detector?enabled=true&sensitivity=medium`
 
-**Response**: `{"status": "success"}`
+**Currently broken**: same defect as `/api/set_spaghetti_detector` above — the route passes `sensitivity` as a raw string, but `BambuPrinter.set_airprinting_detector` calls `sensitivity.value` on it, raising `AttributeError: 'str' object has no attribute 'value'` on every call.
+
+**Response**: `{"status": "success"}` (never actually returned — see above)
 
 ---
 
@@ -899,9 +1058,39 @@ The `cmd` value is resolved via `AMSControlCommand[cmd.upper()]`. Invalid names 
 
 | Name | Type | Required | Allowed values | Description |
 |------|------|----------|----------------|-------------|
-| `cmd` | string | yes | `PAUSE`, `RESUME`, `RESET` | AMS control command (`AMSControlCommand` enum name). |
+| `cmd` | string | yes | `PAUSE`, `RESUME`, `RESET`, `DONE`, `ABORT` | AMS control command (`AMSControlCommand` enum name). `RESUME` also resumes the print. |
 
 **Example**: `/api/send_ams_control_command?cmd=RESET`
+
+**Response**: `{"status": "success"}`
+
+---
+
+### GET /api/hms_action
+
+Press a printer prompt button. The buttons for the current `print_error` are the `actions` of its `device_error` entry in `hms_errors`.
+
+**Library method**: `BambuPrinter.send_hms_action(id)` — sends what Bambu Studio sends for that button (`resume`, `done` or `abort` as `ams_control` alone, or `clean_print_error`).
+
+**Parameters**:
+
+| Name | Type | Required | Allowed values | Description |
+|------|------|----------|----------------|-------------|
+| `id` | int | yes | an `HMSAction` id, e.g. `9` CONTINUE, `7` FILAMENT_EXTRUDED, `51` ABORT | The button pressed. |
+
+**Example**: `/api/hms_action?id=9`
+
+**Response**: `{"status": "success", "sent": true}`. `sent` is false for a button that sends nothing (Check Assistant, Cancel). A button bpm cannot send answers `400` with `{"status": "error", "error": "..."}`.
+
+---
+
+### GET /api/clear_command_errors
+
+
+**Swagger UI**: [`GET /api/clear_command_errors`](http://localhost:5000/api/docs#/default/clear_command_errors)
+Drop every refused-command entry (`type` `command_error`) from `printer_state.hms_errors` — e.g. when the user dismisses one in the UI. Nothing is sent to the printer.
+
+**Library method**: `BambuPrinter.clear_command_errors()`
 
 **Response**: `{"status": "success"}`
 
@@ -1023,15 +1212,17 @@ Set the print speed profile.
 
 **Library method**: `BambuPrinter.speed_level = str`
 
-Publishes `SPEED_PROFILE_TEMPLATE` with the string value directly as the `param` field.
+The route always passes a plain string (`str(request.args.get("level"))`), so the setter's `isinstance(value, SpeedLevel)` and `isinstance(value, int)` branches never match from this endpoint — it always falls to `SpeedLevel[str(value).upper()].value`, a lookup **by enum name**, not by digit. Publishes `SPEED_PROFILE_TEMPLATE` with the resolved numeric code (`"1"`–`"4"`) as the `param` field.
 
 **Parameters**:
 
 | Name | Type | Required | Allowed values | Description |
 |------|------|----------|----------------|-------------|
-| `level` | string | yes | `"1"` (silent), `"2"` (standard), `"3"` (sport), `"4"` (ludicrous) | Speed profile index as a string. |
+| `level` | string | yes | `"quiet"` (→1), `"standard"` (→2), `"sport"` (→3), `"ludicrous"` (→4) — case-insensitive `SpeedLevel` member name | Speed profile to select. |
 
-**Example**: `/api/set_speed_level?level=2`
+**Example**: `/api/set_speed_level?level=sport`
+
+**Error Response** (`500 Internal Server Error`) for any value that is not one of the four names above, including a bare digit like `"2"` (`KeyError: '2'` — `SpeedLevel` is looked up by name here, not by value).
 
 **Response**: `{"status": "success"}`
 
@@ -1101,6 +1292,8 @@ Dump all internal `DataCollection` objects as newline-delimited JSON (JSONL), on
 
 **Response**: Plain text, MIME type `application/jsonl+json`. Each line is one JSON-serialised `DataCollection` object.
 
+**Currently broken**: the route calls `json.dumps(..., default=ds.printer.jsonSerializer, ...)`, but `jsonSerializer` is a module-level function in `bpm.bambutools` — it is imported into `bpm.bambuprinter`'s module namespace, not bound as a `BambuPrinter` attribute. `ds.printer.jsonSerializer` raises `AttributeError`, which the `500` error handler reports as `{"status": "error", "message": "AttributeError: 'BambuPrinter' object has no attribute 'jsonSerializer'", ...}` instead of the JSONL success response described above.
+
 ---
 
 ## System & Diagnostics
@@ -1133,14 +1326,22 @@ Pause or resume the MQTT connection to the printer.
 **Swagger UI**: [`GET /api/trigger_printer_refresh`](http://localhost:5000/api/docs#/default/trigger_printer_refresh)
 Force a printer reconnection or refresh.
 
-**Library methods**: `BambuPrinter.quit()` + `start_session()` when disconnected; `BambuPrinter.refresh()` when connected.
+**Library methods**: `BambuPrinter.quit()` + `start_session()` (reconnect, run on a background thread) when disconnected; `BambuPrinter.refresh()` (synchronous) when connected.
 
-- If `service_state` is not `CONNECTED` and not `PAUSED`: calls `quit()`, waits 1 second, calls `start_session()`, then blocks until `CONNECTED`.
-- Otherwise: calls `refresh()` to request a `push_status` from the printer.
+- If `service_state` is not `CONNECTED` and not `PAUSED`: a single-flight lock guards against overlapping reconnects.
+  - If a reconnect is already running, the request returns immediately without starting another.
+  - Otherwise a background thread calls `quit()`, waits 1 second, calls `start_session()`, and loops (retrying `start_session()` on `internalException`) until `CONNECTED` — this can take an unbounded amount of time when the printer is unreachable. The thread also respawns the telemetry `DataCollector` thread if it is not alive, since a `quit()`/`start_session()` cycle terminates the old one.
+- Otherwise (already `CONNECTED` or `PAUSED`): calls `refresh()` synchronously to request a `push_status` from the printer.
 
-**Response**: `{"status": "success", "printer": {}}`
+**Response** — one of three shapes depending on which branch ran:
 
-Note: `printer` is always an empty dict in this response. Call `/api/printer` or `/api/get_all_data` for current state.
+| `status` | Meaning |
+|----------|---------|
+| `"accepted"` | Not connected; a background reconnect was just started. |
+| `"reconnecting"` | Not connected; a reconnect was already in progress, so this call was a no-op. |
+| `"success"` | Already connected or paused; `refresh()` ran synchronously. |
+
+All three shapes are `{"status": "<one of the above>", "printer": {}}`. `printer` is always an empty dict in this response. Call `/api/printer` or `/api/get_all_data` for current state, and poll `/api/printer` (or `/api/health_check`) to detect when an `"accepted"` reconnect has actually finished.
 
 ---
 
@@ -1451,6 +1652,26 @@ Returned on any unhandled exception (including invalid enum names, missing requi
 
 ---
 
+## Library-Only Methods (no HTTP route)
+
+`BambuPrinter` exposes several public methods and properties that bambu-printer-app's REST API does not currently wrap in a route. They are reachable only by importing `bpm` directly (see the [bambu-printer-manager documentation](https://synman.github.io/bambu-printer-manager/)).
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `clean_print_error` | `(subtask_id: str = "", print_error: int = 0)` | Clears an active `print_error` on the printer via `clean_print_error`. |
+| `clean_print_error_uiop` | `(print_error: int = 0)` | Sends the UI dialog-close acknowledgment Bambu Studio sends alongside `clean_print_error`; without it the printer stays in a "waiting for UI acknowledgment" state. |
+| `ftp_connection` | `()` — context manager | Yields an `IoTFTPSClient` connected to the printer's SD card; used internally by every FTPS-backed method above. |
+| `get_current_bind_list` | `(state: BambuState) -> list[dict]` | Builds the `manual_ams_bind` list the H2D dual-extruder firmware requires when binding AMS units to extruders. |
+| `rename_printer` | `(new_name: str)` | Renames the printer (`update`/`RENAME_PRINTER`). |
+| `sdcard_file_exists` | `(path: str) -> bool` | Checks whether a file exists on the SD card via FTPS. |
+| `select_extrusion_calibration_profile` | `(tray_id: int, cali_idx: int = -1)` | Selects a saved extrusion (k-factor) calibration profile for a tray. |
+| `send_anything` | `(anything: str)` | Publishes an arbitrary JSON string directly to the printer's MQTT request topic — bypasses all validation; `anything` must already be valid JSON. |
+| `set_spool_k_factor` | `(tray_id, k_value, n_coef=1.4, nozzle_temp=-1, bed_temp=-1, max_volumetric_speed=-1)` | **Deprecated** (broken on recent Bambu firmware) — use `select_extrusion_calibration_profile` instead. |
+
+Read-only or setter-only properties not surfaced by any route: `internalException`, `cached_sd_card_contents`, `cached_sd_card_3mf_files`, `bed_temp_target_time`, `tool_temp_target_time`, `chamber_temp_target_time`, `fan_speed_target_time`, `printer_state`, `active_job_info`, `config`, `client`, `on_update`, `recent_update`, and the deprecated `skipped_objects`, `nozzle_diameter`, `nozzle_type` (superseded by `printer_state.active_nozzle`).
+
+---
+
 ## Environment Variables
 
 Required at startup:
@@ -1461,6 +1682,8 @@ BAMBU_ACCESS_CODE=12345678         # 8-character printer access code
 BAMBU_SERIAL_NUMBER=00M12345678901 # Full printer serial number
 INTEGRATED_EXTERNAL_HEATER=FALSE   # Set TRUE to enable ChamberMonitor integration
 ```
+
+`BAMBU_SERIAL_NUMBER` is validated at startup against `^[A-Za-z0-9]+$` — any other character (including `.`, `/`, or a leading `/` that `Path.__truediv__` would treat as absolute) exits the process before the server starts, since the value becomes a directory name under `./uploads/`.
 
 Optional — only used when `INTEGRATED_EXTERNAL_HEATER=TRUE`:
 
@@ -1590,6 +1813,7 @@ For comprehensive documentation of all data structures, attributes, and telemetr
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.4 | 2026-09-27 | Verification pass against current source: added `filament_catalog`, `set_enhanced_cooling_fan_speed_target`, `clear_command_errors`, `ping`, `retry_project_info`, `start_ams_dryer`, `stop_ams_dryer`, and a Library-Only Methods section; corrected `/api/printer`'s single-condition check, `set_speed_level`'s actual accepted values, `trigger_printer_refresh`'s async reconnect behaviour, `set_nozzle_details`'s `nozzle_flow`/`extruder_id` parameters, `load_filament`/`unload_filament`'s `ams_id` parameter, the per-serial upload/download staging directory, `get_3mf_props_for_file`'s `plate` default and `slicer_settings` metadata key, and the `dump_data_ds.collections`/`jsonSerializer` defect; added `BAMBU_SERIAL_NUMBER` validation note |
 | 1.3 | 2026-06-10 | Full rewrite from source: corrected `build_all_data()` multi-series schema for `tool` and `fan`, fixed file-operation response bodies (all return updated SD card tree, not custom dicts), documented Socket.IO `printer_update` event, added `gcode_state_durations`, corrected `set_spool_k_factor` stub status, corrected `print_3mf` `plate` required/default behaviour, corrected `toggle_verbosity` level-toggle logic, added `NOZZLE_BLOB_DETECT`/`AIR_PRINT_DETECT` to `set_print_option`, expanded environment variables section |
 | 1.2 | 2026-03-02 | Added Detection & Safety section (buildplate, spaghetti, purgechute, nozzleclumping, airprinting detectors, refresh_nozzles); fixed dump_data_ds.collections route name |
 | 1.1 | 2026-02-25 | Updated reference implementations; added comprehensive external sources |

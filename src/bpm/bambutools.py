@@ -10,7 +10,7 @@ from pathlib import Path
 from threading import Thread
 from typing import Any
 
-from bpm.bambucommands import HMS_STATUS
+from bpm.bambucommands import HMS_ACTIONS, HMS_STATUS
 
 """
 `bambutools' hosts various classes and methods used internally and externally
@@ -52,12 +52,216 @@ class AirConditioningMode(IntEnum):
 
 class AMSControlCommand(Enum):
     """
-    AMS Control Commands enum
+    AMS Control Commands enum. The lowercase name is the `ams_control` `param` sent.
+
+    * `DONE`: filament extruded, the load may continue (Studio's "Filament Extruded, Continue").
+    * `ABORT`: cancel the running load or unload (Studio's "Abort" and the load view's "Stop").
     """
 
     PAUSE = 0
     RESUME = 1
     RESET = 2
+    DONE = 3
+    ABORT = 4
+
+
+class FilamentStep(IntEnum):
+    """
+    The step of a filament load or unload, named as Bambu Studio's `DevFilamentStep`.
+
+    `FILAMENT_STEP_TEXT` holds Studio's label for each step.
+    """
+
+    IDLE = 0
+    HEAT_NOZZLE = 1
+    CUT_FILAMENT = 2
+    PULL_CURR_FILAMENT = 3
+    PUSH_NEW_FILAMENT = 4
+    PURGE_OLD_FILAMENT = 5
+    CONFIRM_EXTRUDED = 6
+    CHECK_POSITION = 7
+
+
+FILAMENT_STEP_TEXT = {
+    FilamentStep.IDLE: "",
+    FilamentStep.HEAT_NOZZLE: "Heat the nozzle",
+    FilamentStep.CUT_FILAMENT: "Cut filament",
+    FilamentStep.PULL_CURR_FILAMENT: "Pull back current filament",
+    FilamentStep.PUSH_NEW_FILAMENT: "Push new filament into extruder",
+    FilamentStep.PURGE_OLD_FILAMENT: "Purge old filament",
+    FilamentStep.CONFIRM_EXTRUDED: "Confirm extruded",
+    FilamentStep.CHECK_POSITION: "Check filament location",
+}
+"""Bambu Studio's step labels (`Widgets/FilamentLoad.cpp`)."""
+
+
+class FilamentStepType(IntEnum):
+    """
+    The kind of filament change under way, as Bambu Studio's `FilamentStepType`.
+
+    * `LOAD`: a load from an AMS slot.
+    * `UNLOAD`: an unload (the target slot is none).
+    * `VT_LOAD`: a load from an external spool holder (254 or 255).
+    """
+
+    LOAD = 0
+    UNLOAD = 1
+    VT_LOAD = 2
+
+
+class HMSAction(IntEnum):
+    """
+    The dialog buttons Bambu Studio knows, by the ids its HMS action table uses
+    (`DeviceErrorDialog.hpp` `ActionButton`). Ids the table carries but this enum
+    lacks are buttons Studio does not show.
+    """
+
+    RESUME_PRINTING = 2
+    RESUME_PRINTING_DEFECTS = 3
+    RESUME_PRINTING_PROBELM_SOLVED = 4
+    STOP_PRINTING = 5
+    CHECK_ASSISTANT = 6
+    FILAMENT_EXTRUDED = 7
+    RETRY_FILAMENT_EXTRUDED = 8
+    CONTINUE = 9
+    LOAD_VIRTUAL_TRAY = 10
+    OK_BUTTON = 11
+    FILAMENT_LOAD_RESUME = 12
+    JUMP_TO_LIVEVIEW = 13
+    NO_REMINDER_NEXT_TIME = 23
+    REFRESH_NOZZLE = 24
+    IGNORE_NO_REMINDER_NEXT_TIME = 25
+    IGNORE_RESUME = 27
+    PROBLEM_SOLVED_RESUME = 28
+    TURN_OFF_FIRE_ALARM = 29
+    RETRY_PROBLEM_SOLVED = 34
+    STOP_DRYING = 35
+    CANCLE = 37
+    REMOVE_CLOSE_BTN = 39
+    PROCEED = 41
+    OK_JUMP_RACK = 49
+    ABORT = 51
+    DISABLE_PURIFICATION = 54
+    DONT_REMIND_NEXT_TIME = 57
+    DBL_CHECK_CANCEL = 10000
+    DBL_CHECK_DONE = 10001
+    DBL_CHECK_RETRY = 10002
+    DBL_CHECK_RESUME = 10003
+    DBL_CHECK_OK = 10004
+
+
+HMS_ACTION_LABEL = {
+    HMSAction.RESUME_PRINTING: "Resume Printing",
+    HMSAction.RESUME_PRINTING_DEFECTS: "Resume (defects acceptable)",
+    HMSAction.RESUME_PRINTING_PROBELM_SOLVED: "Resume (problem solved)",
+    HMSAction.STOP_PRINTING: "Stop Printing",
+    HMSAction.CHECK_ASSISTANT: "Check Assistant",
+    HMSAction.FILAMENT_EXTRUDED: "Filament Extruded, Continue",
+    HMSAction.RETRY_FILAMENT_EXTRUDED: "Not Extruded Yet, Retry",
+    HMSAction.CONTINUE: "Finished, Continue",
+    HMSAction.LOAD_VIRTUAL_TRAY: "Load Filament",
+    HMSAction.OK_BUTTON: "OK",
+    HMSAction.FILAMENT_LOAD_RESUME: "Filament Loaded, Resume",
+    HMSAction.JUMP_TO_LIVEVIEW: "View Liveview",
+    HMSAction.NO_REMINDER_NEXT_TIME: "No Reminder Next Time",
+    HMSAction.REFRESH_NOZZLE: "Recheck",
+    HMSAction.IGNORE_NO_REMINDER_NEXT_TIME: "Ignore. Don't Remind Next Time",
+    HMSAction.IGNORE_RESUME: "Ignore this and Resume",
+    HMSAction.PROBLEM_SOLVED_RESUME: "Problem Solved and Resume",
+    HMSAction.TURN_OFF_FIRE_ALARM: "Got it, Turn off the Fire Alarm.",
+    HMSAction.RETRY_PROBLEM_SOLVED: "Retry (problem solved)",
+    HMSAction.STOP_DRYING: "Stop Drying",
+    HMSAction.CANCLE: "Cancel",
+    HMSAction.REMOVE_CLOSE_BTN: "",
+    HMSAction.PROCEED: "Proceed",
+    HMSAction.OK_JUMP_RACK: "OK",
+    HMSAction.ABORT: "Abort",
+    HMSAction.DISABLE_PURIFICATION: "Disable Purification for This Print",
+    HMSAction.DONT_REMIND_NEXT_TIME: "Don't Remind Me",
+    HMSAction.DBL_CHECK_CANCEL: "Cancel",
+    HMSAction.DBL_CHECK_DONE: "Done",
+    HMSAction.DBL_CHECK_RETRY: "Retry",
+    HMSAction.DBL_CHECK_RESUME: "Resume",
+    HMSAction.DBL_CHECK_OK: "Confirm",
+}
+"""Bambu Studio's button text (`DeviceErrorDialog::init_button_list`)."""
+
+HMS_ACTION_COMMAND = {
+    HMSAction.FILAMENT_EXTRUDED: "done",
+    HMSAction.RETRY_FILAMENT_EXTRUDED: "resume",
+    HMSAction.CONTINUE: "resume",
+    HMSAction.RETRY_PROBLEM_SOLVED: "resume",
+    HMSAction.ABORT: "abort",
+    HMSAction.OK_BUTTON: "clean_print_error",
+    HMSAction.CHECK_ASSISTANT: "assistant",
+    HMSAction.CANCLE: "close",
+    HMSAction.DBL_CHECK_CANCEL: "close",
+    HMSAction.DBL_CHECK_DONE: "done",
+    HMSAction.DBL_CHECK_RETRY: "resume",
+    HMSAction.DBL_CHECK_OK: "clean_print_error",
+}
+"""What bpm sends for a button, matching Studio's `DeviceErrorDialog::on_button_click`:
+`done`, `resume` and `abort` are `ams_control` params, `clean_print_error` clears the
+error, `assistant` opens the error's `url` and `close` sends nothing. A known button not
+listed here sends a command bpm does not implement, so it carries no command."""
+
+
+HMS_RETRY_CODES = {
+    "0701-8004",
+    "0701-8005",
+    "0701-8007",
+    "0701-8012",
+    "0702-8012",
+    "0703-8012",
+    "07FF-8012",
+    "07FF-8013",
+}
+"""Errors Bambu Studio answers with Retry and Confirm instead of its table's buttons
+(`DeviceErrorDialog.cpp` `message_containing_retry`)."""
+
+HMS_LIVEVIEW_CODES = {"0300-8003", "0300-8002", "0300-800A"}
+"""Errors Bambu Studio adds a View Liveview button to (`s_jump_liveview_error_codes`)."""
+
+
+def hmsActions(serial_number: str, print_error: int) -> list[dict]:
+    """
+    The dialog buttons Bambu Studio shows for `print_error` on this printer, in order.
+
+    As `DeviceErrorDialog::apply_result`: an `HMS_RETRY_CODES` error gets Retry and
+    Confirm. Otherwise the error is looked up as `%08X` in `HMS_ACTIONS` under the
+    serial's first three characters, and an `HMS_LIVEVIEW_CODES` error adds View
+    Liveview. Ids Studio does not know, and `REMOVE_CLOSE_BTN`, are dropped.
+
+    Returns a list of `{"id": int, "name": str, "label": str, "command": str}`.
+    `command` is empty for a button bpm cannot send (see `HMS_ACTION_COMMAND`).
+    """
+    if not print_error:
+        return []
+    ecode = f"{print_error & 0xFFFFFFFF:08X}"
+    code = f"{ecode[:4]}-{ecode[4:]}"
+    if code in HMS_RETRY_CODES:
+        ids = (HMSAction.DBL_CHECK_RETRY, HMSAction.DBL_CHECK_OK)
+    else:
+        table = HMS_ACTIONS.get(str(serial_number)[:3].upper())
+        ids = tuple(table["codes"].get(ecode, ())) if table else ()
+        if code in HMS_LIVEVIEW_CODES:
+            ids += (HMSAction.JUMP_TO_LIVEVIEW,)
+    actions = []
+    for action_id in ids:
+        if action_id not in HMSAction._value2member_map_:
+            continue
+        action = HMSAction(action_id)
+        if action == HMSAction.REMOVE_CLOSE_BTN:
+            continue
+        actions.append(
+            {
+                "id": action.value,
+                "name": action.name,
+                "label": HMS_ACTION_LABEL[action],
+                "command": HMS_ACTION_COMMAND.get(action, ""),
+            }
+        )
+    return actions
 
 
 class AMSModel(IntEnum):
@@ -627,7 +831,9 @@ def decodeError(error: int) -> dict:
         "severity": "Error",
         "is_critical": False,
         "type": "device_error",
-        "url": f"https://e.bambulab.com/?e={raw_hex}",
+        # e.bambulab.com has pages only for 16-digit HMS codes; an 8-digit print_error
+        # lands on its home page, so point at Bambu's table of these codes instead
+        "url": "https://wiki.bambulab.com/en/hms/error-code",
     }
 
     real_module = (error >> 24) & 0xFF
@@ -866,6 +1072,61 @@ def parseAMSStatus(status_int: int) -> str:
     return status_map.get(main_status, "Idle")
 
 
+def parseFilamentStep(
+    ams_status: int,
+    target_tray_id: int,
+    filament_at_extruder: bool = True,
+    previous: FilamentStep = FilamentStep.IDLE,
+) -> tuple[FilamentStep, FilamentStepType]:
+    """
+    Names the filament load or unload step, as Bambu Studio's `StatusPanel` does.
+
+    Parameters
+    ----------
+    * ams_status : int - raw `ams_status`; the high byte 1 is a filament change and the
+        low byte is the step code.
+    * target_tray_id : int - the loading extruder's target tray: 254 or 255 is an external
+        holder (`VT_LOAD`), -1 is no target (`UNLOAD`), anything else is an AMS load.
+    * filament_at_extruder : bool - the printer's `hw_switch_state` (True when unknown).
+        Studio names codes 0x05 and 0x07 of an AMS load differently when it is False.
+    * previous : FilamentStep - the step before; code 0x09 is a wait that keeps it.
+
+    Returns `(FilamentStep, FilamentStepType)`; `IDLE` when no change runs or the code
+    is not one Studio names for that kind of change.
+    """
+    if (ams_status >> 8) & 0xFF != 0x01:
+        return FilamentStep.IDLE, FilamentStepType.LOAD
+    sub = ams_status & 0xFF
+    if target_tray_id in (254, 255):
+        vt_steps = {
+            0x02: FilamentStep.HEAT_NOZZLE,
+            0x05: FilamentStep.PUSH_NEW_FILAMENT,
+            0x06: FilamentStep.CONFIRM_EXTRUDED,
+            0x07: FilamentStep.PURGE_OLD_FILAMENT,
+        }
+        return vt_steps.get(sub, FilamentStep.IDLE), FilamentStepType.VT_LOAD
+    unload = target_tray_id == -1
+    step_type = FilamentStepType.UNLOAD if unload else FilamentStepType.LOAD
+    with_temp = not unload and not filament_at_extruder
+    steps = {
+        0x02: FilamentStep.HEAT_NOZZLE,
+        0x03: FilamentStep.CUT_FILAMENT,
+        0x04: FilamentStep.PULL_CURR_FILAMENT,
+        0x05: FilamentStep.CUT_FILAMENT if with_temp else FilamentStep.PUSH_NEW_FILAMENT,
+        0x06: FilamentStep.PUSH_NEW_FILAMENT,
+        0x07: FilamentStep.PULL_CURR_FILAMENT
+        if with_temp
+        else FilamentStep.PURGE_OLD_FILAMENT,
+        0x08: FilamentStep.CHECK_POSITION,
+        0x0B: FilamentStep.CHECK_POSITION,
+    }
+    if sub == 0x09:
+        return previous, step_type
+    if sub not in steps:
+        return FilamentStep.IDLE, FilamentStepType.UNLOAD
+    return steps[sub], step_type
+
+
 def parseExtruderInfo(info_int: int) -> ExtruderInfoState:
     """
     Decodes the extruder 'info' bit-packed status using unique ExtruderInfoState names.
@@ -898,7 +1159,8 @@ def parseExtruderTrayState(extruder: int, hotend, slot) -> int:
         or (extruder == 1 and slot == 65024)
     ):
         return 255 - extruder
-    if (extruder == 0 and slot & 0xFF == 255) or (extruder == 1 and slot & 0xFE == 255):
+    # the low byte 255 is no slot (0xFFFF right, 0xFEFF left): no tray, an unload's target
+    if slot & 0xFF == 255:
         return -1
     else:
         return slot & 0xFF

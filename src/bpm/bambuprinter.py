@@ -66,11 +66,14 @@ from bpm.bambuproject import (
 from bpm.bambuspool import BambuSpool
 from bpm.bambustate import BambuState, NozzleFlowType
 from bpm.bambutools import (
+    HMS_ACTION_COMMAND,
+    VIRTUAL_TRAY_DEPUTY_ID,
     VIRTUAL_TRAY_MAIN_ID,
     ActiveTool,
     AMSControlCommand,
     AMSUserSetting,
     DetectorSensitivity,
+    HMSAction,
     LoggerName,
     NozzleDiameter,
     NozzleType,
@@ -121,6 +124,9 @@ class BambuPrinter:
         self._watchdog_thread = None
 
         self._internalException = None
+        # Guards `_printer_state` swaps against command-side edits of the same state, so a
+        # cleared refusal cannot come back from a frame parsed at the same moment.
+        self._state_lock = threading.RLock()
         self._lastMessageTime = None
         self._recent_update = False
 
@@ -644,34 +650,45 @@ class BambuPrinter:
 
     def load_filament(self, slot_id: int, ams_id: int = 0):
         """
-        Requests the printer to load filament into the extruder using the requested spool (slot #)
+        Requests the printer to load filament into the extruder from one AMS slot or an
+        external spool holder.
 
         Parameters
         ----------
         slot_id : int
+            The slot within the AMS unit (0-3; 0 for an AMS HT). For an external holder
+            pass its tray id here (`254`, or `255` for the right-hand holder of a
+            dual-nozzle printer), or pass it as `ams_id` with `slot_id` 0.
+        ams_id : int
+            The AMS unit (`0`-`3` for AMS / AMS 2 Pro / AMS Lite, `128`+ for AMS HT).
 
-        * `0` - AMS Spool #1
-        * `1` - AMS Spool #2
-        * `2` - AMS Spool #3
-        * `3` - AMS Spool #4
-        * `254` - External Spool
+        The command is encoded as Bambu Studio's `command_ams_change_filament` does: `target`
+        is the absolute tray id (`ams_id * 4 + slot_id`) for an AMS unit, and the unit id
+        itself for an AMS HT or an external holder (whose `ams_id` is 254 or 255, `slot_id` 0).
+        `slot_id` 255 with `target` 255 is the unload command, never a load.
+
+        The printer answers with an `ams_change_filament` reply; a refusal (e.g. the AMS
+        is drying) appears in `BambuState.hms_errors` as a `command_error` entry.
         """
-        # TODO: refactor to support multiple AMSs
+        if slot_id in (VIRTUAL_TRAY_DEPUTY_ID, VIRTUAL_TRAY_MAIN_ID):
+            ams_id, slot_id = slot_id, 0
+        tray_id = ams_id * 4 + slot_id if ams_id < 16 else 0
 
         msg = copy.deepcopy(AMS_CHANGE_FILAMENT)
 
         msg["print"]["ams_id"] = ams_id
-        msg["print"]["target"] = slot_id
+        msg["print"]["target"] = tray_id if tray_id else ams_id
         msg["print"]["slot_id"] = slot_id
         msg["print"]["soft_temp"] = 0
         msg["print"]["tar_temp"] = -1
         msg["print"]["curr_temp"] = -1
 
+        self._clear_command_error("ams_change_filament")
         self.client.publish(
             f"device/{self.config.serial_number}/request", json.dumps(msg)
         )
         logger.debug(
-            f"load_filament - published AMS_CHANGE_FILAMENT to [device/{self.config.serial_number}/request] - target: [{slot_id}], bambu_msg: [{msg}]"
+            f"load_filament - published AMS_CHANGE_FILAMENT to [device/{self.config.serial_number}/request] - target: [{msg['print']['target']}], bambu_msg: [{msg}]"
         )
 
     def make_sdcard_directory(self, dir: str):
@@ -1040,17 +1057,22 @@ class BambuPrinter:
             f"select_extrusion_calibration_profile - published EXTRUSION_CALI_SEL to [device/{self.config.serial_number}/request] cmd: [{cmd}]"
         )
 
-    def send_ams_control_command(self, ams_control_cmd: AMSControlCommand):
+    def send_ams_control_command(
+        self, ams_control_cmd: AMSControlCommand, resume_print: bool = True
+    ):
         """
-        Send an AMS control command to pause, resume, or reset the AMS.
+        Send an `ams_control` command: pause, resume, reset, done or abort.
 
-        When `AMSControlCommand.RESUME` is sent, `resume_printing()` is also called
-        automatically to restart the paused print job.
+        `DONE` tells a waiting load the filament is extruded, and `ABORT` cancels a
+        running load or unload. By default `AMSControlCommand.RESUME` also calls
+        `resume_printing()` to restart a paused print job.
 
         Parameters
         ----------
-        * ams_control_cmd : AMSControlCommand - The control command to send
-            (`AMSControlCommand.PAUSE`, `AMSControlCommand.RESUME`, or `AMSControlCommand.RESET`).
+        * ams_control_cmd : AMSControlCommand - The control command to send.
+        * resume_print : bool - With `RESUME`, also resume the print (default True).
+            Bambu Studio's load dialog buttons send only the `ams_control`, so
+            `send_hms_action` passes False.
         """
         ams_cmd = ams_control_cmd.name.lower()
         cmd = copy.deepcopy(AMS_CONTROL)
@@ -1064,8 +1086,37 @@ class BambuPrinter:
         )
 
         # trigger resume print for good measure
-        if ams_control_cmd == AMSControlCommand.RESUME:
+        if ams_control_cmd == AMSControlCommand.RESUME and resume_print:
             self.resume_printing()
+
+    def send_hms_action(self, action: HMSAction | int) -> bool:
+        """
+        Press a printer prompt's button, sending what Bambu Studio sends for it.
+
+        The buttons for the current `print_error` are the `actions` of its
+        `device_error` entry in `hms_errors` (`bambutools.hmsActions`). `resume`,
+        `done` and `abort` go out as `ams_control` alone, `clean_print_error` clears
+        the current `print_error`, and `assistant` and `close` send nothing.
+
+        Parameters
+        ----------
+        * action : HMSAction | int - the button id.
+
+        Returns True when a command was published, False for a button that sends
+        nothing. Raises `ValueError` for an id bpm cannot send.
+        """
+        command = HMS_ACTION_COMMAND.get(HMSAction(action), "")
+        if command in ("resume", "done", "abort"):
+            self.send_ams_control_command(
+                AMSControlCommand[command.upper()], resume_print=False
+            )
+            return True
+        if command == "clean_print_error":
+            self.clean_print_error(print_error=self.printer_state.print_error)
+            return True
+        if command in ("assistant", "close"):
+            return False
+        raise ValueError(f"send_hms_action - bpm cannot send button [{action}]")
 
     def send_anything(self, anything: str):
         """
@@ -1874,17 +1925,34 @@ class BambuPrinter:
             f"turn_on_ams_dryer - published AMS_FILAMENT_DRYING to [device/{self.config.serial_number}/request] command: [{cmd}]"
         )
 
+    def clear_command_errors(self):
+        """
+        Drops every refused-command entry (`type` `command_error`) from
+        `BambuState.hms_errors`, e.g. when the user dismisses it. Nothing is sent to the
+        printer.
+        """
+        self._clear_command_error()
+
     def unload_filament(self, ams_id: int = 0):
         """
         Requests the printer to unload whatever filament / spool is currently loaded.
 
         Parameters
         ----------
-        * ams_id : int = 0 - The AMS unit to unload from (default is 0).
+        * ams_id : int = 0 - The AMS unit, or external holder (254/255), to unload from
+          (default is 0). The command is `slot_id` 255, `target` 255, `curr_temp` and
+          `tar_temp` 210, as Bambu Studio sends. The A1 refuses it without the temperatures.
+
+        A refusal appears in `BambuState.hms_errors` as a `command_error` entry, as for
+        `load_filament`.
         """
         msg = copy.deepcopy(AMS_CHANGE_FILAMENT)
         msg["print"]["ams_id"] = ams_id
+        # Studio's defaults (DeviceManager.hpp); the A1 refuses an unload without them
+        msg["print"]["curr_temp"] = 210
+        msg["print"]["tar_temp"] = 210
 
+        self._clear_command_error("ams_change_filament")
         self.client.publish(
             f"device/{self.config.serial_number}/request",
             json.dumps(msg),
@@ -2117,6 +2185,18 @@ class BambuPrinter:
 
     # region private methods
 
+    def _clear_command_error(self, command: str | None = None):
+        """Drops `command_error` entries from `hms_errors`: those of `command`, or all."""
+        with self._state_lock:
+            self._printer_state.hms_errors = [
+                e
+                for e in self._printer_state.hms_errors
+                if not (
+                    e.get("type") == "command_error"
+                    and (command is None or e.get("command") == command)
+                )
+            ]
+
     def _require_ams_dryer(self, ams_id: int):
         """Raises `ValueError` unless `ams_id` is a connected AMS unit with a dryer."""
         ams = next((u for u in self._printer_state.ams_units if u.ams_id == ams_id), None)
@@ -2152,6 +2232,13 @@ class BambuPrinter:
 
         return trays
 
+    def _elapsed_dir(self) -> Path:
+        # filed per printer like the job record, so containers sharing one cache folder
+        # never read each other's start time for a same-named job
+        cache_path = self.config.bpm_cache_path or Path()
+        serial = self.config.serial_number
+        return (cache_path / serial if serial else cache_path) / "elapsed"
+
     def _elapsed_key(self) -> str | None:
         raw = (
             self._active_job_info.subtask_name or self._active_job_info.gcode_file or ""
@@ -2162,7 +2249,7 @@ class BambuPrinter:
         key = self._elapsed_key()
         if key and self._active_job_info.wall_start_time >= 0:
             cache_write(
-                self.config.bpm_cache_path / "elapsed",
+                self._elapsed_dir(),
                 key,
                 {"wall_start_time": self._active_job_info.wall_start_time},
             )
@@ -2171,7 +2258,7 @@ class BambuPrinter:
         key = self._elapsed_key()
         if not key:
             return -1.0
-        data = cache_read(self.config.bpm_cache_path / "elapsed", key)
+        data = cache_read(self._elapsed_dir(), key)
         if data and "wall_start_time" in data:
             return float(data["wall_start_time"])
         return -1.0
@@ -2451,7 +2538,7 @@ class BambuPrinter:
                         key = self._elapsed_key()
                         if key:
                             cache_delete(
-                                self.config.bpm_cache_path / "elapsed",
+                                self._elapsed_dir(),
                                 key,
                             )
                     elif gcode_state in ("PREPARE", "RUNNING"):
@@ -2483,16 +2570,32 @@ class BambuPrinter:
                                 if self._active_job_info.plate_num > 0
                                 else 1
                             )
-                            remote_files = self.get_sdcard_3mf_files()
-                            file_entry = get_3mf_entry_by_name(
-                                remote_files,
-                                f"{self._active_job_info.subtask_name}.gcode.3mf",
-                            )
-                            if not file_entry:
-                                file_entry = get_3mf_entry_by_name(
-                                    remote_files,
+                            # A touchscreen history start reports the eMMC copy's url and
+                            # the project title as subtask_name, so the url's file name is
+                            # tried first. The fixed staging name matches no real file.
+                            # An A1 touchscreen start sends no project_file at all and
+                            # names the file itself, extension included, as subtask_name.
+                            url = self._active_job_info.project_file_command.get(
+                                "print", {}
+                            ).get("url", "")
+                            url_name = url.rsplit("/", 1)[-1] if "://" in url else ""
+                            subtask = self._active_job_info.subtask_name
+                            names = [
+                                n
+                                for n in (
+                                    url_name,
+                                    subtask if subtask.endswith(".3mf") else "",
+                                    f"{self._active_job_info.subtask_name}.gcode.3mf",
                                     f"{self._active_job_info.subtask_name}.3mf",
                                 )
+                                if n and n != "project_file.gcode.3mf"
+                            ]
+                            remote_files = self.get_sdcard_3mf_files()
+                            file_entry = None
+                            for n in names:
+                                file_entry = get_3mf_entry_by_name(remote_files, n)
+                                if file_entry:
+                                    break
                             if file_entry:
                                 try:
                                     self._active_job_info.project_info = get_project_info(
@@ -2797,7 +2900,8 @@ class BambuPrinter:
                 f"\r_on_message - unknown message type received - bambu_msg: [{message}]"
             )
 
-        self._printer_state = BambuState.fromJson(message, self)
+        with self._state_lock:
+            self._printer_state = BambuState.fromJson(message, self)
         self._notify_update()
 
     def _get_sftp_files(
