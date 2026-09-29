@@ -1442,12 +1442,24 @@ def jsonSerializer(obj: Any) -> Any:
 # process restarts should flow through these four functions.
 #
 # Pattern:
-#   cache_dir  = self.config.bpm_cache_path / "<subdir>"
+#   cache_dir  = printer_cache_dir(config.bpm_cache_path, config.serial_number) / "<subdir>"
 #   key        = make_cache_key(<raw identifier>)
 #   cache_write(cache_dir, key, {"field": value})
 #   data       = cache_read(cache_dir, key)          # returns None on miss
 #   cache_delete(cache_dir, key)
 # ---------------------------------------------------------------------------
+
+
+def printer_cache_dir(bpm_cache_path: Path | None, serial_number: str | None) -> Path:
+    """
+    One printer's own cache folder: ``bpm_cache_path/<serial>``, or ``bpm_cache_path``
+    itself when no serial is set.
+
+    Every cached file is filed per printer so containers sharing one cache folder never
+    read each other's job record, start time or project metadata.
+    """
+    base = bpm_cache_path or Path()
+    return base / serial_number if serial_number else base
 
 
 def make_cache_key(raw: str, max_len: int = 80) -> str | None:

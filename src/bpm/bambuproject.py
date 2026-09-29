@@ -20,6 +20,7 @@ from bpm.bambutools import (
     LoggerName,
     PlateType,
     get_file_md5,
+    printer_cache_dir,
     resolve_external_spool_trays,
 )
 
@@ -234,6 +235,10 @@ class ActiveJobInfo:
     """The plate type associated with the job"""
     project_info_fetch_attempted: bool = False
     """True once a fallback fetch of project_info has been attempted, to prevent repeated FTP calls."""
+    plate_num_assumed: bool = False
+    """True when the printer named no plate for this job and its `.3mf` has more than one,
+    so `project_info` shows the file's first plate, which may not be the one printing.
+    An A1 touchscreen start reports only the file name."""
 
 
 def get_3mf_entry_by_name(node: dict | Any, target_name: str):
@@ -294,18 +299,26 @@ def get_3mf_entry_by_id(node: dict | Any, target_id: str):
     return None
 
 
-def _project_cache_dir(printer: "BambuPrinter") -> Path:
-    """The printer's own cache folder, filed under its serial number."""
-    cache_path = (
-        printer.config.bpm_cache_path if printer.config.bpm_cache_path else Path()
+def project_metadata_dir(printer: "BambuPrinter") -> Path:
+    """The printer's cached `.3mf` metadata folder, one JSON record per plate."""
+    return (
+        printer_cache_dir(printer.config.bpm_cache_path, printer.config.serial_number)
+        / "metadata"
     )
-    serial = printer.config.serial_number
-    return cache_path / serial if serial else cache_path
 
 
-def _cache_filename(file: str) -> str:
-    """The cache name of an SD card path: `/jobs/a.3mf` becomes `jobs-a.3mf`."""
-    return file.lstrip("/").replace("/", "-")
+def _metadata_record_is_current(lmd: dict | None) -> bool:
+    """False for a record written before extruder assignments were kept, which must be
+    re-parsed from the `.3mf` rather than served."""
+    return "filament_extruders" in (lmd or {}).get("metadata", {})
+
+
+def project_cache_name(sd_path: str) -> str:
+    """
+    The cache name of an SD card path: `/jobs/a.3mf` becomes `jobs-a.3mf`, and a plate's
+    record is `<name>-<plate>.json`. A folder's records all start `<folder name>-`.
+    """
+    return sd_path.strip("/").replace("/", "-")
 
 
 def _sdcard_entry(
@@ -355,6 +368,75 @@ def _sdcard_entry(
     return entry
 
 
+def cached_project_info(
+    printer: "BambuPrinter",
+    file_names: list[str],
+    plate_num: int | None,
+    listing: dict | None,
+) -> ProjectInfo | None:
+    """
+    Find a job's project in bpm's metadata cache alone, with no FTPS. For when the live
+    SD card listing fails, as the A1's does around the start of a print.
+
+    Each name in `file_names` is tried in order. It is first looked up in `listing`, the
+    last SD card listing that succeeded, which gives the file's folder. A name that
+    listing lacks (or with no listing at all) is matched against the cached records'
+    file names, and is used only when exactly one cached file has it: two folders
+    holding the same name cannot be told apart without a listing. A cached copy is
+    not checked against the card, so a file deleted since it was cached still matches.
+
+    `plate_num` None means the printer named no plate: the file's lowest plate is used.
+    Returns None when nothing in the cache matches.
+    """
+    meta_dir = project_metadata_dir(printer)
+    if not meta_dir.is_dir():
+        return None
+
+    records: dict[str, dict[int, Path]] = {}  # file id -> plate -> record path
+    names: dict[str, str] = {}  # file id -> file name
+    for path in meta_dir.glob("*.json"):
+        try:
+            with path.open("r") as f:
+                lmd = json.load(f)
+            fid, pnum = lmd["id"], int(lmd["plate_num"])
+        except (OSError, ValueError, KeyError, TypeError):
+            continue
+        records.setdefault(fid, {})[pnum] = path
+        names[fid] = lmd.get("name", "")
+
+    for name in file_names:
+        entry = get_3mf_entry_by_name(listing, name) if listing else None
+        if entry is not None:
+            ids = [entry.get("id")] if entry.get("id") in records else []
+        else:
+            ids = [fid for fid, n in names.items() if n == name]
+        if len(ids) != 1:
+            if len(ids) > 1:
+                logger.debug(
+                    f"cached_project_info - [{name}] is cached in {len(ids)} folders"
+                )
+            continue
+        plates = records[ids[0]]
+        num = plate_num if plate_num in plates else min(plates)
+        if plate_num is not None and plate_num not in plates:
+            continue
+        try:
+            with plates[num].open("r") as f:
+                lmd = json.load(f)
+            if not _metadata_record_is_current(lmd) or not lmd.get("md5"):
+                continue  # would need a re-parse, which downloads over FTPS
+        except (OSError, ValueError, KeyError) as e:
+            logger.debug(f"cached_project_info - unreadable record for [{ids[0]}]: {e}")
+            continue
+        logger.info(f"cached_project_info - [{name}] found in the cache as [{ids[0]}]")
+        # The record's own md5 makes get_project_info take its cache path, which
+        # validates by md5 and reads no SD card listing and downloads nothing.
+        return get_project_info(
+            ids[0], printer, project_file_md5=lmd["md5"], plate_num=num
+        )
+    return None
+
+
 def cached_project_md5(
     printer: "BambuPrinter", project_file_id: str, plate_num: int
 ) -> str:
@@ -369,9 +451,7 @@ def cached_project_md5(
     """
     file = project_file_id if project_file_id.startswith("/") else f"/{project_file_id}"
     metadata = (
-        _project_cache_dir(printer)
-        / "metadata"
-        / f"{_cache_filename(file)}-{plate_num}.json"
+        project_metadata_dir(printer) / f"{project_cache_name(file)}-{plate_num}.json"
     )
     try:
         with metadata.open("r") as f:
@@ -628,8 +708,10 @@ def get_project_info(
     if not file.startswith("/"):
         file = f"/{file}"
 
-    filename = _cache_filename(file)
-    cache_path = _project_cache_dir(printer)
+    filename = project_cache_name(file)
+    cache_path = printer_cache_dir(
+        printer.config.bpm_cache_path, printer.config.serial_number
+    )
     (cache_path / "metadata").mkdir(parents=True, exist_ok=True)
     metadata = cache_path / "metadata" / f"{filename}-{plate_num}.json"
     localfile = cache_path / filename
@@ -676,7 +758,7 @@ def get_project_info(
 
         # Metadata cached before extruder assignments were kept lacks these keys, so
         # it is re-parsed once instead of serving a plate with no holder information.
-        cache_has_extruders = "filament_extruders" in (lmd or {}).get("metadata", {})
+        cache_has_extruders = _metadata_record_is_current(lmd)
 
         if cache_has_extruders and (
             (
@@ -745,7 +827,7 @@ def get_project_info(
                 plate_nums.append(int(num))
 
     if plate_num not in plate_nums:
-        num = plate_nums[0] if plate_nums else 1
+        num = min(plate_nums) if plate_nums else 1
         logger.debug(
             f"get_project_info - requested plate_num [{plate_num}] not found in 3mf metadata - defaulting to plate_num [{num}]"
         )

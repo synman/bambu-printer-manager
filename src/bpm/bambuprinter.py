@@ -60,9 +60,12 @@ from bpm.bambuconfig import BambuConfig
 from bpm.bambuproject import (
     ActiveJobInfo,
     ProjectInfo,
+    cached_project_info,
     cached_project_md5,
     get_3mf_entry_by_name,
     get_project_info,
+    project_cache_name,
+    project_metadata_dir,
 )
 from bpm.bambuspool import BambuSpool
 from bpm.bambustate import BambuState, NozzleFlowType
@@ -93,6 +96,7 @@ from bpm.bambutools import (
     nozzle_type_to_telemetry,
     parse_nozzle_type,
     parseStage,
+    printer_cache_dir,
     resolve_external_spool_trays,
     sortFileTreeAlphabetically,
 )
@@ -155,9 +159,15 @@ class BambuPrinter:
         self._task_id = ""
         self._job_record_sealed = True
         self._job_record_checked = False
+        # A project_file frame arrived for the job about to run, so starting it must
+        # not reset the project that frame set
+        self._project_file_seen = False
 
         self._sdcard_contents = None
         self._sdcard_3mf_files = None
+        # The last .3mf listing that succeeded. A failed listing clears _sdcard_3mf_files
+        # but not this; it is the same object, so a delete through bpm reaches both.
+        self._last_good_sdcard_3mf_files = None
 
         self._print_type = ""
         self._skipped_objects = []
@@ -429,15 +439,10 @@ class BambuPrinter:
             ftps.delete_file(file)
 
         # Invalidate all cached plate metadata for this file
-        filename = file.lstrip("/").replace("/", "-")
-        serial = self.config.serial_number
-        cache_path = self.config.bpm_cache_path if self.config.bpm_cache_path else Path()
-        if serial:
-            cache_path = cache_path / serial
+        filename = project_cache_name(file)
+        metadata_dir = project_metadata_dir(self)
         for cached in (
-            (cache_path / "metadata").glob(f"{filename}-*.json")
-            if (cache_path / "metadata").exists()
-            else []
+            metadata_dir.glob(f"{filename}-*.json") if metadata_dir.exists() else []
         ):
             cached.unlink(missing_ok=True)
             logger.debug(f"delete_sdcard_file - removed cache entry [{cached.name}]")
@@ -482,12 +487,8 @@ class BambuPrinter:
             delete_all_contents(ftps, path)
 
         # Invalidate all cached plate metadata for files under this folder
-        prefix = path.strip("/").replace("/", "-")
-        serial = self.config.serial_number
-        cache_path = self.config.bpm_cache_path if self.config.bpm_cache_path else Path()
-        if serial:
-            cache_path = cache_path / serial
-        metadata_dir = cache_path / "metadata"
+        prefix = project_cache_name(path)
+        metadata_dir = project_metadata_dir(self)
         if metadata_dir.exists():
             for cached in metadata_dir.glob(f"{prefix}-*.json"):
                 cached.unlink(missing_ok=True)
@@ -645,6 +646,7 @@ class BambuPrinter:
 
         self._sdcard_3mf_files = json.loads(json.dumps(self._sdcard_contents))
         search_for_and_remove_all_other_files(".3mf", self._sdcard_3mf_files)
+        self._last_good_sdcard_3mf_files = self._sdcard_3mf_files
 
         logger.debug("get_sdcard_contents - retrieved all files from sdcard")
         return fs
@@ -2151,8 +2153,14 @@ class BambuPrinter:
 
     @property
     def cached_sd_card_3mf_files(self):
-        """A list of only the 3mf files found on the SD card."""
+        """The `.3mf` files from the most recent SD card listing; `None` when it failed."""
         return self._sdcard_3mf_files
+
+    @property
+    def last_good_sd_card_3mf_files(self):
+        """The `.3mf` files from the last SD card listing that succeeded, kept through later
+        failures. Deletes made through bpm reach it too. `None` until a listing succeeds."""
+        return self._last_good_sdcard_3mf_files
 
     @property
     @deprecated("This property is deprecated (v1.0.0). No replacement yet.")
@@ -2244,9 +2252,10 @@ class BambuPrinter:
     def _elapsed_dir(self) -> Path:
         # filed per printer like the job record, so containers sharing one cache folder
         # never read each other's start time for a same-named job
-        cache_path = self.config.bpm_cache_path or Path()
-        serial = self.config.serial_number
-        return (cache_path / serial if serial else cache_path) / "elapsed"
+        return (
+            printer_cache_dir(self.config.bpm_cache_path, self.config.serial_number)
+            / "elapsed"
+        )
 
     def _elapsed_key(self) -> str | None:
         raw = (
@@ -2272,19 +2281,22 @@ class BambuPrinter:
             return float(data["wall_start_time"])
         return -1.0
 
-    # A job started at the printer's screen reports an empty subtask_name, so the
-    # name-based re-fetch of project_info cannot find its file after a restart
-    # (GH #59). The project_file frame is the only source of the path, so it is
-    # persisted here, one record per printer. A record is trusted only once it is
-    # sealed with the running job's telemetry fingerprint, and only when that
-    # fingerprint still matches after the restart; anything else deletes it and
-    # leaves project_info empty rather than showing another job's project.
+    # The last job's project, persisted so it survives a restart of the process that
+    # runs bpm (GH #59), one record per printer. Every path that identifies a job's
+    # file writes it: the project_file frame, the name lookup and the metadata cache.
+    # It is kept through FINISH and FAILED, so a restart after a job ends still shows
+    # that job, and deleted only at IDLE. A record is trusted only once it is sealed
+    # with the running job's telemetry fingerprint, and only when the printer still
+    # reports that fingerprint after the restart; anything else deletes it and leaves
+    # project_info empty rather than showing another job's project. The fingerprint,
+    # not the printer state, is what keeps a stale record from being shown.
     _JOB_RECORD_KEY = "active"
 
     def _job_record_dir(self) -> Path:
-        cache_path = self.config.bpm_cache_path or Path()
-        serial = self.config.serial_number
-        return (cache_path / serial if serial else cache_path) / "job"
+        return (
+            printer_cache_dir(self.config.bpm_cache_path, self.config.serial_number)
+            / "job"
+        )
 
     def _job_fingerprint(self) -> dict:
         return {
@@ -2294,11 +2306,19 @@ class BambuPrinter:
             "total_layers": self._active_job_info.total_layers,
         }
 
-    def _persist_job_record(self, path: str, md5: str | None, plate_num: int) -> None:
+    def _persist_job_record(
+        self, path: str, md5: str | None, plate_num: int, plate_num_assumed: bool = False
+    ) -> None:
         cache_write(
             self._job_record_dir(),
             self._JOB_RECORD_KEY,
-            {"path": path, "md5": md5, "plate_num": plate_num, "fingerprint": None},
+            {
+                "path": path,
+                "md5": md5,
+                "plate_num": plate_num,
+                "plate_num_assumed": plate_num_assumed,
+                "fingerprint": None,
+            },
         )
         self._job_record_sealed = False
 
@@ -2322,14 +2342,16 @@ class BambuPrinter:
         cache_delete(self._job_record_dir(), self._JOB_RECORD_KEY)
         self._job_record_sealed = True
 
-    def _recover_project_info(self) -> bool:
+    def _recover_project_info(self, ended: bool = False) -> bool:
         """
         Restore project_info from the persisted record after a restart.
 
         Returns True only when a trusted record produced a project, so a failed
         fetch still falls through to the name-based lookup. Waits, keeping the
         record, while the task id or layer count is not yet reported; deletes it
-        on an unsealed record or any fingerprint mismatch.
+        on an unsealed record or any fingerprint mismatch. `ended` is set when the
+        printer reports FINISH or FAILED: the A1 then reports an empty gcode_file
+        (2026-09-29), so an ended job is matched on the other fields.
         """
         record = cache_read(self._job_record_dir(), self._JOB_RECORD_KEY)
         if not record:
@@ -2337,7 +2359,11 @@ class BambuPrinter:
         live = self._job_fingerprint()
         if not live["task_id"] or live["total_layers"] <= 0:
             return False
-        if record.get("fingerprint") != live:
+        sealed = record.get("fingerprint")
+        if ended and sealed:
+            sealed = {k: v for k, v in sealed.items() if k != "gcode_file"}
+            live = {k: v for k, v in live.items() if k != "gcode_file"}
+        if sealed != live:
             logger.info(
                 "_recover_project_info - persisted job record does not match the running job, deleting it"
             )
@@ -2358,6 +2384,7 @@ class BambuPrinter:
         self._active_job_info.project_info = project_info
         self._active_job_info.plate_num = plate_num
         self._active_job_info.project_info_fetch_attempted = True
+        self._active_job_info.plate_num_assumed = bool(record.get("plate_num_assumed"))
         return True
 
     def _notify_update(self):
@@ -2428,6 +2455,7 @@ class BambuPrinter:
                 and str(status.get("result", "")).lower() == "success"
             ):
                 self._active_job_info.project_file_command = message
+                self._project_file_seen = True
                 md5 = status.get("md5", None)
                 subtask_name = status.get("subtask_name", "")
                 plate_num = 1
@@ -2460,6 +2488,7 @@ class BambuPrinter:
                     # the name lookup run again for this job.
                     self._active_job_info.project_info = ProjectInfo()
                     self._active_job_info.project_info_fetch_attempted = False
+                    self._active_job_info.plate_num_assumed = False
                     try:
                         self._active_job_info.project_info = get_project_info(
                             parts[1], self, md5, plate_num
@@ -2533,15 +2562,30 @@ class BambuPrinter:
             gcode_state = self._printer_state.gcode_state
             if "gcode_state" in status:
                 gcode_state = status["gcode_state"]
-                # No job is running, so any persisted job record is stale: the job
-                # ended, possibly while this process was down (GH #59).
-                if gcode_state in ("IDLE", "FAILED", "FINISH") and (
+                # The printer is idle, so the last job's record is stale: it ended,
+                # possibly while this process was down (GH #59). FINISH and FAILED
+                # keep it, so the job that just ended survives a restart.
+                if gcode_state == "IDLE" and (
                     gcode_state != self._printer_state.gcode_state
                     or not self._job_record_checked
                 ):
                     self._clear_job_record()
                 self._job_record_checked = True
                 if gcode_state != self._printer_state.gcode_state:
+                    if (
+                        gcode_state in ("PREPARE", "RUNNING")
+                        and self._printer_state.gcode_state
+                        not in ("PREPARE", "RUNNING", "PAUSE")
+                        and not self._project_file_seen
+                    ):
+                        # A new job with no project_file frame (a touchscreen start):
+                        # the job before's project must not carry over to it
+                        self._active_job_info.project_info = ProjectInfo()
+                        self._active_job_info.project_info_fetch_attempted = False
+                        self._active_job_info.plate_num_assumed = False
+                    if gcode_state in ("PREPARE", "RUNNING"):
+                        # consumed by the job it announced, whatever state came between
+                        self._project_file_seen = False
                     if gcode_state in ("FAILED", "FINISH"):
                         self._active_job_info.wall_start_time = -1.0
                         key = self._elapsed_key()
@@ -2572,13 +2616,16 @@ class BambuPrinter:
                             match = re.search(
                                 r"plate_(\d{1,2})", self._active_job_info.gcode_file
                             )
-                            plate_num = (
+                            # None: the printer named no plate (an A1 touchscreen start),
+                            # so the file's lowest plate is shown and flagged as a guess
+                            reported_plate = (
                                 int(match.group(1))
                                 if match
                                 else self._active_job_info.plate_num
                                 if self._active_job_info.plate_num > 0
-                                else 1
+                                else None
                             )
+                            plate_num = reported_plate or 1
                             # A touchscreen history start reports the eMMC copy's url and
                             # the project title as subtask_name, so the url's file name is
                             # tried first. The fixed staging name matches no real file.
@@ -2614,9 +2661,51 @@ class BambuPrinter:
                                     logger.warning(
                                         f"get_project_info fallback failed for [{file_entry['id']}]: {e}"
                                     )
+                            elif remote_files is None:
+                                # The live listing failed (the A1 drops FTPS as a print
+                                # starts). Use bpm's own cache, no FTPS: the last good
+                                # listing for the folder, then the cached file names.
+                                logger.warning(
+                                    "SD card listing failed at job start, looking in the metadata cache"
+                                )
+                                cached = cached_project_info(
+                                    self,
+                                    names,
+                                    reported_plate,
+                                    self.last_good_sd_card_3mf_files,
+                                )
+                                if cached is not None:
+                                    self._active_job_info.project_info = cached
+                            found = self._active_job_info.project_info
+                            self._active_job_info.plate_num_assumed = bool(
+                                reported_plate is None
+                                and found
+                                and found.id
+                                and len(found.plates) > 1
+                            )
+                            if found and found.id:
+                                self._persist_job_record(
+                                    found.id,
+                                    found.md5 or None,
+                                    found.plate_num,
+                                    self._active_job_info.plate_num_assumed,
+                                )
 
             if gcode_state == "RUNNING":
                 self._seal_job_record()
+
+            # This process started after the job ended: restore the ended job from its
+            # record, once the printer has reported the fields its fingerprint needs.
+            info = self._active_job_info
+            if (
+                gcode_state in ("FAILED", "FINISH")
+                and not (info.project_info and info.project_info.id)
+                and not info.project_info_fetch_attempted
+                and self._task_id
+                and info.total_layers > 0
+            ):
+                info.project_info_fetch_attempted = True
+                self._recover_project_info(ended=True)
 
             if "mc_remaining_time" in status:
                 remaining_minutes = int(status["mc_remaining_time"])

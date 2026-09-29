@@ -202,7 +202,9 @@ one large response.
 The whole serialized ActiveJobInfo dict, uncompressed: subtask_name, gcode_file,
 plate_num (-1 when unknown), plate_type, stage_id, stage_name, current_layer,
 total_layers, print_percentage, elapsed_minutes, remaining_minutes, wall_start_time,
-print_type, project_file_command, project_info_fetch_attempted, and project_info. While
+print_type, project_file_command, project_info_fetch_attempted, plate_num_assumed
+(True when the printer named no plate and the .3mf has several, so project_info shows
+its lowest plate, which may not be the one printing), and project_info. While
 a job runs, project_info.metadata carries ``thumbnail`` and ``topimg`` as full base64
 PNG data URIs, so the payload can be very large; for project data prefer
 ``get_current_job_project_info(include_images=False)``. Error shape:
