@@ -294,6 +294,97 @@ def get_3mf_entry_by_id(node: dict | Any, target_id: str):
     return None
 
 
+def _project_cache_dir(printer: "BambuPrinter") -> Path:
+    """The printer's own cache folder, filed under its serial number."""
+    cache_path = (
+        printer.config.bpm_cache_path if printer.config.bpm_cache_path else Path()
+    )
+    serial = printer.config.serial_number
+    return cache_path / serial if serial else cache_path
+
+
+def _cache_filename(file: str) -> str:
+    """The cache name of an SD card path: `/jobs/a.3mf` becomes `jobs-a.3mf`."""
+    return file.lstrip("/").replace("/", "-")
+
+
+def _sdcard_entry(
+    printer: "BambuPrinter",
+    file: str,
+    local_file: str,
+    use_cached_list: bool,
+    remote_files: dict | None,
+) -> dict:
+    """
+    The SD card listing entry for `file`, which gives the cached metadata its size
+    and timestamp.
+
+    An upload (`local_file` set) has the file in hand, so a failed or stale listing
+    falls back to the local copy's size and modified time.  That time is not the
+    printer's, so a later listing check misses and re-downloads, which is the safe
+    direction.  The md5 still matches, and that is what a print start checks.
+    """
+    try:
+        if not remote_files:
+            remote_files = (
+                printer.get_sdcard_3mf_files()
+                if not use_cached_list
+                else printer.cached_sd_card_3mf_files
+            )
+        entry = get_3mf_entry_by_id(remote_files, file)
+    except Exception as e:
+        if not local_file:
+            raise
+        logger.warning(f"get_project_info - listing failed for [{file}]: [{e}]")
+        entry = None
+
+    if entry is None and local_file:
+        stat = Path(local_file).stat()
+        logger.debug(f"get_project_info - [{file}] not listed, using the uploaded copy")
+        entry = {
+            "id": file,
+            "name": file[file.rindex("/") + 1 :],
+            "size": stat.st_size,
+            "timestamp": stat.st_mtime,
+        }
+
+    if entry is None:
+        raise Exception(
+            f"get_project_info - Entry for file [{file}] not found in sdcard_3mf_files"
+        )
+    return entry
+
+
+def cached_project_md5(
+    printer: "BambuPrinter", project_file_id: str, plate_num: int
+) -> str:
+    """
+    The md5 of the cached metadata for one plate of an SD card `.3mf`, or `""`.
+
+    `print_3mf_file` sends it in `project_file`.  The printer echoes the command, and
+    the job start then validates the cache by md5 with no FTPS listing.  A cache whose
+    size differs from the last SD card listing is stale, for example after another
+    client re-uploaded the file, so `""` is returned and the listing check runs.
+    Reads no FTPS.
+    """
+    file = project_file_id if project_file_id.startswith("/") else f"/{project_file_id}"
+    metadata = (
+        _project_cache_dir(printer)
+        / "metadata"
+        / f"{_cache_filename(file)}-{plate_num}.json"
+    )
+    try:
+        with metadata.open("r") as f:
+            lmd = json.load(f)
+    except (OSError, ValueError):
+        return ""
+
+    listed = get_3mf_entry_by_id(printer.cached_sd_card_3mf_files, file)
+    if listed is not None and listed.get("size") != lmd.get("size"):
+        return ""
+    return lmd.get("md5") or ""
+
+
 def get_project_info(
     project_file_id: str,
     printer: "BambuPrinter",
@@ -315,7 +406,8 @@ def get_project_info(
     2. Otherwise the `.3mf` is downloaded from the printer's SD card via FTPS,
        every plate is extracted and cached separately, and the local copy is deleted.
     3. If `local_file` is supplied the download step is skipped entirely and the
-       provided path is parsed directly (used during `upload_sdcard_file`).
+       provided path is parsed directly (used during `upload_sdcard_file`).  When the
+       SD card listing fails, the local copy supplies the cached size and timestamp.
 
     **What is extracted per plate**
 
@@ -364,8 +456,9 @@ def get_project_info(
         If the requested plate is absent in the `.3mf`, the first available plate
         is used instead.
     * local_file : str = "" - Path to an already-downloaded copy of the `.3mf` on
-        the local filesystem.  When set, the FTPS download and SD card listing are
-        skipped entirely.
+        the local filesystem.  When set, the FTPS download is skipped.  The SD card
+        listing is still tried for the file's size and timestamp, and the local copy
+        stands in when the listing fails or lacks the file.
     * use_cached_list : bool = False - When `True`, `printer.cached_sd_card_3mf_files`
         is used instead of issuing a fresh `get_sdcard_3mf_files()` call.
 
@@ -535,13 +628,8 @@ def get_project_info(
     if not file.startswith("/"):
         file = f"/{file}"
 
-    filename = file.lstrip("/").replace("/", "-")
-    serial = printer.config.serial_number
-    cache_path = (
-        printer.config.bpm_cache_path if printer.config.bpm_cache_path else Path()
-    )
-    if serial:
-        cache_path = cache_path / serial
+    filename = _cache_filename(file)
+    cache_path = _project_cache_dir(printer)
     (cache_path / "metadata").mkdir(parents=True, exist_ok=True)
     metadata = cache_path / "metadata" / f"{filename}-{plate_num}.json"
     localfile = cache_path / filename
@@ -645,6 +733,7 @@ def get_project_info(
     slice_info_cfg = None
     project_settings_cfg = ""
 
+    entry = None
     plate_nums = []
     with ZipFile(localfile, "r") as zf:
         all_files = zf.namelist()
@@ -855,16 +944,9 @@ def get_project_info(
                     "initial_layer_height": _single("initial_layer_height", "0.2"),
                 }
 
-                if not remote_files:
-                    remote_files = (
-                        printer.get_sdcard_3mf_files()
-                        if not use_cached_list
-                        else printer.cached_sd_card_3mf_files
-                    )
-                entry = get_3mf_entry_by_id(remote_files, file)
                 if entry is None:
-                    raise Exception(
-                        f"get_project_info - Entry for file [{file}] not found in sdcard_3mf_files"
+                    entry = _sdcard_entry(
+                        printer, file, local_file, use_cached_list, remote_files
                     )
 
                 pi.id = entry["id"]

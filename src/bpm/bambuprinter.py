@@ -60,6 +60,7 @@ from bpm.bambuconfig import BambuConfig
 from bpm.bambuproject import (
     ActiveJobInfo,
     ProjectInfo,
+    cached_project_md5,
     get_3mf_entry_by_name,
     get_project_info,
 )
@@ -759,6 +760,10 @@ class BambuPrinter:
         * flow : Optional[bool] = `True` - Run extrusion flow calibration before printing.
         * timelapse : Optional[bool] = `False` - Record a timelapse during printing.
 
+        The command carries the file's `md5` when `bpm` has its metadata cached (see
+        `cached_project_md5`), and `""` otherwise.  The printer echoes it, so the job
+        start reads the cached metadata without an FTPS listing.
+
         Examples
         --------
         * `print_3mf_file("/jobs/my_project.3mf", 1, PlateType.HOT_PLATE, False, "")` — AMS disabled
@@ -862,6 +867,10 @@ class BambuPrinter:
         cmd["print"]["bed_type"] = bed.name.lower()
         cmd["print"]["param"] = cmd["print"]["param"].replace("#", str(_plate_num))
         cmd["print"]["use_ams"] = use_ams
+        # The printer echoes this md5 back, and the job start then finds the cached
+        # metadata by md5 alone. Without it the job start needs an FTPS listing, which
+        # fails often around an upload. Empty when nothing usable is cached.
+        cmd["print"]["md5"] = cached_project_md5(self, _3mf_file, _plate_num)
 
         def decode_ams_mapping_entry(tray_id: int) -> tuple[int, int]:
             if tray_id < 0:
