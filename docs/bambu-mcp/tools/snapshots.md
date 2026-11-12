@@ -190,7 +190,7 @@ not print it to stdout: save it, e.g. `curl -s "$url" -o /tmp/snap.json` — pre
 needed (local GET, read-only) — then read ``saved_path`` from that file and open the JPEG, or decode
 ``data_uri``. Do not call MCP recursively.
 
-**Sibling disambiguation:** ``view_stream`` starts the local MJPEG server and opens it in the browser, so use it
+**Sibling disambiguation:** ``view_stream`` starts the local stream page and opens it in the browser, so use it
 when the human wants to see the camera feed ("show me", "open the camera"); a raw data_uri is never the right
 thing to hand a human. ``analyze_active_job`` captures a frame and returns a full active-job state report
 instead of the raw image. ``get_stream_url`` only reports stream URL information and captures no frame.
@@ -242,9 +242,9 @@ with {"status": "error", "message": ...} on an unexpected exception. It also ans
 {"error": "invalid_quality", "detail": ...} for a quality that is not an integer from 1 to 100 (the
 same check as this tool), before any frame is captured.
 
-Each fetch opens a new camera connection (RTSPS: 15 s timeout) unless an RTSPS stream started by
-``start_stream`` / ``view_stream`` is already running, in which case its latest frame is reused (RTSPS
-models only). saved_path is not unique: it is bambu_snap_{name}_{resolution}_{quality}.jpg in the temp
+Each fetch opens a new camera connection (RTSPS: 15 s timeout) unless a stream started by
+``start_stream`` / ``view_stream`` is already running, in which case its camera relay's latest frame
+is reused (every model). saved_path is not unique: it is bambu_snap_{name}_{resolution}_{quality}.jpg in the temp
 directory and the next call with the same parameters overwrites it. resolution="native" with
 quality=85 returns the camera's original bytes with no re-encode, so quality is not applied. Any
 resolution string outside the listed values would be treated by the HTTP endpoint as native (no resize) while

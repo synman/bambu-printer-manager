@@ -175,7 +175,7 @@ Set the chamber temperature target.
 
 **Library method**: `BambuPrinter.set_chamber_temp_target(value)`
 
-If the printer has `capabilities.has_chamber_temp`, sends `SET_CHAMBER_TEMP_TARGET` followed by `SET_CHAMBER_AC_MODE` (mode `0` for targets below 40 °C, mode `1` for 40 °C and above). Otherwise only stores the value locally — used by the external `ChamberMonitor` integration.
+If the printer has `capabilities.has_chamber_temp`, sends `SET_CHAMBER_TEMP_TARGET` followed by `SET_CHAMBER_AC_MODE` (mode `0` for targets below 40 °C, mode `1` for 40 °C and above). Otherwise only stores the value locally. With `INTEGRATED_EXTERNAL_HEATER=TRUE` and `CHAMBER_MODE=relay`, the container instead publishes the target, not retained, to `<CHAMBER_TOPIC_PREFIX>/target/set`, and Home Assistant runs the thermostat. The relay stores Home Assistant's target back into the library from `<CHAMBER_TOPIC_PREFIX>/state`, so the stored value still drives the chamber card and the FINISH check.
 
 **Parameters**:
 
@@ -238,6 +238,8 @@ Set auxiliary fan speed.
 Set exhaust/chamber fan speed.
 
 **Library method**: `BambuPrinter.set_exhaust_fan_speed_target_percent(value)`
+
+With `INTEGRATED_EXTERNAL_EXHAUST_FAN=TRUE` and the fan relay configured, the container calls no library method: it publishes `100` for any value above 0, or `0`, not retained, to `<EXHAUST_FAN_TOPIC_PREFIX>/set`. With the flag on but the relay not configured, the library only stores the value and nothing reaches the fan.
 
 **Parameters**:
 
@@ -841,7 +843,7 @@ The `metadata.map.bbox_objects[n].id` integer is the `identify_id` required by `
 **Swagger UI**: [`GET /api/get_current_3mf_props`](http://localhost:5000/api/docs#/default/get_current_3mf_props)
 Return metadata for the currently active print job.
 
-Checks `printer.active_job_info.project_info` and returns it if `project_info.id` is non-empty.
+Checks `printer.active_job_info.project_info` and returns it if `project_info.id` is non-empty. On an H2 series or P2S, a job whose `.3mf` sits in the internal eMMC cache (Studio's "Print Plate") returns a partial project: `partial` is `true`, `id` is `mem:/16`, and `metadata` has only `thumbnail`, `filament` and `filament_extruders` (no `map`, `topimg` or `slicer_settings`). See [`ProjectInfo.partial`](data-dictionary.md#partial).
 
 **Success Response** (`200 OK`): `dataclasses.asdict(ProjectInfo)` with `"status": "success"` merged in. Same schema as `get_3mf_props_for_file`.
 
@@ -1422,9 +1424,9 @@ The server uses **Flask-SocketIO** with `async_mode="threading"` and `cors_allow
 
 Before emitting, `on_printer_update` performs several automatic side-effects:
 
-- If `gcode_state` transitions to `"FINISH"` and `integrated_external_heater` is `True` and `chamber_temp_target != 0` → calls `set_chamber_temp_target(0)`.
+- If `gcode_state` transitions to `"FINISH"` and `integrated_external_heater` is `True` and `chamber_temp_target != 0` → calls `request_chamber_target(printer, 0)`: in relay mode it publishes `0` to `<CHAMBER_TOPIC_PREFIX>/target/set`, and in legacy mode it calls `set_chamber_temp_target(0)`.
 - If `gcode_state` transitions to `"FINISH"` and the light is on → turns off the light.
-- If `gcode_state` transitions to `"PREPARE"` or `"RUNNING"` from a non-`"PAUSE"` state → resets `gcode_state_durations`.
+- If `gcode_state` transitions to `"PREPARE"` or `"RUNNING"` from a state other than `"PAUSE"` or `"PREPARE"` (a new job) → resets `gcode_state_durations` and `activity_durations`.
 - If `gcode_state` transitions to `"RUNNING"` and the light is off → turns on the light.
 - If the printer has a chamber door sensor and the door state changes → turns the light on when the door opens, and off when it closes (unless a job is running).
 
@@ -1459,6 +1461,7 @@ socket.on('printer_update', (data) => {
 | `chamber` | object | Chamber temperature history. Single series. |
 | `fan` | object | All fan speed histories. Multi-series. |
 | `gcode_state_durations` | object | Cumulative seconds spent in each `gcode_state` since the last job start. |
+| `activity_durations` | object | Seconds per activity and detail since the last job start, for the Job Activity chart. |
 | `printer` | object | Full `BambuPrinter.toJson()` result, or error object when no live data. |
 
 ### Chart object structure (bed, chamber)
@@ -1581,7 +1584,7 @@ All fan values are in percent (0–100). Raw printer values on 0–15 scale are 
 
 ### gcode_state_durations
 
-Cumulative elapsed seconds per `gcode_state` since the last job start (or application startup). Reset to an empty dict when `gcode_state` transitions to `PREPARE` or `RUNNING` from a non-`PAUSE` state.
+Cumulative elapsed seconds per `gcode_state` since the last job start (or application startup). Reset to an empty dict when a new job starts: `gcode_state` moves to `PREPARE` or `RUNNING` from a state other than `PAUSE` or `PREPARE`.
 
 ```json
 {
@@ -1591,6 +1594,20 @@ Cumulative elapsed seconds per `gcode_state` since the last job start (or applic
     "RUNNING": 3600.0,
     "PAUSE": 120.0,
     "FINISH": 0.0
+  }
+}
+```
+
+### activity_durations
+
+What the printer was doing, `{activity: {detail: seconds}}`, cleared with `gcode_state_durations` when a new job starts. Each 2.5 s tick is classified by `api/helpers.py` `classify_activity`, because a printer can report `RUNNING` while it levels the bed, calibrates or swaps filament. In order: a job in `PAUSE` is `Paused`, with the reason as detail (`Filament change`, `Filament runout / AMS`, `User pause`, `Gcode pause`, `Error pause`, else `Paused`); a live spool step (`filament_step`) is a `Filament change` (`Cut`, `Pull back`, `Push new`, `Heat nozzle`, `Purge`, ...); `FINISH`, `FAILED` and `IDLE` ignore their stale stage (a spool step still counts); then the stage (`stg_cur`) decides `Preparing` and `Printing`. Activities: `Preparing`, `Printing`, `Filament change`, `Paused`, `Idle`. `Finished` and `Failed` are classified but not counted, since the printer stays in them until the next job. An activity with nothing finer uses its own name as the detail.
+
+```json
+{
+  "activity_durations": {
+    "Preparing": {"Bed leveling": 105.0, "Heating": 90.0},
+    "Printing": {"Printing": 2557.5},
+    "Filament change": {"Cut": 10.0, "Pull back": 7.5, "Push new": 17.5, "Heat nozzle": 10.0, "Purge": 27.5}
   }
 }
 ```
@@ -1666,6 +1683,7 @@ Returned on any unhandled exception (including invalid enum names, missing requi
 | `sdcard_file_exists` | `(path: str) -> bool` | Checks whether a file exists on the SD card via FTPS. |
 | `select_extrusion_calibration_profile` | `(tray_id: int, cali_idx: int = -1)` | Selects a saved extrusion (k-factor) calibration profile for a tray. |
 | `send_anything` | `(anything: str)` | Publishes an arbitrary JSON string directly to the printer's MQTT request topic — bypasses all validation; `anything` must already be valid JSON. |
+| `set_exhaust_fan_speed` | `(value: int)` | For a printer whose exhaust fan is external (`BambuConfig.external_exhaust_fan`), injects its speed in percent into `climate.exhaust_fan_speed_percent` and `climate.zone_exhaust_percent`. Publishes nothing; bambu-printer-app's fan relay calls it from Home Assistant's state topic. |
 | `set_spool_k_factor` | `(tray_id, k_value, n_coef=1.4, nozzle_temp=-1, bed_temp=-1, max_volumetric_speed=-1)` | **Deprecated** (broken on recent Bambu firmware) — use `select_extrusion_calibration_profile` instead. |
 
 Read-only or setter-only properties not surfaced by any route: `internalException`, `cached_sd_card_contents`, `cached_sd_card_3mf_files`, `bed_temp_target_time`, `tool_temp_target_time`, `chamber_temp_target_time`, `fan_speed_target_time`, `printer_state`, `active_job_info`, `config`, `client`, `on_update`, `recent_update`, and the deprecated `skipped_objects`, `nozzle_diameter`, `nozzle_type` (superseded by `printer_state.active_nozzle`).
@@ -1680,18 +1698,37 @@ Required at startup:
 BAMBU_HOSTNAME=192.168.1.100       # Printer IP address
 BAMBU_ACCESS_CODE=12345678         # 8-character printer access code
 BAMBU_SERIAL_NUMBER=00M12345678901 # Full printer serial number
-INTEGRATED_EXTERNAL_HEATER=FALSE   # Set TRUE to enable ChamberMonitor integration
+INTEGRATED_EXTERNAL_HEATER=FALSE   # Set TRUE to enable the external chamber heater
 ```
 
 `BAMBU_SERIAL_NUMBER` is validated at startup against `^[A-Za-z0-9]+$` — any other character (including `.`, `/`, or a leading `/` that `Path.__truediv__` would treat as absolute) exits the process before the server starts, since the value becomes a directory name under `./uploads/`.
 
-Optional — only used when `INTEGRATED_EXTERNAL_HEATER=TRUE`:
+The MQTT broker for the chamber heater and the exhaust fan relay. The image leaves the host, user and password empty and the port at `1883`:
 
 ```bash
 CHAMBER_MQTT_HOST=192.168.1.50
 CHAMBER_MQTT_PORT=1883
 CHAMBER_MQTT_USER=user
 CHAMBER_MQTT_PASS=password
+```
+
+External chamber heater, with `INTEGRATED_EXTERNAL_HEATER=TRUE`. In relay mode Home Assistant runs the thermostat over `<prefix>/state` and `<prefix>/target/set`:
+
+```bash
+CHAMBER_MODE=relay                 # relay, or legacy (deprecated, the default)
+CHAMBER_TOPIC_PREFIX=bambu-a1-chamber
+```
+
+External exhaust fan, independent of the heater. Home Assistant switches the fan over `<prefix>/state` and `<prefix>/set`, and the container shows it as 0% or 100%:
+
+```bash
+INTEGRATED_EXTERNAL_EXHAUST_FAN=TRUE
+EXHAUST_FAN_TOPIC_PREFIX=bambu-a1-exhaust-fan
+```
+
+Deprecated, read only by the legacy thermostat (`CHAMBER_MODE=legacy`):
+
+```bash
 CHAMBER_TARGET_TOPIC=chamber/target
 CHAMBER_TEMPERATURE_TOPIC=chamber/temperature
 CHAMBER_REQUESTED_STATE_TOPIC=chamber/set
@@ -1699,6 +1736,8 @@ CHAMBER_CURRENT_STATE_TOPIC=chamber/state
 CHAMBER_STATE_ON_VALUE=ON
 CHAMBER_STATE_OFF_VALUE=OFF
 ```
+
+Setup, topic contracts and the Home Assistant reference automations for both features: [container.md](container.md), and the bambu-printer-app operators guide.
 
 ---
 

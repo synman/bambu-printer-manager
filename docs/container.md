@@ -286,17 +286,31 @@ The mounted directory should contain both your custom NGINX config and the `.htp
 No configuration is needed. The embedded camera server derives `BAMBU_SERIAL_NUMBER`'s printer model at startup and picks the matching protocol automatically — TCP+TLS on port 6000 for A1/P1/P1S, RTSPS on port 322 for H2D/X1/P2S — then serves MJPEG frames to the frontend either way over `/webcam/`. The `BAMBU_VIDEO_STREAM_TYPE` variable from earlier versions of this container has been removed; it is no longer read.
 
 ## External Chamber Heating
-This is an `advanced` feature of the container that allows you to use a [heater](https://www.amazon.com/Safety-Energy-saving-Portable-Desktop-Electric/dp/B07573FKSG?th=1) to control the atmosphere within your printer's enclosure. This is very helpful if you have an A1 in an enclosure and want to use
-exotic filaments such as ABS, ASA, Polycarbonite, and Nylon.
+This is an `advanced` feature of the container that allows you to use a [heater](https://www.amazon.com/Safety-Energy-saving-Portable-Desktop-Electric/dp/B07573FKSG?th=1) to control the atmosphere within your printer's enclosure. This is very helpful if you have an A1 in an enclosure and want to print exotic filaments such as ABS, ASA, Polycarbonite, and Nylon.
 
-You connect the heater to a Wi-Fi enabled power plug (tplink / tasmota / esphome / tuya / etc) for power delivery and configure the plug to respond to
-power state commands and power state requests over MQTT.  Some plugs, such as tasmota and esphome flashed one can do this directly while others will
-likely require something like Home Assistant.
+Home Assistant runs the thermostat: a Generic Thermostat over the heater plug or plugs, using the chamber temperature sensor. The container is a relay. It shows the chamber temperature and target, and it passes a target request on. The two MQTT topics sit under a prefix, and temperatures are in °C:
 
-You also need a Wi-Fi enabled temperature sensor that can do similar as the Wi-Fi power plug to publish environmental data, specifically the temperature,
-to an MQTT topic.  The easiest way to do this is to build one [yourself](https://github.com/synman/bme280).  However, I'm sure there are a number of pre-assembled ones you could use too.
+- `<prefix>/state` is retained and published by Home Assistant as JSON `{"temp_c": <float>, "target_c": <int>}`. `target_c` is `0` while the heater is off.
+- `<prefix>/target/set` is published by the container when a target is set, and with `0` when a job finishes. `0` means off.
 
-The final step is configuring the `bambu-printer-manager` container to interact with the temperature sensor and power plug:
+Home Assistant needs two automations: one that turns `<prefix>/target/set` into the thermostat's mode and target, and one that publishes `<prefix>/state` when the thermostat changes. A full reference config is in the bambu-printer-app operators guide, `docs/operators-guide.md`, section "External chamber heater".
+
+Configure the `bambu-printer-manager` container with:
+```dockerfile
+ENV INTEGRATED_EXTERNAL_HEATER="TRUE"
+
+ENV CHAMBER_MODE="relay"
+ENV CHAMBER_TOPIC_PREFIX="<prefix>"
+ENV CHAMBER_MQTT_HOST="MQTT_SERVER_HOST_OR_IP"
+ENV CHAMBER_MQTT_PORT="1883"
+ENV CHAMBER_MQTT_USER="MQTT_USER_NAME"
+ENV CHAMBER_MQTT_PASS="MQTT_PASSWORD"
+```
+Once everything is configured properly, you will be able to monitor your chamber's temperature and set a target temperature for it the same
+way you monitor temperature and set target values for the tool (extruder), the bed, and, the part cooling fan.
+
+### Legacy thermostat mode (deprecated)
+The container's own on/off thermostat still works for backwards compatibility when `CHAMBER_MODE` is `legacy` or unset. It is deprecated.
 ```dockerfile
 ENV INTEGRATED_EXTERNAL_HEATER="TRUE"
 
@@ -311,11 +325,29 @@ ENV CHAMBER_CURRENT_STATE_TOPIC="HEATER_CURRENT_STATE_TOPIC"
 ENV CHAMBER_STATE_ON_VALUE="on"
 ENV CHAMBER_STATE_OFF_VALUE="off"
 ```
-Once everything is configured properly, you will be able to monitor your chamber's temperature and set a target temperature for it the same
-way you monitor temperature and set target values for the tool (extruder), the bed, and, the part cooling fan.
 <p float="center">
   <img src="https://github.com/synman/bambu-printer-manager/assets/1299716/56f011c4-2fa5-44de-8f2d-6f1a3abb89a9" />
 </p>
+
+## External Exhaust Fan
+Use this for an enclosure exhaust fan that Home Assistant switches on or off. It suits a printer with no exhaust fan of its own, such as an A1. The container shows it as an exhaust fan at 0% or 100%, and passes an on or off request on. It works with or without External Chamber Heating.
+
+The fan uses two MQTT topics under its own prefix:
+- `<prefix>/state` is retained and published by Home Assistant as JSON, `{"exhaust_pct": 0}` or `{"exhaust_pct": 100}`.
+- `<prefix>/set` is published by the container as `100` or `0` when the fan is set.
+
+Home Assistant needs two automations, one per topic. A full reference config is in the bambu-printer-app operators guide, `docs/operators-guide.md`, section "External exhaust fan".
+```dockerfile
+ENV INTEGRATED_EXTERNAL_EXHAUST_FAN="TRUE"
+ENV EXHAUST_FAN_TOPIC_PREFIX="<prefix>"
+ENV CHAMBER_MQTT_HOST="MQTT_SERVER_HOST_OR_IP"
+ENV CHAMBER_MQTT_PORT="1883"
+ENV CHAMBER_MQTT_USER="MQTT_USER_NAME"
+ENV CHAMBER_MQTT_PASS="MQTT_PASSWORD"
+```
+The four broker variables are the same ones External Chamber Heating uses. Set them once when both are enabled.
+
+For library users: with `BambuConfig(external_exhaust_fan=True)`, the state parser leaves `climate.exhaust_fan_speed_percent` and `climate.zone_exhaust_percent` as they were. `BambuPrinter.set_exhaust_fan_speed(value)` sets both, and `set_exhaust_fan_speed_target_percent` only stores the value and publishes nothing.
 
 ## Troubleshooting
 If you are geting a `port is already in use` type error, it is likely because you are trying to run the container using the host's

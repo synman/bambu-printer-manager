@@ -77,7 +77,7 @@ Disconnect a printer's camera stream and MQTT session, keeping it configured.
 **WHEN to use:** take a printer offline from this server (stop its telemetry and camera stream)
 while keeping its credentials so it can be reconnected later without re-entering them.
 
-**WRITE GUARD:** stops the printer's MJPEG camera stream (if running), then stops its MQTT
+**WRITE GUARD:** stops the printer's camera stream and relay (if running), then stops its MQTT
 session, in that order, mirroring server._shutdown(). Live telemetry and every tool that
 needs a session stop working for this printer until ``start_printer`` reconnects it. An
 active print is not cancelled. With ``user_permission`` unset the tool changes nothing and
@@ -106,8 +106,9 @@ be True to perform this action. <consequence>"``.
 **Notes**
 
 ``start_printer`` restores the MQTT session but NOT the camera stream this tool stopped;
-call ``start_stream`` for that. The disconnect is in-memory only: the printer stays
-configured, so the next server restart starts its session again. The per-printer job
+call ``start_stream`` for that. The disconnect is remembered: the server keeps the printer
+disconnected across restarts (``~/.bambu-mcp/connection_<name>.json``) until
+``start_printer`` or ``add_printer`` connects it again. The per-printer job
 monitor is NOT stopped: camera.job_monitor exposes only a global stop_all(), no per-printer
 stop, so it keeps running. That applies only to printers registered at server startup; one
 added later with ``add_printer`` has no monitor.
@@ -221,7 +222,7 @@ user_permission must be True to perform this action. <consequence>"``.
 
 **Notes**
 
-Only the MQTT session is stopped. A running MJPEG camera stream is left running (it
+Only the MQTT session is stopped. A running camera stream is left running (it
 captured the ip and access code when it started, so it keeps serving after the credentials
 are deleted; call ``stop_stream`` first), and the per-printer job monitor and its collected
 telemetry are neither stopped nor cleared.

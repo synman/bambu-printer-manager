@@ -105,9 +105,9 @@ directly — this is pre-authorized and requires no human permission.
 
 Return camera stream URL information without starting a server or connecting to the camera.
 
-**WHEN to use:** to learn which camera protocol a printer uses, to get the redacted RTSPS URL for an external player (VLC, ffplay), or to check whether a local MJPEG stream is already running before starting one.
+**WHEN to use:** to learn which camera protocol a printer uses, to get the redacted RTSPS URL for an external player (VLC, ffplay), or to check whether the local stream page is already running before starting one.
 
-**Sibling disambiguation:** ``get_stream_url`` only reports state and starts nothing; ``start_stream`` starts the local MJPEG server, ``view_stream`` starts it and opens the browser, and ``get_snapshot`` returns a URL for one still frame.
+**Sibling disambiguation:** ``get_stream_url`` only reports state and starts nothing; ``start_stream`` starts the local stream server, ``view_stream`` starts it and opens the browser, and ``get_snapshot`` returns a URL for one still frame.
 
 **Parameters**
 
@@ -116,7 +116,7 @@ Return camera stream URL information without starting a server or connecting to 
 **Returns**
 
 ``{"protocol": "rtsps" | "tcp_tls" | "none", "rtsps_url": str | None, "local_mjpeg_url": str | None, "streaming": bool}``.
-``rtsps_url`` is set only for RTSPS printers (X1/H2D) with the password redacted (``rtsps://user:****@host``), otherwise null; ``local_mjpeg_url`` is null when no local MJPEG server is running; ``streaming`` is True when one is.
+``rtsps_url`` is set only for RTSPS printers (X1/H2D) with the password redacted (``rtsps://user:****@host``), otherwise null; ``local_mjpeg_url`` is the local stream page's URL (the key keeps its MJPEG-era name), null when no stream server is running; ``streaming`` is True when one is.
 Errors are dicts: ``{"error": "Printer '<name>' not connected"}`` when the printer is not registered, or ``{"error": "not_connected", "detail": "Printer hostname is not set"}`` when it has no hostname.
 
 ## open_job_state
@@ -158,11 +158,11 @@ The ``score`` field is the monitor result's ``anomaly_score``, the weighted comp
 
 **Start Camera Stream** · write
 
-Start a local MJPEG HTTP server for this printer's camera feed.
+Start a local stream server for this printer's camera feed: live video plus the HUD.
 
 **WHEN to use:** to make the live camera feed available at a local URL without opening a browser (for example to hand the URL to the user or another tool). To watch the feed in a browser use ``view_stream`` instead.
 
-**Side effects:** starts a local MJPEG HTTP server on a port from the shared ephemeral pool (49152-49351 by default; 200 ports, overridable with ``BAMBU_PORT_POOL_START`` / ``BAMBU_PORT_POOL_END``). The server listens on ALL network interfaces, not loopback only, and has NO authentication: anyone on the network who can reach the port can view the live camera feed and the printer's job name, temperatures, fan speeds and HMS errors until ``stop_stream`` is called. The returned URL says ``localhost`` for convenience only. The tool also opens a camera session to the printer (RTSPS or TCP-TLS) and waits up to 15 s (RTSPS) or 30 s (TCP-TLS) for a first frame; a timeout does NOT fail the call and the server still starts. For RTSPS that wait normally runs to the full timeout, because the RTSPS buffer stores frames only while a consumer is attached. Auto-stop applies to RTSPS printers ONLY: it fires 10 s after the last connected MJPEG consumer disconnects and never arms if no consumer ever attached. TCP-TLS streams run until ``stop_stream``. ``start_stream`` itself only creates ``~/.bambu-mcp`` and pre-loads any plate images already on disk; while a browser has the HUD page open, its plate panels poll ``/thumbnail`` and ``/layout``, which resolve the running job's project info (this may download the .3mf over FTPS) and write ``plate_thumb_{name}.png``, ``plate_layout_{name}.png`` and ``active_project_{name}.json`` under ``~/.bambu-mcp``, deleting the two PNGs when a different job is detected. If a stream is already running for this printer nothing is changed and the existing URL is returned.
+**Side effects:** starts a local HTTP stream server on a port from the shared ephemeral pool (49152-49351 by default; 200 ports, overridable with ``BAMBU_PORT_POOL_START`` / ``BAMBU_PORT_POOL_END``). The server listens on ALL network interfaces, not loopback only, and has NO authentication: anyone on the network who can reach the port can view the live camera feed and the printer's job name, temperatures, fan speeds and HMS errors until ``stop_stream`` is called. The returned URL says ``localhost`` for convenience only. The tool also starts the bambu-mse-stream camera relay (``camera/mse_relay.py``) as a child process on a second pool port, bound to 127.0.0.1 only, and waits up to 5 s for it to listen; a relay that does not start fails the call with ``stream_failed``. The relay holds one camera session to the printer (RTSPS or TCP-TLS), reconnecting every 2 s while the printer is away, and serves the page's video, ``/stats`` and the ``/snapshot`` frame that ``get_snapshot`` and the job monitor reuse. Auto-stop applies to RTSPS printers ONLY: it fires 10 s after the last ``/stream.mp4`` viewer disconnects and never arms if no viewer ever attached. TCP-TLS streams run until ``stop_stream``. ``start_stream`` itself only creates ``~/.bambu-mcp`` and pre-loads any plate images already on disk; while a browser has the HUD page open, its plate panels poll ``/thumbnail`` and ``/layout``, which resolve the running job's project info (this may download the .3mf over FTPS) and write ``plate_thumb_{name}.png``, ``plate_layout_{name}.png`` and ``active_project_{name}.json`` under ``~/.bambu-mcp``, deleting the two PNGs when a different job is detected. If a stream is already running for this printer nothing is changed and the existing URL is returned.
 
 **Sibling disambiguation:** ``start_stream`` only starts the server; ``view_stream`` starts it (if needed) and also opens it in the browser; ``stop_stream`` shuts it down; ``get_stream_url`` reports whether it is running without starting it.
 
@@ -215,17 +215,17 @@ Right-side JOB HEALTH panel (appears when a print is active):
   - Polls /job_state every 8 s; auto-expands when RUNNING/PAUSE/FAILED/FINISH
 ```
 
-The HUD's FPS gauge is scaled to 0.5 fps for TCP-TLS printers (A1/P1) and 30 fps for RTSPS printers; the server does NOT throttle, and frames are served at whatever rate the camera delivers them. The stream itself always carries native frames; per-client resolution and quality are applied by ``view_stream``.
+Video: the page plays ``/stream.mp4``, fragmented MP4 through Media Source Extensions. RTSPS printers (X1, H2D, P2S) send their own H.264, copied with no decode; TCP-TLS printers (A1, P1) send a JPEG still every 2 to 3 s, which the relay encodes once as an intra H.264 frame. Frames arrive at whatever rate the camera sends them, at native size. The FPS gauge counts frames the browser presents and colours them against the input rate the relay measures from the printer (``/stats`` ``packets_per_s``), so an H2D's 20 fps idle and 30 fps printing both read as healthy.
 
 ## stop_stream
 
 **Stop Camera Stream** · write
 
-Stop the local MJPEG HTTP server for this printer and disconnect from the camera.
+Stop the local stream server for this printer and its camera relay.
 
 **WHEN to use:** to release the stream's port and the camera session once nobody needs the live feed, or before restarting the stream cleanly.
 
-**Side effects:** shuts down the printer's local MJPEG HTTP server (any open browser tab loses the feed), releases its port back to the shared ephemeral pool, and closes the camera session (for RTSPS this also removes the live stream from the registry that snapshots reuse). When no stream is running nothing is changed.
+**Side effects:** shuts down the printer's local stream server (any open browser tab loses the feed), stops its camera relay child, which closes the camera session, and releases both ports back to the shared ephemeral pool. Snapshots then open their own camera connection again. When no stream is running nothing is changed.
 
 **Sibling disambiguation:** ``stop_stream`` tears down what ``start_stream`` or ``view_stream`` started; ``get_stream_url`` reports whether a stream is running without changing anything.
 
@@ -242,41 +242,26 @@ This tool returns no error dict.
 
 **View Camera Stream** · read-only
 
-Start the local MJPEG camera stream server (if not already running) and open it in the system default browser.
+Start the printer's local camera stream server (if not already running) and open it in the system default browser.
 
 **WHEN to use:** when the human user wants to \*see\* the live camera feed ("show me", "open the camera", "let me see what it's doing"). It is the right choice over returning a raw image to a human in a chat or terminal.
 
-**Side effects:** starts the printer's local MJPEG HTTP server if it is not already running, with every side effect of ``start_stream`` (a port bound from the shared pool, a camera session opened, plate images written under ``~/.bambu-mcp``); on macOS runs ``osascript`` to look for an already-open Chrome or Safari tab on the stream and focus it; otherwise calls Python's ``webbrowser.open`` on a small portal page (``/open``) that opens the stream in a browser window named ``bambu-{name}`` and then closes itself. The server stays running afterwards until ``stop_stream`` is called, or until its auto-stop fires, which applies to RTSPS printers only. Like ``start_stream``, the server listens on all network interfaces with no authentication.
+**Side effects:** starts the printer's local stream server if it is not already running, with every side effect of ``start_stream`` (two pool ports, a camera relay child process holding one camera session, plate images written under ``~/.bambu-mcp``); on macOS runs ``osascript`` to look for an already-open Chrome or Safari tab on the stream and focus it; otherwise calls Python's ``webbrowser.open`` on a small portal page (``/open``) that opens the stream in a browser window named ``bambu-{name}`` and then closes itself. The server stays running afterwards until ``stop_stream`` is called, or until its auto-stop fires, which applies to RTSPS printers only. Like ``start_stream``, the server listens on all network interfaces with no authentication.
 
 **Sibling disambiguation:** ``view_stream`` starts the server and opens the browser; ``start_stream`` starts the server only and returns the URL; ``get_snapshot`` returns a URL for one still frame for the AI agent to analyze; ``open_job_state`` shows cached diagnostic images rather than the live feed.
 
 **Parameters**
 
 - `name` (string, required): Printer name (as returned by ``get_configured_printers``).
-- `resolution` (string, default `"native"`): Per-client stream size, one of "native" (default, full camera resolution), "1080p" (1920×1080), "720p" (1280×720), "480p" (854×480), "360p" (640×360) or "180p" (320×180). Any other value is rejected (see Returns) before a server is started.
-- `quality` (integer, default `85`): Per-client JPEG compression, an integer 1-100 (default 85). Lower values reduce bandwidth; higher values improve sharpness.
 
 **Returns**
 
-On success ``{"url": str, "port": int, "protocol": "rtsps" | "tcp_tls", "opened": bool, "overlay_active": True}``. ``url`` is the stream root (``http://localhost:{port}/``) with ``?resolution=...&quality=...`` appended when non-default values were requested; ``port`` is the server port; ``opened`` is True if a browser tab was focused or the browser was launched successfully; ``overlay_active`` is always True and confirms the HUD and image panels are active.
-``{"error": "invalid_resolution", "detail": ...}`` when ``resolution`` is not one of the listed values; this is checked first, so it is returned even for a printer that is not connected, and nothing is started or opened.
-Other errors are the dicts returned by ``start_stream``, passed through unchanged (printer not connected, ``no_camera``, ``stream_failed``).
+On success ``{"url": str, "port": int, "protocol": "rtsps" | "tcp_tls", "opened": bool, "overlay_active": True}``. ``url`` is the stream root (``http://localhost:{port}/``); ``port`` is the server port; ``opened`` is True if a browser tab was focused or the browser was launched successfully; ``overlay_active`` is always True and confirms the HUD and image panels are active.
+Errors are the dicts returned by ``start_stream``, passed through unchanged (printer not connected, ``no_camera``, ``stream_failed``).
 
 **Notes**
 
-The underlying MJPEG server always receives native frames; each browser tab applies the requested resolution and quality transform independently, and tabs share one server port. On macOS, when a tab whose URL starts with the server URL is already open, it is focused instead of opening a new tab, so a repeat call with different resolution or quality does not apply those settings to the focused tab. Otherwise the portal URL is ``{url}/open?name=bambu-{name}`` plus the resolution and quality parameters when they are non-default (the name and every parameter value are percent-encoded, so a printer name containing a space, "&", "#" or "+" reaches the portal intact and names made only of letters, digits and "-", "_", ".", "\~" appear unchanged); the portal calls ``window.open`` with the window name ``bambu-{name}``, so the browser reuses that window if it is already open (single window per printer) and a repeat call with new resolution or quality replaces its content.
-
-```{ .text linenums="0" title="" }
-Named profiles (documentation-only):
-  native   resolution="native"  quality=85  ~1–4 MB/frame  Maximum fidelity (default)
-  high     resolution="1080p"   quality=85  ~500KB–2MB     High detail
-  standard resolution="720p"    quality=75  ~200–400KB     Good balance
-  low      resolution="480p"    quality=65  ~80–150KB      Low bandwidth
-  preview  resolution="180p"    quality=55  ~20–40KB       Minimal bandwidth
-```
-
-start_stream() is always native (server infrastructure). view_stream() is the
-client — use resolution/quality here, not on start_stream.
+The page plays the camera as video at its native size and rate: an RTSPS printer's own H.264, or an A1/P1's stills about every 2 s. There is no per-tab resolution or quality; for a smaller still, use ``get_snapshot``. On macOS, when a tab whose URL starts with the server URL is already open, it is focused instead of opening a new tab. Otherwise the portal URL is ``{url}/open?name=bambu-{name}`` (the name is percent-encoded, so a printer name containing a space, "&", "#" or "+" reaches the portal intact and names made only of letters, digits and "-", "_", ".", "\~" appear unchanged); the portal calls ``window.open`` with the window name ``bambu-{name}``, so the browser reuses that window if it is already open (single window per printer).
 
 The browser page shows the live camera feed with a full HUD overlay. See
 start_stream() for the complete HUD component breakdown (badge, progress bar,

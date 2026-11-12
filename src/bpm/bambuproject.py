@@ -23,6 +23,7 @@ from bpm.bambutools import (
     printer_cache_dir,
     resolve_external_spool_trays,
 )
+from bpm.filetunnel import FileTunnel, FileTunnelError
 
 if TYPE_CHECKING:
     from bpm.bambuprinter import BambuPrinter
@@ -195,6 +196,15 @@ class ProjectInfo:
     """
     plates: list[int] = field(default_factory=list)
     """The plate numbers contained within this `3mf`."""
+    partial: bool = False
+    """
+    True when this was read from the project the printer is running, over its file
+    tunnel (`job_project_info`), because the `.3mf` itself is out of reach: it sits in
+    the printer's internal eMMC cache, which FTPS cannot read. `id` is then
+    `mem:/16`, not an SD card path, and `metadata` holds only `thumbnail`, `filament`
+    and `filament_extruders`. It has no `map`, `topimg`, `ams_mapping`,
+    `physical_extruder_map`, `external_spool_trays` or `slicer_settings`.
+    """
 
 
 @dataclass
@@ -297,6 +307,19 @@ def get_3mf_entry_by_id(node: dict | Any, target_id: str):
             if found_entry is not None:
                 return found_entry
     return None
+
+
+def get_nodes_by_plate_id(xml_root, plate_id, node_name):
+    """The `node_name` children of the `<plate>` in a `slice_info.config` whose index is `plate_id`."""
+    for plate in xml_root.findall("plate"):
+        meta = plate.find("./metadata[@key='index']")
+        if meta is not None and meta.get("value") == str(plate_id):
+            return plate.findall(node_name)
+    return []
+
+
+def _to_int_list(values: list[str]) -> list[int]:
+    return [int(value) for value in values if value.lstrip("-").isdigit()]
 
 
 def project_metadata_dir(printer: "BambuPrinter") -> Path:
@@ -465,6 +488,111 @@ def cached_project_md5(
     return lmd.get("md5") or ""
 
 
+def _slice_layer_count(plate: ET.Element) -> int | None:
+    """The plate's layer count from the `layer_ranges` of `slice_info.config`, or None."""
+    last = [
+        int(n)
+        for element in plate.iter("layer_filament_list")
+        for n in element.get("layer_ranges", "").split()
+        if n.isdigit()
+    ]
+    return max(last) + 1 if last else None
+
+
+def job_project_info(
+    hostname: str,
+    access_code: str,
+    subtask_name: str,
+    total_layers: int,
+    remaining_minutes: int,
+    plate_num: int | None = None,
+) -> ProjectInfo | None:
+    """
+    Build a partial `ProjectInfo` for the running job from the printer's file tunnel
+    (`filetunnel`), for a job whose `.3mf` FTPS cannot read: Bambu Studio's "Print
+    Plate" on an H2 series or P2S writes the file to the internal eMMC cache and starts
+    the print from there.
+
+    The printer serves the project it is running, but it can still hold the previous
+    job's while a new one prepares, so the project is trusted only when it matches the
+    job: its plate index equals `plate_num` when that is known, and its layer count
+    equals `total_layers`. A project that lists no layer ranges is checked on its
+    predicted time against `remaining_minutes` instead. Returns None on a mismatch,
+    and raises `FileTunnelError` when the tunnel fails.
+
+    The result has `partial` set and carries `thumbnail`, `filament` and
+    `filament_extruders` only. A thumbnail the printer refuses is left out.
+    Blocking network I/O: call it off the MQTT thread.
+    """
+    with FileTunnel(hostname, access_code) as tunnel:
+        slice_info = ET.fromstring(
+            tunnel.project_member("Metadata/slice_info.config").decode("utf-8")
+        )
+        plate = slice_info.find("plate")
+        index_meta = plate.find("./metadata[@key='index']") if plate is not None else None
+        if (
+            plate is None
+            or index_meta is None
+            or not index_meta.get("value", "").isdigit()
+        ):
+            logger.info("job_project_info - the project has no plate index")
+            return None
+        index = int(index_meta.get("value"))
+        if plate_num is not None and plate_num != index:
+            logger.info(
+                f"job_project_info - project is plate [{index}], job is plate [{plate_num}]"
+            )
+            return None
+
+        layers = _slice_layer_count(plate)
+        if layers is not None:
+            matches = layers == total_layers
+        else:
+            prediction = plate.find("./metadata[@key='prediction']")
+            seconds = int(prediction.get("value", "0")) if prediction is not None else 0
+            matches = seconds > 0 and abs(seconds / 60 - remaining_minutes) <= max(
+                5.0, 0.1 * remaining_minutes
+            )
+        if not matches:
+            logger.info(
+                f"job_project_info - project is not this job (layers [{layers}], job [{total_layers}])"
+            )
+            return None
+
+        metadata: dict[str, Any] = {}
+        try:
+            png = tunnel.project_member(f"Metadata/plate_{index}.png")
+            metadata["thumbnail"] = (
+                f"data:image/png;base64,{base64.b64encode(png).decode()}"
+            )
+        except FileTunnelError as e:
+            logger.warning(f"job_project_info - no thumbnail: {e}")
+
+    metadata["filament"] = [
+        {
+            "id": int(f.get("id", -1)),
+            "type": f.get("type", ""),
+            "color": f.get("color", ""),
+        }
+        for f in get_nodes_by_plate_id(slice_info, index, "filament")
+    ]
+    extruders: list[int] = []
+    for meta in get_nodes_by_plate_id(slice_info, index, "metadata"):
+        if meta.get("key") == "filament_maps":
+            extruders = _to_int_list(meta.get("value", "").split())
+            break
+    metadata["filament_extruders"] = extruders
+
+    return ProjectInfo(
+        id="mem:/16",
+        name=subtask_name,
+        plate_num=index,
+        plates=[index],
+        metadata=metadata,
+        partial=True,
+    )
+
+
 def get_project_info(
     project_file_id: str,
     printer: "BambuPrinter",
@@ -553,13 +681,6 @@ def get_project_info(
     printer's SD card.
     """
 
-    def get_nodes_by_plate_id(xml_root, plate_id, node_name):
-        for plate in xml_root.findall("plate"):
-            meta = plate.find("./metadata[@key='index']")
-            if meta is not None and meta.get("value") == str(plate_id):
-                return plate.findall(node_name)
-        return []
-
     def _split_config_list(value: str) -> list[str]:
         raw = value.strip()
         if not raw:
@@ -620,9 +741,6 @@ def get_project_info(
         except KeyError:
             return ""
         return "".join(lines)
-
-    def _to_int_list(values: list[str]) -> list[int]:
-        return [int(value) for value in values if value.lstrip("-").isdigit()]
 
     def _attach_external_spool_trays(metadata: dict[str, Any]) -> None:
         # Derived on every return and never written to the metadata cache, because it

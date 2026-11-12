@@ -64,6 +64,7 @@ from bpm.bambuproject import (
     cached_project_md5,
     get_3mf_entry_by_name,
     get_project_info,
+    job_project_info,
     project_cache_name,
     project_metadata_dir,
 )
@@ -162,6 +163,10 @@ class BambuPrinter:
         # A project_file frame arrived for the job about to run, so starting it must
         # not reset the project that frame set
         self._project_file_seen = False
+        # Reads of the running job's project over the file tunnel: how many were started
+        # for this job, and the gcode_state the last one started in
+        self._job_tunnel_attempts = 0
+        self._job_tunnel_state = ""
 
         self._sdcard_contents = None
         self._sdcard_3mf_files = None
@@ -185,6 +190,10 @@ class BambuPrinter:
 
         This method is required to be called before any commands or data
         collection / callbacks can take place with the machine.
+
+        The session runs on daemon threads, so it does not keep the interpreter
+        alive. Keep your own thread running for as long as you need the session, and
+        call [quit](#bpm.bambuprinter.BambuPrinter.quit)() for a clean disconnect.
         """
         logger.debug("start_session - starting session")
         if (
@@ -257,8 +266,14 @@ class BambuPrinter:
             self.service_state = ServiceState.QUIT
             return
 
+        # A failed earlier attempt left the state at QUIT, and the watchdog exits on QUIT
+        # before on_connect can set CONNECTED. Its error is stale too: on_disconnect
+        # would raise it on the first ordinary network drop
+        self.service_state = ServiceState.NO_STATE
+        self._internalException = None
+
         self._mqtt_client_thread = threading.Thread(
-            target=loop_forever, name="bambuprinter-session", args=(self,)
+            target=loop_forever, name="bambuprinter-session", args=(self,), daemon=True
         )
         self._mqtt_client_thread.start()
 
@@ -1350,6 +1365,18 @@ class BambuPrinter:
         """
         self._printer_state.climate.chamber_temp = value
 
+    def set_exhaust_fan_speed(self, value: int):
+        """
+        for printers whose exhaust fan is external, injects its speed in percent
+        from an external source. Publishes nothing.
+
+        Parameters
+        ----------
+        * value : int - The exhaust fan speed in percent.
+        """
+        self._printer_state.climate.exhaust_fan_speed_percent = int(value)
+        self._printer_state.climate.zone_exhaust_percent = int(value)
+
     def set_chamber_temp_target(self, value: int, temper_check: bool = True):
         """
         set chamber temperature target if printer supports it, otherwise just
@@ -1428,6 +1455,8 @@ class BambuPrinter:
         if value < 0:
             value = 0
         self._printer_state.climate.zone_exhaust_percent = value
+        if self.config.external_exhaust_fan:
+            return
         speed = round(value * 2.55, 0)
         gcode = SEND_GCODE_TEMPLATE
         gcode["print"]["param"] = f"M106 P3 S{speed}\n"
@@ -2387,6 +2416,87 @@ class BambuPrinter:
         self._active_job_info.plate_num_assumed = bool(record.get("plate_num_assumed"))
         return True
 
+    def _maybe_read_job_project_over_tunnel(self, gcode_state: str) -> None:
+        """
+        Start a read of the running job's project over the file tunnel, for a job whose
+        `.3mf` FTPS could not find: Studio's "Print Plate" on an H2 series or P2S keeps
+        the file in the internal eMMC cache, which FTPS cannot read.
+
+        Runs once the FTPS lookups have failed and the layer count is known, on a thread
+        so a slow printer never stalls the MQTT loop. The printer can still hold the
+        previous job's project while this one prepares, so a read that does not match
+        the job is retried once, when the job reaches RUNNING.
+        """
+        info = self._active_job_info
+        if (
+            gcode_state not in ("PREPARE", "RUNNING")
+            or not info.project_info_fetch_attempted
+            or (info.project_info and info.project_info.id)
+            or info.total_layers <= 0
+            or getPrinterSeriesByModel(self.config.printer_model)
+            not in (PrinterSeries.H2, PrinterSeries.P2)
+        ):
+            return
+        if self._job_tunnel_attempts >= 2 or (
+            self._job_tunnel_attempts == 1
+            and not (self._job_tunnel_state == "PREPARE" and gcode_state == "RUNNING")
+        ):
+            return
+
+        self._job_tunnel_attempts += 1
+        self._job_tunnel_state = gcode_state
+        match = re.search(r"plate_(\d{1,2})", info.gcode_file)
+        plate_num = int(match.group(1)) if match else None
+        if plate_num is None and info.plate_num > 0:
+            plate_num = info.plate_num
+        threading.Thread(
+            target=self._read_job_project_over_tunnel,
+            args=(
+                (self._task_id, info.subtask_name, info.wall_start_time),
+                info.subtask_name,
+                info.total_layers,
+                info.remaining_minutes,
+                plate_num,
+            ),
+            name="bambuprinter-job-project",
+            daemon=True,
+        ).start()
+
+    def _read_job_project_over_tunnel(
+        self,
+        job: tuple,
+        subtask_name: str,
+        total_layers: int,
+        remaining_minutes: int,
+        plate_num: int | None,
+    ) -> None:
+        try:
+            project = job_project_info(
+                self.config.hostname,
+                self.config.access_code,
+                subtask_name,
+                total_layers,
+                remaining_minutes,
+                plate_num,
+            )
+        except Exception as e:
+            # Never let a tunnel problem reach the MQTT loop. FTPS found nothing either,
+            # so the job simply stays without a project.
+            logger.warning(f"job project over the file tunnel failed: {e}")
+            return
+
+        info = self._active_job_info
+        if (
+            project is None
+            or job != (self._task_id, info.subtask_name, info.wall_start_time)
+            or (info.project_info and info.project_info.id)
+        ):
+            return  # not this job's project, or the job moved on meanwhile
+        info.project_info = project
+        info.plate_num = project.plate_num
+        logger.info(f"job project read over the file tunnel for [{subtask_name}]")
+        self._notify_update()
+
     def _notify_update(self):
         if self.on_update:
             self.on_update(self)
@@ -2420,7 +2530,10 @@ class BambuPrinter:
                     printer.client.disconnect()
 
         self._watchdog_thread = threading.Thread(
-            target=watchdog_thread, name="bambuprinter-session-watchdog", args=(self,)
+            target=watchdog_thread,
+            name="bambuprinter-session-watchdog",
+            args=(self,),
+            daemon=True,
         )
         self._watchdog_thread.start()
 
@@ -2489,6 +2602,7 @@ class BambuPrinter:
                     self._active_job_info.project_info = ProjectInfo()
                     self._active_job_info.project_info_fetch_attempted = False
                     self._active_job_info.plate_num_assumed = False
+                    self._job_tunnel_attempts = 0
                     try:
                         self._active_job_info.project_info = get_project_info(
                             parts[1], self, md5, plate_num
@@ -2583,6 +2697,7 @@ class BambuPrinter:
                         self._active_job_info.project_info = ProjectInfo()
                         self._active_job_info.project_info_fetch_attempted = False
                         self._active_job_info.plate_num_assumed = False
+                        self._job_tunnel_attempts = 0
                     if gcode_state in ("PREPARE", "RUNNING"):
                         # consumed by the job it announced, whatever state came between
                         self._project_file_seen = False
@@ -2691,14 +2806,20 @@ class BambuPrinter:
                                     self._active_job_info.plate_num_assumed,
                                 )
 
+            self._maybe_read_job_project_over_tunnel(gcode_state)
+
             if gcode_state == "RUNNING":
                 self._seal_job_record()
 
             # This process started after the job ended: restore the ended job from its
             # record, once the printer has reported the fields its fingerprint needs.
+            # Not once a project_file has announced the next job: the printer can still
+            # report FINISH after it, and taking the attempt here would cost that job its
+            # name lookup when the project_file download fails (A1, 2026-09-30).
             info = self._active_job_info
             if (
                 gcode_state in ("FAILED", "FINISH")
+                and not self._project_file_seen
                 and not (info.project_info and info.project_info.id)
                 and not info.project_info_fetch_attempted
                 and self._task_id

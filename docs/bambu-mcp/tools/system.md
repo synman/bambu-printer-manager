@@ -134,7 +134,7 @@ URL (the REST API base URL is http://localhost:{api_port}/api), or to see which 
 shared pool has claimed.
 
 **Sibling disambiguation:** ``get_server_info`` reports server-wide port usage, including every
-active MJPEG camera stream. ``get_stream_url`` returns the camera stream details for one
+active camera stream server. ``get_stream_url`` returns the camera stream details for one
 named printer.
 
 **Args:** none.
@@ -155,15 +155,15 @@ A dict on success:
   when a claimed port lies outside the pool range (for example an out-of-range
   ``BAMBU_API_PORT``).
 - ``pool_claimed``: sorted list of all currently claimed port numbers (the REST API port
-  plus all active MJPEG stream ports).
-- ``stream_count``: number of active MJPEG camera streams.
+  plus all active stream server and camera relay ports).
+- ``stream_count``: number of active camera stream servers.
 - ``streams``: dict of ``{printer_name: {port, url}}`` for each active stream.
 
 On failure: ``{"error": "Error retrieving server info: <exception>"}``.
 
 **Notes**
 
-The bambu-mcp HTTP REST API and all MJPEG camera stream servers draw ports from a shared
+The bambu-mcp HTTP REST API and all camera stream servers and their relays draw ports from a shared
 ephemeral pool anchored at port 49152 (IANA RFC 6335 Dynamic/Private range 49152-65535).
 Ports are allocated on demand and released when listeners stop.
 

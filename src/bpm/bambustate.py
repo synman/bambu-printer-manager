@@ -316,8 +316,12 @@ class BambuClimate:
     """Exhaust (chamber) fan %."""
     heatbreak_fan_speed_percent: int = 0
     """Heatbreak fan %."""
-    zone_intake_open: bool = False
-    """Heater power."""
+    circulation_fan_speed_percent: int = 0
+    """Chamber Heat Circulation Fan % (H2 series). The fan inside the Chamber Heater, beside the PTC
+    element; Bambu Studio calls it the inner loop fan (`FAN_INNNER_LOOP_FAN_0_IDX`). Reported as
+    airduct part `96` (`0x60`: fan type 0, fan index 6). The firmware's heating mode turns the aux
+    and exhaust fans off and runs this one, so during chamber heating it is the only chamber fan
+    with a non-zero value."""
     zone_part_fan_percent: int = 0
     """Internal %."""
     zone_aux_percent: int = 0
@@ -325,7 +329,8 @@ class BambuClimate:
     zone_exhaust_percent: int = 0
     """Exhaust %."""
     zone_top_vent_open: bool = False
-    """Top vent status - derived from exhaust fan on and cooling ac mode."""
+    """Top vent status - derived: the Automatic Top Vent and the Active Chamber Exhaust Grille open
+    together whenever the Chamber Exhaust Fan runs (Bambu H2 cooling fan system wiki)."""
     is_chamber_door_open: bool = False
     """ For printers that support it (see `PrinterCapabilities.has_chamber_door_sensor`), reports whether the chamber door is open """
     is_chamber_lid_open: bool = False
@@ -540,16 +545,21 @@ class BambuState:
             updates["climate"].zone_aux_percent = parts.get(
                 32, base.climate.zone_aux_percent
             )
-            updates["climate"].zone_exhaust_percent = parts.get(
-                48, base.climate.zone_exhaust_percent
+            updates["climate"].zone_exhaust_percent = (
+                base.climate.zone_exhaust_percent
+                if config.external_exhaust_fan
+                else parts.get(48, base.climate.zone_exhaust_percent)
             )
 
-            zone_intake_open = parts.get(96, -1)
-            updates["climate"].zone_intake_open = zone_intake_open not in (-1, 0)
+            # Part 96 is a fan, not a damper: every H2 airduct part has type bits 0
+            # (AIR_FAN_TYPE) and 96 >> 4 == 6 is Bambu Studio's inner loop fan, the
+            # Chamber Heat Circulation Fan in the heater unit. Its state is a percent.
+            updates["climate"].circulation_fan_speed_percent = parts.get(
+                96, base.climate.circulation_fan_speed_percent
+            )
 
             updates["climate"].zone_top_vent_open = bool(
                 updates["climate"].zone_exhaust_percent > 0
-                and not updates["climate"].zone_intake_open
             )
 
         # EXTENSION TOOL (device.ext_tool — Enhanced Cooling Fan / cutting / laser)
@@ -944,14 +954,24 @@ class BambuState:
             "climate"
         ].part_cooling_fan_speed_percent
 
-        heatbreak_fan_speed_percent = scaleFanSpeed(p.get("heatbreak_fan_speed", -1))
+        heatbreak_fan_speed_percent = (
+            scaleFanSpeed(p.get("heatbreak_fan_speed"))
+            if p.get("heatbreak_fan_speed", -1) != -1
+            else -1
+        )
         if heatbreak_fan_speed_percent == -1:
             heatbreak_fan_speed_percent = base.climate.heatbreak_fan_speed_percent
         updates["climate"].heatbreak_fan_speed_percent = heatbreak_fan_speed_percent
 
         exhaust_fan_speed_percent = -1
-        if not config.capabilities.has_chamber_temp:
-            exhaust_fan_speed_percent = scaleFanSpeed(p.get("big_fan2_speed", -1))
+        if config.external_exhaust_fan:
+            exhaust_fan_speed_percent = base.climate.exhaust_fan_speed_percent
+        elif not config.capabilities.has_chamber_temp:
+            exhaust_fan_speed_percent = (
+                scaleFanSpeed(p.get("big_fan2_speed"))
+                if p.get("big_fan2_speed", -1) != -1
+                else -1
+            )
         else:
             exhaust_fan_speed_percent = updates["climate"].zone_exhaust_percent
 
@@ -961,7 +981,11 @@ class BambuState:
 
         aux_fan_speed_percent = -1
         if not config.capabilities.has_chamber_temp:
-            aux_fan_speed_percent = scaleFanSpeed(p.get("big_fan1_speed", -1))
+            aux_fan_speed_percent = (
+                scaleFanSpeed(p.get("big_fan1_speed"))
+                if p.get("big_fan1_speed", -1) != -1
+                else -1
+            )
         else:
             aux_fan_speed_percent = updates["climate"].zone_aux_percent
 

@@ -100,13 +100,19 @@ only. ``set_fan_speed`` is the tool that changes a fan.
 
 **Returns**
 
-``{"part_cooling_pct", "aux_pct", "exhaust_pct", "heatbreak_pct",
+``{"part_cooling_pct", "aux_pct", "exhaust_pct", "heatbreak_pct", "circulation_pct",
 "enhanced_cooling_pct"}``, each a percentage. Fans reported: part_cooling, aux
-(recirculation), exhaust (chamber), heatbreak, enhanced_cooling (Toolhead Enhanced
-Cooling Fan, H2-series extension-tool only). Error shape:
-``{"error": "Printer '<name>' not connected"}``.
+(auxiliary part cooling, side of the chamber), exhaust (chamber), heatbreak,
+circulation (the H2 Chamber Heat Circulation Fan inside the chamber heater; 0 on
+every other model), enhanced_cooling (Toolhead Enhanced Cooling Fan, H2-series
+extension-tool only). Error shape: ``{"error": "Printer '<name>' not connected"}``.
 
 **Notes**
+
+On the H2 series the firmware's heating mode stops the aux and exhaust fans and runs
+the circulation fan, so while the chamber heats aux_pct and exhaust_pct read 0 and
+circulation_pct is the chamber fan that is on. That is the printer's own rule table
+(``device.airduct.modeList``), not a telemetry gap.
 
 enhanced_cooling_pct is NOT a measured speed — the printer publishes no run-state
 telemetry for this fan. It is the last target commanded through THIS server's

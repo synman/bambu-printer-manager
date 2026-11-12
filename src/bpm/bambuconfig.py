@@ -84,6 +84,8 @@ class BambuConfig:
     """Duration in seconds before a connection is flagged as stale."""
     external_chamber: bool = False
     """If True, ignores internal CTC telemetry to allow manual sensor injection."""
+    external_exhaust_fan: bool = False
+    """If True, ignores the printer's exhaust fan telemetry and commands so an external exhaust fan can be injected."""
     capabilities: PrinterCapabilities = field(default_factory=PrinterCapabilities)
     """Pre-defined or discovered hardware feature set."""
     bpm_cache_path: Path | None = None

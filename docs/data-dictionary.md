@@ -36,7 +36,7 @@ BambuConfig (configuration root)
 ├── hostname, access_code, serial_number
 ├── mqtt_port, mqtt_client_id, mqtt_username
 ├── mqtt_connection_timeout, ftps_connection_timeout
-├── watchdog_timeout, external_chamber
+├── watchdog_timeout, external_chamber, external_exhaust_fan
 ├── bpm_cache_path, printer_model
 ├── firmware_version, ams_firmware_version
 └── capabilities: PrinterCapabilities
@@ -132,6 +132,7 @@ Quick alphabetical reference to all documented fields. Fields marked with * appe
 | [plate_type](#plate_type) | ActiveJobInfo | The plate type associated with the job | [Field Definition](#plate_type) · [ActiveJobInfo](reference/bpm/bambuproject.md#bpm.bambuproject.ActiveJobInfo) |
 | [bpm_cache_path](#bpm_cache_path) | BambuConfig | The underlying directory BPM uses for managing cache/metadata | [Field Definition](#bpm_cache_path) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
 | [plates](#plates) | ProjectInfo | The set of plate numbers discovered in the 3MF package | [Field Definition](#plates) · [ProjectInfo](reference/bpm/bambuproject.md#bpm.bambuproject.ProjectInfo) |
+| [partial](#partial) | ProjectInfo | True when the project came from the running job over the file tunnel and carries only a thumbnail and filaments | [Field Definition](#partial) · [ProjectInfo](reference/bpm/bambuproject.md#bpm.bambuproject.ProjectInfo) |
 | [aux_fan_speed_percent](#aux_fan_speed_percent) | BambuClimate | Auxiliary fan speed | [Field Definition](#aux_fan_speed_percent) · [BambuClimate](reference/bpm/bambustate.md#bpm.bambustate.BambuClimate) |
 | [print_error](#print_error) | BambuState | Main error code (32-bit HMS error) | [Field Definition](#print_error) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
 | [print_percentage](#print_percentage) | ActiveJobInfo | Overall print completion percentage | [Field Definition](#print_percentage) · [ActiveJobInfo](reference/bpm/bambuproject.md#bpm.bambuproject.ActiveJobInfo) |
@@ -171,6 +172,7 @@ Quick alphabetical reference to all documented fields. Fields marked with * appe
 | [exhaust_fan_speed_percent](#exhaust_fan_speed_percent) | BambuClimate | Exhaust/chamber fan speed | [Field Definition](#exhaust_fan_speed_percent) · [BambuClimate](reference/bpm/bambustate.md#bpm.bambustate.BambuClimate) |
 | [target_tray_id](#target_tray_id) | BambuState, ExtruderState | Target tray for this extruder | [Field Definition](#target_tray_id) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState), [ExtruderState](reference/bpm/bambustate.md#bpm.bambustate.ExtruderState) |
 | [external_chamber](#external_chamber) | BambuConfig | If True, ignores internal CTC telemetry to allow manual sensor injection | [Field Definition](#external_chamber) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
+| [external_exhaust_fan](#external_exhaust_fan) | BambuConfig | If True, ignores the printer's exhaust fan telemetry and commands so an external exhaust fan can be injected | [Field Definition](#external_exhaust_fan) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
 | [temp](#temp) | ExtruderState | Current extruder temperature | [Field Definition](#temp) · [ExtruderState](reference/bpm/bambustate.md#bpm.bambustate.ExtruderState) |
 | [extruders](#extruders) | BambuState | State of all physical extruders | [Field Definition](#extruders) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
 | [temp_actual](#temp_actual) | AMSUnitState | Current AMS internal temperature | [Field Definition](#temp_actual) · [AMSUnitState](reference/bpm/bambustate.md#bpm.bambustate.AMSUnitState) |
@@ -217,7 +219,7 @@ Quick alphabetical reference to all documented fields. Fields marked with * appe
 | [hms_errors](#hms_errors) | BambuState | List of active HMS errors | [Field Definition](#hms_errors) · [BambuState](reference/bpm/bambustate.md#bpm.bambustate.BambuState) |
 | [zone_exhaust_percent](#zone_exhaust_percent) | BambuClimate | Exhaust fan zone control | [Field Definition](#zone_exhaust_percent) · [BambuClimate](reference/bpm/bambustate.md#bpm.bambustate.BambuClimate) |
 | [hostname](#hostname) | BambuConfig | IP address or DNS name of the printer on the local subnet | [Field Definition](#hostname) · [BambuConfig](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) |
-| [zone_intake_open](#zone_intake_open) | BambuClimate | Heater intake damper state | [Field Definition](#zone_intake_open) · [BambuClimate](reference/bpm/bambustate.md#bpm.bambustate.BambuClimate) |
+| [circulation_fan_speed_percent](#circulation_fan_speed_percent) | BambuClimate | Chamber Heat Circulation Fan speed (H2 series) | [Field Definition](#circulation_fan_speed_percent) · [BambuClimate](reference/bpm/bambustate.md#bpm.bambustate.BambuClimate) |
 | [humidity_index](#humidity_index) | AMSUnitState | Humidity level index | [Field Definition](#humidity_index) · [AMSUnitState](reference/bpm/bambustate.md#bpm.bambustate.AMSUnitState) |
 | [zone_part_fan_percent](#zone_part_fan_percent) | BambuClimate | Internal part fan zone control | [Field Definition](#zone_part_fan_percent) · [BambuClimate](reference/bpm/bambustate.md#bpm.bambustate.BambuClimate) |
 | [humidity_raw](#humidity_raw) | AMSUnitState | Raw humidity percentage | [Field Definition](#humidity_raw) · [AMSUnitState](reference/bpm/bambustate.md#bpm.bambustate.AMSUnitState) |
@@ -365,6 +367,14 @@ Main configuration class for [`BambuPrinter`](reference/bpm/bambuprinter.md#bpm.
 - **Purpose**: If True, ignores internal CTC telemetry to allow manual sensor injection
 - **Use Case**: Custom chamber temperature monitoring with external sensors
 - **Reference**: CTC (Chamber Thermal Controller) override
+
+#### external_exhaust_fan
+- **Type**: `bool`
+- **Default**: `False`
+- **Purpose**: If True, ignores the printer's exhaust fan telemetry and commands so an external exhaust fan can be injected
+- **Use Case**: An enclosure exhaust fan switched outside the printer, such as a smart plug, shown as 0% or 100%
+- **Behavior**: the state parser keeps [`exhaust_fan_speed_percent`](#exhaust_fan_speed_percent) and [`zone_exhaust_percent`](#zone_exhaust_percent) as they were; `BambuPrinter.set_exhaust_fan_speed(value)` sets both; `set_exhaust_fan_speed_target_percent` only stores the value and publishes nothing
+- **Reference**: the container's External Exhaust Fan section in [container.md](container.md)
 
 #### capabilities
 - **Type**: `PrinterCapabilities`
@@ -981,7 +991,7 @@ mapped into other attributes, or used as runtime control/diagnostic inputs.
 - **Type**: `dict`
 - **Telemetry**: `print.device.airduct`
 - **Purpose**: Airduct/HVAC payload used for mode and per-zone actuator state
-- **Mapped To**: [airduct_mode](#airduct_mode), [airduct_sub_mode](#airduct_sub_mode), [zone_part_fan_percent](#zone_part_fan_percent), [zone_aux_percent](#zone_aux_percent), [zone_exhaust_percent](#zone_exhaust_percent), [zone_intake_open](#zone_intake_open), [zone_top_vent_open](#zone_top_vent_open)
+- **Mapped To**: [airduct_mode](#airduct_mode), [airduct_sub_mode](#airduct_sub_mode), [zone_part_fan_percent](#zone_part_fan_percent), [zone_aux_percent](#zone_aux_percent), [zone_exhaust_percent](#zone_exhaust_percent), [circulation_fan_speed_percent](#circulation_fan_speed_percent), [zone_top_vent_open](#zone_top_vent_open)
 - **Schema**:
 
 | Field | Type | Description |
@@ -1768,6 +1778,7 @@ All fan speeds are scaled 0-100%.
 - **Valid Range**: `0-100`
 - **Unit**: %
 - **Purpose**: Exhaust/chamber fan speed
+- **Override**: kept as injected when [`BambuConfig.external_exhaust_fan`](#external_exhaust_fan) is True
 - **Reference**: BambuStudio fan control
 - **MQTT Control**: [Exhaust Fan](mqtt-protocol-reference.md#exhaust-fan)
 
@@ -1789,11 +1800,13 @@ All fan speeds are scaled 0-100%.
 
 ### Zone Control Attributes
 
-#### zone_intake_open
-- **Type**: `bool`
-- **Telemetry**: `print.device.airduct.parts[96].state` (non-zero = open)
-- **Purpose**: Heater intake damper state
-- **Reference**: BambuStudio zone control
+#### circulation_fan_speed_percent
+- **Type**: `int`
+- **Telemetry**: `print.device.airduct.parts[96].state`
+- **Valid Range**: `0-100`
+- **Unit**: %
+- **Purpose**: Chamber Heat Circulation Fan speed, the fan inside the H2 Chamber Heater beside the PTC element. The firmware's heating mode (`airduct_mode` 1, `modeList` `off: [32, 48]`) stops the aux and exhaust fans and runs this one, so while the chamber heats it is the only chamber fan above 0
+- **Reference**: Bambu H2 cooling fan system wiki ("Chamber Heat Circulation Fan"); Bambu Studio `DevFan.h` `FAN_INNNER_LOOP_FAN_0_IDX = 6` — part id `96` is `0x60`, type bits `0` (fan) and fan index `6`, so this part is a fan, not a damper
 
 #### zone_part_fan_percent
 - **Type**: `int`
@@ -1817,13 +1830,14 @@ All fan speeds are scaled 0-100%.
 - **Valid Range**: `0-100`
 - **Unit**: %
 - **Purpose**: Exhaust fan zone control
+- **Override**: kept as injected when [`BambuConfig.external_exhaust_fan`](#external_exhaust_fan) is True
 - **Reference**: BambuStudio zone mapping
 
 #### zone_top_vent_open
 - **Type**: `bool`
-- **Telemetry**: Computed from `zone_exhaust_percent > 0 and not zone_intake_open`
+- **Telemetry**: Computed from `zone_exhaust_percent > 0`
 - **Purpose**: Top vent open state (derived)
-- **Reference**: Logic derived from BambuStudio behavior
+- **Reference**: Bambu H2 cooling fan system wiki: the Automatic Top Vent (inlet) and the Active Chamber Exhaust Grille (outlet) open together whenever the Chamber Exhaust Fan runs, and close in heating mode
 
 ### Door/Lid Sensors
 
@@ -2084,6 +2098,13 @@ Details of the associated project (3MF file) including metadata and identificati
 - **Usage**: Drives UI plate selection and validation for multi-plate projects; `get_all_project_info()` iterates it to fetch every plate in one call
 - **Reference**: Parsed from the `Metadata/plate_*.json` entries present in the 3mf zip
 
+#### partial
+- **Type**: `bool`
+- **Default**: `False`
+- **Purpose**: True when the project was read from the job the printer is running, over its `:6000` file tunnel, because the `.3mf` itself is out of reach: Studio's "Print Plate" on an H2 series or P2S keeps the file in the internal eMMC cache, which FTPS cannot read
+- **When set**: `id` is `mem:/16`, not an SD card path, and `metadata` holds only `thumbnail`, `filament` and `filament_extruders`. It has no `map` (so no `bbox_objects`), `topimg`, `ams_mapping`, `physical_extruder_map`, `external_spool_trays` or `slicer_settings`. BPA keeps its skip-objects button off because `topimg` is absent
+- **Reference**: Built by [`job_project_info()`](reference/bpm/bambuproject.md#bpm.bambuproject.job_project_info)
+
 ---
 
 ## ActiveJobInfo
@@ -2100,9 +2121,9 @@ Details of the currently active job running on the printer, including progress, 
 - **Default**: `ProjectInfo()` (empty instance)
 - **Purpose**: The 3MF details for the active job
 - **Reference**: See [ProjectInfo](#projectinfo) section
-- **Update**: Populated via [`get_project_info()`](reference/bpm/bambuproject.md#bpm.bambuproject.get_project_info) method
+- **Update**: Populated via [`get_project_info()`](reference/bpm/bambuproject.md#bpm.bambuproject.get_project_info) method. When the FTPS lookups find nothing on an H2 series or P2S and the layer count is known, a background thread reads the running job's project over the file tunnel with [`job_project_info()`](reference/bpm/bambuproject.md#bpm.bambuproject.job_project_info) and sets a `partial` `ProjectInfo`. It is accepted only when its plate and layer count match the job, since the printer can still hold the previous job's project while a new one prepares. A miss is retried once, when the job reaches `RUNNING`. The result is not persisted in the job record. An A1 or P1 never opens the tunnel, because their port 6000 is the camera
 - **Note**: A new job that arrives with no `project_file` frame (a touchscreen start) empties `project_info` and resets `project_info_fetch_attempted` and `plate_num_assumed` as it enters `PREPARE` or `RUNNING`, so the job before's project never carries over. When `gcode_state` transitions to `PREPARE` or `RUNNING` with `project_info` empty (typically after a process restart), BPM first tries the persisted job record, then a fallback FTP lookup that searches the SD card 3MF file list by `subtask_name` and calls `get_project_info()`. Guarded by `project_info_fetch_attempted` to prevent repeated FTP calls on every MQTT push_status message.
-- **Persisted job record** (GH #59): a job started at the printer's screen reports an empty `subtask_name`, so the name lookup cannot find it. Every successful `project_file` frame therefore clears the previous record and the previous job's `project_info` (and resets `project_info_fetch_attempted`, so the new job gets its own name lookup), and, when bpm can read the file, writes a new one to `<bpm_cache_path>/<serial>/job/active.json` (path, md5, plate, `plate_num_assumed`). The name lookup and the metadata cache fallback write the same record for the file they find. An unreadable path, such as the internal eMMC URL `file:///userdata/…` a touchscreen reprint sends, writes no record. A recovery whose fetch fails still falls through to the name lookup. That lookup searches the SD/USB tree by file name: first the file name of the `project_file` `url` (a touchscreen history start sends `file:///userdata/model/history/<file>` and the project title as `subtask_name`, while the same `<file>` often sits on the card), then `subtask_name` itself when it already ends in `.3mf` (an A1 touchscreen start sends no `project_file` and names the file, extension included, as `subtask_name`), then `<subtask_name>.gcode.3mf` and `<subtask_name>.3mf`. The fixed staging name `project_file.gcode.3mf` is never looked up. Once the job is `RUNNING` with a task id and a layer count, the record is sealed with a fingerprint of `task_id`, `gcode_file`, `subtask_name` and `total_layer_num`. After a restart it is used only when that fingerprint matches live telemetry. An unsealed record or any mismatch deletes it and leaves `project_info` empty. The record outlives the job: it is kept through `FINISH` and `FAILED`, so a process that starts while the printer shows an ended job restores that job's `project_info` from it, with no FTPS. For an ended job the match leaves out `gcode_file`, which the A1 reports empty once a job ends. The record is deleted when the printer reports `IDLE`, including as the first status after a start. Known limit: the A1 reports `task_id` `"0"` for every job, so there the other three fields carry the match.
+- **Persisted job record** (GH #59): a job started at the printer's screen reports an empty `subtask_name`, so the name lookup cannot find it. Every successful `project_file` frame therefore clears the previous record and the previous job's `project_info` (and resets `project_info_fetch_attempted`, so the new job gets its own name lookup), and, when bpm can read the file, writes a new one to `<bpm_cache_path>/<serial>/job/active.json` (path, md5, plate, `plate_num_assumed`). The name lookup and the metadata cache fallback write the same record for the file they find. An unreadable path, such as the internal eMMC URL `file:///userdata/…` a touchscreen reprint sends, writes no record. A recovery whose fetch fails still falls through to the name lookup. That lookup searches the SD/USB tree by file name: first the file name of the `project_file` `url` (a touchscreen history start sends `file:///userdata/model/history/<file>` and the project title as `subtask_name`, while the same `<file>` often sits on the card), then `subtask_name` itself when it already ends in `.3mf` (an A1 touchscreen start sends no `project_file` and names the file, extension included, as `subtask_name`), then `<subtask_name>.gcode.3mf` and `<subtask_name>.3mf`. The fixed staging name `project_file.gcode.3mf` is never looked up. Once the job is `RUNNING` with a task id and a layer count, the record is sealed with a fingerprint of `task_id`, `gcode_file`, `subtask_name` and `total_layer_num`. After a restart it is used only when that fingerprint matches live telemetry. An unsealed record or any mismatch deletes it and leaves `project_info` empty. The record outlives the job: it is kept through `FINISH` and `FAILED`, so a process that starts while the printer shows an ended job restores that job's `project_info` from it, with no FTPS. It stops trying once a `project_file` frame announces the next job, which the printer can send while still reporting `FINISH`, so the new job keeps its own name lookup. For an ended job the match leaves out `gcode_file`, which the A1 reports empty once a job ends. The record is deleted when the printer reports `IDLE`, including as the first status after a start. Known limit: the A1 reports `task_id` `"0"` for every job, so there the other three fields carry the match.
 
 #### project_info_fetch_attempted
 - **Type**: `bool`
@@ -2672,6 +2693,8 @@ state population or metadata derivation.
 | [`get_3mf_entry_by_id(node, target_id)`](reference/bpm/bambuproject.md#bpm.bambuproject) | `bambuproject.py` | Locate 3MF tree node by identifier |
 | [`get_project_info(...)`](reference/bpm/bambuproject.md#bpm.bambuproject.get_project_info) | `bambuproject.py` | Build [`ProjectInfo`](reference/bpm/bambuproject.md#bpm.bambuproject.ProjectInfo) from printer or local 3MF source |
 | [`get_all_project_info(...)`](reference/bpm/bambuproject.md#bpm.bambuproject.get_all_project_info) | `bambuproject.py` | Build one `ProjectInfo` per plate in a 3MF in a single call |
+| [`job_project_info(...)`](reference/bpm/bambuproject.md#bpm.bambuproject.job_project_info) | `bambuproject.py` | Build a partial `ProjectInfo` for the running job over the `:6000` file tunnel, for a job whose `.3mf` FTPS cannot read |
+| `FileTunnel` (`project_member(member)`) | `filetunnel.py` | Read-only `:6000` client: login, setup and one `FILE_DOWNLOAD` of `mem:/16`; raises `FileTunnelError` on a refusal, bad checksum or timeout |
 | [`BambuState.fromJson(data, printer)`](reference/bpm/bambustate.md#bpm.bambustate.BambuState.fromJson) | `bambustate.py` | Primary state parser mapping MQTT payloads to dataclasses |
 
 ### Disk-Persistence Framework (`bambutools.py`)
@@ -2733,8 +2756,8 @@ surface area and links each area to its documentation section.
 | [`BambuConfig`](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig) | [`__post_init__`](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig.__post_init__), [`set_new_bpm_cache_path`](reference/bpm/bambuconfig.md#bpm.bambuconfig.BambuConfig.set_new_bpm_cache_path) |
 | [`BambuState`](reference/bpm/bambustate.md#bpm.bambustate.BambuState) | [`fromJson`](reference/bpm/bambustate.md#bpm.bambustate.BambuState.fromJson) |
 | [`NozzleCharacteristics`](reference/bpm/bambustate.md#bpm.bambustate.NozzleCharacteristics) | `from_telemetry` (classmethod), `to_identifier` |
-| `bambuproject` | `get_3mf_entry_by_name`, `get_3mf_entry_by_id`, [`get_project_info`](reference/bpm/bambuproject.md#bpm.bambuproject.get_project_info), [`get_all_project_info`](reference/bpm/bambuproject.md#bpm.bambuproject.get_all_project_info) |
-| [`get_project_info`](reference/bpm/bambuproject.md#bpm.bambuproject.get_project_info) internal helpers | `get_nodes_by_plate_id`, `_split_config_list`, `_extract_list_from_config`, `_extract_list_from_gcode_header`, `_read_gcode_config_block`, `_to_int_list`, `_attach_external_spool_trays`, `_normalize_hex_color`, `_ensure_ams_mapping` |
+| `bambuproject` | `get_3mf_entry_by_name`, `get_3mf_entry_by_id`, [`get_project_info`](reference/bpm/bambuproject.md#bpm.bambuproject.get_project_info), [`get_all_project_info`](reference/bpm/bambuproject.md#bpm.bambuproject.get_all_project_info), [`job_project_info`](reference/bpm/bambuproject.md#bpm.bambuproject.job_project_info), module helpers `get_nodes_by_plate_id`, `_to_int_list` |
+| [`get_project_info`](reference/bpm/bambuproject.md#bpm.bambuproject.get_project_info) internal helpers | `_split_config_list`, `_extract_list_from_config`, `_extract_list_from_gcode_header`, `_read_gcode_config_block`, `_attach_external_spool_trays`, `_normalize_hex_color`, `_ensure_ams_mapping` |
 
 ### [`BambuPrinter`](reference/bpm/bambuprinter.md#bpm.bambuprinter.BambuPrinter) Public Methods
 
